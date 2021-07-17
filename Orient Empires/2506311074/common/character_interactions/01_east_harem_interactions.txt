@@ -1,0 +1,200 @@
+east_find_concubine = {
+	category = interaction_category_diplomacy
+
+	desc = find_concubine_desc
+
+	interface = concubine_list
+
+	needs_recipient_to_open = no
+
+	redirect = {
+		scope:actor = { # The UI will open to the already filled left first if we don't tell it we've got "our side" actor which is always ourselves
+			save_scope_as = secondary_actor
+		}
+	}
+
+	populate_recipient_list = {
+		scope:actor = {
+			every_courtier_or_guest = {
+				limit = {
+					can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+				}
+				add_to_list = characters
+			}
+			
+			every_prisoner = {
+				limit = {
+					NOT = { is_in_list = characters }
+					can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+				}
+				add_to_list = characters
+			}
+		}
+	}
+
+	is_shown = {
+		scope:actor = {
+			OR = {
+				has_title = title:e_celestia
+				has_title = title:e_song
+			}
+			is_adult = yes
+			trigger_if = { #So that we show the recipient list, but can also only use this on ourselves, we have to do this check in the beginning
+				limit = {
+					NOT = { exists = scope:secondary_recipient }
+				}
+				scope:actor = scope:recipient
+			}
+		}
+		trigger_if = {
+			limit = {
+				NOT = { scope:actor = scope:recipient }
+			}
+			scope:actor = {
+				sex_opposite_of = scope:recipient
+				NOT = { relation_with_character_is_incestuous_in_my_faith_trigger = { CHARACTER = scope:recipient } }
+			}
+			scope:recipient = {
+				can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+				is_adult = yes
+				OR = {
+					is_imprisoned_by = scope:actor
+					is_courtier_of = scope:actor
+				}
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		
+		custom_description = {
+			text = take_concubine_available_character_opp
+			object = scope:actor
+			scope:actor = {
+				OR = {
+					any_courtier = {
+						can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+					}
+					any_prisoner = {
+						can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+					}
+				}
+			}
+		}
+		trigger_if = {
+			limit = {
+				NOT = { scope:actor = scope:recipient }
+			}
+			scope:recipient = {
+				can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+			}
+		}
+	}
+
+	can_be_picked = {
+		is_adult = yes
+	}
+
+	auto_accept = yes
+
+	ai_will_do = {
+		base = 0
+	}
+	
+	on_accept = {
+		trigger_event = marriage_interaction.0040
+		scope:secondary_actor = {
+			hidden_effect = {
+				send_interface_toast = {
+					type = event_generic_neutral
+					title = msg_concubine_taken_title
+					right_icon = scope:recipient
+					make_concubine = scope:recipient
+				}
+			}
+		}
+	}
+}
+east_find_minjian_concubine = {
+	category = interaction_category_friendly
+	#common_interaction = yes
+	greeting = positive
+	#icon = "great_misit.dds"	
+	desc = east_find_minjian_concubine_desc
+	needs_recipient_to_open = yes
+	cooldown = { days = 100 }
+	populate_actor_list = {
+		scope:actor = {
+			scope:actor = {
+				every_vassal = {
+					limit = {
+						any_courtier = {
+							can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+							age < 30 
+						}
+					}
+					add_to_list = characters
+				}
+			}
+		}
+	}
+	is_shown = {
+		scope:recipient = scope:actor
+		scope:actor = {
+			OR = {
+				has_title = title:e_celestia
+				has_title = title:e_song
+			}
+			is_adult = yes
+			
+		}
+	}
+	has_valid_target_showing_failures_only = {
+		scope:secondary_actor = {
+			is_incapable = no
+		}
+		scope:actor = {
+			is_incapable = no
+			NOT = { has_relation_hm_kingsguards = scope:secondary_actor }
+		}
+	}
+	
+
+	on_accept = {
+		scope:secondary_actor = {
+			random_courtier = {
+				limit = {
+					can_become_concubine_of_character_trigger = { CHARACTER = scope:actor }
+					age < 30 
+				}
+				save_scope_as = new_concubine
+				trigger_event = marriage_interaction.0040
+				
+			}
+			scope:actor = {
+				recruit_courtier = scope:new_concubine
+				hidden_effect = {
+					send_interface_toast = {
+						type = event_generic_neutral
+						#title = msg_concubine_taken_title
+						right_icon = scope:new_concubine
+						make_concubine = scope:new_concubine
+					}
+				}	 
+			}
+			
+		}
+		
+	}
+
+	auto_accept = yes
+
+	ai_will_do = {
+		base = 0
+	}
+	
+	
+		
+		
+}
+

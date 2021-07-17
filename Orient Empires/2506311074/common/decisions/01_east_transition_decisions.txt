@@ -1,0 +1,424 @@
+#归化
+convert_to_imperialism_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_to_imperialism_decision_desc
+	
+	ai_check_interval = 36
+	
+	is_shown = {
+		has_government = tribal_government
+		any_liege_or_above = { 
+			has_culture_group = culture_group:chinese_group
+		 }
+	}
+	
+	is_valid = {
+		has_realm_law = tribal_authority_3
+		any_liege_or_above = { 
+			has_culture_group = culture_group:chinese_group
+		 }
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 3
+	}
+	
+	cost = {
+		prestige = 450
+	}
+	
+	effect = {
+		change_government = imperial_government
+		trigger_event = major_decisions.0001
+		add_realm_law_skip_effects = crown_authority_0
+	}
+	
+	ai_potential = {
+		#always = yes
+	}
+	
+	ai_will_do = {
+		base = 100
+		modifier = { #Go for the more lenient decision if this is the case
+			add = -100
+			liege = { has_government = feudal_government }  
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 100
+			liege = { has_government = imperial_government } 
+		}
+	}
+}
+
+
+convert_to_corps_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_to_corps_decision_desc
+	
+	ai_check_interval = 37
+	
+	is_shown = {
+		has_government = tribal_government
+		highest_held_title_tier < tier_empire
+		any_liege_or_above = { 
+			has_culture_group = culture_group:chinese_group
+		 }
+	}
+	
+	is_valid = {
+		highest_held_title_tier < tier_empire
+		has_realm_law = tribal_authority_3
+		any_liege_or_above = { 
+			has_culture_group = culture_group:chinese_group
+		 }
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 3
+	}
+	
+	cost = {
+		prestige = 550
+	}
+	
+	effect = {
+		change_government = corps_government
+		trigger_event = major_decisions.0001
+		add_realm_law_skip_effects = crown_authority_0
+	}
+	
+	ai_potential = {
+		always = yes
+	}
+	
+	ai_will_do = {
+		base = 100
+		modifier = { #Go for the more lenient decision if this is the case
+			add = -100
+			liege = { has_government = feudal_government }  
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+		add = 100
+		liege = { has_government = imperial_government } 
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+		add = 200
+		liege = { has_government = corps_government } 
+		}
+	}
+}
+
+
+#
+convert_to_imperialism_liege_converted_decision = { #
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_to_imperialism_liege_converted_decision_desc
+
+	ai_check_interval = 36
+
+	is_shown = {
+		has_government = tribal_government
+		any_liege_or_above = { 
+			has_culture_group = culture_group:chinese_group
+		}
+		liege = {
+			OR = {
+				has_government = imperial_government
+				has_government = corps_government
+				has_government = bureau_government
+			}
+		}
+	}
+
+	is_valid = {
+		OR = {
+			has_realm_law = tribal_authority_1
+			has_realm_law = tribal_authority_2
+			has_realm_law = tribal_authority_3
+		}
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		any_liege_or_above = { 
+			has_culture_group = culture_group:chinese_group
+		}
+	}
+
+	cost = {
+		prestige = 550
+	}
+
+	effect = {
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		convert_whole_realm_to_feudalism_effect = yes
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 100
+			liege = { has_government = imperial_government } 
+		}
+	}
+}
+
+#
+convert_whole_realm_to_imperialism_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_whole_realm_to_imperialism_decision_desc
+
+	ai_check_interval = 36
+
+	is_shown = {
+		highest_held_title_tier < tier_empire
+		has_government = tribal_government
+		OR = {
+			is_independent_ruler = yes
+			AND = {
+				is_independent_ruler = no
+				liege = {
+					NOR = {
+						has_government = bureau_government
+						has_government = republic_government
+					}
+				}
+			}
+		}
+	}
+
+	is_valid = {
+		highest_held_title_tier < tier_empire
+		has_realm_law = tribal_authority_3
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 2
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+
+		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
+			text = has_all_tribal_innovations
+			subject = root.culture
+			culture = {
+				calc_true_if = {
+					amount >= 9
+					has_innovation = innovation_motte
+					has_innovation = innovation_catapult
+					has_innovation = innovation_barracks
+					has_innovation = innovation_mustering_grounds
+					has_innovation = innovation_bannus
+					has_innovation = innovation_quilted_armor
+					has_innovation = innovation_gavelkind
+					has_innovation = innovation_crop_rotation
+					has_innovation = innovation_city_planning
+					has_innovation = innovation_casus_belli
+					has_innovation = innovation_plenary_assemblies
+					has_innovation = innovation_ledger
+					has_innovation = innovation_development_01
+					has_innovation = innovation_currency_01
+				}
+			}
+		}
+	}
+
+	cost = {
+		prestige = 200
+	}
+
+	effect = {
+		change_government = corps_government
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		convert_whole_realm_to_feudalism_effect = yes
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	ai_potential = {
+		NOT = { has_title = title:e_mongol_empire } #Stop the Mongols from slowing their conquest.
+	}
+
+	ai_will_do = {
+		base = 100
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 200
+			liege = { has_government = imperial_government } 
+		}
+	}
+}
+
+#采纳帝国律令
+adopt_imperial_government_decision = {
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	ai_check_interval = 60
+
+	desc = adopt_imperial_government_decision_desc
+	selection_tooltip = adopt_imperial_government_decision_tooltip
+
+	is_shown = {
+		has_government = corps_government
+		has_government = feudal_government
+	}
+
+	is_valid = {
+		completely_controls = title:d_heluo
+		completely_controls = title:d_biansong
+		completely_controls = title:d_xijing
+	}
+
+	is_valid_showing_failures_only = {
+
+		is_at_war = no
+
+	}
+
+	effect = {
+		change_government = imperial_government
+	}
+	
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+
+#文官转律令
+transfer_to_imperialism_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_to_imperialism_decision_desc
+	
+	ai_check_interval = 36
+	
+	is_shown = {
+		OR = {
+			has_government = corps_government
+			has_government = bureau_government
+		}
+		AND = {
+			is_independent_ruler = yes
+			highest_held_title_tier >= tier_duchy
+		}
+	}
+	
+	is_valid = {
+		OR = {
+			has_government = corps_government
+			has_government = bureau_government
+		}
+		AND = {
+			is_independent_ruler = yes
+			highest_held_title_tier >= tier_duchy
+		}
+		prestige_level >= 3
+	}
+	
+	cost = {
+		prestige = 450
+	}
+	
+	effect = {
+		change_government = imperial_government
+		trigger_event = major_decisions.0001
+		add_realm_law_skip_effects = crown_authority_0
+	}
+	
+	ai_potential = {
+		#always = yes
+	}
+	
+	ai_will_do = {
+		base = 100
+	}
+}
+
+#文官转军镇
+transfer_to_corps_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_to_corps_decision_desc
+	
+	ai_check_interval = 38
+	
+	is_shown = {
+		OR = {
+			has_government = imperial_government
+			has_government = bureau_government
+		}
+		AND = {
+			is_independent_ruler = yes
+			highest_held_title_tier >= tier_duchy
+		}
+		NOT = {
+			has_title = title:e_celestia
+		}
+	}
+	
+	is_valid = {
+		OR = {
+			has_government = imperial_government
+			has_government = bureau_government
+		}
+		AND = {
+			is_independent_ruler = yes
+			highest_held_title_tier >= tier_duchy
+		}
+		prestige_level >= 3
+		NOT = {
+			has_title = title:e_celestia
+		}
+	}
+	
+	cost = {
+		prestige = 550
+	}
+	
+	effect = {
+		change_government = corps_government
+	}
+	
+	ai_potential = {
+		always = yes
+	}
+	
+	ai_will_do = {
+		base = 100
+	}
+}

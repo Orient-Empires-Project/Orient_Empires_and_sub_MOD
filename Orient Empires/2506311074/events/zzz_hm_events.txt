@@ -1,0 +1,387 @@
+namespace = HM
+
+HM.0051 = {
+	type = character_event
+	title = HM.0051.t
+	#sender = scope:invited_character
+	desc = {
+		desc = HM.0051.desc
+	}
+	left_portrait = scope:great_misit
+	override_background = {
+		event_background = throne_room
+	}
+	trigger = {
+		OR = {
+			AND = {
+				has_trait = great_misit
+				liege = {
+					NOT = { has_relation_great_misit = root }
+				}	
+			}
+			NOT = { has_trait = great_misit }
+		}
+		#NOT = { has_trait = great_misit }
+		OR = {
+			AND = {
+				has_trait = great_misit
+				liege = {
+					NOT = { has_relation_great_misit = root }
+				}	
+			}
+			NOT = { has_trait = great_misit }
+		}
+		NOT = { has_character_flag = xibixibi }
+		highest_held_title_tier > tier_county
+		sub_realm_size >= 40
+		is_ai = no
+		is_independent_ruler = no
+		#faith = { religion_tag = hm_religion }
+	}
+	immediate = {
+		save_scope_as = great_misit
+		play_music_cue_once = { TRACK = Deus_Non_Vult }
+		add_character_flag = xibixibi
+	}
+	option = {
+		name = HM.0051.a
+		trigger = {
+			liege = {
+				NOT = { 
+					any_vassal = { 
+							is_powerful_vassal = yes
+							is_ai = yes
+							sub_realm_size >= 10
+						} 
+				
+				}	
+			}
+		}
+		liege = {
+			save_scope_as = great_misit_liege
+		}
+		if = {
+			limit = {
+				NOT = { has_variable = misit_power }
+			}
+			set_variable = {
+				name = misit_power
+				value = 0
+			}
+		}
+		trigger_event = {
+			on_action = great_misit_ongoing
+			days = { 720 1280 }
+		}
+		add_trait = great_misit
+		#great_misit_chronicle_effect = yes
+		set_relation_great_misit_liege = liege
+		
+		liege = {
+			set_relation_great_misit = root
+			if = {
+				limit = {
+					NOT = { has_variable = misit_liege_power }
+				}
+				set_variable = {
+						name = misit_liege_power
+						value = 0
+				}
+			}
+		}
+		if = {
+			limit = {
+				NOT = { has_variable = misit_power }
+			}
+			set_variable = {
+					name = misit_power
+					value = 0
+			}
+		}
+		misit_power_value_effact = yes
+	}
+	option = {
+		name = HM.0051.b
+		trigger = {
+			liege = {
+					any_vassal = { 
+							is_powerful_vassal = yes
+							is_ai = yes
+							sub_realm_size >= 10
+							is_adult = yes
+					} 
+					
+			}
+		}
+		save_scope_as = baoansi
+		liege = {
+			save_scope_as = cuidaixing
+			random_vassal = { 
+				limit = { 
+					is_powerful_vassal = yes
+					sub_realm_size >= 10
+					is_adult = yes
+					is_ai = yes
+				}
+				save_scope_as = shoujingsi
+			}
+		}
+		trigger_event = {
+			id = great_misit.0034
+			days = 3
+		}
+	}
+}
+HM.0052 = {
+	type = character_event
+	title = HM.0051.t
+	#sender = scope:invited_character
+	desc = {
+		desc = HM.0051.desc
+	}
+	left_portrait = scope:great_misit
+	override_background = {
+		event_background = throne_room
+	}
+	trigger = {
+		is_great_misit_trigger = yes 
+	}
+	immediate = {
+		save_scope_as = great_misit
+		set_relation_great_misit_liege = liege
+		#great_misit_chronicle_effect = yes
+		liege = {
+			save_scope_as = great_misit_liege
+			set_relation_great_misit = root
+			if = {
+				limit = {
+					NOT = { has_variable = misit_liege_power }
+				}
+				set_variable = {
+						name = misit_liege_power
+						value = 0
+				}
+			}
+		}
+	}
+	option = {
+		name = HM.0051.a
+		misit_power_value_effact = yes
+	}	
+}
+HM.0053 = {
+	type = character_event
+	hidden = yes
+	trigger = {
+		has_variable = misit_power
+		#is_landed = yes
+	}
+	immediate = {
+		if = {
+			limit = { exists = designated_heir }
+			designated_heir = {
+				if = {
+					limit = {
+						NOT = { has_variable = misit_power }
+					}
+					set_variable = {
+						name = misit_power
+						value = 0
+					}
+				}
+				add_trait = great_misit
+				#great_misit_chronicle_effect = yes
+				trigger_event = {
+					id = HM.0057
+					days = 3
+				}
+				set_relation_great_misit_liege = root.liege
+				root.liege = {
+					set_relation_great_misit = root.designated_heir
+					if = {
+						limit = {
+							NOT = { has_variable = misit_liege_power }
+						}
+						set_variable = {
+								name = misit_liege_power
+								value = 0
+						}
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { exists = primary_heir }
+			primary_heir = {
+				if = {
+					limit = {
+						NOT = { has_variable = misit_power }
+					}
+					set_variable = {
+						name = misit_power
+						value = 0
+					}
+				}
+				set_relation_great_misit_liege = root.liege
+				add_trait = great_misit
+				#great_misit_chronicle_effect = yes
+				root.liege = {
+					set_relation_great_misit = root.primary_heir
+					if = {
+						limit = {
+							NOT = { has_variable = misit_liege_power }
+						}
+						set_variable = {
+								name = misit_liege_power
+								value = 0
+						}
+					}
+				}
+				
+			}
+		}
+	}
+}
+HM.0054 = {
+	type = character_event
+	title = HM.0054.t
+	#sender = scope:invited_character
+	desc = {
+		desc = HM.0054.desc
+	}
+	left_portrait = scope:great_misit
+	override_background = {
+		event_background = throne_room
+	}
+	trigger = {
+		has_variable = misit_liege_power
+	}
+	immediate = {
+		every_vassal= { 
+			limit = { is_great_misit_trigger = yes }
+			save_scope_as = great_misit
+			trigger_event = {
+					id = HM.0057
+					days = 3
+			}
+		} 	
+	}
+	option = {
+		name = HM.0054.a
+	}	
+}
+HM.0055 = {
+	type = character_event
+	title = HM.0055.t
+	#sender = scope:invited_character
+	desc = {
+		desc = HM.0055.desc
+	}
+	left_portrait = scope:great_misit
+	override_background = {
+		event_background = throne_room
+	}
+	trigger = {
+		is_great_misit_trigger = yes
+		scope:title.tier > tier_county
+		OR = {
+					scope:transfer_type = flag:created
+					scope:transfer_type = flag:usurped
+					scope:transfer_type = flag:conquest_claim
+		}
+	}
+	option = {
+		name = HM.0055.a
+		change_variable = { name = misit_power add = 10 }
+	}	
+}
+HM.0056 = {
+	type = character_event
+	title = HM.0056.t
+	#sender = scope:invited_character
+	desc = {
+		desc = HM.0056.desc
+	}
+	left_portrait = scope:great_misit
+	override_background = {
+		event_background = throne_room
+	}
+	trigger = {
+		is_great_misit_trigger = yes
+	}
+	option = {
+		name = HM.0056.a
+			scope:war = {
+				add_defender = root
+			}
+		change_variable = { name = misit_power add = 10 }
+	}	
+	option = {
+		name = HM.0056.b
+	}
+}
+HM.0057 = {
+	type = character_event
+	title = HM.0054.t
+	#sender = scope:invited_character
+	desc = {
+		desc = HM.0054.desc
+	}
+	left_portrait = scope:great_misit
+	override_background = {
+		event_background = throne_room
+	}
+	trigger = {
+		is_great_misit_trigger = yes
+	}
+	immediate = {
+		play_music_cue_once = { TRACK = Deus_Non_Vult }
+		set_relation_great_misit_liege = liege
+		#great_misit_chronicle_effect = yes
+		trigger_event = {
+			on_action = great_misit_ongoing
+			days = { 720 1280 }
+		}
+		liege = {
+			set_relation_great_misit = root
+			if = {
+				limit = {
+					NOT = { has_variable = misit_liege_power }
+				}
+				set_variable = {
+						name = misit_liege_power
+						value = 0
+				}
+			}
+		}
+	}
+	option = {
+		name = HM.0054.a
+		misit_power_prestige_level_value_effact = yes
+	}	
+}
+HM.0058 = {
+	type = character_event
+	title = HM.0056.t
+	#sender = scope:invited_character
+	desc = {
+		desc = HM.0058.desc
+	}
+	left_portrait = scope:great_misit
+	override_background = {
+		event_background = throne_room
+	}
+	trigger = {
+		is_great_misit_trigger = yes
+	}
+	option = {
+		name = HM.0056.a
+			scope:war = {
+				add_attack = root
+			}
+		change_variable = { name = misit_power add = 10 }
+	}	
+	option = {
+		name = HM.0056.b
+	}
+}

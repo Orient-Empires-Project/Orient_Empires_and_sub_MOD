@@ -1,0 +1,2018 @@
+on_game_start = {  #by 糜三小姐
+	on_actions = {
+		east_on_game_start_effects
+	}
+}	
+east_on_game_start_effects = {	
+	effect = {
+		religion:confucianism_religion = {
+			every_faith = {
+				every_holy_site = {
+					title_province = {
+						add_special_building_slot = holy_site_wenmiao_01
+						add_special_building = holy_site_wenmiao_01
+					}
+				}
+			}
+		}
+	}
+}	
+on_game_start_after_lobby = {  #by 糜三小姐
+	on_actions = {
+		east_on_after_lobby_effects
+	}
+}	
+	
+	
+	east_on_after_lobby_effects = {	
+		effect = {
+
+			every_ruler = {  #腐化
+				if = {
+					limit = {
+						has_culture = culture:han
+						AND = {
+							top_liege = { has_primary_title = title:e_celestia }
+							NOT = { has_government = tribal_government }
+						}
+						current_date >= 763.1.1
+						current_date <= 980.1.1	
+					}
+					every_realm_county = {
+					add_county_modifier = county_corruption_inefficient_tax_collection_modifier
+					add_county_modifier = county_corruption_inefficient_census_modifier
+					}
+				}
+
+				if = { #兵士逃亡
+					limit = {
+						has_culture = culture:han
+						OR ={
+							has_title = title:d_xusi
+							has_title = title:d_guiguan
+							has_title = title:d_yongping							
+						}
+						current_date >= 763.1.1
+						current_date <= 900.1.1	
+					}
+	
+					every_realm_county = {
+					add_county_modifier = county_corruption_deserting_levies_modifier
+					add_county_modifier = county_corruption_lackluster_administration_modifier
+					#change_county_control = 35
+					}
+				}
+
+				if = { #盐帮走私、洪泛
+					limit = {
+						has_culture = culture:han
+						OR ={
+							has_title = title:d_huainan
+							has_title = title:d_huaixi
+							has_title = title:d_chenxu
+							has_title = title:d_pucao
+							has_title = title:d_taining	
+							has_title = title:d_jingxiang
+							has_title = title:d_jingyuan
+							has_title = title:d_fengxiang					
+						}
+						current_date >= 763.1.1
+						current_date <= 920.1.1	
+					}
+	
+					every_realm_county = {
+					add_county_modifier = county_corruption_smuggling_ring_modifier
+					#add_county_modifier = county_corruption_lack_of_sheriffs_modifier	
+					#add_county_modifier = county_corruption_lack_of_courts_modifier
+					add_county_modifier = county_corruption_thieves_guild_modifier
+					add_county_modifier = county_corruption_uncooperative_guilds_modifier
+					#change_county_control = 35
+					}
+				}
+			}
+
+			every_ruler = {
+				If = {
+					limit = {
+						OR = {
+							has_title = title:e_celestia
+							has_title = title:e_song
+							has_title = title:e_tang
+						}	
+					}
+					every_vassal_or_below = { 
+						limit = { 
+							has_government = imperial_government
+						}
+						change_government = bureau_government
+					}
+				}	
+				If = {
+					limit = {
+						has_government = corps_government
+						is_ai = no
+					}
+					add_realm_law_skip_effects = corps_succession_law
+				}
+
+				If = {
+					limit = {
+						has_government = bureau_government
+					}
+					if = { 
+						limit = { NOT = { has_realm_law = official_succession_law } }
+					add_realm_law_skip_effects = official_succession_law
+					}
+				}
+					if = {
+						limit = { 
+							has_culture_group = culture_group:chinese_group
+							is_independent_ruler = no
+							primary_title.tier = tier_duchy
+							current_date >= 763.1.1
+							current_date <= 980.1.1
+							NOR = { 
+								has_primary_title = title:d_chengde
+								has_primary_title = title:d_youzhou
+								has_primary_title = title:d_lulong
+								has_primary_title = title:d_weibo
+								is_ai = no
+							}
+						}
+						#所有非玩家属臣实行男性流官制
+						if = { 
+							limit = { NOT = { has_realm_law = official_succession_law } }
+							add_realm_law_skip_effects = official_succession_law
+						}
+						if = { 
+							limit = { NOT = { has_realm_law = male_only_law } }
+							add_realm_law_skip_effects = male_only_law
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_taxes
+								level = 3
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_levies
+								level = 3
+							}
+						}
+						#vassal_contract_set_obligation_level = {
+						#	type = feudal_government_taxes
+						#	level = 3
+						#}
+						#vassal_contract_set_obligation_level = {
+						#	type = feudal_government_levies
+						#	level = 3
+						#}						
+						every_vassal= { 
+							limit = { primary_title.tier = tier_county }
+							if = {
+								limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+								vassal_contract_set_obligation_level = {
+									type = feudal_government_taxes
+									level = 4
+								}
+							}
+							if = {
+								limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+								vassal_contract_set_obligation_level = {
+									type = feudal_government_levies
+									level = 4
+								}
+							}
+							#vassal_contract_set_obligation_level = {
+							#	type = feudal_government_taxes
+							#	level = 4
+							#}
+							#vassal_contract_set_obligation_level = {
+							#	type = feudal_government_levies
+							#	level = 4
+							#}
+						}
+					}
+
+					if = {
+						limit = { 
+							is_independent_ruler = no
+							current_date > 763.1.1
+							current_date <= 980.1.1
+							OR = { 
+								has_primary_title = title:d_chengde
+								has_primary_title = title:d_youzhou
+								has_primary_title = title:d_weibo
+								has_primary_title = title:d_lulong
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_taxes
+								level = 0
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_levies
+								level = 0
+							}
+						}
+						if = {
+							limit = { 
+								exists = vassal_contract_obligation_level:religious_rights 
+								NOT = { faith = liege.faith }
+							}
+							vassal_contract_set_obligation_level = {
+								type = religious_rights
+								level = 1
+							}
+						}
+						if = {
+							limit = { 
+								exists = vassal_contract_obligation_level:fortification_rights 
+								liege.culture = { has_innovation = innovation_battlements }
+							}
+							vassal_contract_set_obligation_level = {
+								type = fortification_rights
+								level = 1
+							}
+						}
+						if = {
+							limit = { 
+								exists = vassal_contract_obligation_level:special_contract 
+								liege.culture = { has_innovation = innovation_scutage }
+							}
+							vassal_contract_set_obligation_level = {
+								type = special_contract
+								level = 2
+							}
+						}
+						if = {
+							limit = { 
+								exists = vassal_contract_obligation_level:coinage_rights
+								liege.culture = { has_innovation = innovation_currency_02 }
+							}
+							vassal_contract_set_obligation_level = {
+								type = coinage_rights
+								level = 1
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:war_declaration_rights }
+							vassal_contract_set_obligation_level = {
+								type = war_declaration_rights
+								level = 1
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:title_revocation_rights }
+							vassal_contract_set_obligation_level = {
+								type = title_revocation_rights
+								level = 1
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:council_rights }
+							vassal_contract_set_obligation_level = {
+								type = council_rights
+								level = 0
+							}
+						}
+						every_vassal= { 
+							limit = { primary_title.tier = tier_county }
+							if  = {
+								limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+								vassal_contract_set_obligation_level = {
+									type = feudal_government_taxes
+									level = 4
+								}
+							}
+							if  = {
+								limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+								vassal_contract_set_obligation_level = {
+									type = feudal_government_levies
+									level = 4
+								}
+							}
+						}
+					}
+					if = {
+						limit = { 
+							is_independent_ruler = no
+							has_culture_group = culture_group:chinese_group
+							current_date > 763.1.1
+							current_date <= 980.1.1
+							primary_title.tier = tier_county
+							liege = { 
+								is_independent_ruler = yes
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_taxes
+								level = 4
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_levies
+								level = 4
+							}
+						}
+					}
+					if = {
+						limit = { 
+							is_independent_ruler = no
+							has_culture_group = culture_group:chinese_group
+							current_date > 980.1.1
+							liege = { 
+								has_primary_title = title:e_song
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_taxes
+								level = 1
+							}
+						}
+						if = {
+							limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+							vassal_contract_set_obligation_level = {
+								type = feudal_government_levies
+								level = 4
+							}
+						}
+					}
+				}	
+			}
+		}	
+
+
+on_title_gain = {
+	on_actions = {
+		east_on_title_gain_effects
+	}
+}	
+
+east_on_title_gain_effects = { #by 糜三小姐
+	effect = { 
+
+	if = {  # 获得军镇
+		limit = {
+			scope:title.tier < tier_duchy
+			root.highest_held_title_tier < tier_duchy
+			has_culture_group = culture_group:chinese_group
+			liege = { has_government = corps_government }
+			NOT = { has_government = corps_government }
+			can_have_official_succession_law_trigger = yes
+        }
+        change_government = corps_government 
+			if = { 
+				limit = { NOT = { has_realm_law = corps_succession_law } }
+				add_realm_law_skip_effects = corps_succession_law
+			}
+	}
+
+	if = { # 获得官僚
+		limit = {
+			scope:title.tier < tier_duchy	
+			root.highest_held_title_tier < tier_duchy
+			has_culture_group = culture_group:chinese_group
+			liege = {
+				OR = {
+					has_government = imperial_government
+					has_government = bureau_government
+				}
+			}
+			NOT = { has_government = bureau_government }
+			#can_have_official_succession_law_trigger = yes
+        }
+        change_government = bureau_government 
+		if = { 
+			limit = { NOT = { has_realm_law = official_succession_law } }
+			add_realm_law_skip_effects = official_succession_law
+		}
+	}
+
+		if = { # 独立文官转军镇
+		limit = {
+			scope:title.tier >= tier_courty	
+			has_culture_group = culture_group:chinese_group
+			is_independent_ruler = yes
+			has_government = bureau_government
+			#can_have_official_succession_law_trigger = yes
+        }
+        change_government = corps_government 
+		add_realm_law_skip_effects = corps_succession_law
+	}
+
+	if = { # 称王转律令
+		limit = {
+			scope:title.tier >= tier_kingdom
+			is_independent_ruler = no
+			OR = {
+				has_culture_group = culture_group:chinese_group
+				#can_have_tradition_succession_law_trigger = yes
+			}
+        }
+        change_government = imperial_government 
+		if = { 
+			limit = { NOT = { has_realm_law = tradition_succession_law } }
+			add_realm_law_skip_effects = tradition_succession_law
+		}
+	}
+
+	if = { #年号
+		limit = {
+			OR = {
+				scope:title = title:e_celestia
+				scope:title = title:e_song
+			}
+		}
+		remove_character_flag = nianhao_81
+		remove_character_flag = nianhao_1	
+		remove_character_flag = nianhao_2
+		remove_character_flag = nianhao_3
+		remove_character_flag = nianhao_4
+		remove_character_flag = nianhao_5
+		remove_character_flag = nianhao_6
+		remove_character_flag = nianhao_7
+		remove_character_flag = nianhao_8
+		remove_character_flag = nianhao_9
+		remove_character_flag = nianhao_10
+		remove_character_flag = nianhao_11
+		remove_character_flag = nianhao_12
+		remove_character_flag = nianhao_13
+		remove_character_flag = nianhao_14
+		remove_character_flag = nianhao_15
+		remove_character_flag = nianhao_16
+		remove_character_flag = nianhao_17
+		remove_character_flag = nianhao_18
+		remove_character_flag = nianhao_19
+		remove_character_flag = nianhao_20
+		remove_character_flag = nianhao_21
+		remove_character_flag = nianhao_22
+		remove_character_flag = nianhao_23
+		remove_character_flag = nianhao_24
+		remove_character_flag = nianhao_25
+		remove_character_flag = nianhao_26
+		remove_character_flag = nianhao_27
+		remove_character_flag = nianhao_28
+		remove_character_flag = nianhao_29
+		remove_character_flag = nianhao_30
+		remove_character_flag = nianhao_31
+		remove_character_flag = nianhao_32
+		remove_character_flag = nianhao_33
+		remove_character_flag = nianhao_34
+		remove_character_flag = nianhao_35
+		remove_character_flag = nianhao_36
+		remove_character_flag = nianhao_37
+		remove_character_flag = nianhao_38
+		remove_character_flag = nianhao_39
+		remove_character_flag = nianhao_40
+		remove_character_flag = nianhao_41
+		remove_character_flag = nianhao_42
+		remove_character_flag = nianhao_43
+		remove_character_flag = nianhao_44
+		remove_character_flag = nianhao_45
+		remove_character_flag = nianhao_46
+		remove_character_flag = nianhao_47
+		remove_character_flag = nianhao_48
+		remove_character_flag = nianhao_49
+		remove_character_flag = nianhao_50
+		remove_character_flag = nianhao_51
+		remove_character_flag = nianhao_52
+		remove_character_flag = nianhao_53
+		remove_character_flag = nianhao_54
+		remove_character_flag = nianhao_55
+		remove_character_flag = nianhao_56
+		remove_character_flag = nianhao_57
+		remove_character_flag = nianhao_58
+		remove_character_flag = nianhao_59
+		remove_character_flag = nianhao_60
+		remove_character_flag = nianhao_61
+		remove_character_flag = nianhao_62
+		remove_character_flag = nianhao_63
+		remove_character_flag = nianhao_64
+		remove_character_flag = nianhao_65
+		remove_character_flag = nianhao_66
+		remove_character_flag = nianhao_67
+		remove_character_flag = nianhao_68
+		remove_character_flag = nianhao_69
+		remove_character_flag = nianhao_70
+		remove_character_flag = nianhao_71
+		remove_character_flag = nianhao_72
+		remove_character_flag = nianhao_73
+		remove_character_flag = nianhao_74
+		remove_character_flag = nianhao_75
+		remove_character_flag = nianhao_76
+		remove_character_flag = nianhao_77
+		remove_character_flag = nianhao_78
+		remove_character_flag = nianhao_79
+		remove_character_flag = nianhao_80
+		random_list = {
+			1 = {
+				add_character_flag = nianhao_1
+			}
+			1 = {
+				add_character_flag = nianhao_2
+			}
+			1 = {
+				add_character_flag = nianhao_3
+			}
+			1 = {
+				add_character_flag = nianhao_4
+			}
+			1 = {
+				add_character_flag = nianhao_5
+			}
+			1 = {
+				add_character_flag = nianhao_6
+			}
+			1 = {
+				add_character_flag = nianhao_7
+			}
+			1 = {
+				add_character_flag = nianhao_8
+			}
+			1 = {
+				add_character_flag = nianhao_9
+			}
+			1 = {
+				add_character_flag = nianhao_10
+			}
+			1 = {
+				add_character_flag = nianhao_11
+			}
+			1 = {
+				add_character_flag = nianhao_12
+			}	
+			1 = {
+				add_character_flag = nianhao_13
+			}
+			1 = {
+				add_character_flag = nianhao_14
+			}
+			1 = {
+				add_character_flag = nianhao_15
+			}
+			1 = {
+				add_character_flag = nianhao_16
+			}
+			1 = {
+				add_character_flag = nianhao_17
+			}	
+			1 = {
+				add_character_flag = nianhao_18
+			}
+			1 = {
+				add_character_flag = nianhao_19
+			}
+			1 = {
+				add_character_flag = nianhao_20
+			}
+			1 = {
+				add_character_flag = nianhao_21
+			}
+			1 = {
+				add_character_flag = nianhao_22
+			}	
+			1 = {
+				add_character_flag = nianhao_23
+			}
+			1 = {
+				add_character_flag = nianhao_24
+			}
+			1 = {
+				add_character_flag = nianhao_25
+			}
+			1 = {
+				add_character_flag = nianhao_26
+			}
+			1 = {
+				add_character_flag = nianhao_27
+			}	
+			1 = {
+				add_character_flag = nianhao_28
+			}
+			1 = {
+				add_character_flag = nianhao_29
+			}
+			1 = {
+				add_character_flag = nianhao_30
+			}
+			1 = {
+				add_character_flag = nianhao_31
+			}
+			1 = {
+				add_character_flag = nianhao_32
+			}	
+			1 = {
+				add_character_flag = nianhao_33
+			}
+			1 = {
+				add_character_flag = nianhao_34
+			}
+			1 = {
+				add_character_flag = nianhao_35
+			}
+			1 = {
+				add_character_flag = nianhao_36
+			}
+			1 = {
+				add_character_flag = nianhao_37
+			}	
+			1 = {
+				add_character_flag = nianhao_38
+			}
+			1 = {
+				add_character_flag = nianhao_39
+			}
+			1 = {
+				add_character_flag = nianhao_40
+			}
+			1 = {
+				add_character_flag = nianhao_41
+			}
+			1 = {
+				add_character_flag = nianhao_42
+			}	
+			1 = {
+				add_character_flag = nianhao_43
+			}
+			1 = {
+				add_character_flag = nianhao_44
+			}
+			1 = {
+				add_character_flag = nianhao_45
+			}
+			1 = {
+				add_character_flag = nianhao_46
+			}
+			1 = {
+				add_character_flag = nianhao_47
+			}	
+			1 = {
+				add_character_flag = nianhao_48
+			}
+			1 = {
+				add_character_flag = nianhao_49
+			}
+			1 = {
+				add_character_flag = nianhao_50
+			}
+			1 = {
+				add_character_flag = nianhao_51
+			}
+			1 = {
+				add_character_flag = nianhao_52
+			}	
+			1 = {
+				add_character_flag = nianhao_53
+			}
+			1 = {
+				add_character_flag = nianhao_54
+			}
+			1 = {
+				add_character_flag = nianhao_55
+			}
+			1 = {
+				add_character_flag = nianhao_56
+			}
+			1 = {
+				add_character_flag = nianhao_57
+			}	
+			1 = {
+				add_character_flag = nianhao_58
+			}
+			1 = {
+				add_character_flag = nianhao_59
+			}
+			1 = {
+				add_character_flag = nianhao_60
+			}
+			1 = {
+				add_character_flag = nianhao_61
+			}
+			1 = {
+				add_character_flag = nianhao_62
+			}	
+			1 = {
+				add_character_flag = nianhao_63
+			}
+			1 = {
+				add_character_flag = nianhao_64
+			}
+			1 = {
+				add_character_flag = nianhao_65
+			}
+			1 = {
+				add_character_flag = nianhao_66
+			}
+			1 = {
+				add_character_flag = nianhao_67
+			}	
+			1 = {
+				add_character_flag = nianhao_68
+			}
+			1 = {
+				add_character_flag = nianhao_69
+			}
+			1 = {
+				add_character_flag = nianhao_70
+			}
+			1 = {
+				add_character_flag = nianhao_71
+			}
+			1 = {
+				add_character_flag = nianhao_72
+			}	
+			1 = {
+				add_character_flag = nianhao_73
+			}
+			1 = {
+				add_character_flag = nianhao_74
+			}
+			1 = {
+				add_character_flag = nianhao_75
+			}
+			1 = {
+				add_character_flag = nianhao_76
+			}
+			1 = {
+				add_character_flag = nianhao_77
+			}	
+			1 = {
+				add_character_flag = nianhao_78
+			}
+			1 = {
+				add_character_flag = nianhao_79
+			}
+			1 = {
+				add_character_flag = nianhao_80
+			}
+			1 = {
+				add_character_flag = nianhao_81
+			}
+			
+		}
+	}
+		if = { #改朝换代
+			limit = {
+				OR = {
+					scope:title = title:e_celestia
+					scope:title = title:e_tang
+					scope:title = title:e_song
+				}
+				NOT = {
+					root.house = scope:previous_holder.house
+				}
+				NOR = {
+					scope:transfer_type = flag:created
+					scope:transfer_type = flag:inheritance
+				}
+			}
+			save_scope_as = new_ruler
+			every_vassal = {
+				limit = {
+					primary_title.tier >= tier_county
+					OR = {
+						top_liege = { 
+							has_primary_title = title:e_celestia
+						}			
+					}
+				}
+				trigger_event = {
+					id = east_title.0001
+					days = 5
+				}
+			}
+			every_dejure_vassal_title_holder = {
+				limit = {
+					primary_title.tier >= tier_county
+					NOT = { 
+						top_liege = root 
+					}	
+				}
+				trigger_event = {
+						id = east_title.0001
+						days = 5
+				}
+			}
+		}
+		if = {  # 改国号
+			limit = {
+				scope:title = title:e_celestia
+				has_primary_title = title:e_celestia
+				NOT = {
+					root.house = scope:previous_holder.house
+				}
+			}
+			if = {
+				limit = {
+					has_primary_title = title:e_tang
+				}
+				title:e_celestia = { set_title_name = e_tang }
+				title:e_celestia = { set_coa = e_tang }
+			}
+			if = {
+				limit = {
+					has_primary_title = title:e_song
+				}
+				title:e_celestia = { set_title_name = e_song }
+				title:e_celestia = { set_coa = e_song }
+				title:e_celestia = { set_color_from_title = title:e_song }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_liao
+				}
+				title:e_celestia = { set_title_name = e_grand_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_zhao
+				}
+				title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_yan
+				}
+				title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_wei
+				}
+				title:e_celestia = { set_title_name = k_wei }
+				title:e_celestia = { set_coa = k_wei }
+				title:e_celestia = { set_color_from_title = title:k_wei }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_tengri
+				}
+				title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_jin
+				}
+				title:e_celestia = { set_title_name = k_jin }
+				title:e_celestia = { set_coa = k_jin }
+				title:e_celestia = { set_color_from_title = title:k_jin }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_xia_east
+				}
+				title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_longxi
+				}
+				title:e_celestia = { set_title_name = k_longxi }
+				title:e_celestia = { set_coa = k_longxi }
+				title:e_celestia = { set_color_from_title = title:k_longxi }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_qin
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_shu
+				}
+				title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_zhou
+				}
+				title:e_celestia = { set_title_name = k_zhou }
+				title:e_celestia = { set_coa = k_zhou }
+				title:e_celestia = { set_color_from_title = title:k_zhou }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_qi
+				}
+				title:e_celestia = { set_title_name = k_qi }
+				title:e_celestia = { set_coa = k_qi }
+				title:e_celestia = { set_color_from_title = title:k_qi }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_chu
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu }
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_wu
+				}
+				title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:k_wu }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_yue
+				}
+				title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = k_yue }
+				title:e_celestia = { set_color_from_title = title:k_yue }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_qianzhong
+				}
+				title:e_celestia = { set_title_name = e_qian }
+				title:e_celestia = { set_coa = k_qianzhong }
+				title:e_celestia = { set_color_from_title = title:k_qianzhong }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_nanyue
+				}
+				title:e_celestia = { set_title_name = k_nanyue }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_annan
+				}
+				title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_annan }
+				title:e_celestia = { set_color_from_title = title:k_annan }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_nanzhong
+				}
+				title:e_celestia = { set_title_name = e_dali }
+				title:e_celestia = { set_coa = k_nanzhong }
+				title:e_celestia = { set_color_from_title = title:k_nanzhong }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_lanxang
+				}
+				title:e_celestia = { set_title_name = e_lanxang }
+				title:e_celestia = { set_coa = k_lanxang }
+				title:e_celestia = { set_color_from_title = title:k_lanxang }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_goryeo
+				}
+				title:e_celestia = { set_title_name = k_goryeo }
+				title:e_celestia = { set_coa = k_goryeo }
+				title:e_celestia = { set_color_from_title = title:k_goryeo }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_xia
+				}
+				title:e_celestia = { set_title_name = e_hexi }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_khitan
+					NOT = { 
+						any_held_title =  { has_title = title:k_jubu }
+					}
+					
+				}
+				title:e_celestia = { set_title_name = e_grand_liao }
+				title:e_celestia = { set_coa = k_khitan }
+				title:e_celestia = { set_color_from_title = title:k_khitan }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_jurchen
+				}
+				title:e_celestia = { set_title_name = e_grand_liao }
+				title:e_celestia = { set_coa = k_jurchen }
+				title:e_celestia = { set_color_from_title = title:k_jurchen }
+			}
+			if = {
+				limit = {
+					root.capital_province.kingdom = title:k_jubu
+				}
+				title:e_celestia = { set_title_name = e_yuan }
+				title:e_celestia = { set_coa = k_jubu }
+				title:e_celestia = { set_color_from_title = title:k_jubu }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_heluo
+				}
+				title:e_celestia = { set_title_name = e_zhou }
+				title:e_celestia = { set_coa = d_heluo }
+				title:e_celestia = { set_color_from_title = title:d_heluo }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhenghua
+				}
+				title:e_celestia = { set_title_name = e_zheng }
+				title:e_celestia = { set_coa = d_zhenghua }
+				title:e_celestia = { set_color_from_title = title:d_zhenghua }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_chenxu
+				}
+				title:e_celestia = { set_title_name = e_chen }
+				title:e_celestia = { set_coa = d_chenxu }
+				title:e_celestia = { set_color_from_title = title:d_chenxu }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_biansong
+				}
+				title:e_celestia = { set_title_name = e_song }
+				title:e_celestia = { set_coa = d_biansong }
+				title:e_celestia = { set_color_from_title = title:d_biansong }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fujian
+				}
+				title:e_celestia = { set_title_name = e_min }
+				title:e_celestia = { set_coa = d_fujian }
+				title:e_celestia = { set_color_from_title = title:d_fujian }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_taining
+				}
+				title:e_celestia = { set_title_name = e_lu }
+				title:e_celestia = { set_coa = d_taining }
+				title:e_celestia = { set_color_from_title = title:d_taining }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xiangwei
+				}
+				title:e_celestia = { set_title_name = e_weei }
+				title:e_celestia = { set_coa = d_xiangwei }
+				title:e_celestia = { set_color_from_title = title:d_xiangwei }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yiding
+				}
+				title:e_celestia = { set_title_name = e_zhongshan }
+				title:e_celestia = { set_coa = d_yiding }
+				title:e_celestia = { set_color_from_title = title:d_yiding }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hedong 
+				}
+				title:e_celestia = { set_title_name = e_tang }
+				title:e_celestia = { set_coa = d_hedong }
+				title:e_celestia = { set_color_from_title = title:e_tang }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_liaodong
+                }
+             	title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_liaoxi
+                }
+             	title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_gewu
+                }
+             	title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_rangnang
+                }
+             	title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_chengde
+                }
+             	title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xingci
+                }
+             	title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zelu
+                }
+             	title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_youzhou
+                }
+             	title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_lulong
+                }
+             	title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yingmo
+                }
+             	title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_weibo
+                }
+             	title:e_celestia = { set_title_name = k_wei }
+				title:e_celestia = { set_coa = k_wei }
+				title:e_celestia = { set_color_from_title = title:k_wei }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_henghai
+                }
+             	title:e_celestia = { set_title_name = k_wei }
+				title:e_celestia = { set_coa = k_wei }
+				title:e_celestia = { set_color_from_title = title:k_wei }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhenwu
+                }
+             	title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fengzhou
+                }
+             	title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ordos
+                }
+             	title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yunzhong
+                }
+             	title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yanmen
+                }
+             	title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hezhong
+                }
+             	title:e_celestia = { set_title_name = k_jin }
+				title:e_celestia = { set_coa = k_jin }
+				title:e_celestia = { set_color_from_title = title:k_jin }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xiazhou
+                }
+             	title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xia
+                }
+             	title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_shuofang
+                }
+             	title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fengxiang
+                }
+             	title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jingyuan
+                }
+             	title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_longxi
+                }
+             	title:e_celestia = { set_title_name = e_qiang }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_longnan
+                }
+             	title:e_celestia = { set_title_name = e_qiang }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_shanzhou
+                }
+             	title:e_celestia = { set_title_name = e_qiang }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xijing
+                }
+             	title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_pingyi
+                }
+             	title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_binning
+                }
+             	title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fufang
+                }
+             	title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jinshang
+                }
+             	title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hanzhong
+                }
+             	title:e_celestia = { set_title_name = e_han }
+				title:e_celestia = { set_coa = e_han }
+				title:e_celestia = { set_color_from_title = title:e_han }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jingxiang
+                }
+             	title:e_celestia = { set_title_name = e_han }
+				title:e_celestia = { set_coa = e_han }
+				title:e_celestia = { set_color_from_title = title:e_han }
+			}
+
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xichuan
+                }
+             	title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_dongchuan
+                }
+             	title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_luzhou
+                }
+             	title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yongping
+                }
+             	title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ba
+                }
+             	title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ningjiang
+                }
+             	title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu }
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_shaanguo
+                }
+             	title:e_celestia = { set_title_name = k_zhou }
+				title:e_celestia = { set_coa = k_zhou }
+				title:e_celestia = { set_color_from_title = title:k_zhou }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_heyang
+                }
+             	title:e_celestia = { set_title_name = k_zhou }
+				title:e_celestia = { set_coa = k_zhou }
+				title:e_celestia = { set_color_from_title = title:k_zhou }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_pucao
+                }
+             	title:e_celestia = { set_title_name = e_cao }
+				title:e_celestia = { set_coa = d_pucao }
+				title:e_celestia = { set_color_from_title = title:d_pucao }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xusi
+                }
+             	title:e_celestia = { set_title_name = e_xuu }
+				title:e_celestia = { set_coa = d_xusi }
+				title:e_celestia = { set_color_from_title = title:d_xusi }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ziqing
+                }
+             	title:e_celestia = { set_title_name = k_qi }
+				title:e_celestia = { set_coa = k_qi }
+				title:e_celestia = { set_color_from_title = title:d_ziqing }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_denglai
+                }
+             	title:e_celestia = { set_title_name = k_qi }
+				title:e_celestia = { set_coa = k_qi }
+				title:e_celestia = { set_color_from_title = title:d_denglai }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jingnan
+                }
+             	title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu}
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_eyue
+                }
+             	title:e_celestia = { set_title_name = e_sui }
+				title:e_celestia = { set_coa = d_eyue}
+				title:e_celestia = { set_color_from_title = title:d_eyue }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hunan
+                }
+             	title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu}
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_huainan
+                }
+             	title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:d_huainan }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_huaixi
+                }
+             	title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:d_huaixi }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhenhai
+                }
+             	title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = d_zhenhai }
+				title:e_celestia = { set_color_from_title = title:k_yue }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xuanshe
+                }
+             	title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:d_xuanshe }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jiangxi
+                }
+             	title:e_celestia = { set_title_name = e_gan }
+				title:e_celestia = { set_coa = d_jiangxi }
+				title:e_celestia = { set_color_from_title = title:d_jiangxi }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhexi
+                }
+             	title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = d_zhexi }
+				title:e_celestia = { set_color_from_title = title:d_zhexi }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhedong
+                }
+             	title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = d_zhedong }
+				title:e_celestia = { set_color_from_title = title:d_zhedong }
+			}
+
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_lingnan
+                }
+             	title:e_celestia = { set_title_name = k_nanyue }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_chaoshan
+                }
+             	title:e_celestia = { set_title_name = k_nanyue }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_qiongya
+                }
+             	title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_rongguan
+                }
+             	title:e_celestia = { set_title_name = cn_pu }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_guiguan
+                }
+             	title:e_celestia = { set_title_name = cn_pu }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yongguan
+                }
+             	title:e_celestia = { set_title_name = cn_pu }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jiaozhi
+                }
+             	title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_annan }
+				title:e_celestia = { set_color_from_title = title:k_annan }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jiuzhen
+                }
+             	title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_annan }
+				title:e_celestia = { set_color_from_title = title:k_annan }
+			}
+			if = {
+				limit = {
+					NOT = { 
+						any_held_title = { 
+							tier >= tier_duchy 
+						}
+					}	
+					root.capital_province.county = title:c_qianzhong
+                }
+             	title:e_celestia = { set_title_name = cn_xie }
+				title:e_celestia = { set_coa = k_qianzhong }
+				title:e_celestia = { set_color_from_title = title:k_qianzhong }
+			}
+		}
+	}
+}
+on_death = {
+	events = {
+		east_title.0002	
+	}
+}

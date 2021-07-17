@@ -1,0 +1,333 @@
+#开局触发
+on_game_start_after_lobby = {
+	on_actions = { 
+		BureaucracyEmpire_on_game_start
+	}
+}
+BureaucracyEmpire_on_game_start = {
+	effect = {
+		#为每个伯爵领记录当前的发展度。为每个省份记录当前的建筑等级。
+		every_county = {
+			set_variable = { name = saved_development_level value = development_level }
+			every_county_province = {
+				set_variable = { name = saved_combined_building_level value = combined_building_level }
+			}
+		}
+	}
+}
+#获得头衔时触发
+# A title is inherited by a character
+# root = the new holder
+# scope:title = the title that changes hands
+# scope:previous_holder = previous holder. Should be dead
+# scope:transfer_type 的可用类型
+# flag:conquest 
+# flag:conquest_holy_war
+# flag:conquest_claim
+# flag:conquest_populist
+# flag:inheritance
+# flag:abdication
+# flag:destroyed
+# flag:created
+# flag:usurped
+# flag:granted
+# flag:revoked
+# flag:election
+# flag:independency
+# flag:returned
+# flag:leased_out
+# flag:lease_revoked
+# flag:faction_demand
+# flag:swear_fealty
+
+on_title_gain = { #内核触发，只做接口，尽量不要动
+	on_actions = {
+		BureaucracyEmpire_on_title_gain
+	}
+}
+BureaucracyEmpire_on_title_gain = {
+	trigger = {
+		#文官制和所有流官继承头衔
+		top_liege = {
+			OR = {
+				has_title = title:e_celestia
+				has_title = title:e_song
+			}
+
+		}
+		has_realm_law = official_succession_law
+		#伯爵级以上
+		scope:title.tier >= tier_county
+	}
+	on_actions = {
+		delay = { days = 30 }
+		BureaucracyEmpire_on_title_gain_inheritance #官僚制帝国MOD，角色继承头衔时触发
+		BureaucracyEmpire_on_title_gain_granted #官僚制帝国MOD，角色被授予头衔时触发
+	}
+}
+
+#官僚制帝国MOD，角色继承头衔时触发
+BureaucracyEmpire_on_title_gain_inheritance = {
+	trigger = { 
+		OR = {
+			scope:transfer_type = flag:inheritance #继承
+			scope:transfer_type = flag:abdication #退位继承
+		}
+	}
+	effect = {
+		#不是继承，而是选择一个新的官员继任 
+		BureaucracyEmpire_bureaucracy_success_effect = {
+			TITLE = scope:title #TITLE是被继任的头衔
+			TEMP_HOLDER = root #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+		}	
+	}
+}
+
+#官僚制帝国MOD，角色被授予头衔时触发 
+BureaucracyEmpire_on_title_gain_granted = {
+	trigger = {
+		OR = {
+			scope:transfer_type = flag:granted #被授予头衔
+			scope:transfer_type = flag:usurped #篡夺头衔
+		}
+	}
+	effect  = {
+		#如果该官员是因为升迁获得的头衔，交接掉原有头衔
+		if = { 
+			limit = { has_character_flag = new_bureaucracy_succesor }
+			every_held_title = {
+				limit = {
+					#不会替补掉同级头衔
+					tier < scope:title.tier
+					#不会替补掉自己的办公首府
+					trigger_if = {
+						limit = { exists = root.capital_county }
+						NOT = { this = root.capital_county }
+					}
+				}
+				save_scope_as = old_title
+				  
+				BureaucracyEmpire_bureaucracy_success_effect = {
+					TITLE = scope:old_title #TITLE是被继任的头衔 
+					TEMP_HOLDER = root #TEMP_HOLDER是目前临时持有头衔的人，即升迁者
+				}	
+			}
+		}
+	}
+}
+
+#个人五年触发
+yearly_everyone_pulse = { #内核触发，只做接口，尽量不要动
+	on_actions = { 
+		BureaucracyEmpire_yearly_everyone_pulse
+	}
+}
+BureaucracyEmpire_yearly_everyone_pulse = {
+	on_actions = { 
+		BureaucracyEmpire_ask_for_position_pulse
+	}
+	effect = {
+		save_scope_as = character
+		if = {#五年度官僚资历结算
+			limit = { 
+				#所有流官继承头衔
+				has_realm_law = official_succession_law
+				#伯爵级以上
+				scope:title.tier >= tier_county
+			}
+			
+			if = {
+				limit = { NOT = { has_variable = BureaucracyEmpire_bureaucrat_exp } }
+				set_variable = { name = BureaucracyEmpire_bureaucrat_exp value = 0 }	
+			}
+			#是统治者的话，按等级获得资历
+			if = {
+				limit = { is_ruler = yes }
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = highest_held_title_tier }		
+			}
+			#是领主的内阁成员的话，额外获得一点
+			if = {
+				limit = { is_councillor = yes }
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 2 }	
+			}
+			#是皇帝近臣的话，额外获得一点
+			if = {
+				limit = { is_courtier_of = scope:character.top_liege }
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 1 }	
+			}
+			#是头衔继承人的话，额外获得一点
+			if = {
+				limit = { any_heir_title =  { count >= 1 } }
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 2 }	
+			}
+			#领地发展度上升了，提升资历等级
+			every_held_title = {
+				limit = { tier = tier_county }
+				if = { 
+					limit = { development_level >  var:saved_development_level }
+					scope:character = {
+						change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 1 }	
+					}
+					set_variable = { name = saved_development_level value = development_level }
+				}
+			}
+			#领地建筑总等级增加了
+			every_held_title = {
+				limit = { tier <= tier_county }
+				title_province = {
+					if = {
+						limit = { combined_building_level >  var:saved_combined_building_level }
+						scope:character = {
+							change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 1 }
+						}
+						set_variable = { name = saved_combined_building_level value = combined_building_level }
+					}
+				}
+			}
+			
+			
+			#如果资历够了，就提升资历等级。五个等级分别需要的资历为7/21/42/70/105
+			if = {
+				limit = { var:BureaucracyEmpire_bureaucrat_exp < 7 }
+			}
+			else_if = {
+				limit = { var:BureaucracyEmpire_bureaucrat_exp < 21}
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 1
+				}
+			}
+			else_if = {
+				limit = { var:BureaucracyEmpire_bureaucrat_exp < 42 }
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 2
+				}
+			}
+			else_if = {
+				limit = { var:BureaucracyEmpire_bureaucrat_exp < 70 }
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 3
+				}
+			}
+			else_if = {
+				limit = { var:BureaucracyEmpire_bureaucrat_exp < 105 }
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 4
+				}
+			}
+			else = {
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 5
+				}
+			}
+		}
+	}
+}
+#向近亲讨官
+BureaucracyEmpire_ask_for_position_pulse = {
+	trigger = {
+		is_ai = yes
+		is_ruler = no
+		#成年
+		#is_adult = yes
+		#性别正确
+		trigger_if = {
+			limit = { 
+				faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
+			}
+			is_male = yes
+		}
+		trigger_if = {
+			limit = { 
+				faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+			}
+			is_female = yes
+		}
+	}
+	effect = {
+		#确定讨官的对象
+		random_close_family_member = {
+			limit = {
+				highest_held_title_tier >= tier_county
+		#文官制和所有流官继承头衔
+		OR = {
+			has_government = bureau_government
+			has_realm_law = official_succession_law
+		}
+		#伯爵级以上，国王级以下
+		AND = { 
+			scope:title.tier >= tier_county
+		}
+				is_ai = yes
+				faith = root.faith
+			}
+			save_scope_as = target
+		}
+		#确定拿哪个地
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				if = {
+					limit = { 
+						NOT = {
+							scope:target = { is_liege_or_above_of = root }
+						}
+					}
+					root = {
+						set_employer = scope:target
+					}
+				}
+				random_vassal = {
+					limit = {
+						highest_held_title_tier = tier_barony
+						OR = {
+							has_government = bureau_government
+							has_government = imperial_government
+							has_government = corps_government
+							has_government = feudal_government
+						}
+						NOT = { is_close_or_extended_family_of = scope:target }
+					}
+					primary_title = {
+						save_scope_as = revoke_target
+					}
+				}
+				if = { #如果没找到能打发人的男爵领，看看能不能给自己持有的一个伯爵领
+					limit = { NOT = { exists = scope:revoke_target } }
+					random_held_title = {
+						limit = {
+							tier = tier_county
+							NOT = { this = scope:target.capital_county }
+						}
+						save_scope_as = revoke_target
+					}
+				}
+			}
+			#结算
+			if = {
+				limit = { exists = scope:revoke_target }
+				create_title_and_vassal_change = {
+					type = usurped
+					save_scope_as = change
+					add_claim_on_loss = yes
+				}
+				scope:revoke_target = {
+					change_title_holder = {
+						holder = root
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+			}
+		}
+	}
+}

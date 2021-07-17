@@ -1,0 +1,1150 @@
+types am_china_officials_windows 
+{	
+	type china_officials_window = window{
+	#######朝廷
+		name = "china_officials_window"
+		parentanchor = center
+		size = { 1500 1000 }
+		position = { -150 0 }
+		layer = windows_layer
+		visible = "[GetVariableSystem.Exists( 'china_office_toggle' )]"
+
+		using = Window_Background
+		using = Window_Decoration
+		background =  {
+			texture = "gfx/interface/illustrations/character_view/bg_council_china.dds"
+			alpha = 0.6
+			using = Mask_Rough_Edges
+			modify_texture = {
+				texture = "gfx/interface/component_masks/mask_fade_horizontal_middle_thick.dds"
+				blend_mode = alphamultiply
+			}
+		}
+		## Main box
+		vbox = {
+			using = Window_Margins
+			
+			## Header
+			header_pattern = {
+				visible = "[ScriptedGui.IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+				layoutpolicy_horizontal = expanding
+				blockoverride "header_text"
+				{
+					text = "朝廷"
+				}
+				blockoverride "button_close"
+				{
+					onclick = "[GetVariableSystem.Clear('china_office_toggle')]"
+				}
+			}
+			
+				hbox = {
+					name = "vassals_succession_tabs"
+					layoutpolicy_horizontal = expanding
+
+					button_tab = {
+						name = "tutorial_highlight_domain_tab"
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+						onclick = "[GetVariableSystem.Clear( 'china_central_toggle' )]"
+						tooltip = "neiting_button"
+
+						text = "内廷"
+					}
+					button_tab = {
+						name = "tutorial_highlight_empire_tab"
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+						visible = "[GetScriptedGui('update_BureaucracyEmpireship_list').IsValid( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						parentanchor = vcenter
+				
+						onclick = "[GetVariableSystem.Toggle( 'BureaucracyEmpire_open' )]"
+						onclick = "[GetScriptedGui('update_BureaucracyEmpireship_list').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) ]"
+												
+						down = "[GetVariableSystem.HasValue( 'BureaucracyEmpire_open', 'true' )]"
+
+						tooltip = "BureaucracyEmpire_button"
+						using = tooltip_ws
+						text = "帝国"					
+						block "button_frames"
+							{
+								gfxtype = togglepushbuttongfx
+								effectname = "NoHighlight"
+								upframe = 1
+								uphoverframe = 2
+								uppressedframe = 3
+								downframe = 2
+								downhoverframe = 2
+								downpressedframe = 3
+								disableframe = 4
+							}
+					}
+					button_tab = {
+						name = "tutorial_highlight_vassals_tab"
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+						onclick = "[GetVariableSystem.Toggle( 'china_central_toggle' )]"
+						tooltip = "zhongshu_button"
+						text = "中枢"
+					}
+				}
+
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				
+				widget = {
+					layoutpolicy_horizontal = expanding
+					layoutpolicy_vertical = expanding
+
+					## Main box
+					vbox = {
+						spacing = 10
+
+						## High military official list box
+						vbox = {
+							layoutpolicy_horizontal = expanding
+							layoutpolicy_vertical = expanding
+							spacing = 10
+
+							background = {
+								texture = "gfx/interface/illustrations/event_scenes/throneroom_mediterranean.dds"
+								fittype = centercrop
+								alpha = 0.8
+
+								using = Mask_Rough_Edges
+							}
+
+
+							scrollbox = {
+								name = "character_administrative_officials_grid"
+								parentanchor = top
+								layoutpolicy_horizontal = expanding
+								layoutpolicy_vertical = expanding
+
+								blockoverride "scrollbox_margins" { }
+		
+								blockoverride "scrollbox_content"
+								{
+									spacing = 20
+									margin = { 0 20 }
+									vbox = {
+										visible = "[And( Not(GetVariableSystem.Exists( 'china_central_toggle' )), GetVariableSystem.Exists( 'china_office_toggle' ))]"
+									hbox = {
+										layoutpolicy_horizontal = expanding
+										text_label_center = {
+										text = "内廷"
+										using = Font_Size_Big
+										default_format = "#high"								
+										}
+									}
+									## First row
+									hbox = {
+										spacing = 20
+
+										## logothetes
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 450 160 }
+																						
+											background = {
+												fittype = centercrop
+												texture = "gfx/interface/illustrations/council/bg_council_chancellor.dds"
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_neishijian' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('neishijian_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_neishijian_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}
+
+											text_single = {
+												margin_top = 10
+												margin_left = 170
+												layoutpolicy_horizontal = expanding
+												text = "neishijian"
+												using = Font_Size_Big
+												default_format = "#V"
+											}
+
+											textbox = {
+												margin_top = 150
+												margin_right = 10
+												margin_left = 145
+												layoutpolicy_horizontal = expanding
+												text = "neishijian_text"
+												using = Font_Size_Small
+												default_format = "#V"
+											}
+
+										}
+
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 450 160 }	
+											
+											
+											background = {
+												fittype = centercrop
+												texture = "gfx/interface/illustrations/event_scenes/councilchamber.dds"
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_zongbo' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('zongbo_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_zongbo_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+											text_single = {
+												margin_top = 10
+												margin_left = 200
+												layoutpolicy_horizontal = expanding
+												text = "zongbo"
+												using = Font_Size_Big
+												default_format = "#V"
+											}
+
+											textbox = {
+												margin_top = 150
+												margin_right = 10
+												margin_left = 145
+												layoutpolicy_horizontal = expanding
+												text = "zongbo_text"
+												using = Font_Size_Small
+												default_format = "#V"
+											}
+
+										}
+									}
+									button = {
+										size = { 0 20 }	
+									}
+									## Second row
+									hbox = {
+										spacing = 20
+
+										## Quaestor
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 450 160 }	
+											
+											
+											background = {
+												fittype = centercrop
+												texture = "gfx/interface/illustrations/event_scenes/throneroom_west.dds"
+												
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_hanlin' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('hanlin_list')]"
+												datamodel_wrap = 1
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_hanlin_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+											text_single = {
+												margin_top = 10
+												margin_left = 170
+												layoutpolicy_horizontal = expanding
+												text = "hanlin"
+												using = Font_Size_Big
+												default_format = "#V"
+											}
+
+											textbox = {
+												margin_top = 150
+												margin_right = 10
+												margin_left = 145
+												layoutpolicy_horizontal = expanding
+												text = "hanlin_text"
+												using = Font_Size_Small
+												default_format = "#V"
+											}
+
+										}
+										button = {
+											size = { 0 160 }	
+										}
+									}
+
+									divider = {
+										layoutpolicy_horizontal = expanding
+									}
+								}
+									vbox = {
+										visible = "[GetVariableSystem.Exists( 'china_central_toggle' )]"
+									hbox = {
+										layoutpolicy_horizontal = expanding
+										text_label_center = {
+										text = "中枢"
+										using = Font_Size_Big
+										default_format = "#high"								
+										}
+									}
+									## First row
+									hbox = {
+										spacing = 20
+
+										
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 450 160 }
+						
+																						
+											background = {
+												fittype = centercrop
+												texture = "gfx/interface/illustrations/council/bg_council_chancellor.dds"
+												
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_tongpingzhang' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}					
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('tongpingzhang_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_tongpingzhang_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}
+
+											text_single = {
+												margin_top = 10
+												margin_left = 170
+												layoutpolicy_horizontal = expanding
+												text = "tongpingzhang"
+												using = Font_Size_Big
+												default_format = "#V"
+											}
+
+											textbox = {
+												margin_top = 150
+												margin_right = 10
+												margin_left = 145
+												layoutpolicy_horizontal = expanding
+												text = "tongpingzhang_text"
+												using = Font_Size_Small
+												default_format = "#V"
+											}
+
+										}
+
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 450 160 }	
+											
+											
+											background = {
+												fittype = centercrop
+												texture = "gfx/interface/illustrations/event_scenes/councilchamber.dds"
+												
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_shumishi' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('shumishi_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_shumishi_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+											text_single = {
+												margin_top = 10
+												margin_left = 200
+												layoutpolicy_horizontal = expanding
+												text = "shumishi"
+												using = Font_Size_Big
+												default_format = "#V"
+											}
+
+											textbox = {
+												margin_top = 150
+												margin_right = 10
+												margin_left = 145
+												layoutpolicy_horizontal = expanding
+												text = "shumishi_text"
+												using = Font_Size_Small
+												default_format = "#V"
+											}
+
+										}
+									}
+									button = {
+										size = { 0 20 }	
+									}
+								
+									hbox = {
+										spacing = 20
+
+										
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 450 160 }	
+								
+											
+											background = {
+												fittype = centercrop
+												texture = "gfx/interface/illustrations/event_scenes/throneroom_west.dds"
+												
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_canzhi' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('canzhi_list')]"
+												datamodel_wrap = 1
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_canzhi_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}										
+											text_single = {
+												margin_top = 10
+												margin_left = 170
+												layoutpolicy_horizontal = expanding
+												text = "canzhi"
+												using = Font_Size_Big
+												default_format = "#V"
+											}
+
+											textbox = {
+												margin_top = 150
+												margin_right = 10
+												margin_left = 145
+												layoutpolicy_horizontal = expanding
+												text = "canzhi_text"
+												using = Font_Size_Small
+												default_format = "#V"
+											}
+
+										}
+										button = {
+											size = { 0 160 }	
+										}
+									}
+
+									divider = {
+										layoutpolicy_horizontal = expanding
+									}
+								}
+									hbox = {
+										layoutpolicy_horizontal = expanding
+										text_label_center = {
+											text = "six_boards"
+											using = Font_Size_Big
+											default_format = "#high"								
+										}
+									}								
+									hbox = {
+										spacing = 20
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 350 160 }	
+																						
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_china_1' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('china_1_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_china_1_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 100
+												layoutpolicy_horizontal = expanding
+												text = "councillor_china_1"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 350 160 }	
+											
+											
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_china_2' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('china_2_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_china_2_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 100
+												layoutpolicy_horizontal = expanding
+												text = "councillor_china_2"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+									
+										button = {
+											size = { 0 160 }	
+										}
+									}									
+									hbox = {
+										spacing = 20
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 200 160 }	
+																					
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_liebu' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('liebu_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_liebu_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 80
+												layoutpolicy_horizontal = expanding
+												text = "councillor_liebu"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 200 160 }	
+											
+											
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_bingbu' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('bingbu_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_bingbu_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 80
+												layoutpolicy_horizontal = expanding
+												text = "councillor_bingbu"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 200 160 }	
+											
+											
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_libu' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('libu_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_libu_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 80
+												layoutpolicy_horizontal = expanding
+												text = "councillor_libu"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 200 160 }	
+											
+											
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_hubu' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('hubu_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_hubu_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 80
+												layoutpolicy_horizontal = expanding
+												text = "councillor_hubu"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 200 160 }	
+										
+											
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_xingbu' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('xingbu_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_xingbu_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 80
+												layoutpolicy_horizontal = expanding
+												text = "councillor_xingbu"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+										button_standard = {
+											layoutpolicy_horizontal = expanding
+											size = { 200 160 }	
+										
+											
+											background = {
+												fittype = centercrop
+												
+												modify_texture = {
+													texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+													blend_mode = alphamultiply
+												}
+											}
+											button_round = {
+												name = "replace"
+												parentanchor = bottom|right
+												datacontext = "[AccessCouncilWindow.GetCouncillor( 'councillor_gongbu' )]"
+												onclick = "[GuiCouncilPosition.SelectCouncillor]"
+												enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+												tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+												using = tooltip_se
+												button_change = {
+													alwaystransparent = yes
+													parentanchor = center
+												}
+											}
+											dynamicgridbox = {
+												datamodel = "[GetPlayer.MakeScope.GetList('gongbu_list')]"
+												datamodel_wrap = 7
+												flipdirection = yes
+												
+												state = {
+													name = get_list
+													trigger_on_create = yes
+													duration = 2
+													on_start = "[GetScriptedGui('am_gongbu_list').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+													next = get_list
+												}
+	
+												item = {
+													portrait_shoulders = {
+														datacontext = "[Scope.GetCharacter]"
+	
+														blockoverride "description_relation_text" {
+															text = "[Character.GetPlayerGuestDescription]"
+														}
+
+														background = {
+															using = Background_Area
+														}
+													}
+												}
+											}											
+
+											text_single = {
+												margin_top = 10
+												margin_left = 80
+												layoutpolicy_horizontal = expanding
+												text = "councillor_gongbu"
+												using = Font_Size_Medium
+												default_format = "#V"
+											}
+										}
+										button = {
+											size = { 0 160 }	
+										}
+									}
+									hbox = {
+										layoutpolicy_horizontal = expanding
+										text_label_center = {
+											text = "other_text"####如果不需要可以空格代替
+											using = Font_Size_Big
+											default_format = "#high"								
+										}
+									}
+							}
+                        }
+							#Make a difference east / west ?
+							hbox = {
+								vbox = {
+									
+								}
+							}
+
+							divider = {
+
+							}
+
+							
+						}
+					}					
+				}
+			
+			}
+
+			## Divider for visuals
+			divider = {
+				layoutpolicy_horizontal = expanding
+			}
+		}
+				#BureaucracyEmpire_window = {}
+	}
+}

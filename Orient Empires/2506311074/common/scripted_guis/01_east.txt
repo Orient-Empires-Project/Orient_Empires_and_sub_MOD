@@ -1,0 +1,133 @@
+update_BureaucracyEmpireship_list = {
+	scope = character
+	
+	effect = {
+		# Clears lists
+		clear_variable_list = imperial_government_list
+		clear_variable_list = corps_government_list
+		clear_variable_list = bureau_government_list
+		
+		
+		every_vassal = {
+			limit = { 
+				is_landed = yes
+				highest_held_title_tier >= tier_county
+				
+				OR = { 
+					has_government = corps_government
+					has_government = imperial_government
+				}
+			}
+			save_scope_as = corps_government_ally
+			root = {
+				add_to_variable_list = {
+					name = corps_government_list
+					target = scope:corps_government_ally
+				}
+			}
+		}
+		every_vassal = {
+			limit = { 
+				is_landed = yes
+				highest_held_title_tier >= tier_county
+				has_government = bureau_government
+			}
+			save_scope_as = bureau_government_ally
+			root = {
+				add_to_variable_list = {
+					name = bureau_government_list
+					target = scope:bureau_government_ally
+				}
+			}
+		}
+		every_vassal = {
+			limit = { 
+				is_landed = yes
+				highest_held_title_tier >= tier_county
+				NOR = { 
+					has_government = corps_government
+					has_government = bureau_government
+					has_government = imperial_government
+				}
+			}
+			save_scope_as = imperial_government_ally
+			root = {
+				add_to_variable_list = {
+					name = imperial_government_list
+					target = scope:imperial_government_ally
+				}
+			}
+		}
+	}
+}
+
+
+
+show_BureaucracyEmpire_button = {
+	scope = character
+	is_shown = {
+		OR = {
+		   has_title = title:e_celestia
+		   has_title = title:e_tang
+		   has_title = title:e_song
+		   has_title = title:e_han					
+		}
+	}
+}
+
+east_update_harem_list = {
+	scope = character
+	
+	effect = {
+		# Clears lists
+		clear_variable_list = harem_spouse_list
+		clear_variable_list = harem_concubine_list
+		clear_variable_list = harem_spouse_house_list
+		
+		every_living_character = {
+			limit = { 
+				is_spouse_of = root
+			}
+			save_scope_as = spouse_ally
+			root = {
+				add_to_variable_list = {
+					name = harem_spouse_list
+					target = scope:spouse_ally
+				}
+			}
+		}
+		ordered_living_character = {
+			limit = { 
+				is_landed = yes
+				OR = { 
+					house = scope:spouse_ally.house
+					is_close_family_of = scope:spouse_ally
+				}
+				highest_held_title_tier >= tier_county
+			}
+			order_by = tier
+			max = 10
+			save_scope_as = spouse_ally_house
+			root = {
+				add_to_variable_list = {
+					name = harem_spouse_house_list
+					target = scope:spouse_ally_house
+				}
+			}
+		}
+		every_living_character = {
+			limit = { 
+				#has_relation_lover = root
+				is_consort_of = root
+				NOT = { is_spouse_of = root }
+			}
+			save_scope_as = concubine_ally
+			root = {
+				add_to_variable_list = {
+					name = harem_concubine_list
+					target = scope:concubine_ally
+				}
+			}
+		}
+	}
+}

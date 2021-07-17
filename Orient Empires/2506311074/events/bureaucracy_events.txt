@@ -1,0 +1,148 @@
+﻿
+# 官僚交接弹窗
+namespace = bureaucracy
+bureaucracy.0001 = {
+
+	type = character_event
+
+	title = bureaucracy.0001.t
+	desc = bureaucracy.0001.desc
+
+	theme = war
+
+	trigger = {
+		is_at_war_with_liege = no
+	}
+	immediate = {
+		save_scope_as = bureaucrat
+	}
+	override_background = {
+		event_background = battlefield
+	}
+
+	left_portrait = {
+		character = scope:bureaucrat
+		animation = worry
+	}
+
+	right_portrait = {
+		character = scope:liege
+		animation = personality_content
+	}
+
+	# Join
+	option = {
+		name = bureaucracy.0001.a
+		scope:bureaucrat = {
+			add_opinion = {
+				modifier = friendliness_opinion
+				target = scope:liege
+				opinion = 30
+			}
+		}
+		scope:liege = {
+			add_opinion = {
+				modifier = friendliness_opinion
+				target = scope:bureaucrat
+				opinion = 30
+			}
+		}
+
+
+		ai_chance = {
+			base = 100
+
+			modifier = {
+				add = 10
+				opinion = {
+					target = scope:liege
+					value >= 10
+				}
+			}
+
+			modifier = {
+				add = 10
+				opinion = {
+					target = scope:liege
+					value >= 20
+				}
+			}
+
+			modifier = {
+				add = 20
+				opinion = {
+					target = scope:liege
+					value >= 30
+				}
+			}
+
+			modifier = {
+				add = -100
+				opinion = {
+					target = scope:liege
+					value <= -30
+				}
+			}
+
+			modifier = {
+				add = -100
+				opinion = {
+					target = scope:liege
+					value <= -50
+				}
+			}
+
+			modifier = {
+				add = -200
+				opinion = {
+					target = scope:liege
+					value <= -75
+				}
+			}
+
+
+			modifier = {
+				factor = 0
+				AND = {
+					NOT = {
+						any_in_list = {
+							list = target_titles
+							any_in_de_jure_hierarchy = {
+								tier = tier_county
+								holder = {
+									target_is_same_character_or_above = ROOT
+								}
+							}
+						}
+					}
+					has_relation_rival = scope:liege
+				}
+			}
+			
+		}
+	}
+
+	# Don't join
+	option = {
+		name = bureaucracy.0001.b
+		scope:liege = {
+			add_opinion = {
+				modifier = hate_opinion
+				target = scope:bureaucrat
+				opinion = -50
+			}
+			add_pressed_claim = scope:bureaucrat.primary_title
+		}
+		war_for_revoke_effect = yes
+		scope:bureaucrat = {
+			add_opinion = {
+				modifier = revoked_title
+				target = scope:liege
+			}							
+		}			
+		
+		ai_chance = {
+			base = 30
+		}
+	}
+}
