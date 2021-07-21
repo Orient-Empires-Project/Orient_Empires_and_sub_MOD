@@ -41,15 +41,16 @@ east_on_after_lobby_effects = {
 				limit = {
 					has_culture = culture:han
 					AND = {
-						top_liege = { has_primary_title = title:e_celestia }
+						has_realm_law = official_succession_law
 						NOT = { has_government = tribal_government }
 					}
 					current_date >= 763.1.1
-					current_date <= 980.1.1	
+					current_date <= 960.1.1	
 				}
 				every_realm_county = {
 				add_county_modifier = county_corruption_inefficient_tax_collection_modifier
 				add_county_modifier = county_corruption_inefficient_census_modifier
+				add_county_modifier = county_corruption_lack_of_courts_modifier
 				}
 			}
 
@@ -91,8 +92,7 @@ east_on_after_lobby_effects = {
 
 				every_realm_county = {
 					add_county_modifier = county_corruption_smuggling_ring_modifier
-					#add_county_modifier = county_corruption_lack_of_sheriffs_modifier	
-					#add_county_modifier = county_corruption_lack_of_courts_modifier
+					add_county_modifier = county_corruption_lack_of_sheriffs_modifier	
 					add_county_modifier = county_corruption_thieves_guild_modifier
 					add_county_modifier = county_corruption_uncooperative_guilds_modifier
 					#change_county_control = 35
@@ -101,7 +101,7 @@ east_on_after_lobby_effects = {
 		}
 
 		every_ruler = {
-			If = {
+			If = {  #律令制伯爵转文官
 				limit = {
 					OR = {
 						has_title = title:e_celestia
@@ -116,7 +116,7 @@ east_on_after_lobby_effects = {
 					change_government = bureau_government
 				}
 			}	
-			If = {
+			If = {  #玩家军镇可世袭
 				limit = {
 					has_government = corps_government
 					is_ai = no
@@ -124,7 +124,7 @@ east_on_after_lobby_effects = {
 				add_realm_law_skip_effects = corps_succession_law
 			}
 
-			If = {
+			If = {  #文官流官制
 				limit = {
 					has_government = bureau_government
 				}
@@ -133,203 +133,175 @@ east_on_after_lobby_effects = {
 					add_realm_law_skip_effects = official_succession_law
 				}
 			}
+			if = { #所有非玩家的听命属臣实行男性流官制
+				limit = { 
+					has_culture_group = culture_group:chinese_group
+					is_independent_ruler = no
+					primary_title.tier = tier_duchy
+					current_date >= 763.1.1
+					current_date <= 980.1.1
+					NOR = { 
+						has_primary_title = title:d_chengde
+						has_primary_title = title:d_youzhou
+						has_primary_title = title:d_lulong
+						has_primary_title = title:d_weibo
+						is_ai = no
+					}
+				}
+				
+				if = { 
+					limit = { NOT = { has_realm_law = official_succession_law } }
+					add_realm_law_skip_effects = official_succession_law
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = male_only_law } }
+					add_realm_law_skip_effects = male_only_law
+				}
 				if = {
-					limit = { 
-						has_culture_group = culture_group:chinese_group
-						is_independent_ruler = no
-						primary_title.tier = tier_duchy
-						current_date >= 763.1.1
-						current_date <= 980.1.1
-						NOR = { 
-							has_primary_title = title:d_chengde
-							has_primary_title = title:d_youzhou
-							has_primary_title = title:d_lulong
-							has_primary_title = title:d_weibo
-							is_ai = no
-						}
+					limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_taxes
+						level = 3
 					}
-					#所有非玩家属臣实行男性流官制
-					if = { 
-						limit = { NOT = { has_realm_law = official_succession_law } }
-						add_realm_law_skip_effects = official_succession_law
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_levies
+						level = 3
 					}
-					if = { 
-						limit = { NOT = { has_realm_law = male_only_law } }
-						add_realm_law_skip_effects = male_only_law
-					}
+				}
+				#vassal_contract_set_obligation_level = {
+				#	type = feudal_government_taxes
+				#	level = 3
+				#}
+				#vassal_contract_set_obligation_level = {
+				#	type = feudal_government_levies
+				#	level = 3
+				#}						
+				every_vassal= { 
+					limit = { primary_title.tier = tier_county }
 					if = {
 						limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
 						vassal_contract_set_obligation_level = {
 							type = feudal_government_taxes
-							level = 3
+							level = 4
 						}
 					}
 					if = {
 						limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
 						vassal_contract_set_obligation_level = {
 							type = feudal_government_levies
-							level = 3
+							level = 4
 						}
 					}
 					#vassal_contract_set_obligation_level = {
 					#	type = feudal_government_taxes
-					#	level = 3
+					#	level = 4
 					#}
 					#vassal_contract_set_obligation_level = {
 					#	type = feudal_government_levies
-					#	level = 3
-					#}						
-					every_vassal= { 
-						limit = { primary_title.tier = tier_county }
-						if = {
-							limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
-							vassal_contract_set_obligation_level = {
-								type = feudal_government_taxes
-								level = 4
-							}
-						}
-						if = {
-							limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
-							vassal_contract_set_obligation_level = {
-								type = feudal_government_levies
-								level = 4
-							}
-						}
-						#vassal_contract_set_obligation_level = {
-						#	type = feudal_government_taxes
-						#	level = 4
-						#}
-						#vassal_contract_set_obligation_level = {
-						#	type = feudal_government_levies
-						#	level = 4
-						#}
+					#	level = 4
+					#}
+				}
+			}
+			if = {
+				limit = { 
+					is_independent_ruler = no
+					current_date > 763.1.1
+					current_date <= 980.1.1
+					OR = { 
+						has_primary_title = title:d_chengde
+						has_primary_title = title:d_youzhou
+						has_primary_title = title:d_weibo
+						has_primary_title = title:d_lulong
 					}
 				}
-
 				if = {
-					limit = { 
-						is_independent_ruler = no
-						current_date > 763.1.1
-						current_date <= 980.1.1
-						OR = { 
-							has_primary_title = title:d_chengde
-							has_primary_title = title:d_youzhou
-							has_primary_title = title:d_weibo
-							has_primary_title = title:d_lulong
-						}
+					limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_taxes
+						level = 0
 					}
-					if = {
-						limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
-						vassal_contract_set_obligation_level = {
-							type = feudal_government_taxes
-							level = 0
-						}
-					}
-					if = {
-						limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
-						vassal_contract_set_obligation_level = {
-							type = feudal_government_levies
-							level = 0
-						}
-					}
-					if = {
-						limit = { 
-							exists = vassal_contract_obligation_level:religious_rights 
-							NOT = { faith = liege.faith }
-						}
-						vassal_contract_set_obligation_level = {
-							type = religious_rights
-							level = 1
-						}
-					}
-					if = {
-						limit = { 
-							exists = vassal_contract_obligation_level:fortification_rights 
-							liege.culture = { has_innovation = innovation_battlements }
-						}
-						vassal_contract_set_obligation_level = {
-							type = fortification_rights
-							level = 1
-						}
-					}
-					if = {
-						limit = { 
-							exists = vassal_contract_obligation_level:special_contract 
-							liege.culture = { has_innovation = innovation_scutage }
-						}
-						vassal_contract_set_obligation_level = {
-							type = special_contract
-							level = 2
-						}
-					}
-					if = {
-						limit = { 
-							exists = vassal_contract_obligation_level:coinage_rights
-							liege.culture = { has_innovation = innovation_currency_02 }
-						}
-						vassal_contract_set_obligation_level = {
-							type = coinage_rights
-							level = 1
-						}
-					}
-					if = {
-						limit = { exists = vassal_contract_obligation_level:war_declaration_rights }
-						vassal_contract_set_obligation_level = {
-							type = war_declaration_rights
-							level = 1
-						}
-					}
-					if = {
-						limit = { exists = vassal_contract_obligation_level:title_revocation_rights }
-						vassal_contract_set_obligation_level = {
-							type = title_revocation_rights
-							level = 1
-						}
-					}
-					if = {
-						limit = { exists = vassal_contract_obligation_level:council_rights }
-						vassal_contract_set_obligation_level = {
-							type = council_rights
-							level = 0
-						}
-					}
-					every_vassal= { 
-						limit = { primary_title.tier = tier_county }
-						if  = {
-							limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
-							vassal_contract_set_obligation_level = {
-								type = feudal_government_taxes
-								level = 4
-							}
-						}
-						if  = {
-							limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
-							vassal_contract_set_obligation_level = {
-								type = feudal_government_levies
-								level = 4
-							}
-						}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_levies
+						level = 0
 					}
 				}
 				if = {
 					limit = { 
-						is_independent_ruler = no
-						has_culture_group = culture_group:chinese_group
-						current_date > 763.1.1
-						current_date <= 980.1.1
-						primary_title.tier = tier_county
-						liege = { 
-							is_independent_ruler = yes
-						}
+						exists = vassal_contract_obligation_level:religious_rights 
+						NOT = { faith = liege.faith }
 					}
-					if = {
+					vassal_contract_set_obligation_level = {
+						type = religious_rights
+						level = 1
+					}
+				}
+				if = {
+					limit = { 
+						exists = vassal_contract_obligation_level:fortification_rights 
+						liege.culture = { has_innovation = innovation_battlements }
+					}
+					vassal_contract_set_obligation_level = {
+						type = fortification_rights
+						level = 1
+					}
+				}
+				if = {
+					limit = { 
+						exists = vassal_contract_obligation_level:special_contract 
+						liege.culture = { has_innovation = innovation_scutage }
+					}
+					vassal_contract_set_obligation_level = {
+						type = special_contract
+						level = 2
+					}
+				}
+				if = {
+					limit = { 
+						exists = vassal_contract_obligation_level:coinage_rights
+						liege.culture = { has_innovation = innovation_currency_02 }
+					}
+					vassal_contract_set_obligation_level = {
+						type = coinage_rights
+						level = 1
+					}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:war_declaration_rights }
+					vassal_contract_set_obligation_level = {
+						type = war_declaration_rights
+						level = 1
+					}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:title_revocation_rights }
+					vassal_contract_set_obligation_level = {
+						type = title_revocation_rights
+						level = 1
+					}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:council_rights }
+					vassal_contract_set_obligation_level = {
+						type = council_rights
+						level = 0
+					}
+				}
+				every_vassal= { 
+					limit = { primary_title.tier = tier_county }
+					if  = {
 						limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
 						vassal_contract_set_obligation_level = {
 							type = feudal_government_taxes
 							level = 4
 						}
 					}
-					if = {
+					if  = {
 						limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
 						vassal_contract_set_obligation_level = {
 							type = feudal_government_levies
@@ -337,31 +309,58 @@ east_on_after_lobby_effects = {
 						}
 					}
 				}
-				if = {
-					limit = { 
-						is_independent_ruler = no
-						has_culture_group = culture_group:chinese_group
-						current_date > 980.1.1
-						liege = { 
-							has_primary_title = title:e_song
-						}
-					}
-					if = {
-						limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
-						vassal_contract_set_obligation_level = {
-							type = feudal_government_taxes
-							level = 1
-						}
-					}
-					if = {
-						limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
-						vassal_contract_set_obligation_level = {
-							type = feudal_government_levies
-							level = 4
-						}
+			}
+			if = {
+				limit = { 
+					is_independent_ruler = no
+					has_culture_group = culture_group:chinese_group
+					current_date > 763.1.1
+					current_date <= 980.1.1
+					primary_title.tier = tier_county
+					liege = { 
+						is_independent_ruler = yes
 					}
 				}
-			}	
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_taxes
+						level = 4
+					}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_levies
+						level = 4
+					}
+				}
+			}
+			if = {
+				limit = { 
+					is_independent_ruler = no
+					has_culture_group = culture_group:chinese_group
+					current_date > 980.1.1
+					liege = { 
+						has_primary_title = title:e_song
+					}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_taxes
+						level = 1
+					}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_levies
+						level = 4
+					}
+				}
+			}
+		}	
 	}
 }	
 
