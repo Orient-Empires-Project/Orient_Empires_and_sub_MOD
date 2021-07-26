@@ -16,7 +16,24 @@ BureaucracyEmpire_on_game_start = {
 		every_ruler = {
 			if = { # 地方官赋予资历
 				limit = {
-					scope:title.tier = tier_county	
+					top_liege = {
+						OR = {
+							has_title = title:e_celestia
+							has_title = title:e_song
+						}			
+					}
+					OR = {
+						has_culture_group = culture_group:chinese_group
+						has_culture = culture:khitan
+						has_culture = culture:shatuo
+						has_culture = culture:tuyuhun
+						has_culture = culture:min
+						has_culture = culture:jiaozhi
+						has_culture = culture:balhae
+						has_culture = culture:jurchen
+						has_culture_group = culture_group:goryeo_group
+					}
+					highest_held_title_tier <= tier_duchy	
 					top_liege = { has_title = title:e_celestia }
 					can_have_official_succession_law_trigger = yes
 				}
@@ -26,18 +43,18 @@ BureaucracyEmpire_on_game_start = {
 					max = 3
 				}
 			}
-			if = { # 地方官赋予资历
-				limit = {
-					scope:title.tier = tier_duchy	
-					top_liege = { has_title = title:e_celestia }
-					can_have_official_succession_law_trigger = yes
-				}
-				change_trait_rank = {
-					trait = BureaucracyEmpire_lifestyle_bureaucrat
-					rank = 1
-					max = 4
-				}
-			}
+#			if = { # 地方官赋予资历
+#				limit = {
+#					scope:title.tier = tier_duchy	
+#					top_liege = { has_title = title:e_celestia }
+#					can_have_official_succession_law_trigger = yes
+#				}
+#				change_trait_rank = {
+#					trait = BureaucracyEmpire_lifestyle_bureaucrat
+#					rank = 1
+#					max = 4
+#				}
+#			}
 		}
 	}
 }
@@ -140,6 +157,7 @@ BureaucracyEmpire_on_game_start_trait = {
 on_title_gain = { #内核触发，只做接口，尽量不要动
 	on_actions = {
 		BureaucracyEmpire_on_title_gain
+		BureaucracyEmpire_on_title_gain_trait #角色获得资历
 	}
 }
 BureaucracyEmpire_on_title_gain = {
@@ -152,14 +170,13 @@ BureaucracyEmpire_on_title_gain = {
 			}
 
 		}
-		has_realm_law = official_succession_law
+		can_have_official_succession_law_trigger = yes
 		#男爵级以上
 		OR = {
-			scope:title.tier >= tier_county
+			highest_held_title_tier >= tier_county
 		}
 	}
 	on_actions = {
-		BureaucracyEmpire_on_title_gain_trait #角色获得资历
 		delay = { days = 30 }
 		BureaucracyEmpire_on_title_gain_inheritance #官僚制帝国MOD，角色继承头衔时触发
 		BureaucracyEmpire_on_title_gain_granted #官僚制帝国MOD，角色被授予头衔时触发
@@ -168,21 +185,33 @@ BureaucracyEmpire_on_title_gain = {
 
 #角色获得资历
 BureaucracyEmpire_on_title_gain_trait = {
+	trigger = {
+		top_liege = {
+			OR = {
+				has_title = title:e_celestia
+				has_title = title:e_song
+			}	
+		}
+		highest_held_title_tier <= tier_duchy	
+		is_independent_ruler = no
+		#has_realm_law = official_succession_law
+	}
 	effect = { 
 		if = {
 			limit = {
-				top_liege = {
-					OR = {
-						has_title = title:e_celestia
-						has_title = title:e_song
-					}	
-				}
-				scope:title.tier <= tier_county	
-				is_independent_ruler = no
-				has_realm_law = official_succession_law
 				NOT = { has_trait = BureaucracyEmpire_lifestyle_bureaucrat }
 			}
 			add_trait = BureaucracyEmpire_bureaucrat_1
+		}
+		if = {
+			limit = {
+				has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+			}
+			change_trait_rank = {
+				trait = BureaucracyEmpire_lifestyle_bureaucrat
+				rank = 1
+				max = 3
+			}
 		}
 	}
 }
@@ -253,8 +282,8 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 			limit = { 
 				#所有流官继承头衔
 				has_realm_law = official_succession_law
-				#男爵级以上
-				scope:title.tier >= tier_barony
+				#伯爵级以上
+				scope:title.tier >= tier_courty
 			}
 			
 			if = {
