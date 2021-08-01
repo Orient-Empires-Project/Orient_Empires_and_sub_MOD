@@ -22,6 +22,27 @@ BureaucracyEmpire_on_game_start_trait = {
 		every_ruler = {
 			if = { # 地方官赋予资历
 				limit = {
+					top_liege = {
+						OR = {
+							has_title = title:e_celestia
+							has_title = title:e_song
+						}			
+					}
+					OR = {
+						has_culture_group = culture_group:chinese_group
+						has_culture = culture:khitan
+						has_culture = culture:shatuo
+						has_culture = culture:tuyuhun
+						has_culture = culture:min
+						has_culture = culture:jiaozhi
+						has_culture = culture:balhae
+						has_culture = culture:jurchen
+						has_culture_group = culture_group:goryeo_group
+					}
+					AND = {
+						highest_held_title_tier >= tier_county
+						highest_held_title_tier <= tier_duchy	
+					}
 					scope:title.tier = tier_barony	
 					top_liege = { has_title = title:e_celestia }	
 					can_have_official_succession_law_trigger = yes
@@ -151,8 +172,9 @@ BureaucracyEmpire_on_title_gain = {
 				has_title = title:e_celestia
 				has_title = title:e_song
 			}
-
 		}
+		can_have_official_succession_law_trigger = yes
+		#伯爵级以上
 		has_realm_law = official_succession_law
 		#男爵级以上，所有内阁成员
 		OR = {
@@ -170,6 +192,20 @@ BureaucracyEmpire_on_title_gain = {
 
 #角色获得资历
 BureaucracyEmpire_on_title_gain_trait = {
+	trigger = {
+		top_liege = {
+			OR = {
+				has_title = title:e_celestia
+				has_title = title:e_song
+			}	
+		}
+		AND = {
+			highest_held_title_tier >= tier_county
+			highest_held_title_tier <= tier_duchy
+		}
+		is_independent_ruler = no
+		#has_realm_law = official_succession_law
+	}
 	effect = { 
 		if = { # 文官初出茅庐
 			limit = {
@@ -227,14 +263,24 @@ BureaucracyEmpire_on_title_gain_granted = {
 						NOT = { this = root.capital_county }
 					}
 				}
+			
 				save_scope_as = old_title
 				  
 				BureaucracyEmpire_bureaucracy_success_effect = {
 					TITLE = scope:old_title #TITLE是被继任的头衔 
 					TEMP_HOLDER = root #TEMP_HOLDER是目前临时持有头衔的人，即升迁者
+
+					any_vassal_or_below = {   #原下级交给法理领主
+						change_liege = {
+							liege = primary_title.de_jure_liege.holder
+						}
+					}
+					change_liege = {  #新上级为法理领主
+						liege = primary_title.de_jure_liege.holder
+					}
 				}	
 			}
-		}
+		}		
 	}
 }
 
