@@ -153,8 +153,11 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 					limit = {
 						$TITLE$.holder = {
 							OR = {
-								has_government = imperial_government
 								has_government = bureau_government
+								AND = {
+									has_government = imperial_government
+									$TITLE$.tier <= tier_courty
+								}
 							}
 						}
 					}
@@ -163,12 +166,12 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 			}					
 			#获取封臣
 			$TITLE$.holder = {
-				every_vassal_or_below = {
+				every_vassal = {
 					limit = { 
 						highest_held_title_tier >= tier_county #伯爵及以上封臣
 						exists = capital_province #有首都，不是无地领主
 						capital_province.county = { #首都在交割的头衔的法理内
-							NOT =  { target_is_de_jure_liege_or_above = $TITLE$ }
+							OR =  { target_is_de_jure_liege_or_above = $TITLE$ }
 						}
 					}
 					change_liege = {
@@ -177,28 +180,15 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 					}
 				}
 			}
-			#获取头衔
+			#获取头衔及封臣
 			$TITLE$ = {
-				change_title_holder = {
+				change_title_holder_include_vassals = {
 					holder = scope:lucky
 					change = scope:change
 					take_baronies = no
+					government_base = $TITLE$.holder
 				}
-				every_dejure_vassal_title_holder = {
-					limit = { 
-						highest_held_title_tier >= tier_county #伯爵及以上封臣
-						exists = capital_province #有首都，不是无地领主
-						capital_province.county = { #首都在交割的头衔的法理内
-							NOT =  { target_is_de_jure_liege_or_above = $TITLE$ }
-						}
-					}
-					change_liege = {
-						liege = scope:lucky
-						change = scope:change
-					}
-				}
-			}	
-
+			}
 			resolve_title_and_vassal_change = scope:change
 			
 			#对于公国以上头衔，如果其首府在境内的话，一并拿走
