@@ -1,0 +1,503 @@
+﻿# Called every Jan 1st
+# Root does not exist
+yearly_playable_pulse = {  
+	on_actions = {
+		Population_Control_effects
+	}
+}
+Population_Control_effects = {
+	effect = {
+		if = {
+			limit = {
+				NOT = {
+					exists = global_var:there_was_death
+				}
+				exists = global_var:Population_Control_On
+			}
+			trigger_event = Population_Control.0001
+			set_global_variable = {
+				name = there_was_death
+				value = 1
+				days = 350
+			} 
+		}
+	}
+}
+
+Population_Control_presetting = {
+	effect = {
+		#set ages plus/minus
+		set_global_variable = {
+			name = age_plus
+			value = root.age
+		}
+		change_global_variable = {
+			name = age_plus
+			add = 15
+		}
+		
+		#check family rulers and members
+		set_global_variable = {
+			name=family_members
+			value = 0
+		}
+		set_global_variable = {
+			name=family_rulers
+			value = 0
+		}
+		every_close_family_member = {
+			limit = {
+				is_alive = yes
+				NOT = { this = root }
+				age >= root.age
+				age < global_var:age_plus
+			}
+			change_global_variable = {
+				name = family_members
+				add = 1
+			}
+		}
+		every_close_family_member = {
+			limit = {
+				is_alive = yes
+				is_ruler = yes
+			}
+			if = {
+				limit = {
+					highest_held_title_tier >= tier_empire
+				}
+				change_global_variable = {
+					name = family_rulers
+					add = 4
+				}
+			}
+			else_if = {
+				limit = {
+					highest_held_title_tier >= tier_kingdom
+				}
+				change_global_variable = {
+					name = family_rulers
+					add = 3
+				}
+			}
+			else_if = {
+				limit = {
+					highest_held_title_tier >= tier_duchy	
+				}
+				change_global_variable = {
+					name = family_rulers
+					add = 2
+				}
+			}
+			else_if = {
+				limit = {
+					highest_held_title_tier >= tier_county	
+				}
+				change_global_variable = {
+					name = family_rulers
+					add = 1
+				}
+			}
+			else = {}
+		}
+
+		#dynastylaststand
+		set_global_variable = {
+			name = dynastylaststandcount
+			value = root.dynasty.dynasty_prestige_level			
+		}
+
+		remove_character_flag = Population_Control_target_is_on_succession_line
+		if = { #LineOfSuccession_safe
+			limit = {
+				LineOfSuccession_safe = 1
+				any_close_or_extended_family_member = {
+					OR = {
+						any_held_title = {
+							trigger_if = {
+								limit = { NOT = { Barony_Safe = 1 } }
+								tier >= tier_county							
+							}
+							place_in_line_of_succession = {
+								target = root
+								value <= LineOfSuccession_safe_limit
+							}
+						}
+						any_close_or_extended_family_member = {
+							NOT = {	is_close_or_extended_family_of = root }
+							any_held_title = {
+								trigger_if = {
+									limit = { NOT = { Barony_Safe = 1 } }
+									tier >= tier_county								
+								}
+								place_in_line_of_succession = {
+									target = root
+									value <= LineOfSuccession_safe_limit
+								}
+							}
+						}
+					}
+				}
+			}
+			add_character_flag = {
+				flag = Population_Control_target_is_on_succession_line
+			}
+		}
+
+		trigger_event = {
+			on_action = Population_Control_death
+		}
+	}	
+}
+
+Population_Control_death = {
+	trigger = {
+		trigger_if = {
+			limit = { any_player = {count >= 1} }
+			any_player = {
+				NOR = {
+					AND = { #player safe
+						player_safe = 1
+						this = root
+					}
+					AND = { #player family safe
+						player_family_safe = 1
+						NOT = { this = root }
+						OR = {
+							is_close_family_of = root
+							is_consort_of = root
+							is_heir_of = root
+							this = root.betrothed
+							any_close_family_member = {				
+								OR = {
+									is_consort_of = root
+									is_heir_of = root
+									this = root.betrothed
+								}						
+							}							
+						}						
+					}
+					AND = { #player court safe
+						player_courtier_safe = 1
+						NOT = { this = root }
+						this = root.host							
+					}
+					AND = { #player of family's relation safe
+						NOT = { this = root }
+						OR = {
+							AND = {
+								player_relation_safe = 1
+								has_any_scripted_relation = root							
+							}
+							AND = {
+								player_family_relation_safe = 1
+								OR = {
+									any_close_family_member = {
+										has_any_scripted_relation = root
+									}
+									any_heir = {
+										has_any_scripted_relation = root
+									}
+								}
+							}
+						}	
+					}
+					AND = { #player scheme safe
+						player_scheme_safe = 1
+						NOT = { this = root }
+						is_scheming_against = { target = root }
+					}	
+					AND = { #player dynasty safe
+						player_dynasty_safe = 1
+						NOT = { this = root }
+						this.dynasty = {
+							any_dynasty_member = {
+								count <= player_dynasty_safe_member_count
+							}
+							this = root.dynasty
+						}
+					}
+				}
+			}
+		}
+		trigger_else = { always = yes }
+		
+		NOR = {	
+			is_councillor = yes #Councillor safe
+			AND = { #DynastyLastStand safe
+				is_lowborn = no
+				age <= 30
+				root.faith = {
+					has_dominant_ruling_gender = root
+				}
+				root.dynasty = {
+					dynasty_prestige_level >= 2
+					any_dynasty_member = {		
+						this.faith = {	has_dominant_ruling_gender = prev	}
+						age <= 30
+						count <= global_var:dynastylaststandcount
+					}
+				}
+				Dynasty_laststand_safe = 1
+			}
+			AND = { #Rulerorheir safe
+				OR = {
+					is_ruler = yes
+					any_heir_title = {
+						trigger_if = {
+							limit = { NOT = { Barony_Safe = 1 } }
+							tier >= tier_county								
+						}
+						count >= 1
+					}
+					AND = {
+						age <= 50
+						any_consort = {
+							OR = {
+								is_ruler = yes
+								any_heir_title = {
+									trigger_if = {
+										limit = { NOT = { Barony_Safe = 1 } }
+										tier >= tier_county								
+									}
+									count >= 1
+								}					
+							}
+						}						
+					}
+				}
+				Rulerorheir_safe = 1
+			}
+			AND = {	#LineOfSuccession safe
+				OR = {
+					has_character_flag  = Population_Control_target_is_on_succession_line
+					AND = {
+						age <= 50
+						any_consort = {
+							has_character_flag  = Population_Control_target_is_on_succession_line
+						}
+					}
+				}				
+				LineOfSuccession_safe = 1
+			}
+		}			
+	}
+	
+	effect = {		
+		#set death chance
+		set_local_variable = {
+			name = death_chance
+			value = death_chance_base
+		}
+
+		if = {	limit = { age >= 75	}	change_local_variable = {	name = death_chance		multiply = m_ageover75		}	}		
+		if = {	limit = { age >= 65	}	change_local_variable = {	name = death_chance		multiply = m_ageover65		}	}		
+		if = {	limit = { age >= 55	}	change_local_variable = {	name = death_chance		multiply = m_ageover55		}	}
+
+		if = {
+			limit = { 				
+				any_player = { count >= 1 }
+				exists = this.location
+				any_player = {					
+					root.location={ squared_distance = { target = prev.capital_province value >= squared_distance_huge }}	
+					count = all				
+				}
+			}
+			change_local_variable = {	name = death_chance		multiply = m_islittlefar		}
+		}	
+		if = {
+			limit = {
+				any_player = { count >= 1 }
+				exists = this.location
+				any_player = {					
+					root.location={ squared_distance = { target = prev.capital_province value >= squared_distance_massive }}		
+					count = all			
+				}
+			}
+			change_local_variable = {	name = death_chance		multiply = m_isfar		}
+		}
+		if = {
+			limit = {
+				any_player = { count >= 1 }
+				exists = this.location
+				any_player = {
+					root.location={ squared_distance = { target = prev.capital_province value >= squared_distance_monstrous }}	
+					count = all				
+				}
+			}
+			change_local_variable = {	name = death_chance		multiply = m_isveryfar		}
+		}
+
+		if = {
+			limit = {
+				any_player = { count < 1 }
+			}
+			change_local_variable = {	name = death_chance		multiply = m_isveryfar		}
+		}
+
+		if = {
+			limit = {
+				age <= 30
+				global_var:family_members = {
+					compare_value < global_var:family_rulers
+				}
+			}
+			change_local_variable = {	name = death_chance		multiply = m_safe_extinction		}
+		}
+
+		if = {	limit = { health <= 3	}	change_local_variable = {	name = death_chance		multiply = m_littleweakhealth		}	}		
+		if = {	limit = { health <= 2	}	change_local_variable = {	name = death_chance		multiply = m_weakhealth		}	}		
+		if = {	limit = { health <= 1	}	change_local_variable = {	name = death_chance		multiply = m_veryweakhealth		}	}	
+		if = {	limit = { is_imprisoned = yes	}	change_local_variable = {	name = death_chance		multiply = m_isimprisoned		}	}	
+
+		random = {
+			chance = local_var:death_chance
+
+			#Set their parents to infertility.
+			every_parent = {
+				add_character_modifier = {
+					modifier = Population_Control_Child_Died_modifier
+					days = 1825
+				}		
+			}
+
+			if = {
+				limit = {
+					StressNotGained = 1
+				}
+				every_close_family_member = {
+					add_character_modifier = {
+						modifier = Population_Control_Stress_Mult_modifier
+						days = 2
+					}	
+				}
+				every_relation = {
+					add_character_modifier = {
+						modifier = Population_Control_Stress_Mult_modifier
+						days = 2
+					}	
+				}
+				every_consort = {
+					add_character_modifier = {
+						modifier = Population_Control_Stress_Mult_modifier
+						days = 2
+					}
+				}
+			}
+			
+			if = {
+				limit = { DeathReason = 0 }
+				death = {
+					death_reason = death_vanished
+				}
+			}
+			else_if = {
+				limit = { DeathReason = 1 }
+				random_list = {
+					10 = {
+						death = {
+							death_reason = death_bubonic_plague
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_smallpox
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_typhus
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_cancer
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_pneumonic
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = { DeathReason = 2 }
+				death = {
+					death_reason = death_bubonic_plague
+				}
+			}
+			else = {
+				random_list = {
+					10 = {
+						death = natural
+					}
+					10 = {
+						death = {
+							death_reason = death_murder
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_accident
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_script_cruelty
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_disappearance
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_head_ripped_off
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_mysterious
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_execution_blot
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_eaten
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_sun_trial
+						}
+					}
+					10 = {
+						death = {
+							death_reason = death_literalist_debate
+						}
+					}
+				}
+			}
+			
+
+
+		}
+		change_global_variable = {
+			name = minwipecount
+			add = -1
+		}
+		if = {
+			limit = {
+				global_var:minwipecount <= 0
+			}
+			remove_global_variable = wipestart				
+		}
+	}
+	
+}	
