@@ -311,63 +311,52 @@ east_on_after_lobby_effects = {
 					limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
 					vassal_contract_set_obligation_level = {
 						type = feudal_government_levies
-						level = 4
+						level = 3
 					}
 				}
 			}
 
-			if = { #兵士逃亡
+			if = {
 				limit = {
-					highest_held_title_tier < tier_kingdom
-					OR ={
-						has_primary_title = title:d_xusi
-						has_primary_title = title:d_guiguan
-						has_primary_title = title:d_yongping
-						has_primary_title = title:d_jingyuan					
-					}
-					current_date >= 866.1.1
-					current_date <= 890.1.1	
+					top_liege = { has_primary_title = title:e_celestia }
+					has_government = corps_government
+					has_culture = culture:han
+					current_date >= 763.1.1
+					current_date <= 887.1.1	
 				}
-				any_sub_realm_county = {
+				every_realm_county = {	#土地兼并
+					limit = { culture = culture:han }
+					add_county_modifier = county_corruption_inefficient_census_modifier
+					add_county_modifier = county_corruption_inefficient_tax_collection_modifier
+				}
+				every_realm_county = { #兵士逃亡
+					limit = { culture = culture:han }
 					add_county_modifier = county_corruption_deserting_levies_modifier
 					add_county_modifier = county_corruption_lackluster_administration_modifier
-					add_county_modifier = county_corruption_inefficient_tax_collection_modifier
-					add_county_modifier = county_corruption_inefficient_census_modifier
 					add_county_modifier = county_corruption_lack_of_courts_modifier
-					#change_county_control = 30
+					change_county_control = 30
 				}
-			}
-			if = { #盐帮走私、洪泛
-				limit = {
-					highest_held_title_tier < tier_kingdom
-					OR ={
-						has_primary_title = title:d_huainan
-						has_primary_title = title:d_huaixi
-						has_primary_title = title:d_chenxu
-						has_primary_title = title:d_pucao
-						has_primary_title = title:d_zhenghua
-						has_primary_title = title:d_taining	
-						has_primary_title = title:d_yihai	
-						has_primary_title = title:d_jingxiang
-						has_primary_title = title:d_hunan
-						has_primary_title = title:d_luling	
-						has_primary_title = title:d_zhenhai						
+				every_realm_county = { #盐帮、洪泛	
+					limit = { culture = culture:han }			
+					add_county_modifier = {
+						modifier = county_corruption_smuggling_ring_modifier
+						days = 3650
 					}
-					current_date >= 866.1.1
-					current_date <= 890.1.1	
-				}
-				any_sub_realm_county = {
-					add_county_modifier = county_corruption_smuggling_ring_modifier
-					add_county_modifier = county_corruption_lack_of_sheriffs_modifier	
-					add_county_modifier = county_corruption_thieves_guild_modifier
-					add_county_modifier = county_corruption_uncooperative_guilds_modifier
-					add_county_modifier = county_corruption_inefficient_tax_collection_modifier
-					add_county_modifier = county_corruption_inefficient_census_modifier
-					add_county_modifier = county_corruption_lack_of_courts_modifier
-					#change_county_control = 33
+					add_county_modifier = {
+						modifier = county_corruption_lack_of_sheriffs_modifier
+						days = 3650
+					}
+					add_county_modifier = {
+						modifier = county_corruption_thieves_guild_modifier
+						days = 3650
+					}
+					add_county_modifier = {
+						modifier = county_corruption_uncooperative_guilds_modifier
+						days = 3650
+					}
 				}
 			}
-		}	
+		}
 	}
 }	
 
@@ -828,10 +817,11 @@ east_on_title_gain_effects = { #by 糜三小姐
 				limit = {
 					primary_title.tier >= tier_county
 					OR = {
-						top_liege = { 
-							has_primary_title = title:e_celestia
-						}			
+						top_liege = { has_primary_title = title:e_celestia }			
 					}
+					NOT = { 
+						top_liege = { has_trait = founding_monarch }
+					}	
 				}
 				trigger_event = {
 					id = east_title.0001
@@ -884,6 +874,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 				}
 				add_trait = founding_monarch
 			}
+			
 			else_if = {
 				limit = {
 					royal_members_trigger = yes##前皇族
@@ -978,6 +969,9 @@ east_on_title_gain_effects = { #by 糜三小姐
 				limit = {
 					root.capital_province.kingdom = title:k_jin
 					royal_members_trigger = no##非皇族
+					NOT = { 
+						has_primary_title = d_hedong
+					}
 				}
 				house = {
 					add_house_modifier = k_jin #晋皇族
