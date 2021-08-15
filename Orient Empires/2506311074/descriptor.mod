@@ -6,7 +6,7 @@ tags={
 	"Translation"
 	"Religion"
 }
-name="Orient Empires"
+name="Oriental Empires"
 picture="thumbnail.png"
 supported_version="1.4.*"
 remote_file_id="2506311074"
