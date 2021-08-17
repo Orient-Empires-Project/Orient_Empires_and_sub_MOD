@@ -10,19 +10,20 @@ found_new_chinese_empire_effect = {
 			custom_tooltip = create_custom_empire_de_jure_changes
 		}
 	}
-
+	primary_title = {
+		save_scope_as = old_title
+	}
 	hidden_effect = {
 		title:e_celestia = {
 			every_in_de_jure_hierarchy = {
 				limit = { tier >= tier_duchy }
 				set_de_jure_liege_title = title:e_celestia
 			}
+			set_color_from_title = scope:old_title 
+			set_capital_county = title:c_luoyang
 		}
 	}
 	save_scope_as = founder
-	primary_title = {
-		save_scope_as = old_title
-	}
 	if = {
 		limit = {
 			NOT = { exists = title:e_celestia.holder }
@@ -30,6 +31,7 @@ found_new_chinese_empire_effect = {
 		create_title_and_vassal_change = {
 			type = created
 			save_scope_as = title_change
+			add_claim_on_loss = yes
 		}
 		title:e_celestia = {
 			change_title_holder = {
@@ -58,16 +60,12 @@ found_new_chinese_empire_effect = {
 	}
 	scope:founder = {
 		add_trait = founding_monarch
+		change_government = imperial_government
 	}
 	#title:e_celestia = { set_title_name = scope:old_title }
 	#title:e_celestia = { set_coa = scope:old_title }
-	title:e_celestia = { set_color_from_title = scope:old_title }
-	title:e_celestia = {
-		add_title_law = traditional_succession_law
-		change_government = imperial_government
-		set_capital_county = title:c_luoyang
-	}
 	trigger_event = major_decisions.1103
+
 	every_player = {
 		if = {
 			limit = {
@@ -114,15 +112,14 @@ found_new_chinese_empire_effect = {
 				trigger_event = major_decisions.1105
 			}
 		}
-	}		
+	}	
+	
 }
-
-
 
 create_tang_empire_scripted_effect = {
 	#add_trait = augustus
 	#Create tang Empire, shift dejure/history/laws.
-
+hidden_effect = { 
 	save_scope_as = founder
 	primary_title = {
 		save_scope_as = old_title
@@ -159,8 +156,8 @@ create_tang_empire_scripted_effect = {
 		}
 	}
 
-	hidden_effect = { set_primary_title_to = title:e_tang }
-
+	set_primary_title_to = title:e_tang
+ }
 	trigger_event = major_decisions.1103
 
 	every_player = {
@@ -212,8 +209,6 @@ create_tang_empire_scripted_effect = {
 	}
 }
 
-
-
 build_han_empire_effect = {
 	custom_tooltip = create_new_empire
 	show_as_tooltip = {
@@ -227,6 +222,17 @@ build_han_empire_effect = {
 	}
 
 	hidden_effect = {
+		save_scope_as = founder
+		primary_title = {
+			save_scope_as = old_title
+		}
+
+		create_title_and_vassal_change = {
+			type = created
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+
 		title:e_han = {
 			every_in_de_jure_hierarchy = {
 				limit = { tier >= tier_duchy }
@@ -240,30 +246,25 @@ build_han_empire_effect = {
 			save_scope_as = old_title
 		}
 
-		if = {
-			limit = {
-				NOT = { exists = title:e_han.holder }
-			}
-			create_title_and_vassal_change = {
-				type = created
-				save_scope_as = title_change
-			}
-			title:e_han = {
-				change_title_holder = {
-					holder = scope:founder
-					change = scope:title_change
-				}
-			}
-			resolve_title_and_vassal_change = scope:title_change
-		}
-
 		title:e_han = {
 			set_coa = e_han
 			set_color_from_title = scope:old_title
 			set_capital_county = scope:old_title.title_capital_county
 			copy_title_history = scope:old_title
 		}
-
+		every_held_title = { #Should destroy all other Empires owned at the time.
+		limit = {
+			tier = tier_empire
+			NOT = { this = title:e_han }
+		}
+		root = { destroy_title = prev }
+		every_in_de_jure_hierarchy = {
+			limit = {
+				tier = tier_kingdom
+			}
+			set_de_jure_liege_title = title:e_han				
+		}
+	}
 		set_primary_title_to = title:e_han
 
 		trigger_event = major_decisions.1103
@@ -317,8 +318,6 @@ build_han_empire_effect = {
 		}	
 	}	
 }
-
-
 
 found_min_kingdom_effect = {
 	custom_tooltip = create_new_kingdom
@@ -536,9 +535,6 @@ found_min_kingdom_effect = {
 	}
 }
 
-
-
-
 found_wuyue_kingdom_effect = {
 	custom_tooltip = create_new_kingdom
 	show_as_tooltip = {
@@ -755,34 +751,17 @@ found_wuyue_kingdom_effect = {
 	}
 }
 
-
-
-
-
-replace_tang_empire_effect = {
-
-	hidden_effect = {
-		save_scope_as = founder
-		primary_title = {
-			save_scope_as = old_title
-		}
-		create_dynamic_title = {
-			tier = empire
-			name = NEW_CREATED_TITLE_NAME
-		}
+replace_celestia_empire_effect = {
+	title:e_celestia = {
 		create_title_and_vassal_change = {
 			type = usurped
 			save_scope_as = change
-			add_claim_on_loss = no
+			add_claim_on_loss = yes
 		}
-		title:e_celestia = {
-			change_title_holder = {
-				holder = root
-				change = e_celestia
-			}
-			set_title_name = NEW_CREATED_TITLE_NAME
-			set_color_from_title = scope:old_title
+		change_title_holder = {
+			holder = root
+			change = scope:change
 		}
-		resolve_title_and_vassal_change = e_celestia
+		resolve_title_and_vassal_change = scope:change
 	}
 }
