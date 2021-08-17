@@ -117,96 +117,52 @@ found_new_chinese_empire_effect = {
 }
 
 create_tang_empire_scripted_effect = {
-	#add_trait = augustus
-	#Create tang Empire, shift dejure/history/laws.
-hidden_effect = { 
-	save_scope_as = founder
-	primary_title = {
-		save_scope_as = old_title
-	}
-
 	create_title_and_vassal_change = {
 		type = created
-		save_scope_as = change
+		save_scope_as = title_change
 		add_claim_on_loss = no
 	}
 	title:e_tang = {
 		change_title_holder = {
-			holder = scope:founder
-			change = scope:change
+			holder = root
+			change = scope:title_change
 		}
+	}
+	resolve_title_and_vassal_change = scope:title_change
+	set_primary_title_to = title:e_tang
+
+	title:e_tang = {
 		set_coa = e_tang
 		set_capital_county = scope:old_title.title_capital_county
 		copy_title_history = scope:old_title
 	}
-	
-	resolve_title_and_vassal_change = scope:change
 
-	every_held_title = { #Should destroy all other Empires owned at the time.
-		limit = {
-			tier = tier_empire
-			NOT = { this = title:e_tang }
-		}
-		root = { destroy_title = prev }
-		every_in_de_jure_hierarchy = {
+	root = { add_claim = e_celestia }
+
+	hidden_effect = {
+		every_held_title = {
 			limit = {
-				tier = tier_kingdom
+				tier = tier_empire
+				NOT = { this = title:e_tang }
 			}
-			set_de_jure_liege_title = title:e_tang				
-		}
-	}
-
-	set_primary_title_to = title:e_tang
- }
-	trigger_event = major_decisions.1103
-
-	every_player = {
-		if = {
-			limit = {
-				top_liege = scope:founder
-				NOT = { this = root }
-			}
-			trigger_event = major_decisions.1104
-		}
-		else_if = {
-			#Notify any players who lose de jure territory
-			limit = {
-				exists = scope:send_notifications
-				NOT = { this = root }
-				NOT = { top_liege = scope:founder }
-				any_held_title = {
-					any_in_de_jure_hierarchy = {
-						continue = {
-							tier > tier_kingdom
-						}
-						tier = tier_kingdom
-						is_in_list = kingdoms_for_notification
-					}
+			every_in_de_jure_hierarchy = {
+				continue = {
+					tier >= tier_kingdom
 				}
-			}
-			every_held_title = {
-				every_in_de_jure_hierarchy = {
-					continue = {
-						tier > tier_kingdom
-					}
-					limit = {
-						tier = tier_kingdom
-						is_in_list = kingdoms_for_notification
-					}
-					add_to_list = notification_titles
-				}
-			}
-			if = {
 				limit = {
-					any_in_list = {
-						list = notification_titles
-						count > 0
+					tier = tier_kingdom
+					OR = {
+						holder = root
+						holder = { target_is_liege_or_above = root }
 					}
+					NOT = { is_in_list = new_de_jure_kingdoms }
 				}
-				trigger_event = major_decisions.1105
+				add_to_list = new_de_jure_kingdoms
 			}
+			add_to_list = empire_for_destruction
 		}
-	}
+		
+	}	
 }
 
 build_han_empire_effect = {
@@ -221,101 +177,111 @@ build_han_empire_effect = {
 		}
 	}
 
-	hidden_effect = {
-		save_scope_as = founder
-		primary_title = {
-			save_scope_as = old_title
-		}
-
-		create_title_and_vassal_change = {
-			type = created
-			save_scope_as = change
-			add_claim_on_loss = no
-		}
-
-		title:e_han = {
-			every_in_de_jure_hierarchy = {
-				limit = { tier >= tier_duchy }
-				set_de_jure_liege_title = title:e_han
-			}
-		}
-	
-		save_scope_as = founder
-
-		primary_title = {
-			save_scope_as = old_title
-		}
-
-		title:e_han = {
-			set_coa = e_han
-			set_color_from_title = scope:old_title
-			set_capital_county = scope:old_title.title_capital_county
-			copy_title_history = scope:old_title
-		}
-		every_held_title = { #Should destroy all other Empires owned at the time.
-		limit = {
-			tier = tier_empire
-			NOT = { this = title:e_han }
-		}
-		root = { destroy_title = prev }
-		every_in_de_jure_hierarchy = {
-			limit = {
-				tier = tier_kingdom
-			}
-			set_de_jure_liege_title = title:e_han				
+	create_title_and_vassal_change = {
+		type = created
+		save_scope_as = title_change
+		add_claim_on_loss = no
+	}
+	title:e_han = {
+		change_title_holder = {
+			holder = root
+			change = scope:title_change
 		}
 	}
-		set_primary_title_to = title:e_han
+	resolve_title_and_vassal_change = scope:title_change
+	set_primary_title_to = title:e_han
 
-		trigger_event = major_decisions.1103
+	root = { add_claim = e_celestia }
 
-		every_player = {
+	title:e_han = {
+		set_coa = e_han
+		set_color_from_title = scope:old_title
+		set_capital_county = scope:old_title.title_capital_county
+		copy_title_history = scope:old_title
+	}
+
+	hidden_effect = {
+		every_held_title = {
+			limit = {
+				tier = tier_empire
+				NOT = { this = title:e_han }
+			}
+			every_in_de_jure_hierarchy = {
+				continue = {
+					tier >= tier_kingdom
+				}
+				limit = {
+					tier = tier_kingdom
+					OR = {
+						holder = root
+						holder = { target_is_liege_or_above = root }
+					}
+					NOT = { is_in_list = new_de_jure_kingdoms }
+				}
+				add_to_list = new_de_jure_kingdoms
+			}
+			add_to_list = empire_for_destruction
+		}
+
+		every_held_title = {
+			limit = {
+				tier = tier_kingdom
+				NOT = { is_in_list = new_de_jure_kingdoms }
+			}
+			add_to_list = new_de_jure_kingdoms
+		}
+
+		title:k_kabulistan = {
 			if = {
 				limit = {
-					top_liege = scope:founder
-					NOT = { this = root }
+					NOT = { is_in_list = new_de_jure_kingdoms }
 				}
-				trigger_event = major_decisions.1104
+				add_to_list = new_de_jure_kingdoms
 			}
-			else_if = {
-				#Notify any players who lose de jure territory
+		}
+		title:k_khorasan = {
+			if = {
 				limit = {
-					exists = scope:send_notifications
-					NOT = { this = root }
-					NOT = { top_liege = scope:founder }
-					any_held_title = {
-						any_in_de_jure_hierarchy = {
-							continue = {
-								tier > tier_kingdom
-							}
-							tier = tier_kingdom
-							is_in_list = kingdoms_for_notification
-						}
-					}
+					NOT = { is_in_list = new_de_jure_kingdoms }
 				}
-				every_held_title = {
-					every_in_de_jure_hierarchy = {
-						continue = {
-							tier > tier_kingdom
-						}
-						limit = {
-							tier = tier_kingdom
-							is_in_list = kingdoms_for_notification
-						}
-						add_to_list = notification_titles
-					}
+				add_to_list = new_de_jure_kingdoms
+			}
+		}
+		title:k_transoxiana = {
+			if = {
+				limit = {
+					NOT = { is_in_list = new_de_jure_kingdoms }
 				}
-				if = {
+				add_to_list = new_de_jure_kingdoms
+			}
+		}
+		every_in_list = {
+			list = new_de_jure_kingdoms
+			limit = {
+				trigger_if = {
 					limit = {
-						any_in_list = {
-							list = notification_titles
-							count > 0
-						}
+						exists = this
+						root = { is_ai = yes }
+						exists = holder
 					}
-					trigger_event = major_decisions.1105
+					NOR = {
+						holder.top_liege = { is_ai = no }
+						holder = { is_ai = no }
+					}
 				}
 			}
-		}	
+			set_de_jure_liege_title = title:e_han
+		}
+		every_in_list = {
+			list = empire_for_destruction
+			limit = {
+				NOT = { this = title:e_han } #Just a little safeguarding
+			}
+			root = {
+				destroy_title = prev
+			}
+		}
+		trigger_event = major_decisions.1103
 	}	
 }
 
