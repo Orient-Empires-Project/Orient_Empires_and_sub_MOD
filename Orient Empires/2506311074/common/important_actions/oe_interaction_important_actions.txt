@@ -185,6 +185,59 @@ action_change_vassal_heir_succession = {
 	}
 }
 
+action_summon_sb_to_be_vassal_interaction = {
+	priority = 903
+	combine_into_one = yes
+	check_create_action = {
+		every_character_war = {
+			limit = {
+				OR = {
+					using_cb = revolt_independence_war
+					using_cb = steppe_war
+					using_cb = unite_war
+				}
+			}
+			if = {
+				limit = {
+					root = this.primary_attacker
+				}
+				this.primary_defender = { save_scope_as = other_side }
+			}
+			else = {
+				this.primary_attacker = { save_scope_as = other_side }
+			}
+			scope:other_side = {
+				every_vassal = {
+					limit = {
+						root = {
+							is_character_interaction_shown = {
+								recipient = prev
+								interaction = summon_sb_to_be_vassal_interaction
+							}
+							is_character_interaction_valid = {
+								recipient = prev
+								interaction = summon_sb_to_be_vassal_interaction
+							}
+						}
+					}
+					try_create_important_action = {
+						important_action_type = action_summon_sb_to_be_vassal_interaction
+						actor = root
+						recipient = this
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		open_interaction_window = {
+			interaction = summon_sb_to_be_vassal_interaction
+			actor = scope:actor
+			recipient = scope:recipient
+		}
+	}
+}
 
 
 
