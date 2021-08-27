@@ -220,8 +220,8 @@ convert_whole_realm_to_imperialism_decision = {
 		prestige_level >= 2
 		capital_province.county = {
 			development_level >= convert_to_feudalism_development_requirement
+			geographical_region = world_asia_china
 		}
-
 		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
 			text = has_all_tribal_innovations
 			subject = root.culture
@@ -279,7 +279,7 @@ convert_whole_realm_to_imperialism_decision = {
 	}
 }
 
-#采纳帝国律令
+#独立者律令制
 adopt_imperial_government_decision = {
 	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	major = yes
@@ -291,18 +291,27 @@ adopt_imperial_government_decision = {
 	is_shown = {
 		has_government = corps_government
 		has_government = feudal_government
+		has_government = bureau_government
 	}
 
 	is_valid = {
-		completely_controls = title:d_heluo
-		completely_controls = title:d_biansong
-		completely_controls = title:d_xijing
+			is_independent_ruler = yes
+			scope:title.tier > tier_county
+			highest_held_title_tier > tier_county
+			OR = {
+				has_culture_group = culture_group:chinese_group
+				capital_province = { geographical_region = world_asia }
+			}
 	}
 
 	is_valid_showing_failures_only = {
 
 		is_at_war = no
 
+	}
+
+	cost = {
+		prestige = 350
 	}
 
 	effect = {
@@ -314,12 +323,12 @@ adopt_imperial_government_decision = {
 	}
 
 	ai_will_do = {
-		base = 100
+		base = 65
 	}
 }
 
 
-#文官转律令
+#转律令
 transfer_to_imperialism_decision = { 
 	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	major = yes
@@ -331,21 +340,26 @@ transfer_to_imperialism_decision = {
 		OR = {
 			has_government = corps_government
 			has_government = bureau_government
+			has_government = feudal_government
+			has_government = clan_government
+			has_government = republic_government
 		}
 		AND = {
 			is_independent_ruler = yes
-			highest_held_title_tier >= tier_duchy
+			scope:title.tier > tier_county
+			highest_held_title_tier > tier_county
 		}
+		OR = {
+			capital_province = { geographical_region = world_asia }
+			top_liege = { has_title = title:e_celestia }
+		}
+
 	}
 	
 	is_valid = {
 		OR = {
-			has_government = corps_government
-			has_government = bureau_government
-		}
-		AND = {
-			is_independent_ruler = yes
-			highest_held_title_tier >= tier_duchy
+			has_culture_group = culture_group:chinese_group
+			top_liege = { has_title = title:e_celestia }
 		}
 		prestige_level >= 3
 	}
@@ -365,11 +379,11 @@ transfer_to_imperialism_decision = {
 	}
 	
 	ai_will_do = {
-		base = 100
+		base = 10
 	}
 }
 
-#文官转军镇
+#转军镇
 transfer_to_corps_decision = { 
 	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	major = yes
@@ -381,10 +395,15 @@ transfer_to_corps_decision = {
 		OR = {
 			has_government = imperial_government
 			has_government = bureau_government
+			has_government = feudal_government
+			has_government = clan_government
+		}
+		capital_province.county = {
+			geographical_region = world_asia_china
 		}
 		AND = {
 			is_independent_ruler = yes
-			highest_held_title_tier >= tier_duchy
+			highest_held_title_tier = tier_duchy
 		}
 		NOT = {
 			has_title = title:e_celestia
@@ -392,13 +411,16 @@ transfer_to_corps_decision = {
 	}
 	
 	is_valid = {
-		OR = {
-			has_government = imperial_government
-			has_government = bureau_government
+		NOT = {
+			has_government = corps_government
 		}
 		AND = {
 			is_independent_ruler = yes
 			highest_held_title_tier >= tier_duchy
+			highest_held_title_tier <= tier_kingdom
+		}
+		capital_province.county = {
+			geographical_region = world_asia_china
 		}
 		prestige_level >= 3
 		NOT = {
@@ -407,7 +429,7 @@ transfer_to_corps_decision = {
 	}
 	
 	cost = {
-		prestige = 550
+		prestige = 750
 	}
 	
 	effect = {
