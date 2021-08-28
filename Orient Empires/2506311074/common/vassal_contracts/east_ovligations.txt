@@ -7,14 +7,15 @@
 				scope:vassal = {
 					if = {
 						limit = {
+							AND = {
 								has_government = imperial_government
 								highest_held_title_tier = tier_duchy
+							}
 						}
 						value = imperial_government_tax_default
 						multiply = imperial_government_tax_min_ca_1
 					if = {
 						limit = {
-								has_government = imperial_government
 								highest_held_title_tier = tier_county
 						}
 						value = imperial_government_tax_default
@@ -23,7 +24,6 @@
 					}
 					if = {
 						limit = {
-								has_government = imperial_government
 								highest_held_title_tier = tier_barony
 							}
 						}
@@ -32,32 +32,23 @@
 					}
 					else_if = {
 						limit = {
-								has_government = bureau_government
-								highest_held_title_tier = tier_duchy
+							is_bureau_government_trigger = yes
+							highest_held_title_tier < tier_kingdom
 						}
-						value = bureau_government_tax_default
-						multiply = 0.15
-					else_if = {
-						limit = {
-								has_government = bureau_government
-								highest_held_title_tier = tier_county
-						}
-						value = bureau_government_tax_default
-						multiply = 0.25
-						
-					}
-					else_if = {
-						limit = {
-								has_government = bureau_government
-								highest_held_title_tier = tier_barony
+						if = {
+							limit = {
+								is_ai = yes
 							}
+							value = bureau_government_tax_default
+							multiply = 0.005
 						}
-						value = bureau_government_tax_default
-						multiply = 0.35
+						else = { # is a player
+							value = bureau_government_tax_player
+						}
 					}
 					else_if = {
 						limit = {
-							has_government = corps_government
+							is_corps_government_trigger = yes
 							highest_held_title_tier < tier_kingdom
 						}
 						if = {
@@ -77,14 +68,15 @@
 				scope:vassal = {
 					if = {
 						limit = {
+							AND = {
 								has_government = imperial_government
 								highest_held_title_tier = tier_duchy
+							}
 						}
 						value = imperial_government_levies_default
 						multiply = imperial_government_levies_min_ca_1
 					if = {
 						limit = {
-								has_government = imperial_government
 								highest_held_title_tier = tier_county
 						}
 						value = imperial_government_levies_default
@@ -93,7 +85,6 @@
 					}
 					if = {
 						limit = {
-								has_government = imperial_government
 								highest_held_title_tier = tier_barony
 							}
 						}
@@ -102,31 +93,23 @@
 					}
 					else_if = {
 						limit = {
-								has_government = bureau_government
-								highest_held_title_tier = tier_duchy
+							is_bureau_government_trigger = yes
+							highest_held_title_tier < tier_kingdom
 						}
-						value = bureau_government_levies_default
-						multiply = -0.15
-					else_if = {
-						limit = {
-								has_government = bureau_government
-								highest_held_title_tier = tier_county
-						}
-						value = bureau_government_levies_default
-						multiply = -0.25						
-					}
-					else_if = {
-						limit = {
-								has_government = bureau_government
-								highest_held_title_tier = tier_barony
+						if = {
+							limit = {
+								is_ai = yes
 							}
+							value = bureau_government_levies_default
+							multiply = 0.005
 						}
-						value = bureau_government_levies_default
-						multiply = -0.35
+						else = { # is a player
+							value = bureau_government_tax_player
+						}
 					}
 					else_if = {
 						limit = {
-							has_government = corps_government
+							is_corps_government_trigger = yes
 							highest_held_title_tier < tier_kingdom
 						}
 						if = {
@@ -151,146 +134,109 @@ corps_government_obligations = {
 
 	obligation_levels = {
 		default = {
-			levies = {
-				scope:vassal = {
-					if = {
-						limit = {
-							is_ai = yes
-						}
-						value = corps_government_levies_default
-						if = {
-							limit = {
-								scope:opinion_of_liege > 0
-							}
-							add =
-							{
-								value = scope:opinion_of_liege
-								multiply = corps_government_levies_opinion_scale_positive
-							}
-						}
-						else = {
-							add =
-							{
-								value = scope:opinion_of_liege
-								multiply = corps_government_levies_opinion_scale_negative
-							}
-						}
-					}
-					else = { # is a                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-						value = corps_government_levies_player
-					}
-				}
-			}
-			min_levies = {
-				scope:liege = {
-					if = {
-						limit = {
-							has_realm_law = crown_authority_1
-						}
-						value = corps_government_levies_min_ca_1
-					}
-					else_if = {
-						limit = {
-							has_realm_law = crown_authority_2
-						}
-						value = corps_government_levies_min_ca_2
-					}
-					else_if = {
-						limit = {
-							has_realm_law = crown_authority_3
-						}
-						value = corps_government_levies_min_ca_3
-					}
-					else = {
-						value = 0.0
-					}
-				}
-			}
 			tax = {
 				scope:vassal = {
 					if = {
 						limit = {
-							is_ai = yes
+							OR = {
+								is_corps_government_trigger = yes
+								highest_held_title_tier >= tier_kingdom
+							}
 						}
-						value = corps_government_tax_default
-						if = { 
+						if = {
 							limit = {
-								scope:opinion_of_liege > 0
+								is_ai = yes
 							}
-							add =
-							{
-								value = scope:opinion_of_liege
-								multiply = corps_government_tax_opinion_scale_positive
+							value = corps_government_tax_default
+							if = { 
+								limit = {
+									scope:opinion_of_liege > 0
+								}
+								add =
+								{
+									value = scope:opinion_of_liege
+									multiply = corps_government_tax_opinion_scale_positive
+								}
 							}
 						}
-						else = {
-							add =
-							{
-								value = scope:opinion_of_liege
-								multiply = corps_government_tax_opinion_scale_negative
-							}
+						else = { # is a player
+							value = corps_government_tax_player
 						}
-					}
-					else = { # is a player
-						value = corps_government_tax_player
-					}
-				}
-			}
-			min_tax = {
-				scope:liege = {
-					if = {
-						limit = {
-							has_realm_law = crown_authority_1
-						}
-						value = corps_government_tax_min_ca_1
 					}
 					else_if = {
 						limit = {
-							has_realm_law = crown_authority_2
+							is_bureau_government_trigger = yes
+							highest_held_title_tier < tier_kingdom
 						}
-						value = corps_government_tax_min_ca_2
-					}
-					else_if = {
-						limit = {
-							has_realm_law = crown_authority_3
+						if = {
+							limit = {
+								is_ai = yes
+							}
+							value = bureau_government_tax_default
+							if = { 
+								limit = {
+									scope:opinion_of_liege < 0
+								}
+								add =
+								{
+									value = scope:opinion_of_liege
+									multiply = bureau_government_tax_opinion_scale_negative
+								}
+							}
 						}
-						value = corps_government_tax_min_ca_3
-					}
-					else = {
-						value = 0.0
+						else = { # is a player
+							value = bureau_government_tax_player
+						}
 					}
 				}
 			}
-			tax_contribution_postfix = "corps_government_tax_contribution_postfix"
-			levies_contribution_postfix = "corps_government_levies_contribution_postfix"
-			
-			unclamped_contribution_label = "corps_government_unclamped_contribution_label"
-			min_contribution_label = "corps_government_min_contribution_label"
 		}
 	}
 }
 
 bureau_government_obligations = {
-	display_mode = tree
-	icon = gold_icon
+	uses_opinion_of_liege = yes
+
 	obligation_levels = {
 		default = {
-			levies = 0.1
 			tax = {
-				if = {
-					limit = { scope:liege = { has_government = tribal_government } }
-					value = 0.05
-				}
-				if = {
-					limit = { scope:liege = { has_government = imperial_government } }
-					value = 0.2
-				}
-				if = {
-					limit = { scope:liege = { has_government = corps_government } }
-					value = 0.07
-				}
-				else = {
-					value = 0.3
+				scope:vassal = {
+					if = {
+						limit = {
+							OR = {
+								is_bureau_government_trigger = yes
+								highest_held_title_tier <= tier_duchy
+							}
+						}
+						if = {
+							limit = {
+								is_ai = yes
+							}
+							value = bureau_government_tax_default
+
+							if = { 
+								limit = {
+									scope:opinion_of_liege > 0
+								}
+								add =
+								{
+									value = scope:opinion_of_liege
+									multiply = bureau_government_tax_opinion_scale_positive
+								}
+								
+							}
+						}
+						else = { # is a player
+							value = bureau_government_tax_player
+						}
+					}
+					else_if = {
+						limit = {
+							is_bureau_government_trigger = yes
+							highest_held_title_tier < tier_kingdom
+						}
+						value = bureau_government_official_tax_default
+					}
 				}
 			}
 		}
