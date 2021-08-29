@@ -4,8 +4,8 @@
 
 types chinaPortraitTypes
 {
-	type widget_china_councillor_item = widget {
-		size = { 450 200 }
+	type widget_china_councillor_small_item = widget {
+		size = { 200 160 }
 
 		### Required Datacontexts
 		# A council position type
@@ -25,12 +25,11 @@ types chinaPortraitTypes
 				using = Animation_FadeOut_Quick
 			}
 
-			chinaportrait_shoulders = {
+			chinaportrait_shoulders_small = {
 				name = "councillor_portrait"
 				datacontext = "[ActiveCouncilTask.GetCouncillor]"
 				visible = "[Character.IsValid]"
 				parentanchor = center
-				position = { -110 20 }
 				blockoverride "portrait_button_no_character_text"
 				{
 					text = "PORTRAIT_NO_COUNCILLOR"
@@ -153,7 +152,7 @@ types chinaPortraitTypes
 
 				flowcontainer = {
 					name = "council_position_tasks"
-					datamodel = "[GuiCouncilPosition.GetPotentialCouncilTasks]"			
+					datamodel = "[GuiCouncilPosition.GetPotentialCouncilTasks]"
 					parentanchor = bottom|hcenter
 					margin_bottom = 10
 					direction = vertical
@@ -168,7 +167,7 @@ types chinaPortraitTypes
 							visible = "[GuiPotentialCouncilTask.IsVisible]"
 							size = { 220 25 }
 
-							enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+							enabled = "[GuiPotentialCouncilTask.CanSelect]"
 							onclick = "[GuiPotentialCouncilTask.SelectTaskType]"
 
 							tooltip = "[CouncilTaskType.GetEffectDesc( ActiveCouncilTask.GetScopes )]"
@@ -338,6 +337,417 @@ types chinaPortraitTypes
 			}
 		}
 	}
+	type widget_china_councillor_item = widget {
+		size = { 450 200 }
+
+		### Required Datacontexts
+		# A council position type
+		# The councillor
+		# The active council task
+		widget = {
+			visible = "[Not(GuiCouncilPosition.ArePotentialTasksVisible)]"
+			size = { 100% 100% }
+
+			state = {
+				name = _show
+				using = Animation_FadeIn_Quick
+			}
+
+			state = {
+				name = _hide
+				using = Animation_FadeOut_Quick
+			}
+
+			chinaportrait_shoulders = {
+				name = "councillor_portrait"
+				datacontext = "[ActiveCouncilTask.GetCouncillor]"
+				visible = "[Character.IsValid]"
+				parentanchor = center
+				position = { -110 20 }
+				blockoverride "portrait_button_no_character_text"
+				{
+					text = "PORTRAIT_NO_COUNCILLOR"
+				}
+
+				blockoverride "portrait_button"
+				{
+					using = tooltip_ws
+				}
+			}
+		}
+
+		vbox = {
+
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				margin = { 0 5 }
+				margin_right = 3
+
+				background = {
+					using = Background_Area_Dark
+				}
+
+				background = {
+					visible = "[ObjectsEqual( Character.Self, GetPlayer )]"
+					texture = "gfx/interface/buttons/background_pattern.dds"
+					spriteType = Corneredtiled
+					alpha = 0.4
+
+					using = Color_Blue
+
+					modify_texture = {
+						texture = "gfx/interface/tiles/tile_fade_mask.dds"
+						blend_mode = alphamultiply
+						alpha = 0.9
+					}
+
+					modify_texture = {
+						texture = "gfx/interface/buttons/background_alpha.dds"
+						spriteType = Corneredtiled
+						spriteborder = { 15 15 }
+						blend_mode = alphamultiply
+					}
+				}
+
+				background = {
+					visible = "[ObjectsEqual( Character.Self, GetPlayer )]"
+					texture = "gfx/interface/buttons/background_frame.dds"
+					spriteType = Corneredstretched
+					spriteborder = { 15 15 }
+					alpha = 0.25
+
+					using = Color_Blue
+
+					modify_texture = {
+						texture = "gfx/interface/tiles/tile_fade_mask.dds"
+						blend_mode = alphamultiply
+						alpha = 0.9
+					}
+				}
+
+				spacer = {
+					visible = "[GuiCouncilPosition.CanPotentiallySelectCouncillor]"
+					size = { 6 6 }
+				}
+
+				block "replace_councillor"
+				{
+					hbox = {
+
+						button_round = {
+							name = "replace"
+							visible = "[GuiCouncilPosition.CanPotentiallySelectCouncillor]"
+							onclick = "[GuiCouncilPosition.SelectCouncillor]"
+							enabled = "[GuiCouncilPosition.CanSelectCouncillor]"
+							tooltip = "[GuiCouncilPosition.GetSelectCouncillorTooltip]" #COUNCILWINDOW_TT_REPLACE
+							using = tooltip_se
+
+							button_change = {
+								alwaystransparent = yes
+								parentanchor = center
+							}
+						}
+					}
+				}
+
+				vbox = {
+					layoutpolicy_horizontal = expanding
+					margin_left = 6
+
+					text_single = {
+						name = "title"
+						layoutpolicy_horizontal = expanding
+						text = "[ActiveCouncilTask.GetPositionName|E]"
+						tooltip = "[ActiveCouncilTask.GetPositionTooltip]"
+						autoresize = no
+						fontsize_min = 13
+					}
+
+					text_single = {
+						layoutpolicy_horizontal = expanding
+						text = "[Character.GetShortUINameNoTooltip]"
+						default_format = "#high"
+						align = nobaseline
+						autoresize = no
+						fontsize_min = 13
+					}
+				}
+			}
+
+			widget = {
+				visible = "[GuiCouncilPosition.ArePotentialTasksVisible]"
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+
+				state = {
+					name = _show
+					using = Animation_FadeIn_Quick
+				}
+
+				flowcontainer = {
+					name = "council_position_tasks"
+					datamodel = "[GuiCouncilPosition.GetPotentialCouncilTasks]"
+					parentanchor = bottom|hcenter
+					margin_bottom = 10
+					direction = vertical
+					spacing = 3
+					alwaystransparent = no
+
+					item = {
+						button_standard = {
+							name = "potential_task"
+							datacontext = "[GuiPotentialCouncilTask.GetCouncilTaskType]"
+							datacontext = "[GuiCouncilPosition.GetActiveCouncilTask]"
+							visible = "[GuiPotentialCouncilTask.IsVisible]"
+							size = { 220 25 }
+
+							enabled = "[GuiPotentialCouncilTask.CanSelect]"
+							onclick = "[GuiPotentialCouncilTask.SelectTaskType]"
+
+							tooltip = "[CouncilTaskType.GetEffectDesc( ActiveCouncilTask.GetScopes )]"
+
+							text_single = {
+								parentanchor = left|vcenter
+								position = { 10 0 }
+								text = "[CouncilTaskType.GetName]"
+								align = nobaseline
+								default_format = "#clickable"
+							}
+						}
+					}
+				}
+			}
+
+			widget = {
+				visible = "[Not(GuiCouncilPosition.ArePotentialTasksVisible)]"
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+
+				state = {
+					name = _show
+					using = Animation_FadeIn_Quick
+				}
+				
+				text_multi = {
+					margin_left = 10
+					margin_bottom = 10
+					margin_right = 5
+					autoresize = yes
+					max_width = 180
+					visible = "[Character.IsLocalPlayer]"
+					align = bottom|left
+					parentanchor = bottom|left
+					text = "ON_COUNCIL_EFFECTS"
+					background = {
+						using = Background_Area_Dark
+					}
+					fontsize = 14
+				}
+
+				background = {
+					texture = "gfx/interface/tiles/bg_corner_fade.dds"
+					alpha = 0.5
+					margin_top = -130
+					margin_left = -150
+				}
+
+				flowcontainer = {
+					parentanchor = bottom|right
+					ignoreinvisible = yes
+					margin_bottom = 3
+
+					icon = {
+						name = "church_approval_icon"
+						visible = "[Character.IsTheocraticLesseeOf( GetPlayer )]"
+
+						texture = "gfx/interface/icons/icon_bishop_approval.dds"
+						framesize = { 120 120 }
+						size = { 50 50 }
+						frame = "[Select_int32( And( Character.TheocraticLesseeHasApprovalStatus, Character.TheocraticLesseeApprovesOfLiege ), '(int32)1', '(int32)2' )]"
+						tooltip = "[Character.GetTheocraticLesseeApprovalTooltip]"
+					}
+
+					flowcontainer = {
+						parentanchor = bottom
+						margin_bottom = 4
+
+						portrait_status_icons = {
+							background = {
+								using = Background_Area_Dark
+								margin = { 1 2 }
+							}
+						}
+					}
+
+					coa_realm_small_crown = {
+						visible = "[Character.HasLandedTitles]"
+						parentanchor = bottom
+						name = "councillor_realm"
+					}
+				}
+
+				block "regular_task"
+				{
+					flowcontainer = {
+						name = "council_position_tasks"
+						visible = "[Not(CouncilWindow.IsLiegeCouncilShown)]"
+						datamodel = "[GuiCouncilPosition.GetPotentialCouncilTasks]"
+						parentanchor = bottom|left
+						position = { 0  }
+						margin = { 10 5 }
+						spacing = 4
+						direction = vertical
+						alwaystransparent = no
+
+						background = {
+							texture = "gfx/interface/hud/tab_bg.dds"
+							mirror = horizontal
+							margin = { 0 10 }
+							margin_right = 15
+							alpha = 0.6
+						}
+
+						item = {
+							
+							container = {
+								widget = {
+									size = { 42 42 }
+
+									icon = {
+										visible = "[GuiPotentialCouncilTask.IsActive]"
+										texture = "gfx/particles/halo.dds"
+										parentanchor = center
+										size = { 60 60 }
+										color = { 1 0.85 0.6 1 }
+									}
+
+									button_normal = {
+										visible = "[Or(And(GuiPotentialCouncilTask.CanSelect, Not(CouncilWindow.IsLiegeCouncilShown)), GuiPotentialCouncilTask.IsActive)]"
+										parentanchor = center
+										size = { 45 45 }
+										gfxtype = togglepushbuttongfx
+										effectname = "NoHighlight"
+
+										onclick = "[GuiPotentialCouncilTask.SelectTaskType]"
+										enabled = "[Not(CouncilWindow.IsLiegeCouncilShown)]"
+										down = "[GuiPotentialCouncilTask.IsActive]"
+
+										texture = "gfx/interface/buttons/button_big_round.dds"
+										framesize = { 94 94 }
+
+										using = tooltip_ws
+
+										tooltipwidget = {
+											potential_council_task_icon_tooltip_widget = {
+												using = DefaultTooltipBackground
+												using = GeneralTooltipSetup
+												alwaystransparent = no
+											}
+										}
+
+										upframe = 1
+										downframe = 1
+										uphoverframe = 2
+										disableframe = 6
+
+										button_normal = {
+											name = "potential_task"
+											parentanchor = center
+											widgetanchor = center
+											datacontext = "[GuiPotentialCouncilTask.GetCouncilTaskType]"
+											effectname = "NoHighlight"
+											gfxtype = togglepushbuttongfx
+											shaderfile = "gfx/FX/pdxgui_pushbutton.shader"
+											texture = "[CouncilTaskType.GetIcon]"
+											alwaystransparent = yes
+											size = { 39 39 }
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+    type chinaportrait_shoulders_small = widget {
+        size = { 200 160 }
+
+        widget = {
+            size = { 100% 100% }
+            block "portrait_glows"
+            {
+                using = Portrait_Background_Glows
+            }
+        }
+
+        portrait_button = {
+            parentanchor = bottom|hcenter
+            size = { 200 160 }
+            using = portrait_base
+            block "portrait_texture"
+            {
+                portrait_texture = "[Character.GetPortrait('environment_shoulders', 'camera_shoulders', 'idle', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+            }
+
+            mask = "gfx/portraits/portrait_mask_shoulders.dds"
+            effectname = "NoHighlight"
+
+            highlight_icon = {
+                name = "prison_bars"
+                visible = "[Character.IsImprisoned]"
+                size = { 100% 100% }
+                effectname = "NoHighlight"
+                texture = "gfx/portraits/portrait_prison_shoulders.dds"
+
+                modify_texture = {
+                    name = "mask"
+                    texture = "gfx/portraits/portrait_mask_shoulders.dds"
+                    spriteType = Corneredstretched
+                    blend_mode = alphamultiply
+                }
+            }
+
+            block "portrait_button" {}
+        }
+
+        portrait_status_icons = {
+            parentanchor = bottom|right
+            scale = 0.85
+
+            background = {
+                using = Background_Area_Dark
+                margin = { 2 3 }
+                alpha = 0.8
+            }
+        }
+
+        portrait_opinion = {
+            parentanchor = bottom|hcenter
+        }
+
+        #portrait unknown glow
+        button = {
+            size = { 200 160 }
+            texture = "gfx/portraits/unknown_portraits/button_unknown_shoulders.dds"
+            framesize = { 200 160 }
+            gfxtype = framedbuttongfx
+            effectname = "NoHighlight"
+            upframe = 1
+            overframe = 2
+
+            block "glow_visible" {
+
+                visible = "[Not(Character.IsValid)]"
+
+            }
+
+            block "glow_flip" {}
+
+            block "onclick" {}
+        }
+    }
     type chinaportrait_shoulders = widget {
         size = { 125 160 }
 

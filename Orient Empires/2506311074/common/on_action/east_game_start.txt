@@ -77,7 +77,7 @@ east_on_after_lobby_effects = {
 			}
 			if = { # 独立文官伯爵转封建
 				limit = {
-					highest_held_title_tier >= tier_county
+					scope:title.tier >= tier_county	
 					has_culture_group = culture_group:chinese_group
 					is_independent_ruler = yes
 					is_bureau_government_trigger = yes
@@ -332,11 +332,10 @@ east_on_after_lobby_effects = {
 							religion = religion:taoism_religion
 						}
 					}
-				#土地兼并
+					#土地兼并
 					add_county_modifier = county_corruption_inefficient_census_modifier
 					add_county_modifier = county_corruption_inefficient_tax_collection_modifier
 					change_county_control = -30
-					#monthly_county_control_change_add = -0.005
 				}
 				every_realm_county = {
 					limit = { 
@@ -387,32 +386,36 @@ east_on_title_gain_effects = { #by 糜三小姐
 	effect = { 
 		if = {  # 获得军镇
 			limit = {
-				scope:title.tier < tier_duchy
-				root.highest_held_title_tier < tier_duchy
+				scope:title.tier = tier_county
+				root.highest_held_title_tier = tier_county
 				has_culture_group = culture_group:chinese_group
 				liege = { is_corps_government_trigger = yes }
 				NOT = { is_corps_government_trigger = yes }
 				can_have_official_succession_law_trigger = yes
 			}
 			change_government_corps_government_effect = yes 
-			if = { 
-				limit = { NOT = { has_realm_law = corps_succession_law } }
-				add_realm_law_skip_effects = corps_succession_law
-			}
+				if = { 
+					limit = { NOT = { has_realm_law = corps_succession_law } }
+					add_realm_law_skip_effects = corps_succession_law
+				}
 		}
 
 		if = { # 获得官僚
 			limit = {
-				scope:title.tier < tier_duchy	
-				root.highest_held_title_tier < tier_duchy
+				scope:title.tier = tier_county
+				root.highest_held_title_tier = tier_county
 				has_culture_group = culture_group:chinese_group
 				liege = {
 					OR = {
+						has_government = imperial_government
 						is_bureau_government_trigger = yes
 					}
 				}
 				NOT = { is_bureau_government_trigger = yes }
 				#can_have_official_succession_law_trigger = yes
+				NOT = {
+					capital_province = { has_holding_type = church_holding }
+				}
 			}
 			change_government_bureau_government_effect = yes 
 			if = { 
@@ -428,9 +431,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					scope:transfer_type = flag:inheritance
 				}
 				scope:title.tier >= tier_kingdom
-				is_independent_ruler = no
+				#is_independent_ruler = no
+				is_bureau_government_trigger = yes
+				NOT = {
+					OR = {
+						has_primary_title = title:k_annan
+						has_primary_title = title:k_guiyi
+					} 
+				}
 				capital_province = {
-					geographical_region = world_asia
+					geographical_region = world_asia_china
 				}
 				OR = {
 					has_culture_group = culture_group:chinese_group
@@ -457,6 +467,20 @@ east_on_title_gain_effects = { #by 糜三小姐
 				limit = { NOT = { has_realm_law = tradition_succession_law } }
 				add_realm_law_skip_effects = tradition_succession_law
 			}
+		}
+
+		if = { # 独立军镇改留后世袭制
+			limit = {
+				scope:title.tier >= tier_county	
+				has_culture_group = culture_group:chinese_group
+				is_independent_ruler = yes
+				has_government = corps_government
+				#can_have_official_succession_law_trigger = yes
+			}
+			if = { 
+				limit = { NOT = { has_realm_law = corps_succession_law } }
+				add_realm_law_skip_effects = corps_succession_law
+			}
 		}	
 
 		if = { #年号
@@ -466,6 +490,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					scope:title = title:e_song
 					AND = {
 						highest_held_title_tier = tier_empire
+						scope:title.tier = tier_empire
 						OR = {
 							has_culture_group = culture_group:chinese_group
 							has_culture = culture:shatuo
@@ -829,6 +854,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					scope:transfer_type = flag:created
 					scope:transfer_type = flag:inheritance
 				}
+				NOT = { has_trait = founding_monarch }
 			}
 			save_scope_as = new_ruler
 			every_vassal = {
@@ -846,20 +872,22 @@ east_on_title_gain_effects = { #by 糜三小姐
 					days = 5
 				}
 			}
-		scope:title = {
-			every_dejure_vassal_title_holder = {
-				limit = {
-					primary_title.tier >= tier_county
-					NOT = { 
-						top_liege = root 
-					}	
-				}
-				trigger_event = {
-						id = east_title.0001
-						days = 5
+			scope:title = {
+				every_dejure_vassal_title_holder = {
+					limit = {
+						primary_title.tier > tier_county
+						scope:title.tier > tier_county
+						NOT = { 
+							top_liege = scope:new_ruler
+						}
+						is_independent_ruler = yes
+					}
+					trigger_event = {
+							id = east_title.0001
+							days = 5
+					}
 				}
 			}
-		}
 		}
 		if = {  ##### 改国号##
 			limit = {
@@ -888,24 +916,25 @@ east_on_title_gain_effects = { #by 糜三小姐
 				}
 				father = { 
 					if = {
-						limit = { 
-							is_alive = no 
-						}
-						add_trait = miaohao_trait_gaozu 
+					limit = {
+						is_alive = no
 					}
+					add_trait = miaohao_trait_gaozu 
+				}
 				}
 				add_trait = founding_monarch
 			}
+			
 			else_if = {
 				limit = {
-					royal_members_trigger = yes##前皇族
+					royal_members_trigger = yes ##前皇族
 				}
 				add_trait = restoration_monarch
 			}
 			if = {
 				limit = {
 					has_primary_title = title:e_tang
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_tang #唐皇族
@@ -916,7 +945,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					has_primary_title = title:e_song
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_song #宋皇族
@@ -928,7 +957,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_liao
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_grand_liao #大辽皇族 #大辽皇族
@@ -940,7 +969,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_zhao
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_zhao #赵皇族
@@ -952,7 +981,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_yan
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_yan #燕皇族
@@ -965,7 +994,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_wei
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_wei #魏皇族
@@ -977,7 +1006,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_tengri
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_tengri #代皇族
@@ -1004,7 +1033,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_xia_east
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_xia_east #夏皇族
@@ -1016,7 +1045,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_longxi
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_longxi #岐皇族
@@ -1028,7 +1057,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_qin
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_qin #秦皇族
@@ -1040,7 +1069,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_shu
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_shu #蜀皇族
@@ -1052,7 +1081,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_zhou
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_zhou #周皇族
@@ -1064,7 +1093,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_qi
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_qi #齐皇族
@@ -1076,7 +1105,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_chu
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_chu #楚皇族
@@ -1088,7 +1117,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_wu
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_wu #吴皇族
@@ -1100,7 +1129,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_yue
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_wuyue #吴越皇族
@@ -1112,7 +1141,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_qianzhong
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_qian #大黔皇族
@@ -1124,7 +1153,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_nanyue
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_nanyue #南越皇族
@@ -1136,7 +1165,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_annan
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_viet #大越皇族
@@ -1148,7 +1177,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_nanzhong
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_dali #大礼皇族
@@ -1160,7 +1189,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_lanxang
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_lanxang #大寮皇族
@@ -1172,7 +1201,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_goryeo
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = k_goryeo #高丽皇族
@@ -1184,7 +1213,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_xia
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_hexi #凉皇族
@@ -1196,9 +1225,9 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_khitan
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
-						any_held_title =  { has_title = title:k_jubu }
+						any_held_title =  { this = title:k_jubu }
 					}
 					
 				}
@@ -1212,7 +1241,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_jurchen
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_grand_liao #大辽皇族
@@ -1224,7 +1253,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_jubu
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 				}
 				house = {
 					add_house_modifier = e_yuan
@@ -1235,7 +1264,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1252,7 +1281,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1269,7 +1298,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1286,7 +1315,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1303,7 +1332,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1320,7 +1349,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1337,7 +1366,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1354,7 +1383,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1371,7 +1400,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1388,7 +1417,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1405,7 +1434,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1422,7 +1451,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1439,7 +1468,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1457,7 +1486,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-				royal_members_trigger = no##非皇族
+				royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1474,7 +1503,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-				royal_members_trigger = no##非皇族
+				royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1491,7 +1520,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-				royal_members_trigger = no##非皇族
+				royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1509,7 +1538,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-				royal_members_trigger = no##非皇族
+				royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1526,7 +1555,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-				royal_members_trigger = no##非皇族
+				royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1543,7 +1572,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-				royal_members_trigger = no##非皇族
+				royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1561,7 +1590,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1578,7 +1607,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {	
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1596,7 +1625,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1613,7 +1642,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1630,7 +1659,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1648,7 +1677,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1665,7 +1694,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1682,7 +1711,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1700,7 +1729,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1717,7 +1746,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1734,7 +1763,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1752,7 +1781,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1769,7 +1798,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1786,7 +1815,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1803,7 +1832,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1820,7 +1849,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1838,7 +1867,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1855,7 +1884,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1872,7 +1901,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1889,7 +1918,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1907,7 +1936,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1924,7 +1953,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1941,7 +1970,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1960,7 +1989,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1977,7 +2006,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1995,7 +2024,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2012,7 +2041,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2030,7 +2059,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2047,7 +2076,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2066,7 +2095,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2083,7 +2112,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2101,7 +2130,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2118,7 +2147,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2135,7 +2164,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2152,7 +2181,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2170,7 +2199,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2187,7 +2216,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2204,7 +2233,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2222,7 +2251,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2239,7 +2268,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2256,7 +2285,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2273,7 +2302,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2290,7 +2319,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2308,7 +2337,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2325,7 +2354,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2344,7 +2373,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2361,7 +2390,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2378,7 +2407,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2395,7 +2424,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2412,7 +2441,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2429,7 +2458,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2447,7 +2476,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2464,7 +2493,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2481,7 +2510,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			else_if = {
 				limit = {
-					royal_members_trigger = no##非皇族
+					royal_members_trigger = no ##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier >= tier_duchy 
@@ -2791,7 +2820,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					root.capital_province.kingdom = title:k_khitan
 					royal_members_trigger = yes ##前皇族
 					NOT = { 
-						any_held_title =  { has_title = title:k_jubu }
+						any_held_title =  { this = title:k_jubu }
 					}
 					
 				}
@@ -4105,19 +4134,31 @@ yearly_playable_pulse = {
 			}
 		}
 	}
-}
-three_year_playable_pulse = {
 	events = {
 		east_title.0003
 	}
 }
+
+on_natural_death_second_chance = {
+	on_actions = { on_shihao_effect }
+}
+
 on_death = {
-	events = {
-		#shihao.1 #自动帝孤谥
-		#shihao.2 #自动王孤谥
-		#east_title.0002  #随机尊谥
-		miaohao.1  #选定庙号
-		shihao.8  #选定谥号	
-		delay = { days = 20 }
+	on_actions = { on_shihao_effect }
+}
+
+on_shihao_effect = {
+	effect = {
+		save_scope_as = death_man
+		primary_heir = {
+			trigger_event = {
+				days = 10
+				id = miaohao.1  #选定庙号
+			}
+			trigger_event = {
+				days = 15
+				id = shihao.8  #选定谥号	
+			}
+		}
 	}
 }
