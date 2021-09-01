@@ -141,17 +141,26 @@ class Eventdetail:
 
 class Person:
     def __init__(self) -> None:
-        self.id = None # number
-        self.id_comment = None
-        self.name = None
-        self.dynasty = None # number
-        self.religion = None
-        self.culture = None
+        # self.id = None # number
+        # self.id_comment = None
+        # self.name = None
+        # self.dynasty = None # number
+        # self.religion = None
+        # self.culture = None
+        # self.traitlist = [] # a list of trait
+        # self.martial = None # number
+        # self.father = None
+        # self.mother = None
+        self.id = 0 # number
+        self.id_comment = "None"
+        self.name = "None"
+        self.dynasty = 0 # number
+        self.religion = "None"
+        self.culture = "None"
         self.traitlist = [] # a list of trait
-        self.martial = None # number
-        self.father = None
-        self.mother = None
-
+        self.martial = 0 # number
+        self.father = 0
+        self.mother = 0
         self.eventlist =[
             # Event("730.1.1","birth"),
             # Event("790.1.1","death")
@@ -185,20 +194,21 @@ class Person:
                 mother_str+\
                 event_str+\
                 end_str
-Chao = Person()
-Chao.id = 1059714
-Chao.id_comment = '# Guiyi Cao family'
-Chao.name = "Yijin"
-Chao.dynasty = 1055036
-Chao.religion="vajrayana"
-Chao.culture="han"
+if __name__ == '__main__':
+    Chao = Person()
+    Chao.id = 1059714
+    Chao.id_comment = '# Guiyi Cao family'
+    Chao.name = "Yijin"
+    Chao.dynasty = 1055036
+    Chao.religion="vajrayana"
+    Chao.culture="han"
 
-Chao.traitlist.append('education_martial_4')
-Chao.traitlist.append('ambitious')
-Chao.father = 'han0010'
-Chao.mother = 'han0011'
-Chao.eventlist.append(Event("842.1.1","birth","yes"))
-Chao.eventlist.append(Event("916.1.1","add_spouse","304194"))
-Chao.eventlist.append(Event("935.1.1","death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
-# TODO 925.12.28 = { effect = { imprison = 194325 } }
-print (Chao)
+    Chao.traitlist.append('education_martial_4')
+    Chao.traitlist.append('ambitious')
+    Chao.father = 'han0010'
+    Chao.mother = 'han0011'
+    Chao.eventlist.append(Event("842.1.1","birth","yes"))
+    Chao.eventlist.append(Event("916.1.1","add_spouse","304194"))
+    Chao.eventlist.append(Event("935.1.1","death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
+    # TODO 925.12.28 = { effect = { imprison = 194325 } }
+    print (Chao)

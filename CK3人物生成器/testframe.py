@@ -9,17 +9,17 @@
 
 import wx
 import wx.xrc
-import wx.adv
 
 ###########################################################################
 ## Class MyFrame1
 ###########################################################################
+from 人物生成器test1 import *
 
 class MyFrame1 ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"CK3人物生成器", pos = wx.DefaultPosition, size = wx.Size( 1210,1071 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
-
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"CK3人物生成器", pos = wx.DefaultPosition, size = wx.Size( 1210,1071 ), style = wx.DEFAULT_FRAME_STYLE|wx.RESIZE_BORDER|wx.TAB_TRAVERSAL )
+		self.newChar = Person()
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
 		sbSizer12 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"label" ), wx.VERTICAL )
@@ -30,7 +30,7 @@ class MyFrame1 ( wx.Frame ):
 
 		ID_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"ID" ), wx.VERTICAL )
 
-		self.ID_textCtrl1 = wx.TextCtrl( ID_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.ID_textCtrl1 = wx.TextCtrl( ID_box.GetStaticBox(), wx.ID_ANY, u"ID eg", wx.DefaultPosition, wx.DefaultSize, 0 )
 		ID_box.Add( self.ID_textCtrl1, 0, wx.ALL, 5 )
 
 
@@ -59,7 +59,7 @@ class MyFrame1 ( wx.Frame ):
 
 		culture_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"culture" ), wx.VERTICAL )
 
-		m_listBox2Choices = []
+		m_listBox2Choices = [ u"中原", u"胡人" ]
 		self.m_listBox2 = wx.ListBox( culture_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_listBox2Choices, 0 )
 		culture_box.Add( self.m_listBox2, 0, wx.ALL, 5 )
 
@@ -75,18 +75,30 @@ class MyFrame1 ( wx.Frame ):
 
 		gbSizer1.Add( religion_box, wx.GBPosition( 4, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
-		birthday_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"birthday" ), wx.VERTICAL )
+		birthday_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"birthday" ), wx.HORIZONTAL )
 
-		self.m_datePicker4 = wx.adv.DatePickerCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, wx.DefaultDateTime, wx.DefaultPosition, wx.DefaultSize, wx.adv.DP_DROPDOWN|wx.adv.DP_SHOWCENTURY )
-		birthday_box.Add( self.m_datePicker4, 0, wx.ALL, 5 )
+		self.m_textCtrl5 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"867", wx.DefaultPosition, wx.DefaultSize, 0 )
+		birthday_box.Add( self.m_textCtrl5, 0, wx.ALL, 5 )
+
+		self.m_textCtrl6 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"10", wx.DefaultPosition, wx.DefaultSize, 0 )
+		birthday_box.Add( self.m_textCtrl6, 0, wx.ALL, 5 )
+
+		self.m_textCtrl7 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"22", wx.DefaultPosition, wx.DefaultSize, 0 )
+		birthday_box.Add( self.m_textCtrl7, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( birthday_box, wx.GBPosition( 5, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
-		deathday_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"deathday" ), wx.VERTICAL )
+		deathday_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"deathday" ), wx.HORIZONTAL )
 
-		self.m_datePicker1 = wx.adv.DatePickerCtrl( deathday_box.GetStaticBox(), wx.ID_ANY, wx.DefaultDateTime, wx.DefaultPosition, wx.DefaultSize, wx.adv.DP_DEFAULT )
-		deathday_box.Add( self.m_datePicker1, 0, wx.ALL, 5 )
+		self.m_textCtrl8 = wx.TextCtrl( deathday_box.GetStaticBox(), wx.ID_ANY, u"1444", wx.DefaultPosition, wx.DefaultSize, 0 )
+		deathday_box.Add( self.m_textCtrl8, 0, wx.ALL, 5 )
+
+		self.m_textCtrl9 = wx.TextCtrl( deathday_box.GetStaticBox(), wx.ID_ANY, u"4", wx.DefaultPosition, wx.DefaultSize, 0 )
+		deathday_box.Add( self.m_textCtrl9, 0, wx.ALL, 5 )
+
+		self.m_textCtrl10 = wx.TextCtrl( deathday_box.GetStaticBox(), wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
+		deathday_box.Add( self.m_textCtrl10, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( deathday_box, wx.GBPosition( 6, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
@@ -103,7 +115,7 @@ class MyFrame1 ( wx.Frame ):
 
 		parents_box.Add( self.father_name, 0, wx.ALL, 5 )
 
-		self.father_id = wx.TextCtrl( parents_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.father_id = wx.TextCtrl( parents_box.GetStaticBox(), wx.ID_ANY, u"爸爸ID", wx.DefaultPosition, wx.DefaultSize, 0 )
 		parents_box.Add( self.father_id, 0, wx.ALL, 5 )
 
 		self.mother_name = wx.StaticText( parents_box.GetStaticBox(), wx.ID_ANY, u"Mother", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -111,7 +123,7 @@ class MyFrame1 ( wx.Frame ):
 
 		parents_box.Add( self.mother_name, 0, wx.ALL, 5 )
 
-		self.mother_id = wx.TextCtrl( parents_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.mother_id = wx.TextCtrl( parents_box.GetStaticBox(), wx.ID_ANY, u"妈妈ID", wx.DefaultPosition, wx.DefaultSize, 0 )
 		parents_box.Add( self.mother_id, 0, wx.ALL, 5 )
 
 
@@ -124,10 +136,10 @@ class MyFrame1 ( wx.Frame ):
 
 		sbSizer15 = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"label" ), wx.VERTICAL )
 
-		self.m_spinCtrl1 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
+		self.m_spinCtrl1 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 1 )
 		sbSizer15.Add( self.m_spinCtrl1, 0, wx.ALL, 5 )
 
-		self.m_spinCtrl2 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
+		self.m_spinCtrl2 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 2 )
 		sbSizer15.Add( self.m_spinCtrl2, 0, wx.ALL, 5 )
 
 		self.m_spinCtrl3 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
@@ -144,6 +156,9 @@ class MyFrame1 ( wx.Frame ):
 
 
 		gbSizer1.Add( sbSizer15, wx.GBPosition( 0, 2 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+
+		self.m_button1 = wx.Button( sbSizer12.GetStaticBox(), wx.ID_ANY, u"生成", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gbSizer1.Add( self.m_button1, wx.GBPosition( 0, 3 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
 
 
 		sbSizer12.Add( gbSizer1, 1, wx.EXPAND, 5 )
@@ -162,7 +177,19 @@ class MyFrame1 ( wx.Frame ):
 
 		self.Centre( wx.BOTH )
 
+		# Connect Events
+		self.m_button1.Bind( wx.EVT_BUTTON, self.createCode )
+
 	def __del__( self ):
 		pass
+
+
+	# Virtual event handlers, overide them in your derived class
+	def createCode( self, event ):
+		self.newChar.id=int(self.ID_textCtrl1.GetValue())
+		dynasty_choice1Choices = [ u"123", u"223" ]
+		self.newChar.dynasty=int(dynasty_choice1Choices[self.dynasty_choice1.GetSelection()])
+		self.Output_ret.SetValue(str(self.newChar))
+		event.Skip()
 
 
