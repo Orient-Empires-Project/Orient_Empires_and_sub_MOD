@@ -18,7 +18,7 @@ from 人物生成器test1 import *
 class MyFrame1 ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"CK3人物生成器", pos = wx.DefaultPosition, size = wx.Size( 1210,1071 ), style = wx.DEFAULT_FRAME_STYLE|wx.RESIZE_BORDER|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"CK3人物生成器", pos = wx.DefaultPosition, size = wx.Size( 1210,1071 ), style = wx.DEFAULT_FRAME_STYLE|wx.RESIZE_BORDER|wx.HSCROLL|wx.TAB_TRAVERSAL|wx.VSCROLL )
 		self.newChar = Person()
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -30,7 +30,7 @@ class MyFrame1 ( wx.Frame ):
 
 		ID_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"ID" ), wx.VERTICAL )
 
-		self.ID_textCtrl1 = wx.TextCtrl( ID_box.GetStaticBox(), wx.ID_ANY, u"ID eg", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.ID_textCtrl1 = wx.TextCtrl( ID_box.GetStaticBox(), wx.ID_ANY, u"114514", wx.DefaultPosition, wx.DefaultSize, 0 )
 		ID_box.Add( self.ID_textCtrl1, 0, wx.ALL, 5 )
 
 
@@ -187,9 +187,12 @@ class MyFrame1 ( wx.Frame ):
 	# Virtual event handlers, overide them in your derived class
 	def createCode( self, event ):
 		self.newChar.id=int(self.ID_textCtrl1.GetValue())
-		dynasty_choice1Choices = [ u"123", u"223" ]
-		self.newChar.dynasty=int(dynasty_choice1Choices[self.dynasty_choice1.GetSelection()])
+		dynasty_choice1Choices_number = [ u"1000001", u"1000002" ]
+		self.newChar.dynasty=int(dynasty_choice1Choices_number[self.dynasty_choice1.GetSelection()])
 		self.Output_ret.SetValue(str(self.newChar))
+		self.religion_listBox1.Hide()
+		self.religion_listBox1.GetParent().Layout()
+		self.Layout()
 		event.Skip()
 
 
