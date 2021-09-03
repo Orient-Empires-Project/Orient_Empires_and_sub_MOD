@@ -17,14 +17,13 @@ import wx.xrc
 from 人物生成器test1 import *
 
 class MyBirthdayValidator(wx.Validator):
-	def __init__(self):
-		wx.Validator().__init__(self)
-		# self.Bind()
+	def __init__(self, parent ):
+		super().__init__(parent)# TODO ???
 
 	def Clone(self):
 		return MyBirthdayValidator()
 
-	def Validate(self, parent):
+	def Validate(self):
 		# super().Validate()
 		TextCtrl= self.GetWindow()
 		text = TextCtrl.GetValue()
@@ -118,6 +117,7 @@ class MyFrame1 ( wx.Frame ):
 		birthday_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"birthday" ), wx.HORIZONTAL )
 
 		self.m_textCtrl5 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"867", wx.DefaultPosition, wx.DefaultSize, 0)
+		# self.m_textCtrl5.SetValidator(MyBirthdayValidator)
 		birthday_box.Add( self.m_textCtrl5, 0, wx.ALL, 5 )
 
 		self.m_textCtrl6 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"10", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -304,15 +304,26 @@ class MyFrame1 ( wx.Frame ):
 		self.Output_ret.SetValue(str(self.newChar))
 		self.result_text.SetLabelText("生成")
 		# if self.m_textCtrl5.GetValidator().Validate(self.m_textCtrl5):
-		# 	self.result_text.SetLabelText("BAD")
-		# else:
-		# 	self.result_text.SetLabelText("GOOD")
+		print (self.m_textCtrl5.GetValue())
+		print (int(self.m_textCtrl5.GetValue())>1444)
+		if int(self.m_textCtrl5.GetValue())>1444 :
+			self.result_text.SetLabelText("BAD")
+		else:
+			self.result_text.SetLabelText("GOOD")
 		if self.religion_listBox1.IsShown():
 			self.religion_listBox1.Hide()
 		elif not self.religion_listBox1.IsShown():
 			self.religion_listBox1.Show()
 		self.religion_listBox1.GetParent().Layout()
-		self.Layout()
+		# self.Layout()
 		event.Skip()
 
 
+if __name__ == '__main__':
+    # 下面是使用wxPython的固定用法
+    app = wx.App()
+
+    main_win = MyFrame1(None)
+    main_win.Show()
+
+    app.MainLoop()
