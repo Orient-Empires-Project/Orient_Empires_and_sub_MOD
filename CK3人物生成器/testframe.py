@@ -8,12 +8,37 @@
 ###########################################################################
 
 import wx
+from wx.core import TextCtrl
 import wx.xrc
 
 ###########################################################################
 ## Class MyFrame1
 ###########################################################################
 from 人物生成器test1 import *
+
+class MyBirthdayValidator(wx.Validator):
+	def __init__(self):
+		wx.Validator().__init__(self)
+		# self.Bind()
+
+	def Clone(self):
+		return MyBirthdayValidator()
+
+	def Validate(self, parent):
+		# super().Validate()
+		TextCtrl= self.GetWindow()
+		text = TextCtrl.GetValue()
+		if int(text)>=800 and int(text)<=1444:
+			return True
+		else:
+			return False
+
+	
+	def TransferToWindow(self):
+		return True
+
+	def TransferFromWindow(self):
+		return True
 
 class MyFrame1 ( wx.Frame ):
 
@@ -30,7 +55,7 @@ class MyFrame1 ( wx.Frame ):
 
 		ID_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"ID" ), wx.VERTICAL )
 
-		self.ID_textCtrl1 = wx.TextCtrl( ID_box.GetStaticBox(), wx.ID_ANY, u"114514", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.ID_textCtrl1 = wx.TextCtrl( ID_box.GetStaticBox(), wx.ID_ANY, u"000001", wx.DefaultPosition, wx.DefaultSize, 0 )
 		ID_box.Add( self.ID_textCtrl1, 0, wx.ALL, 5 )
 
 
@@ -38,12 +63,19 @@ class MyFrame1 ( wx.Frame ):
 
 		dynasty_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"dynasty" ), wx.VERTICAL )
 
-		dynasty_choice1Choices = [ u"王朝1", u"王朝2" ]
+		dynasty_choice1Choices = [ u"宗族1", u"宗族2" ]
 		self.dynasty_choice1 = wx.Choice( dynasty_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, dynasty_choice1Choices, 0 )
 		self.dynasty_choice1.SetSelection( 0 )
 		self.dynasty_choice1.SetToolTip( u"王朝" )
 
 		dynasty_box.Add( self.dynasty_choice1, 0, wx.ALL, 5 )
+
+		house_choice4Choices = [ u"家族1", u"家族2", u"家族1" ]
+		self.house_choice4 = wx.Choice( dynasty_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, house_choice4Choices, 0 )
+		self.house_choice4.SetSelection( 0 )
+		self.house_choice4.SetToolTip( u"家族" )
+
+		dynasty_box.Add( self.house_choice4, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( dynasty_box, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
@@ -63,6 +95,14 @@ class MyFrame1 ( wx.Frame ):
 		self.m_listBox2 = wx.ListBox( culture_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_listBox2Choices, 0 )
 		culture_box.Add( self.m_listBox2, 0, wx.ALL, 5 )
 
+		self.culture_tree = wx.TreeCtrl( culture_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE|wx.TR_HAS_BUTTONS|wx.TR_HIDE_ROOT )
+		root = self.culture_tree.AddRoot(u"文化")
+		zhongyuan = self.culture_tree.AppendItem(root, u"中原")
+		self.culture_tree.AppendItem(zhongyuan, u"长安")
+		self.culture_tree.AppendItem(zhongyuan, u"洛阳")
+		huren = self.culture_tree.AppendItem(root, u"胡人")
+		culture_box.Add( self.culture_tree, 0, wx.ALL, 5 )
+
 
 		gbSizer1.Add( culture_box, wx.GBPosition( 3, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
@@ -77,7 +117,7 @@ class MyFrame1 ( wx.Frame ):
 
 		birthday_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"birthday" ), wx.HORIZONTAL )
 
-		self.m_textCtrl5 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"867", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_textCtrl5 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"867", wx.DefaultPosition, wx.DefaultSize, 0)
 		birthday_box.Add( self.m_textCtrl5, 0, wx.ALL, 5 )
 
 		self.m_textCtrl6 = wx.TextCtrl( birthday_box.GetStaticBox(), wx.ID_ANY, u"10", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -87,7 +127,7 @@ class MyFrame1 ( wx.Frame ):
 		birthday_box.Add( self.m_textCtrl7, 0, wx.ALL, 5 )
 
 
-		gbSizer1.Add( birthday_box, wx.GBPosition( 5, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+		gbSizer1.Add( birthday_box, wx.GBPosition( 5, 0 ), wx.GBSpan( 1, 2 ), wx.EXPAND, 5 )
 
 		deathday_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"deathday" ), wx.HORIZONTAL )
 
@@ -101,12 +141,15 @@ class MyFrame1 ( wx.Frame ):
 		deathday_box.Add( self.m_textCtrl10, 0, wx.ALL, 5 )
 
 
-		gbSizer1.Add( deathday_box, wx.GBPosition( 6, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+		gbSizer1.Add( deathday_box, wx.GBPosition( 6, 0 ), wx.GBSpan( 1, 2 ), wx.EXPAND, 5 )
 
 		eventlist_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"eventlist" ), wx.VERTICAL )
 
+		self.m_button4 = wx.Button( eventlist_box.GetStaticBox(), wx.ID_ANY, u"也以后添加", wx.DefaultPosition, wx.DefaultSize, 0 )
+		eventlist_box.Add( self.m_button4, 0, wx.ALL, 5 )
 
-		gbSizer1.Add( eventlist_box, wx.GBPosition( 7, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+
+		gbSizer1.Add( eventlist_box, wx.GBPosition( 4, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
 		parents_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"parents" ), wx.VERTICAL )
 
@@ -131,42 +174,106 @@ class MyFrame1 ( wx.Frame ):
 
 		traitlist_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"traitlist" ), wx.VERTICAL )
 
+		self.m_button2 = wx.Button( traitlist_box.GetStaticBox(), wx.ID_ANY, u"以后添加", wx.DefaultPosition, wx.DefaultSize, 0 )
+		traitlist_box.Add( self.m_button2, 0, wx.ALL, 5 )
+
 
 		gbSizer1.Add( traitlist_box, wx.GBPosition( 2, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
-		sbSizer15 = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"label" ), wx.VERTICAL )
+		skills_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"能力" ), wx.HORIZONTAL )
 
-		self.m_spinCtrl1 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 1 )
-		sbSizer15.Add( self.m_spinCtrl1, 0, wx.ALL, 5 )
+		gSizer2 = wx.GridSizer( 0, 1, 0, 0 )
 
-		self.m_spinCtrl2 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 2 )
-		sbSizer15.Add( self.m_spinCtrl2, 0, wx.ALL, 5 )
+		self.m_checkBox1 = wx.CheckBox( skills_box.GetStaticBox(), wx.ID_ANY, u"外交", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.m_checkBox1, 0, wx.ALL, 5 )
 
-		self.m_spinCtrl3 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
-		sbSizer15.Add( self.m_spinCtrl3, 0, wx.ALL, 5 )
+		self.m_checkBox2 = wx.CheckBox( skills_box.GetStaticBox(), wx.ID_ANY, u"财政", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.m_checkBox2, 0, wx.ALL, 5 )
 
-		self.m_spinCtrl4 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
-		sbSizer15.Add( self.m_spinCtrl4, 0, wx.ALL, 5 )
+		self.m_checkBox3 = wx.CheckBox( skills_box.GetStaticBox(), wx.ID_ANY, u"武力", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.m_checkBox3, 0, wx.ALL, 5 )
 
-		self.m_spinCtrl5 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
-		sbSizer15.Add( self.m_spinCtrl5, 0, wx.ALL, 5 )
+		self.m_checkBox4 = wx.CheckBox( skills_box.GetStaticBox(), wx.ID_ANY, u"密谋", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.m_checkBox4, 0, wx.ALL, 5 )
 
-		self.m_spinCtrl6 = wx.SpinCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
-		sbSizer15.Add( self.m_spinCtrl6, 0, wx.ALL, 5 )
+		self.m_checkBox5 = wx.CheckBox( skills_box.GetStaticBox(), wx.ID_ANY, u"学识", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.m_checkBox5, 0, wx.ALL, 5 )
+
+		self.m_checkBox6 = wx.CheckBox( skills_box.GetStaticBox(), wx.ID_ANY, u"勇武", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.m_checkBox6, 0, wx.ALL, 5 )
 
 
-		gbSizer1.Add( sbSizer15, wx.GBPosition( 0, 2 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+		skills_box.Add( gSizer2, 1, wx.EXPAND, 5 )
 
-		self.m_button1 = wx.Button( sbSizer12.GetStaticBox(), wx.ID_ANY, u"生成", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gbSizer1.Add( self.m_button1, wx.GBPosition( 0, 3 ), wx.GBSpan( 1, 1 ), wx.ALL, 5 )
+		gSizer1 = wx.GridSizer( 0, 1, 0, 0 )
+
+		self.m_spinCtrl1 = wx.SpinCtrl( skills_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 1 )
+		gSizer1.Add( self.m_spinCtrl1, 0, wx.ALL, 5 )
+
+		self.m_spinCtrl2 = wx.SpinCtrl( skills_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 2 )
+		gSizer1.Add( self.m_spinCtrl2, 0, wx.ALL, 5 )
+
+		self.m_spinCtrl3 = wx.SpinCtrl( skills_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
+		gSizer1.Add( self.m_spinCtrl3, 0, wx.ALL, 5 )
+
+		self.m_spinCtrl4 = wx.SpinCtrl( skills_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
+		gSizer1.Add( self.m_spinCtrl4, 0, wx.ALL, 5 )
+
+		self.m_spinCtrl5 = wx.SpinCtrl( skills_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
+		gSizer1.Add( self.m_spinCtrl5, 0, wx.ALL, 5 )
+
+		self.m_spinCtrl6 = wx.SpinCtrl( skills_box.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0 )
+		gSizer1.Add( self.m_spinCtrl6, 0, wx.ALL, 5 )
+
+
+		skills_box.Add( gSizer1, 1, wx.EXPAND, 5 )
+
+
+		gbSizer1.Add( skills_box, wx.GBPosition( 0, 2 ), wx.GBSpan( 2, 1 ), wx.EXPAND, 5 )
+
+		DNA_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"DNA" ), wx.VERTICAL )
+
+		self.m_staticText3 = wx.StaticText( DNA_box.GetStaticBox(), wx.ID_ANY, u"TODO", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText3.Wrap( -1 )
+
+		DNA_box.Add( self.m_staticText3, 0, wx.ALL, 5 )
+
+		self.m_toggleBtn1 = wx.ToggleButton( DNA_box.GetStaticBox(), wx.ID_ANY, u"Toggle me!", wx.DefaultPosition, wx.DefaultSize, 0 )
+		DNA_box.Add( self.m_toggleBtn1, 0, wx.ALL, 5 )
+
+
+		gbSizer1.Add( DNA_box, wx.GBPosition( 3, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+
+		nickname_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"Nickname" ), wx.VERTICAL )
+
+		m_choice3Choices = []
+		self.m_choice3 = wx.Choice( nickname_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_choice3Choices, 0 )
+		self.m_choice3.SetSelection( 0 )
+		nickname_box.Add( self.m_choice3, 0, wx.ALL, 5 )
+
+
+		gbSizer1.Add( nickname_box, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
+
+		result_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"结果" ), wx.VERTICAL )
+
+		self.result_text = wx.StaticText( result_box.GetStaticBox(), wx.ID_ANY, u"无事发生", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.result_text.Wrap( -1 )
+
+		result_box.Add( self.result_text, 0, wx.ALL, 5 )
+
+
+		gbSizer1.Add( result_box, wx.GBPosition( 2, 2 ), wx.GBSpan( 2, 1 ), wx.EXPAND, 5 )
 
 
 		sbSizer12.Add( gbSizer1, 1, wx.EXPAND, 5 )
 
-		sbSizer13 = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"label" ), wx.VERTICAL )
+		sbSizer13 = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"label" ), wx.HORIZONTAL )
 
-		self.Output_ret = wx.TextCtrl( sbSizer13.GetStaticBox(), wx.ID_ANY, u"1414076 = { #character to link 大延琳\n\tdynasty = 1000049543 #Balhae Dae\n\tname = \"Geom\"\n\tculture = bohai\n\treligion = buddhist\n\tfather = 1414068 #unknown but possible\n\ttrait = mahayana_buddhist\n\t#Birth and death dates unknown\n\t938.1.1={\n\t\tbirth=yes\n\t}\n\t925.12.28 = { effect = { imprison = 194325 } }\n\t926.9.6 = { employer = 194326 }\n\t975.1.1={\n\t\tdeath=yes\n\t}\n}", wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.TE_MULTILINE|wx.TE_READONLY )
+		self.Output_ret = wx.TextCtrl( sbSizer13.GetStaticBox(), wx.ID_ANY, u"1414076 = { #character to link 大延琳\n\tdynasty = 1000049543 #Balhae Dae\n\tname = \"Geom\"\n\tculture = bohai\n\treligion = buddhist\n\tfather = 1414068 #unknown but possible\n\ttrait = mahayana_buddhist\n\t#Birth and death dates unknown\n\t938.1.1={\n\t\tbirth=yes\n\t}\n\t925.12.28 = { effect = { imprison = 194325 } }\n\t926.9.6 = { employer = 194326 }\n\t975.1.1={\n\t\tdeath=yes\n\t}\n}", wx.DefaultPosition, wx.Size( 500,200 ), wx.HSCROLL|wx.TE_MULTILINE|wx.TE_READONLY )
 		sbSizer13.Add( self.Output_ret, 0, wx.ALL, 5 )
+
+		self.m_button1 = wx.Button( sbSizer13.GetStaticBox(), wx.ID_ANY, u"生成", wx.DefaultPosition, wx.DefaultSize, 0 )
+		sbSizer13.Add( self.m_button1, 0, wx.ALL, 5 )
 
 
 		sbSizer12.Add( sbSizer13, 1, wx.EXPAND, 5 )
@@ -178,6 +285,7 @@ class MyFrame1 ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.culture_tree.Bind( wx.EVT_TREE_SEL_CHANGED, self.getCulture )
 		self.m_button1.Bind( wx.EVT_BUTTON, self.createCode )
 
 	def __del__( self ):
@@ -185,12 +293,24 @@ class MyFrame1 ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
+	def getCulture( self, event ):
+		item = event.GetItem()
+		self.newChar.culture=str(self.culture_tree.GetItemText(item))
+		event.Skip()
 	def createCode( self, event ):
 		self.newChar.id=int(self.ID_textCtrl1.GetValue())
 		dynasty_choice1Choices_number = [ u"1000001", u"1000002" ]
 		self.newChar.dynasty=int(dynasty_choice1Choices_number[self.dynasty_choice1.GetSelection()])
 		self.Output_ret.SetValue(str(self.newChar))
-		self.religion_listBox1.Hide()
+		self.result_text.SetLabelText("生成")
+		# if self.m_textCtrl5.GetValidator().Validate(self.m_textCtrl5):
+		# 	self.result_text.SetLabelText("BAD")
+		# else:
+		# 	self.result_text.SetLabelText("GOOD")
+		if self.religion_listBox1.IsShown():
+			self.religion_listBox1.Hide()
+		elif not self.religion_listBox1.IsShown():
+			self.religion_listBox1.Show()
 		self.religion_listBox1.GetParent().Layout()
 		self.Layout()
 		event.Skip()
