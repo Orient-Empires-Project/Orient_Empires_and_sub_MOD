@@ -15,6 +15,7 @@ import wx.xrc
 ## Class MyFrame1
 ###########################################################################
 from 人物生成器test1 import *
+import testDialog
 
 class MyBirthdayValidator(wx.Validator):
 	def __init__(self, parent ):
@@ -90,17 +91,13 @@ class MyFrame1 ( wx.Frame ):
 
 		culture_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"culture" ), wx.VERTICAL )
 
-		m_listBox2Choices = [ u"中原", u"胡人" ]
-		self.m_listBox2 = wx.ListBox( culture_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_listBox2Choices, 0 )
-		culture_box.Add( self.m_listBox2, 0, wx.ALL, 5 )
+		cultureGroup_listBox2Choices = [ u"中原", u"胡人" ]
+		self.cultureGroup_listBox2 = wx.ListBox( culture_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, cultureGroup_listBox2Choices, 0 )
+		culture_box.Add( self.cultureGroup_listBox2, 0, wx.ALL, 5 )
 
-		self.culture_tree = wx.TreeCtrl( culture_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE|wx.TR_HAS_BUTTONS|wx.TR_HIDE_ROOT )
-		root = self.culture_tree.AddRoot(u"文化")
-		zhongyuan = self.culture_tree.AppendItem(root, u"中原")
-		self.culture_tree.AppendItem(zhongyuan, u"长安")
-		self.culture_tree.AppendItem(zhongyuan, u"洛阳")
-		huren = self.culture_tree.AppendItem(root, u"胡人")
-		culture_box.Add( self.culture_tree, 0, wx.ALL, 5 )
+		culture_listBox3Choices = [ u"文化占位符1", u"占位符1" ]
+		self.culture_listBox3 = wx.ListBox( culture_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, culture_listBox3Choices, 0 )
+		culture_box.Add( self.culture_listBox3, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( culture_box, wx.GBPosition( 3, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
@@ -174,8 +171,8 @@ class MyFrame1 ( wx.Frame ):
 
 		traitlist_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"traitlist" ), wx.VERTICAL )
 
-		self.m_button2 = wx.Button( traitlist_box.GetStaticBox(), wx.ID_ANY, u"以后添加", wx.DefaultPosition, wx.DefaultSize, 0 )
-		traitlist_box.Add( self.m_button2, 0, wx.ALL, 5 )
+		self.traitlist_button2 = wx.Button( traitlist_box.GetStaticBox(), wx.ID_ANY, u"以后添加", wx.DefaultPosition, wx.DefaultSize, 0 )
+		traitlist_box.Add( self.traitlist_button2, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( traitlist_box, wx.GBPosition( 2, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
@@ -233,28 +230,28 @@ class MyFrame1 ( wx.Frame ):
 
 		DNA_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"DNA" ), wx.VERTICAL )
 
-		self.m_staticText3 = wx.StaticText( DNA_box.GetStaticBox(), wx.ID_ANY, u"TODO", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText3.Wrap( -1 )
+		self.DNA_Text3 = wx.StaticText( DNA_box.GetStaticBox(), wx.ID_ANY, u"TODO", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.DNA_Text3.Wrap( -1 )
 
-		DNA_box.Add( self.m_staticText3, 0, wx.ALL, 5 )
+		DNA_box.Add( self.DNA_Text3, 0, wx.ALL, 5 )
 
-		self.m_toggleBtn1 = wx.ToggleButton( DNA_box.GetStaticBox(), wx.ID_ANY, u"Toggle me!", wx.DefaultPosition, wx.DefaultSize, 0 )
-		DNA_box.Add( self.m_toggleBtn1, 0, wx.ALL, 5 )
+		self.DNA_toggleBtn1 = wx.ToggleButton( DNA_box.GetStaticBox(), wx.ID_ANY, u"Toggle me!", wx.DefaultPosition, wx.DefaultSize, 0 )
+		DNA_box.Add( self.DNA_toggleBtn1, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( DNA_box, wx.GBPosition( 3, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
 		nickname_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"Nickname" ), wx.VERTICAL )
 
-		m_choice3Choices = []
-		self.m_choice3 = wx.Choice( nickname_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_choice3Choices, 0 )
-		self.m_choice3.SetSelection( 0 )
-		nickname_box.Add( self.m_choice3, 0, wx.ALL, 5 )
+		nickname_choice3Choices = [ u"昵称1", u"昵称2", u"昵称1" ]
+		self.nickname_choice3 = wx.Choice( nickname_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, nickname_choice3Choices, 0 )
+		self.nickname_choice3.SetSelection( 0 )
+		nickname_box.Add( self.nickname_choice3, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( nickname_box, wx.GBPosition( 0, 1 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
-		result_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"结果" ), wx.VERTICAL )
+		result_box = wx.StaticBoxSizer( wx.StaticBox( sbSizer12.GetStaticBox(), wx.ID_ANY, u"参数验证结果" ), wx.VERTICAL )
 
 		self.result_text = wx.StaticText( result_box.GetStaticBox(), wx.ID_ANY, u"无事发生", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.result_text.Wrap( -1 )
@@ -285,7 +282,10 @@ class MyFrame1 ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
-		self.culture_tree.Bind( wx.EVT_TREE_SEL_CHANGED, self.getCulture )
+		self.traitlist_button2.Bind( wx.EVT_BUTTON, self.OpenTraitDial )
+		self.m_checkBox1.Bind( wx.EVT_CHECKBOX, self.CheckDip )
+		self.m_checkBox2.Bind( wx.EVT_CHECKBOX, self.CheckC )
+		self.m_checkBox3.Bind( wx.EVT_CHECKBOX, self.CheckMar )
 		self.m_button1.Bind( wx.EVT_BUTTON, self.createCode )
 
 	def __del__( self ):
@@ -293,6 +293,20 @@ class MyFrame1 ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
+	def OpenTraitDial( self, event ):
+		dial = testDialog.trait_dialog(self)
+		# dial.m_staticText5.SetLabelText('试一试')
+		dial.Show()
+		event.Skip()
+
+	def CheckDip( self, event ):
+		event.Skip()
+
+	def CheckC( self, event ):
+		event.Skip()
+
+	def CheckMar( self, event ):
+		event.Skip()
 	def getCulture( self, event ):
 		item = event.GetItem()
 		self.newChar.culture=str(self.culture_tree.GetItemText(item))
@@ -304,8 +318,8 @@ class MyFrame1 ( wx.Frame ):
 		self.Output_ret.SetValue(str(self.newChar))
 		self.result_text.SetLabelText("生成")
 		# if self.m_textCtrl5.GetValidator().Validate(self.m_textCtrl5):
-		print (self.m_textCtrl5.GetValue())
-		print (int(self.m_textCtrl5.GetValue())>1444)
+		# print (self.m_textCtrl5.GetValue())
+		# print (int(self.m_textCtrl5.GetValue())>1444)
 		if int(self.m_textCtrl5.GetValue())>1444 :
 			self.result_text.SetLabelText("BAD")
 		else:

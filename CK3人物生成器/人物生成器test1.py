@@ -151,14 +151,24 @@ class Person:
         # self.martial = None # number
         # self.father = None
         # self.mother = None
+        notset = -255
         self.id = 0 # number
         self.id_comment = "None"
         self.name = "None"
+        self.dna = "None"
         self.dynasty = 0 # number
         self.religion = "None"
         self.culture = "None"
+
+        self.diplomacy = notset #外交
+        self.martial= notset #军事
+        self.stewardship = notset #财政
+        self.intrigue = notset #密谋
+        self.learning = notset #学识
+        self.prowess = notset #勇武
+
         self.traitlist = [] # a list of trait
-        self.martial = 0 # number
+        self.disallow_random_traits = False
         self.father = 0
         self.mother = 0
         self.eventlist =[
