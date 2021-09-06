@@ -7,9 +7,7 @@
 ## PLEASE DO *NOT* EDIT THIS FILE!
 ###########################################################################
 
-from re import S
 import wx
-from wx.core import Event, TextCtrl
 import wx.xrc
 
 ###########################################################################
@@ -80,6 +78,14 @@ class MyFrame1 ( wx.Frame ):
 
 		self.ID_textCtrl = wx.TextCtrl( ID_box.GetStaticBox(), wx.ID_ANY, u"000001", wx.DefaultPosition, wx.DefaultSize, 0 )
 		ID_box.Add( self.ID_textCtrl, 0, wx.ALL, 5 )
+		
+		self.isFemale_checkBox = wx.CheckBox( ID_box.GetStaticBox(), wx.ID_ANY, u"is Female", wx.DefaultPosition, wx.DefaultSize, 0 )
+		ID_box.Add( self.isFemale_checkBox, 0, wx.ALL, 5 )
+
+		sexuality_radioBoxChoices = [ u"1", u"2", u"3", u"4" ]
+		self.sexuality_radioBox = wx.RadioBox( ID_box.GetStaticBox(), wx.ID_ANY, u"sexuality", wx.DefaultPosition, wx.DefaultSize, sexuality_radioBoxChoices, 1, wx.RA_SPECIFY_COLS )
+		self.sexuality_radioBox.SetSelection( 0 )
+		ID_box.Add( self.sexuality_radioBox, 0, wx.ALL, 5 )
 
 
 		gbSizer1.Add( ID_box, wx.GBPosition( 0, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
@@ -398,9 +404,7 @@ class MyFrame1 ( wx.Frame ):
 		# 	self.religion_listBox1.Hide()
 		# elif not self.religion_listBox1.IsShown():
 		# 	self.religion_listBox1.Show()
-		# self.religion_listBox.GetParent().Layout()
 		self.Output_ret.SetValue(str(self.newChar))
-		# self.Layout()
 		event.Skip()
 
 

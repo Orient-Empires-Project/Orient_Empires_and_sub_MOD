@@ -28,7 +28,26 @@ class CK3_Date:
             self.year = paras[0]
             self.month = paras[1]
             self.day = paras[2]
-
+    def __eq__(self, other: object) -> bool:
+        selfyears= int(self.year)+int(self.month)/12+int(self.day)/12/30
+        otheryears= int(other.year)+int(other.month)/12+int(other.day)/12/30
+        return selfyears==otheryears
+    def __lt__(self, other: object) -> bool:
+        selfyears= int(self.year)+int(self.month)/12+int(self.day)/12/30
+        otheryears= int(other.year)+int(other.month)/12+int(other.day)/12/30
+        return selfyears<otheryears
+    def __le__(self, other: object) -> bool:
+        selfyears= int(self.year)+int(self.month)/12+int(self.day)/12/30
+        otheryears= int(other.year)+int(other.month)/12+int(other.day)/12/30
+        return selfyears<=otheryears
+    def __ge__(self, other: object) -> bool:
+        selfyears= int(self.year)+int(self.month)/12+int(self.day)/12/30
+        otheryears= int(other.year)+int(other.month)/12+int(other.day)/12/30
+        return selfyears>=otheryears
+    def __gt__(self, other: object) -> bool:
+        selfyears= int(self.year)+int(self.month)/12+int(self.day)/12/30
+        otheryears= int(other.year)+int(other.month)/12+int(other.day)/12/30
+        return selfyears>otheryears
 
     def check_period(self) -> bool:
         if int(self.year)>1453 or int(self.year)<0:
@@ -126,6 +145,8 @@ class Person:
         self.intrigue = None #密谋
         self.learning = None #学识
         self.prowess = None #勇武
+        self.fertility = None # 生育率
+        self.health = None #健康
 
         self.traitlist = [] # a list of trait
         self.disallow_random_traits = "no" # TODO
@@ -165,6 +186,8 @@ class Person:
         intrigue_str = self.skill_to_str('intrigue')
         learning_str = self.skill_to_str('learning')
         prowess_str = self.skill_to_str('prowess')
+        fertility_str = self.skill_to_str('fertility')
+        health_str = self.skill_to_str('health')
 
         disallow_random_traits_str = self.skill_to_str('disallow_random_traits')
 
@@ -184,6 +207,7 @@ class Person:
                 trait_str+\
                 disallow_random_traits_str+\
                 diplomacy_str+martial_str+stewardship_str+intrigue_str+learning_str+prowess_str+\
+                fertility_str+health_str+\
                 father_str+\
                 mother_str+\
                 event_str+\
