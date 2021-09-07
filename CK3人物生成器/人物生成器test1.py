@@ -49,6 +49,7 @@ class CK3_Date:
         otheryears= int(other.year)+int(other.month)/12+int(other.day)/12/30
         return selfyears>otheryears
 
+    # 检测是否是CK3合法时间。指1.1.1至1453.12.31之间。不考虑小月和闰月。
     def check_period(self) -> bool:
         if int(self.year)>1453 or int(self.year)<0:
             return False
@@ -70,51 +71,50 @@ class CK3_Date:
         return date_str
     
 class CK3_Event:
-    def __init__(self, year, month, day, eventtype, eventcontent) -> None:
-        self.year = year
-        self.month = month
-        self.day = day
-        self.CK3_Date = CK3_Date(self.year, self.month, self.day)
-        self.eventtype = eventtype
-        self.eventcontent = eventcontent
-    def __init__(self, CK3_Date:CK3_Date, eventtype, eventcontent) -> None:
-        self.CK3_Date = CK3_Date
-        self.year = self.CK3_Date.year
-        self.month = self.CK3_Date.month
-        self.day = self.CK3_Date.day
-        self.eventtype = eventtype
-        self.eventcontent = eventcontent# can be a event or a event list
-
-    def __init__(self, year_month_day:str, eventtype, eventcontent) -> None:
-        self.year = year_month_day.split('.')[0]
-        self.month = year_month_day.split('.')[1]
-        self.day = year_month_day.split('.')[2]
-        self.CK3_Date = CK3_Date(self.year, self.month, self.day)
-        self.eventtype = eventtype
-        self.eventcontent = eventcontent# can be a event or a event list
+    def __init__(self, *paras) -> None:
+        if len(paras)==5:
+            self.year = paras[0] # year
+            self.month = paras[1] #month
+            self.day = paras[2] #day
+            self.ck3_date = CK3_Date(self.year, self.month, self.day)
+            self.eventtype = paras[3] #eventtype
+            self.eventcontent = paras[4] #eventcontent
+        elif type(paras[0])==type(CK3_Date('1.1.1')):
+            self.ck3_date = paras[0] # CK3_Date
+            self.year = self.ck3_date.year
+            self.month = self.ck3_date.month
+            self.day = self.ck3_date.day
+            self.eventtype = paras[1] #eventtypettype
+            self.eventcontent = paras[2] #eventcontent # can be a event or a event list
+        elif type(paras[0])==type(''):
+            self.year = paras[0].split('.')[0]
+            self.month = paras[0].split('.')[1]
+            self.day = paras[0].split('.')[2]
+            self.ck3_date = CK3_Date(self.year, self.month, self.day)
+            self.eventtype = paras[1] #eventtypettype
+            self.eventcontent = paras[2] #eventcontent # can be a event or a event list
 
     def __str__(self) -> str:
         if type(self.eventcontent) == type(''):
             ret_str = ''
 
             ev_str = '''
-        %s.%s.%s = {
-            %s = %s
-        }
+    %s.%s.%s = {
+        %s = %s
+    }
             ''' % (self.year,self.month,self.day,self.eventtype,self.eventcontent)
             return ret_str+ev_str
         elif type(self.eventcontent) == type([]):
             ret_str = ''
 
             ev_str_begin = '''
-        %s.%s.%s = {
-            ''' % (self.year,self.month,self.day)# TODO print a list
+    %s.%s.%s = {''' % (self.year,self.month,self.day)# TODO print a list
             ev_str_list = ''''''
             for detail in self.eventcontent:
                 ev_str_list += str(detail)
                 
             ev_str_end = '''
-        }
+    }
             '''
             return ret_str+ev_str_begin+ev_str_list+ev_str_end
 class Eventdetail:
@@ -122,9 +122,7 @@ class Eventdetail:
         self.reason = reason
         self.detail = detail
     def __str__(self) -> str:
-        eventdetailstr = '''
-                %s = %s
-        ''' % (self.reason,self.detail)
+        eventdetailstr = '''\n        %s = %s''' % (self.reason,self.detail)
         return eventdetailstr
 
 class Person:
@@ -165,8 +163,7 @@ class Person:
         # elif skillValue == 'yes':
         #     return '    %s = %s\n' % (skill,'yes')
         else:
-            return '    %s = %s\n' % (skill,skillValue)
-
+            return f'    {skill} = {skillValue}\n'# TODO %全面换成f{}
     def __str__(self) -> str:
         id_str = '%s = {' % (self.id)
         id_comment_str = ' '+self.id_comment+'\n'
@@ -194,9 +191,9 @@ class Person:
         father_str = self.skill_to_str('father')
         mother_str = self.skill_to_str('mother')
         event_str= ''
-        end_str = '}'
+        end_str = '\n}'
         for event in self.eventlist:
-            event_str += (str(event)+'\n')
+            event_str += (str(event)+'')# 自带\n
         return id_str+id_comment_str+\
                 name_str+\
                 females_str+\

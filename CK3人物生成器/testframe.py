@@ -349,6 +349,10 @@ class MyFrame1 ( wx.Frame ):
 		event.Skip()
 
 	def Check_diplomacy( self, event ):
+		if self.diplomacy_checkBox.GetValue():
+			self.diplomacy_spinCtrl.Enable()
+		else:
+			self.diplomacy_spinCtrl.Disable()
 		event.Skip()
 
 	def Check_martial( self, event ):
@@ -390,16 +394,19 @@ class MyFrame1 ( wx.Frame ):
 		self.Output_ret.SetValue(str(self.newChar))
 		self.result_text.SetLabelText("生成")
 		# if self.m_textCtrl5.GetValidator().Validate(self.m_textCtrl5):
+		birthday = CK3_Date(str(self.birthday_year_textCtrl.GetValue()+"."+self.birthday_month_textCtrl.GetValue()+"."+self.birthday_day_textCtrl.GetValue()))
+		deathday = CK3_Date(str(self.deathday_year_textCtrl.GetValue()+"."+self.deathday_month_textCtrl.GetValue()+"."+self.deathday_day_textCtrl.GetValue()))
 		check_str = ''''''
-		if CK3_Date.check_ck3_period(str(self.birthday_year_textCtrl.GetValue()+"."+self.birthday_month_textCtrl.GetValue()+"."+self.birthday_day_textCtrl.GetValue())) :
-			check_str += "时间就在CK3范围内\n"
+		if birthday.check_period():
+			check_str += ""
 		else:
-			check_str += "特殊时间\n"
-		# TODO 验证生卒日期的合理性
+			check_str += "时间不在CK3范围内\n"
+		if birthday>deathday:
+			check_str += "生日晚于忌日\n"
 		self.result_text.SetLabelText(check_str)
 		self.newChar.eventlist.clear()
-		self.newChar.eventlist.append(CK3_Event(str(self.birthday_year_textCtrl.GetValue()+"."+self.birthday_month_textCtrl.GetValue()+"."+self.birthday_day_textCtrl.GetValue()),"birth","yes"))
-		self.newChar.eventlist.append(CK3_Event(str(self.deathday_year_textCtrl.GetValue()+"."+self.deathday_month_textCtrl.GetValue()+"."+self.deathday_day_textCtrl.GetValue()),"death","yes"))
+		self.newChar.eventlist.append(CK3_Event(birthday,"birth","yes"))
+		self.newChar.eventlist.append(CK3_Event(deathday,"death","yes"))
 		# if self.religion_listBox1.IsShown():
 		# 	self.religion_listBox1.Hide()
 		# elif not self.religion_listBox1.IsShown():
