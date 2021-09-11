@@ -1,15 +1,15 @@
 ﻿on_war_started = {  #凝辅国
-	trigger = {
-		scope:war = {
-			using_cb = revolt_independence_war
-		}
-	}
 	on_actions = {
 		revolt_independence_on_war_started
 	}
 }
 
 revolt_independence_on_war_started = {
+	trigger = {
+		scope:war = {
+			using_cb = revolt_independence_war
+		}
+	}
 	effect = {
 		scope:attacker = {
 			every_liege_or_above = {
@@ -24,22 +24,62 @@ revolt_independence_on_war_started = {
 }
 
 on_county_occupied = {
-	trigger = {
-		scope:war = {
-			using_cb = revolt_independence_war
-		}
-	}
 	on_actions = {
 		revolt_independence_war_county_occupied_on_action
 	}
 }
 revolt_independence_war_county_occupied_on_action = {
+	trigger = {
+		scope:war = {
+			using_cb = revolt_independence_war
+		}
+	}
+	effect = {
+		trigger_event = {
+			on_action = revolt_independence_war_county_change_on_action
+			days = 3
+		}
+	}
+}
+revolt_independence_war_county_change_on_action = {
 	effect = {
 		if = {
 			limit = {
-				OR = {
-					root = scope:war.primary_attacker
-					root = { is_liege_or_above_of = scope:war.primary_attacker }
+				scope:war = {
+					OR = {
+						primary_attacker = {
+							any_sub_realm_county = { this = scope:county }
+						}
+						primary_defender = {
+							any_sub_realm_county = { this = scope:county }
+						}
+					}
+					NOR = {
+						primary_attacker = {
+							OR = {
+								AND = {
+									any_held_title = { 
+										tier = tier_county
+										count = 1
+									}
+								}
+								sub_realm_size <= 1
+							}
+						}
+						primary_defender = {
+							OR = {
+								AND = {
+									any_held_title = { 
+										tier = tier_county
+										count = 1
+									}
+								}
+								sub_realm_size <= 1
+							}
+						}
+						attacker_war_score >= 100
+						defender_war_score >= 100
+					}
 				}
 			}
 			create_title_and_vassal_change = {
@@ -57,28 +97,37 @@ revolt_independence_war_county_occupied_on_action = {
 		}
 	}
 }
-
 five_year_playable_pulse = {
-	effect = {
-			if = {
-				limit = { 
-					top_liege = { has_primary_title = title:e_celestia }
-					has_culture = culture:han
-					current_date >= 793.1.1
-					current_date <= 887.1.1	
-				}
+	on_actions = {
+		chinese_revolt_events_on_action
+	}
+}
+chinese_revolt_events_on_action = {
+	trigger = {
+		top_liege = { has_primary_title = title:e_celestia }
+		current_date >= 793.1.1
+		current_date <= 887.1.1	
+		any_held_title = {
+			tier = tier_county
+			count >2
+			OR = {
+				has_county_modifier = county_corruption_deserting_levies_modifier
+				has_county_modifier = county_corruption_lackluster_administration_modifier
+				has_county_modifier = county_corruption_lack_of_courts_modifier
+			}
+		}
+	}
 	random_events = { #唐末农民战争
-		100 = chinese_revolt.1
-		100 = chinese_revolt.4
-		100 = chinese_revolt.5
-		100 = chinese_revolt.6
-		100 = chinese_revolt.7
-		100 = chinese_revolt.8
-		100 = chinese_revolt.9
-		100 = chinese_revolt.22
-		100 = chinese_revolt.31
+		10 = chinese_revolt.1
+		10 = chinese_revolt.4
+		10 = chinese_revolt.5
+		10 = chinese_revolt.6
+		10 = chinese_revolt.7
+		10 = chinese_revolt.8
+		10 = chinese_revolt.9
+		10 = chinese_revolt.22
+		10 = chinese_revolt.31
 		1 = chinese_revolt.11
 	}
 }
-}
-}
+
