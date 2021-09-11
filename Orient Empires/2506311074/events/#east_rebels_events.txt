@@ -1,0 +1,63 @@
+﻿namespace = china_rebellion
+china_rebellion.0001 = {
+	hidden = yes
+	type = character_event
+	trigger = {
+		any_character_war = {
+			OR = {
+				using_cb = soldier_rebel_war
+			}
+			exists = scope:war
+			scope:war = {
+				primary_defender = scope:previous_controller
+			}		
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = number_rebel_reinforcements
+			value = {		
+				add = {
+					every_in_list = {
+						list = occupied_baronies
+						add = building_levies
+					}
+				}
+			
+				multiply = { # Spawns between 50% and 100% of the total county's levies
+					add = 1
+					add = {
+						scope:county = {
+							add = development_level
+							multiply = 0.5
+						}
+					}	
+				}
+			}
+		}
+	
+		# Spawn the army on the captured province.
+		spawn_army = {
+			name = event_troop_default_name
+			levies = var:number_rebel_reinforcements
+			location = scope:barony.title_province
+			war = scope:war
+		}
+	
+		# Additional loss of county control, can be up to -70 for large counties.
+		every_in_list = {
+			list = occupied_baronies
+			scope:county = {
+				change_county_control = -70
+			}
+		}
+		# Lose an extra -10 county control.
+		scope:county = {
+			change_county_control = -30
+		}
+	}	
+	after = {
+		remove_variable = number_rebel_reinforcements
+	}	
+}

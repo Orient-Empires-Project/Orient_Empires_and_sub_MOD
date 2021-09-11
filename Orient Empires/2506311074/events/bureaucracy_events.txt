@@ -12,9 +12,25 @@ bureaucracy.0001 = {
 
 	trigger = {
 		is_at_war_with_liege = no
+		is_independent_ruler = no
+				has_government = imperial_government
+				top_liege = { has_title = title:e_celestia }
+				capital_province = {
+					geographical_region = world_asia_china
+				}
 	}
 	immediate = {
 		save_scope_as = bureaucrat
+		change_government_legion_government_effect = yes
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_contract
+				level = 1
+			}
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_corps
+				level = 2
+			} 
+		save_east_contract_effect = yes	
 	}
 	override_background = {
 		event_background = battlefield
@@ -33,19 +49,37 @@ bureaucracy.0001 = {
 	# Join
 	option = {
 		name = bureaucracy.0001.a
+		
+		revoke_title_interaction_effect = yes
+		save_scope_value_as = {
+			name = revoke_title_interaction
+			value = yes
+		}
+		
+		effect = { 
+			#不是继承，而是选择一个新的官员继任 
+			BureaucracyEmpire_bureaucracy_success_effect = {
+				TITLE = scope:bureaucrat.primary_title #TITLE是被继任的头衔
+				TEMP_HOLDER = scope:bureaucrat #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+			}	
+		}
+
 		scope:bureaucrat = {
+			revoke_title_interaction_effect = yes
 			add_opinion = {
-				modifier = friendliness_opinion
 				target = scope:liege
-				opinion = 30
+				modifier = revoked_title
 			}
+			add_joined_faction_discontent = 25
 		}
 		scope:liege = {
+			trigger_event = char_interaction.0199
 			add_opinion = {
 				modifier = friendliness_opinion
 				target = scope:bureaucrat
-				opinion = 30
+				opinion = 70
 			}
+			title_revocation_stress_effect = yes
 		}
 
 
@@ -133,16 +167,26 @@ bureaucracy.0001 = {
 			}
 			add_pressed_claim = scope:bureaucrat.primary_title
 		}
-		war_for_revoke_effect = yes
+		#war_for_revoke_effect = yes
 		scope:bureaucrat = {
 			add_opinion = {
 				modifier = revoked_title
 				target = scope:liege
+			}
+			effect = {
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_contract
+					level = 1
+				}
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_corps
+					level = 2
+				} 
 			}							
 		}			
 		
 		ai_chance = {
-			base = 30
+			base = 100
 		}
 	}
 }

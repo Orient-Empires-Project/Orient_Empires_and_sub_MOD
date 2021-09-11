@@ -1,0 +1,109 @@
+﻿#藩镇继承、行政损耗、朝贡、军功等机制
+
+on_game_start_after_lobby = {  
+	on_actions = {
+		corruption_effects
+		tribute_effects
+		bureau_to_corps_effects
+	}
+}
+
+#逐级行政损耗
+corruption_effects = {
+	effect = {
+		every_ruler = {	
+			if = {
+				limit = {
+					top_liege = { has_primary_title = title:e_celestia }	
+					is_independent_ruler = no
+					has_government = imperial_government
+					scope:title.tier <= tier_kingdom
+				}
+				modifier = {
+					tax_factor = -0.3
+					tax_mult = shire_corrupt_value
+				}
+			}
+		}
+	}
+}
+
+#朝贡加成
+tribute_effects = {
+	desc = tribute_effects
+	effect = {
+		title:e_celestia = {
+			every_character_to_title_neighboring_empire = {
+				if = {
+					limit = {
+						NOT = { has_government = imperial_government }
+						NOT = { has_culture = culture:han }
+					}
+				}
+				development_growth_factor = 0.2
+			}
+		}
+		every_ruler = {			
+			if = {
+				limit = {
+					NOT = { has_government = imperial_government }
+					scope:title.tier <= tier_kingdom
+					any_ally = { has_government = imperial_government }
+				}
+				modifier = {
+					monthly_income_mult = 1
+					monthly_prestige_gain_mult = -0.05
+					monthly_dynasty_prestige_mult = 0.05
+					domain_tax_mult = 0.15
+					levy_reinforcement_rate = 0.15
+					monthly_county_control_change_factor = 0.15
+					root.culture = {
+						add_random_innovation = yes
+					}
+				}
+			}
+		}
+	}
+}
+
+
+on_death = {
+	on_actions = { 
+		corps_succession_effect
+	}
+}
+
+#藩镇继承法
+corps_succession_effect = {
+	trigger = {
+				has_government = imperial_government
+				top_liege = { has_title = title:e_celestia }
+				capital_province = {
+					geographical_region = world_asia_china
+				}
+				OR = {
+					is_corps_government_trigger = yes
+					has_realm_law = corps_succession_law
+					scope:title = { has_variable = corps_title }
+				}
+	}
+	effect = {
+		if = {
+			limit = {
+				exists = primary_heir
+			}
+			primary_heir = {
+				trigger_event = {
+					days = 10
+					id = bureaucracy.0001
+				}
+			}
+		}
+		else = {
+			BureaucracyEmpire_bureaucracy_success_effect = {
+				TITLE = root.primary_title #TITLE是被继任的头衔
+				TEMP_HOLDER = root.primary_heir #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+			}	
+		}
+	}
+}

@@ -1,0 +1,178 @@
+﻿on_war_started = {
+	on_actions = {
+		east_on_contract_attend_on_action
+	}
+}
+east_on_contract_attend_on_action = {
+	effect = {
+		scope:attacker = {
+			save_scope_as = invaded_liege
+			scope:war = {
+				save_scope_as = invaded_liege_war
+			}
+			every_vassal = {
+				limit = {
+					NOT = { is_at_war_with = scope:defender }
+					OR = {
+						vassal_contract_has_flag = imperial_corps_1
+					}
+				}
+				trigger_event = { id = east_crops.0005 days = 5 }
+			}
+			every_vassal_or_below = {
+				limit = {
+					NOT = { is_at_war_with = scope:defender }
+					OR = {
+						vassal_contract_has_flag = imperial_corps_2
+					}
+				}
+				save_scope_as = defender_temp
+				if = {
+					limit = {
+						scope:war = {
+							casus_belli = {
+								any_target_title = {
+									exists = holder
+									OR = {
+										holder.liege = scope:defender_temp
+										holder = scope:defender_temp
+										holder.primary_title.kingdom = scope:defender_temp.primary_title.kingdom
+									}
+								}
+							}
+						}	
+					}
+					trigger_event = { id = east_crops.0004 days = 5 }
+				}
+			}
+		}
+		scope:defender = {
+			save_scope_as = invaded_liege
+			scope:war = {
+				save_scope_as = invaded_liege_war
+			}
+			every_vassal = {
+				limit = {
+					NOT = { is_at_war_with = scope:defender }
+					OR = {
+						vassal_contract_has_flag = imperial_corps_1
+					}
+				}
+				trigger_event = { id = east_crops.0006 days = 5 }
+			}
+			every_vassal_or_below = {
+				limit = {
+					NOT = { is_at_war_with = scope:attacker }
+					OR = {
+						vassal_contract_has_flag = imperial_corps_2
+					}
+				}
+				save_scope_as = defender_temp
+				if = {
+					limit = {
+						scope:war = {
+							casus_belli = {
+								any_target_title = {
+									exists = holder
+									OR = {
+										holder.liege = scope:defender_temp
+										holder = scope:defender_temp
+										holder.primary_title.kingdom = scope:defender_temp.primary_title.kingdom
+									}
+								}
+							}
+						}	
+					}
+					trigger_event = { id = east_crops.0003 days = 5 }
+				}
+			}
+		}
+	}
+}	
+on_game_start_after_lobby = {  #by 糜三小姐
+	on_actions = {
+		east_on_contract_lobby_effects
+	}
+}	
+	
+	
+east_on_contract_lobby_effects = {	
+	effect = {
+		every_ruler = {
+			if = {
+				limit = {  #藩镇契约转换
+					is_independent_ruler = no
+					#has_culture_group = culture_group:chinese_group
+					current_date > 763.1.1
+					current_date <= 980.1.1
+					is_corps_government_trigger = yes
+					liege = { 
+						is_independent_ruler = yes
+					}
+				}
+				change_government = imperial_government
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_contract
+					level = 1
+				}
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_corps
+					level = 2
+				} 
+			}
+			if = {
+				limit = {   #民州契约转换
+					is_independent_ruler = no
+					#has_culture_group = culture_group:chinese_group
+					current_date > 763.1.1
+					current_date <= 980.1.1
+					is_bureau_government_trigger = yes
+					liege = { 
+						is_independent_ruler = yes
+					}
+				}
+				change_government = imperial_government
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_contract
+					level = 0
+				}
+			}
+			if = {
+				limit = {  #都护契约转换
+					is_independent_ruler = no
+					has_culture_group = culture_group:chinese_group
+					current_date > 763.1.1
+					current_date <= 980.1.1
+					top_liege = { 
+						is_oe_imperial_government_trigger = yes
+					}
+					OR = {
+						has_title = title:k_khotan
+						has_title = title:k_annan
+						has_title = title:k_goryeo
+						has_title = title:k_tengri
+						has_title = title:k_mongolia
+						has_title = title:k_dzungaria
+						has_title = title:k_zhetysu 
+						has_title = title:k_tsang
+						has_title = title:k_kham
+						has_title = title:k_guge
+						has_title = title:k_maryul
+						has_title = title:k_lhomon
+						has_title = title:k_amdo		
+					}
+				}
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_contract
+					level = 1
+				}
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_corps
+					level = 4
+				} 
+			}
+		}	
+	}
+}	
+
+	
