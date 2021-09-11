@@ -10,26 +10,28 @@ found_new_chinese_empire_effect = {
 			custom_tooltip = create_custom_empire_de_jure_changes
 		}
 	}
-
+	primary_title = {
+		save_scope_as = old_title
+	}
 	hidden_effect = {
-		save_scope_as = founder
-		primary_title = {
-			save_scope_as = old_title
+		title:e_celestia = {
+			every_in_de_jure_hierarchy = {
+				limit = { tier >= tier_duchy }
+				set_de_jure_liege_title = title:e_celestia
+			}
+			set_color_from_title = scope:old_title 
+			set_capital_county = title:c_luoyang
 		}
-		create_dynamic_title = {
-			tier = empire
-			name = NEW_CREATED_TITLE_NAME
+	}
+	save_scope_as = founder
+	if = {
+		limit = {
+			NOT = { exists = title:e_celestia.holder }
 		}
 		create_title_and_vassal_change = {
 			type = created
-			save_scope_as = change
-			add_claim_on_loss = no
-		}
-		scope:new_title = {
-			change_title_holder = {
-				holder = root
-				change = scope:change
-			}
+			save_scope_as = title_change
+			add_claim_on_loss = yes
 		}
 		title:e_celestia = {
 			change_title_holder = {
@@ -37,250 +39,108 @@ found_new_chinese_empire_effect = {
 				change = scope:title_change
 			}
 		}
+		resolve_title_and_vassal_change = scope:title_change
+	}
+	else_if = {
+		limit = {
+			NOT = { title:e_celestia.holder = scope:founder }
+		}
+		create_title_and_vassal_change = {
+			type = usurped
+			save_scope_as = title_change
+			add_claim_on_loss = yes
+		}
+		title:e_celestia = {
+			change_title_holder = {
+				holder = scope:founder
+				change = scope:title_change
+			}
+		}
+		resolve_title_and_vassal_change = scope:title_change
+	}
+	scope:founder = {
+		add_trait = founding_monarch
+		change_government = imperial_government
+	}
+	#title:e_celestia = { set_title_name = scope:old_title }
+	#title:e_celestia = { set_coa = scope:old_title }
+	trigger_event = major_decisions.1103
 
-		resolve_title_and_vassal_change = title:e_celestia
-
-  		every_held_title = {
+	every_player = {
+		if = {
 			limit = {
-				tier = tier_kingdom
+				top_liege = scope:founder
+				NOT = { this = root }
 			}
-			if = {
-				limit = {
-					#Check if you need to notify a player
-					exists = empire
-					empire = {
-						exists = holder
-						holder = {
-							NOT = { this = root }
-							is_ai = no
-						}
-					}
-				}
-				add_to_temporary_list = kingdoms_for_notification
-				root = {
-					save_temporary_scope_value_as = {
-						name = send_notifications
-						value = yes
-					}
-				}
-			}
-			set_de_jure_liege_title = scope:new_title
+			trigger_event = major_decisions.1104
 		}
-
-		every_sub_realm_county = {
+		else_if = {
+			#Notify any players who lose de jure territory
 			limit = {
-				exists = kingdom
-				NOT = { exists = kingdom.holder }
-				holder.top_liege = root
-				kingdom = {
-					save_temporary_scope_as = test_kingdom
-				}
-				holder.top_liege = {
-					completely_controls = scope:test_kingdom
-				}
-			}
-			if = {
-				limit = {
-					NOT = {
-						kingdom = {
-							is_in_list = additional_de_jure_kingdoms
-						}
-					}
-				}
-				kingdom = {
-					set_de_jure_liege_title = scope:new_title
-					add_to_list = additional_de_jure_kingdoms
-				}
-			}
-		}
-
-		scope:new_title = {
-			set_coa = scope:old_title
-			set_color_from_title = scope:old_title
-			set_capital_county = scope:old_title.title_capital_county
-		}
-		set_primary_title_to = scope:new_title
-
-		#Destroy celestia Empire
-		#destroy_title = title:e_celestia
-
-		trigger_event = major_decisions.1103
-
-		every_player = {
-			if = {
-				limit = {
-					top_liege = scope:founder
-					NOT = { this = root }
-				}
-				trigger_event = major_decisions.1104
-			}
-			else_if = {
-				#Notify any players who lose de jure territory
-				limit = {
-					exists = scope:send_notifications
-					NOT = { this = root }
-					NOT = { top_liege = scope:founder }
-					any_held_title = {
-						any_in_de_jure_hierarchy = {
-							continue = {
-								tier > tier_kingdom
-							}
-							tier = tier_kingdom
-							is_in_list = kingdoms_for_notification
-						}
-					}
-				}
-				every_held_title = {
-					every_in_de_jure_hierarchy = {
+				exists = scope:send_notifications
+				NOT = { this = root }
+				NOT = { top_liege = scope:founder }
+				any_held_title = {
+					any_in_de_jure_hierarchy = {
 						continue = {
 							tier > tier_kingdom
 						}
-						limit = {
-							tier = tier_kingdom
-							is_in_list = kingdoms_for_notification
-						}
-						add_to_list = notification_titles
+						tier = tier_kingdom
+						is_in_list = kingdoms_for_notification
 					}
 				}
-				if = {
+			}
+			every_held_title = {
+				every_in_de_jure_hierarchy = {
+					continue = {
+						tier > tier_kingdom
+					}
 					limit = {
-						any_in_list = {
-							list = notification_titles
-							count > 0
-						}
+						tier = tier_kingdom
+						is_in_list = kingdoms_for_notification
 					}
-					trigger_event = major_decisions.1105
+					add_to_list = notification_titles
 				}
+			}
+			if = {
+				limit = {
+					any_in_list = {
+						list = notification_titles
+						count > 0
+					}
+				}
+				trigger_event = major_decisions.1105
 			}
 		}
 	}	
+	
 }
 
-
-
-
 create_tang_empire_scripted_effect = {
-	#add_trait = augustus
-	#Create tang Empire, shift dejure/history/laws.
-
-	save_scope_as = founder
-	primary_title = {
-		save_scope_as = old_title
-	}
-
-	create_dynamic_title = {
-		tier = empire
-		name = TANG
-	}
-
 	create_title_and_vassal_change = {
 		type = created
-		save_scope_as = change
+		save_scope_as = title_change
 		add_claim_on_loss = no
 	}
 	title:e_tang = {
 		change_title_holder = {
 			holder = root
-			change = scope:change
+			change = scope:title_change
 		}
-		copy_title_history = title:e_celestia
+	}
+	resolve_title_and_vassal_change = scope:title_change
+	set_primary_title_to = title:e_tang
+
+	title:e_tang = {
+		set_coa = e_tang
+		set_capital_county = scope:old_title.title_capital_county
+		copy_title_history = scope:old_title
 	}
 
-	hidden_effect = {
-		every_held_title = { #Should shift all dejure of all Empires owned at the time.
-			limit = {
-				tier = tier_empire
-			}
-			every_in_de_jure_hierarchy = {
-				limit = {
-					tier = tier_kingdom
-				}
-				set_de_jure_liege_title = title:e_tang
-				
-			}
-		}
-		every_held_title = { #Completely Controlled Kingdoms as well.
-			limit = {
-				tier = tier_kingdom
-				root = { completely_controls = prev }
-			}
-			set_de_jure_liege_title = title:e_tang
-		}
-	}
-	
-	resolve_title_and_vassal_change = e_celestia
-	hidden_effect = { set_primary_title_to = title:e_tang }
-	every_held_title = { #Should destroy all other Empires owned at the time.
-		limit = {
-				tier = tier_empire
-			NOT = { this = title:e_tang }
-		}
-		root = { destroy_title = prev }
-	}
-	if = { #
-		limit = {
-			NOT = { capital_county = { this = title:c_changan } }
-			NOT = { capital_county = { this = title:c_luoyang } }
-			has_culture_group = culture_group:chinese_group
-		}
-		hidden_effect = {
-			if = { #Usurp if not held personally.
-				limit = {
-					NOT = { this = title:c_luoyang.holder }
-				}
-				create_title_and_vassal_change = {
-					type = returned
-					save_scope_as = change
-					add_claim_on_loss = no
-				}
-				title:c_luoyang = {
-					change_title_holder = {
-						holder = root
-						change = e_celestia
-					}
-				}
-				resolve_title_and_vassal_change = e_celestia
-			}
-		}
-		root = { set_realm_capital = title:c_luoyang }
-	}
-	else_if = {
-		limit = {
-			NOT = { capital_county = { this = title:c_changan } }
-			NOT = { capital_county = { this = title:c_luoyang } }
-			NOT = { has_culture_group = culture_group:chinese_group }
-			exists = title:e_tang.holder
-		}
-		hidden_effect = {
-			if = { #Usurp if not held personally.
-				limit = {
-					NOT = { this = title:c_changan.holder }
-				}
-				create_title_and_vassal_change = {
-					type = returned
-					save_scope_as = change
-					add_claim_on_loss = no
-				}
-				title:c_roma = {
-					change_title_holder = {
-						holder = root
-						change = e_celestia
-					}
-				}
-				resolve_title_and_vassal_change = e_celestia
-			}
-		}
-		root = { set_realm_capital = title:c_changan }
-	}
-	#hidden_effect = {
-	#	create_story = restoring_tang_provinces_story
-	#	add_character_flag = flag_restorer_of_rome #used for Eulogy.
-	#}
+	root = { add_claim = e_celestia }
+
+	trigger_event = major_decisions.1103
 }
-
-
-
-
 
 build_han_empire_effect = {
 	custom_tooltip = create_new_empire
@@ -294,148 +154,30 @@ build_han_empire_effect = {
 		}
 	}
 
-	hidden_effect = {
-		save_scope_as = founder
-		primary_title = {
-			save_scope_as = old_title
+	create_title_and_vassal_change = {
+		type = created
+		save_scope_as = title_change
+		add_claim_on_loss = no
+	}
+	title:e_han = {
+		change_title_holder = {
+			holder = root
+			change = scope:title_change
 		}
+	}
+	resolve_title_and_vassal_change = scope:title_change
+	set_primary_title_to = title:e_han
 
-		create_dynamic_title = {
-			tier = empire
-			name = HAN
-		}
-		create_title_and_vassal_change = {
-			type = created
-			save_scope_as = change
-			add_claim_on_loss = no
-		}
+	root = { add_claim = e_celestia }
 
-		scope:new_title = {
-			change_title_holder = {
-				holder = root
-				change = e_celestia
-			}
-		}
-
-		resolve_title_and_vassal_change = e_celestia
-
-  		every_held_title = {
-			limit = {
-				tier = tier_kingdom
-			}
-			if = {
-				limit = {
-					#Check if you need to notify a player
-					exists = empire
-					empire = {
-						exists = holder
-						holder = {
-							NOT = { this = root }
-							is_ai = no
-						}
-					}
-				}
-				add_to_temporary_list = kingdoms_for_notification
-				root = {
-					save_temporary_scope_value_as = {
-						name = send_notifications
-						value = yes
-					}
-				}
-			}
-			set_de_jure_liege_title = scope:new_title
-		}
-
-		every_sub_realm_county = {
-			limit = {
-				exists = kingdom
-				NOT = { exists = kingdom.holder }
-				holder.top_liege = root
-				kingdom = {
-					save_temporary_scope_as = test_kingdom
-				}
-				holder.top_liege = {
-					completely_controls = scope:test_kingdom
-				}
-			}
-			if = {
-				limit = {
-					NOT = {
-						kingdom = {
-							is_in_list = additional_de_jure_kingdoms
-						}
-					}
-				}
-				kingdom = {
-					set_de_jure_liege_title = scope:new_title
-					add_to_list = additional_de_jure_kingdoms
-				}
-			}
-		}
-
-		scope:new_title = {
-			set_coa = scope:old_title
-			set_color_from_title = scope:old_title
-			set_capital_county = scope:old_title.title_capital_county
-		}
-		set_primary_title_to = scope:new_title
-
-		#Destroy Tang Empire
-		#destroy_title = title:e_tang
-
-		trigger_event = major_decisions.1103
-
-		every_player = {
-			if = {
-				limit = {
-					top_liege = scope:founder
-					NOT = { this = root }
-				}
-				trigger_event = major_decisions.1104
-			}
-			else_if = {
-				#Notify any players who lose de jure territory
-				limit = {
-					exists = scope:send_notifications
-					NOT = { this = root }
-					NOT = { top_liege = scope:founder }
-					any_held_title = {
-						any_in_de_jure_hierarchy = {
-							continue = {
-								tier > tier_kingdom
-							}
-							tier = tier_kingdom
-							is_in_list = kingdoms_for_notification
-						}
-					}
-				}
-				every_held_title = {
-					every_in_de_jure_hierarchy = {
-						continue = {
-							tier > tier_kingdom
-						}
-						limit = {
-							tier = tier_kingdom
-							is_in_list = kingdoms_for_notification
-						}
-						add_to_list = notification_titles
-					}
-				}
-				if = {
-					limit = {
-						any_in_list = {
-							list = notification_titles
-							count > 0
-						}
-					}
-					trigger_event = major_decisions.1105
-				}
-			}
-		}
-	}	
+	title:e_han = {
+		set_coa = e_han
+		set_color_from_title = scope:old_title
+		set_capital_county = scope:old_title.title_capital_county
+		copy_title_history = scope:old_title
+	}
+	trigger_event = major_decisions.1103	
 }
-
-
 
 found_min_kingdom_effect = {
 	custom_tooltip = create_new_kingdom
@@ -468,11 +210,11 @@ found_min_kingdom_effect = {
 		scope:new_title = {
 			change_title_holder = {
 				holder = root
-				change = e_celestia
+				change = scope:change
 			}
 		}
 		
-		resolve_title_and_vassal_change = e_celestia
+		resolve_title_and_vassal_change = scope:change
 
 		#Check if all territory is from a single Empire, and if so, make Kingdom de jure of that Empire
 		every_sub_realm_county = {
@@ -595,6 +337,7 @@ found_min_kingdom_effect = {
 		}
 		
 		scope:new_title = {
+			set_title_name = MIN
 			set_coa = scope:old_title
 			set_color_from_title = scope:old_title
 			set_capital_county = scope:old_title.title_capital_county
@@ -651,9 +394,6 @@ found_min_kingdom_effect = {
 		}
 	}
 }
-
-
-
 
 found_wuyue_kingdom_effect = {
 	custom_tooltip = create_new_kingdom
@@ -686,11 +426,11 @@ found_wuyue_kingdom_effect = {
 		scope:new_title = {
 			change_title_holder = {
 				holder = root
-				change = e_celestia
+				change = scope:change
 			}
 		}
 		
-		resolve_title_and_vassal_change = e_celestia
+		resolve_title_and_vassal_change = scope:change
 
 		#Check if all territory is from a single Empire, and if so, make Kingdom de jure of that Empire
 		every_sub_realm_county = {
@@ -813,6 +553,7 @@ found_wuyue_kingdom_effect = {
 		}
 		
 		scope:new_title = {
+			set_title_name = WUYUE
 			set_coa = scope:old_title
 			set_color_from_title = scope:old_title
 			set_capital_county = scope:old_title.title_capital_county
@@ -870,34 +611,17 @@ found_wuyue_kingdom_effect = {
 	}
 }
 
-
-
-
-
-replace_tang_empire_effect = {
-
-	hidden_effect = {
-		save_scope_as = founder
-		primary_title = {
-			save_scope_as = old_title
-		}
-		create_dynamic_title = {
-			tier = empire
-			name = NEW_CREATED_TITLE_NAME
-		}
+replace_celestia_empire_effect = {
+	title:e_celestia = {
 		create_title_and_vassal_change = {
 			type = usurped
 			save_scope_as = change
-			add_claim_on_loss = no
+			add_claim_on_loss = yes
 		}
-		title:e_celestia = {
-			change_title_holder = {
-				holder = root
-				change = e_celestia
-			}
-			set_title_name = NEW_CREATED_TITLE_NAME
-			set_color_from_title = scope:old_title
+		change_title_holder = {
+			holder = root
+			change = scope:change
 		}
-		resolve_title_and_vassal_change = e_celestia
+		resolve_title_and_vassal_change = scope:change
 	}
 }

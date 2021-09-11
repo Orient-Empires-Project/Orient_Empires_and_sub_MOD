@@ -5,6 +5,18 @@
 }	
 east_on_game_start_effects = {	
 	effect = {
+		character:tang152372 = {
+			if = {
+				limit = {
+					is_alive = yes
+					is_landed = yes
+				}
+				set_variable = {
+					name = nianhao_date
+					value = 8
+				}
+			}
+		}
 		religion:confucianism_religion = {
 			every_faith = {
 				every_holy_site = {
@@ -36,89 +48,19 @@ on_game_start_after_lobby = {  #by 糜三小姐
 	
 east_on_after_lobby_effects = {	
 	effect = {
-		every_ruler = {  #腐化
-			if = {
-				limit = {
-					has_culture = culture:han
-					AND = {
-						has_realm_law = official_succession_law
-						NOT = { has_government = tribal_government }
-					}
-					current_date >= 763.1.1
-					current_date <= 960.1.1	
-				}
-				every_realm_county = {
-				add_county_modifier = county_corruption_inefficient_tax_collection_modifier
-				add_county_modifier = county_corruption_inefficient_census_modifier
-				add_county_modifier = county_corruption_lack_of_courts_modifier
-				}
-			}
-
-			if = { #兵士逃亡
-				limit = {
-					has_culture = culture:han
-					OR ={
-						has_title = title:d_xusi
-						has_title = title:d_guiguan
-						has_title = title:d_yongping							
-					}
-					current_date >= 763.1.1
-					current_date <= 900.1.1	
-				}
-
-				every_realm_county = {
-					add_county_modifier = county_corruption_deserting_levies_modifier
-					add_county_modifier = county_corruption_lackluster_administration_modifier
-					#change_county_control = 35
-				}
-			}
-
-			if = { #盐帮走私、洪泛
-				limit = {
-					has_culture = culture:han
-					OR ={
-						has_title = title:d_huainan
-						has_title = title:d_huaixi
-						has_title = title:d_chenxu
-						has_title = title:d_pucao
-						has_title = title:d_taining	
-						has_title = title:d_jingxiang
-						has_title = title:d_jingyuan
-						has_title = title:d_fengxiang					
-					}
-					current_date >= 763.1.1
-					current_date <= 920.1.1	
-				}
-
-				every_realm_county = {
-					add_county_modifier = county_corruption_smuggling_ring_modifier
-					add_county_modifier = county_corruption_lack_of_sheriffs_modifier	
-					add_county_modifier = county_corruption_thieves_guild_modifier
-					add_county_modifier = county_corruption_uncooperative_guilds_modifier
-					#change_county_control = 35
-				}
-			}
-		}
-
 		every_ruler = {
 			If = {  #律令制伯爵转文官
 				limit = {
-					OR = {
-						has_title = title:e_celestia
-						has_title = title:e_song
-						has_title = title:e_tang
-					}	
+					top_liege = { has_title = title:e_celestia }
+					#is_independent_ruler = no
+					highest_held_title_tier = tier_county
+					has_government = imperial_government		
 				}
-				every_vassal_or_below = { 
-					limit = { 
-						has_government = imperial_government
-					}
-					change_government = bureau_government
-				}
+				change_government_bureau_government_effect = yes
 			}	
 			If = {  #玩家军镇可世袭
 				limit = {
-					has_government = corps_government
+					is_corps_government_trigger = yes
 					is_ai = no
 				}
 				add_realm_law_skip_effects = corps_succession_law
@@ -126,11 +68,25 @@ east_on_after_lobby_effects = {
 
 			If = {  #文官流官制
 				limit = {
-					has_government = bureau_government
+					is_bureau_government_trigger = yes
 				}
 				if = { 
 					limit = { NOT = { has_realm_law = official_succession_law } }
 					add_realm_law_skip_effects = official_succession_law
+				}
+			}
+			if = { # 独立文官伯爵转封建
+				limit = {
+					highest_held_title_tier >= tier_county
+					has_culture_group = culture_group:chinese_group
+					is_independent_ruler = yes
+					is_bureau_government_trigger = yes
+					#can_have_official_succession_law_trigger = yes
+				}
+				change_government = feudal_government 
+				if = { 
+					limit = { NOT = { has_realm_law = tradition_succession_law } }
+					add_realm_law_skip_effects = tradition_succession_law
 				}
 			}
 			if = { #所有非玩家的听命属臣实行男性流官制
@@ -148,7 +104,6 @@ east_on_after_lobby_effects = {
 						is_ai = no
 					}
 				}
-				
 				if = { 
 					limit = { NOT = { has_realm_law = official_succession_law } }
 					add_realm_law_skip_effects = official_succession_law
@@ -356,11 +311,68 @@ east_on_after_lobby_effects = {
 					limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
 					vassal_contract_set_obligation_level = {
 						type = feudal_government_levies
-						level = 4
+						level = 3
 					}
 				}
 			}
-		}	
+
+			if = {
+				limit = {
+					top_liege = { has_primary_title = title:e_celestia }
+					is_corps_government_trigger = yes
+					has_culture = culture:han
+					current_date >= 763.1.1
+					current_date <= 887.1.1	
+				}
+				every_realm_county = {
+					limit = { 
+						OR = {
+							culture = culture:han
+							religion = religion:buddhism_religion
+							religion = religion:taoism_religion
+						}
+					}
+				#土地兼并
+					add_county_modifier = county_corruption_inefficient_census_modifier
+					add_county_modifier = county_corruption_inefficient_tax_collection_modifier
+					change_county_control = -30
+					monthly_county_control_change_add = -0.005
+				}
+				every_realm_county = {
+					limit = { 
+						OR = {
+							county_control <= 75
+						}
+					} #兵士逃亡
+					add_county_modifier = county_corruption_deserting_levies_modifier
+					add_county_modifier = county_corruption_lackluster_administration_modifier
+					add_county_modifier = county_corruption_lack_of_courts_modifier
+				}
+				every_realm_county = {
+					limit = { 
+						OR = {
+							county_control <= 55
+						}
+					} #盐帮、洪泛			
+					add_county_modifier = {
+						modifier = county_corruption_smuggling_ring_modifier
+						days = 3650
+					}
+					add_county_modifier = {
+						modifier = county_corruption_lack_of_sheriffs_modifier
+						days = 3650
+					}
+					add_county_modifier = {
+						modifier = county_corruption_thieves_guild_modifier
+						days = 3650
+					}
+					add_county_modifier = {
+						modifier = county_corruption_uncooperative_guilds_modifier
+						days = 3650
+					}
+				}
+			}
+		}
 	}
 }	
 
@@ -378,15 +390,15 @@ east_on_title_gain_effects = { #by 糜三小姐
 				scope:title.tier < tier_duchy
 				root.highest_held_title_tier < tier_duchy
 				has_culture_group = culture_group:chinese_group
-				liege = { has_government = corps_government }
-				NOT = { has_government = corps_government }
+				liege = { is_corps_government_trigger = yes }
+				NOT = { is_corps_government_trigger = yes }
 				can_have_official_succession_law_trigger = yes
 			}
-			change_government = corps_government 
-				if = { 
-					limit = { NOT = { has_realm_law = corps_succession_law } }
-					add_realm_law_skip_effects = corps_succession_law
-				}
+			change_government_corps_government_effect = yes 
+			if = { 
+				limit = { NOT = { has_realm_law = corps_succession_law } }
+				add_realm_law_skip_effects = corps_succession_law
+			}
 		}
 
 		if = { # 获得官僚
@@ -396,56 +408,78 @@ east_on_title_gain_effects = { #by 糜三小姐
 				has_culture_group = culture_group:chinese_group
 				liege = {
 					OR = {
-						has_government = imperial_government
-						has_government = bureau_government
+						is_bureau_government_trigger = yes
 					}
 				}
-				NOT = { has_government = bureau_government }
+				NOT = { is_bureau_government_trigger = yes }
 				#can_have_official_succession_law_trigger = yes
 			}
-			change_government = bureau_government 
+			change_government_bureau_government_effect = yes 
 			if = { 
 				limit = { NOT = { has_realm_law = official_succession_law } }
 				add_realm_law_skip_effects = official_succession_law
 			}
 		}
 
-		if = { # 独立文官转军镇
-			limit = {
-				scope:title.tier >= tier_county	
-				has_culture_group = culture_group:chinese_group
-				is_independent_ruler = yes
-				has_government = bureau_government
-				#can_have_official_succession_law_trigger = yes
-			}
-			change_government = corps_government 
-			if = { 
-				limit = { NOT = { has_realm_law = corps_succession_law } }
-				add_realm_law_skip_effects = corps_succession_law
-			}
-		}
-
 		if = { # 称王转律令
 			limit = {
+				OR = {
+					scope:transfer_type = flag:created
+					scope:transfer_type = flag:inheritance
+				}
 				scope:title.tier >= tier_kingdom
 				is_independent_ruler = no
+				capital_province = {
+					geographical_region = world_asia
+				}
 				OR = {
 					has_culture_group = culture_group:chinese_group
-					#can_have_tradition_succession_law_trigger = yes
+					can_have_tradition_succession_law_trigger = yes
 				}
 			}
-			change_government = imperial_government 
+			change_government = imperial_government
 			if = { 
 				limit = { NOT = { has_realm_law = tradition_succession_law } }
 				add_realm_law_skip_effects = tradition_succession_law
 			}
 		}
 
+		if = { # 独立文官伯爵转封建
+			limit = {
+				scope:title.tier >= tier_county	
+				has_culture_group = culture_group:chinese_group
+				is_independent_ruler = yes
+				is_bureau_government_trigger = yes
+				#can_have_official_succession_law_trigger = yes
+			}
+			change_government = feudal_government 
+			if = { 
+				limit = { NOT = { has_realm_law = tradition_succession_law } }
+				add_realm_law_skip_effects = tradition_succession_law
+			}
+		}	
+
 		if = { #年号
 			limit = {
 				OR = {
 					scope:title = title:e_celestia
 					scope:title = title:e_song
+					AND = {
+						highest_held_title_tier = tier_empire
+						OR = {
+							has_culture_group = culture_group:chinese_group
+							has_culture = culture:shatuo
+							has_culture = culture:tuyuhun
+							has_culture = culture:tangut
+							has_culture = culture:bai
+							has_culture = culture:sogdian
+							has_culture = culture:uyghur
+							has_culture = culture:yughur
+							has_culture_group = culture_group:tunguse_group
+							has_culture_group = culture_group:goryeo_group
+							has_culture_group = culture_group:yues_group
+						}
+					}
 				}
 			}
 			remove_character_flag = nianhao_81
@@ -529,6 +563,10 @@ east_on_title_gain_effects = { #by 糜三小姐
 			remove_character_flag = nianhao_78
 			remove_character_flag = nianhao_79
 			remove_character_flag = nianhao_80
+			set_variable = {
+				name = nianhao_date
+				value = 1
+			}
 			random_list = {
 				1 = {
 					add_character_flag = nianhao_1
@@ -782,6 +820,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					scope:title = title:e_celestia
 					scope:title = title:e_tang
 					scope:title = title:e_song
+					scope:title = title:e_han
 				}
 				NOT = {
 					root.house = scope:previous_holder.house
@@ -796,16 +835,18 @@ east_on_title_gain_effects = { #by 糜三小姐
 				limit = {
 					primary_title.tier >= tier_county
 					OR = {
-						top_liege = { 
-							has_primary_title = title:e_celestia
-						}			
+						top_liege = { has_primary_title = title:e_celestia }			
 					}
+					NOT = { 
+						top_liege = { has_trait = founding_monarch }
+					}	
 				}
 				trigger_event = {
 					id = east_title.0001
 					days = 5
 				}
 			}
+		scope:title = {
 			every_dejure_vassal_title_holder = {
 				limit = {
 					primary_title.tier >= tier_county
@@ -819,236 +860,383 @@ east_on_title_gain_effects = { #by 糜三小姐
 				}
 			}
 		}
-		if = {  # 改国号
+		}
+		if = {  ##### 改国号##
 			limit = {
 				scope:title = title:e_celestia
-				has_primary_title = title:e_celestia
+				OR = {
+					has_title = title:e_celestia
+					AND = {
+						highest_held_title_tier = tier_empire
+						OR = {
+							has_culture_group = culture_group:chinese_group
+							has_culture = culture:shatuo
+							has_culture = culture:tuyuhun
+							has_culture = culture:tangut
+							has_culture = culture:bai
+							has_culture_group = culture_group:goryeo_group
+						}
+					}
+				}
 				NOT = {
 					root.house = scope:previous_holder.house
 				}
+			}			
+			if = {
+				limit = {
+					royal_members_trigger = no ##非皇族
+				}
+				father = { 
+					if = {
+						limit = { 
+							is_alive = no 
+						}
+						add_trait = miaohao_trait_gaozu 
+					}
+				}
+				add_trait = founding_monarch
+			}
+			
+			else_if = {
+				limit = {
+					royal_members_trigger = yes##前皇族
+				}
+				add_trait = restoration_monarch
 			}
 			if = {
 				limit = {
 					has_primary_title = title:e_tang
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_tang #唐皇族
 				}
 				title:e_celestia = { set_title_name = e_tang }
 				title:e_celestia = { set_coa = e_tang }
 			}
-			if = {
+			else_if = {
 				limit = {
 					has_primary_title = title:e_song
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_song #宋皇族
 				}
 				title:e_celestia = { set_title_name = e_song }
 				title:e_celestia = { set_coa = e_song }
 				title:e_celestia = { set_color_from_title = title:e_song }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_liao
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_grand_liao #大辽皇族 #大辽皇族
 				}
 				title:e_celestia = { set_title_name = e_grand_liao }
 				title:e_celestia = { set_coa = k_liao }
 				title:e_celestia = { set_color_from_title = title:k_liao }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_zhao
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
 				}
 				title:e_celestia = { set_title_name = k_zhao }
 				title:e_celestia = { set_coa = k_zhao }
 				title:e_celestia = { set_color_from_title = title:k_zhao }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_yan
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
 				}
 				title:e_celestia = { set_title_name = k_yan }
 				title:e_celestia = { set_coa = k_yan }
 				title:e_celestia = { set_color_from_title = title:k_yan }
 
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_wei
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_wei #魏皇族
 				}
 				title:e_celestia = { set_title_name = k_wei }
 				title:e_celestia = { set_coa = k_wei }
 				title:e_celestia = { set_color_from_title = title:k_wei }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_tengri
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
 				}
 				title:e_celestia = { set_title_name = k_tengri }
 				title:e_celestia = { set_coa = k_tengri }
 				title:e_celestia = { set_color_from_title = title:k_tengri }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_jin
+					royal_members_trigger = no##非皇族
+					NOT = { 
+						has_primary_title = title:d_hedong
+					}
+				}
+				house = {
+					add_house_modifier = k_jin #晋皇族
 				}
 				title:e_celestia = { set_title_name = k_jin }
 				title:e_celestia = { set_coa = k_jin }
 				title:e_celestia = { set_color_from_title = title:k_jin }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_xia_east
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
 				}
 				title:e_celestia = { set_title_name = k_xia_east }
 				title:e_celestia = { set_coa = k_xia_east }
 				title:e_celestia = { set_color_from_title = title:k_xia_east }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_longxi
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_longxi #岐皇族
 				}
 				title:e_celestia = { set_title_name = k_longxi }
 				title:e_celestia = { set_coa = k_longxi }
 				title:e_celestia = { set_color_from_title = title:k_longxi }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_qin
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
 				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_shu
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
 				}
 				title:e_celestia = { set_title_name = k_shu }
 				title:e_celestia = { set_coa = k_shu }
 				title:e_celestia = { set_color_from_title = title:k_shu }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_zhou
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_zhou #周皇族
 				}
 				title:e_celestia = { set_title_name = k_zhou }
 				title:e_celestia = { set_coa = k_zhou }
 				title:e_celestia = { set_color_from_title = title:k_zhou }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_qi
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_qi #齐皇族
 				}
 				title:e_celestia = { set_title_name = k_qi }
 				title:e_celestia = { set_coa = k_qi }
 				title:e_celestia = { set_color_from_title = title:k_qi }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_chu
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
 				}
 				title:e_celestia = { set_title_name = k_chu }
 				title:e_celestia = { set_coa = k_chu }
 				title:e_celestia = { set_color_from_title = title:k_chu }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_wu
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
 				}
 				title:e_celestia = { set_title_name = k_wu }
 				title:e_celestia = { set_coa = k_wu }
 				title:e_celestia = { set_color_from_title = title:k_wu }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_yue
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
 				}
 				title:e_celestia = { set_title_name = e_wuyue }
 				title:e_celestia = { set_coa = k_yue }
 				title:e_celestia = { set_color_from_title = title:k_yue }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_qianzhong
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_qian #大黔皇族
 				}
 				title:e_celestia = { set_title_name = e_qian }
 				title:e_celestia = { set_coa = k_qianzhong }
 				title:e_celestia = { set_color_from_title = title:k_qianzhong }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_nanyue
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_nanyue #南越皇族
 				}
 				title:e_celestia = { set_title_name = k_nanyue }
 				title:e_celestia = { set_coa = k_nanyue }
 				title:e_celestia = { set_color_from_title = title:k_nanyue }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_annan
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_viet #大越皇族
 				}
 				title:e_celestia = { set_title_name = e_viet }
 				title:e_celestia = { set_coa = k_annan }
 				title:e_celestia = { set_color_from_title = title:k_annan }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_nanzhong
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_dali #大礼皇族
 				}
 				title:e_celestia = { set_title_name = e_dali }
 				title:e_celestia = { set_coa = k_nanzhong }
 				title:e_celestia = { set_color_from_title = title:k_nanzhong }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_lanxang
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_lanxang #大寮皇族
 				}
 				title:e_celestia = { set_title_name = e_lanxang }
 				title:e_celestia = { set_coa = k_lanxang }
 				title:e_celestia = { set_color_from_title = title:k_lanxang }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_goryeo
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = k_goryeo #高丽皇族
 				}
 				title:e_celestia = { set_title_name = k_goryeo }
 				title:e_celestia = { set_coa = k_goryeo }
 				title:e_celestia = { set_color_from_title = title:k_goryeo }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_xia
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_hexi #凉皇族
 				}
 				title:e_celestia = { set_title_name = e_hexi }
 				title:e_celestia = { set_coa = k_xia }
 				title:e_celestia = { set_color_from_title = title:k_xia }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_khitan
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title =  { has_title = title:k_jubu }
 					}
 					
 				}
+				house = {
+					add_house_modifier = e_grand_liao #大辽皇族
+				}
 				title:e_celestia = { set_title_name = e_grand_liao }
 				title:e_celestia = { set_coa = k_khitan }
 				title:e_celestia = { set_color_from_title = title:k_khitan }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_jurchen
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_grand_liao #大辽皇族
 				}
 				title:e_celestia = { set_title_name = e_grand_liao }
 				title:e_celestia = { set_coa = k_jurchen }
 				title:e_celestia = { set_color_from_title = title:k_jurchen }
 			}
-			if = {
+			else_if = {
 				limit = {
 					root.capital_province.kingdom = title:k_jubu
+					royal_members_trigger = no##非皇族
+				}
+				house = {
+					add_house_modifier = e_yuan
 				}
 				title:e_celestia = { set_title_name = e_yuan }
 				title:e_celestia = { set_coa = k_jubu }
 				title:e_celestia = { set_color_from_title = title:k_jubu }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1056,12 +1244,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_heluo
 				}
+				house = {
+					add_house_modifier = e_zhou
+				}
 				title:e_celestia = { set_title_name = e_zhou }
 				title:e_celestia = { set_coa = d_heluo }
 				title:e_celestia = { set_color_from_title = title:d_heluo }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1069,12 +1261,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_zhenghua
 				}
+				house = {
+					add_house_modifier = e_zheng
+				}
 				title:e_celestia = { set_title_name = e_zheng }
 				title:e_celestia = { set_coa = d_zhenghua }
 				title:e_celestia = { set_color_from_title = title:d_zhenghua }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1082,12 +1278,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_chenxu
 				}
+				house = {
+					add_house_modifier = e_chen
+				}
 				title:e_celestia = { set_title_name = e_chen }
 				title:e_celestia = { set_coa = d_chenxu }
 				title:e_celestia = { set_color_from_title = title:d_chenxu }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1095,12 +1295,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_biansong
 				}
+				house = {
+					add_house_modifier = e_song #宋皇族
+				}
 				title:e_celestia = { set_title_name = e_song }
 				title:e_celestia = { set_coa = d_biansong }
 				title:e_celestia = { set_color_from_title = title:d_biansong }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1108,12 +1312,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_fujian
 				}
+				house = {
+					add_house_modifier = e_min #闽皇族
+				}
 				title:e_celestia = { set_title_name = e_min }
 				title:e_celestia = { set_coa = d_fujian }
 				title:e_celestia = { set_color_from_title = title:d_fujian }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1121,12 +1329,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_taining
 				}
+				house = {
+					add_house_modifier = e_lu #鲁皇族
+				}
 				title:e_celestia = { set_title_name = e_lu }
 				title:e_celestia = { set_coa = d_taining }
 				title:e_celestia = { set_color_from_title = title:d_taining }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1134,12 +1346,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xiangwei
 				}
+				house = {
+					add_house_modifier = e_weei #卫皇族
+				}
 				title:e_celestia = { set_title_name = e_weei }
 				title:e_celestia = { set_coa = d_xiangwei }
 				title:e_celestia = { set_color_from_title = title:d_xiangwei }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1147,12 +1363,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_yiding
 				}
+				house = {
+					add_house_modifier = e_zhongshan #中山皇族
+				}
 				title:e_celestia = { set_title_name = e_zhongshan }
 				title:e_celestia = { set_coa = d_yiding }
 				title:e_celestia = { set_color_from_title = title:d_yiding }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1160,12 +1380,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_hedong 
 				}
+				house = {
+					add_house_modifier = e_tang #唐皇族
+				}
 				title:e_celestia = { set_title_name = e_tang }
 				title:e_celestia = { set_coa = d_hedong }
 				title:e_celestia = { set_color_from_title = title:e_tang }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1173,12 +1397,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_liaodong
 				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
 				title:e_celestia = { set_title_name = k_liao }
 				title:e_celestia = { set_coa = k_liao }
 				title:e_celestia = { set_color_from_title = title:k_liao }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1186,12 +1414,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_liaoxi
 				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
 				title:e_celestia = { set_title_name = k_liao }
 				title:e_celestia = { set_coa = k_liao }
 				title:e_celestia = { set_color_from_title = title:k_liao }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1199,12 +1431,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_gewu
 				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
 				title:e_celestia = { set_title_name = k_liao }
 				title:e_celestia = { set_coa = k_liao }
 				title:e_celestia = { set_color_from_title = title:k_liao }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1212,13 +1448,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_rangnang
 				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
 				title:e_celestia = { set_title_name = k_liao }
 				title:e_celestia = { set_coa = k_liao }
 				title:e_celestia = { set_color_from_title = title:k_liao }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+				royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1226,12 +1466,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_chengde
 				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
+				}
 				title:e_celestia = { set_title_name = k_zhao }
 				title:e_celestia = { set_coa = k_zhao }
 				title:e_celestia = { set_color_from_title = title:k_zhao }
 			}
-			if = {
+			else_if = {
 				limit = {
+				royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1239,12 +1483,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xingci
 				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
+				}
 				title:e_celestia = { set_title_name = k_zhao }
 				title:e_celestia = { set_coa = k_zhao }
 				title:e_celestia = { set_color_from_title = title:k_zhao }
 			}
-			if = {
+			else_if = {
 				limit = {
+				royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1252,13 +1500,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_zelu
 				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
+				}
 				title:e_celestia = { set_title_name = k_zhao }
 				title:e_celestia = { set_coa = k_zhao }
 				title:e_celestia = { set_color_from_title = title:k_zhao }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+				royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1266,12 +1518,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_youzhou
 				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
+				}
 				title:e_celestia = { set_title_name = k_yan }
 				title:e_celestia = { set_coa = k_yan }
 				title:e_celestia = { set_color_from_title = title:k_yan }
 			}
-			if = {
+			else_if = {
 				limit = {
+				royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1279,12 +1535,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_lulong
 				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
+				}
 				title:e_celestia = { set_title_name = k_yan }
 				title:e_celestia = { set_coa = k_yan }
 				title:e_celestia = { set_color_from_title = title:k_yan }
 			}
-			if = {
+			else_if = {
 				limit = {
+				royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1292,13 +1552,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_yingmo
 				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
+				}
 				title:e_celestia = { set_title_name = k_yan }
 				title:e_celestia = { set_coa = k_yan }
 				title:e_celestia = { set_color_from_title = title:k_yan }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1306,12 +1570,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_weibo
 				}
+				house = {
+					add_house_modifier = k_wei #魏皇族
+				}
 				title:e_celestia = { set_title_name = k_wei }
 				title:e_celestia = { set_coa = k_wei }
 				title:e_celestia = { set_color_from_title = title:k_wei }
 			}
-			if = {
-				limit = {
+			else_if = {
+				limit = {	
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1319,13 +1587,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_henghai
 				}
+				house = {
+					add_house_modifier = k_wei #魏皇族
+				}
 				title:e_celestia = { set_title_name = k_wei }
 				title:e_celestia = { set_coa = k_wei }
 				title:e_celestia = { set_color_from_title = title:k_wei }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1333,12 +1605,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_zhenwu
 				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
 				title:e_celestia = { set_title_name = k_tengri }
 				title:e_celestia = { set_coa = k_tengri }
 				title:e_celestia = { set_color_from_title = title:k_tengri }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1346,12 +1622,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_fengzhou
 				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
 				title:e_celestia = { set_title_name = k_tengri }
 				title:e_celestia = { set_coa = k_tengri }
 				title:e_celestia = { set_color_from_title = title:k_tengri }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1359,13 +1639,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_ordos
 				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
 				title:e_celestia = { set_title_name = k_tengri }
 				title:e_celestia = { set_coa = k_tengri }
 				title:e_celestia = { set_color_from_title = title:k_tengri }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1373,12 +1657,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_yunzhong
 				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
 				title:e_celestia = { set_title_name = k_tengri }
 				title:e_celestia = { set_coa = k_tengri }
 				title:e_celestia = { set_color_from_title = title:k_tengri }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1386,12 +1674,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_yanmen
 				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
 				title:e_celestia = { set_title_name = k_tengri }
 				title:e_celestia = { set_coa = k_tengri }
 				title:e_celestia = { set_color_from_title = title:k_tengri }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1399,13 +1691,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_hezhong
 				}
+				house = {
+					add_house_modifier = k_jin #晋皇族
+				}
 				title:e_celestia = { set_title_name = k_jin }
 				title:e_celestia = { set_coa = k_jin }
 				title:e_celestia = { set_color_from_title = title:k_jin }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1413,12 +1709,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xiazhou
 				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
+				}
 				title:e_celestia = { set_title_name = k_xia_east }
 				title:e_celestia = { set_coa = k_xia_east }
 				title:e_celestia = { set_color_from_title = title:k_xia_east }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1426,12 +1726,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xia
 				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
+				}
 				title:e_celestia = { set_title_name = k_xia_east }
 				title:e_celestia = { set_coa = k_xia_east }
 				title:e_celestia = { set_color_from_title = title:k_xia_east }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1439,13 +1743,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_shuofang
 				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
+				}
 				title:e_celestia = { set_title_name = k_xia_east }
 				title:e_celestia = { set_coa = k_xia_east }
 				title:e_celestia = { set_color_from_title = title:k_xia_east }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1453,12 +1761,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_fengxiang
 				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1466,12 +1778,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_jingyuan
 				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1479,12 +1795,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_longxi
 				}
+				house = {
+					add_house_modifier = e_qiang #大羌皇族
+				}
 				title:e_celestia = { set_title_name = e_qiang }
 				title:e_celestia = { set_coa = k_xia }
 				title:e_celestia = { set_color_from_title = title:k_xia }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1492,12 +1812,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_longnan
 				}
+				house = {
+					add_house_modifier = e_qiang #大羌皇族
+				}
 				title:e_celestia = { set_title_name = e_qiang }
 				title:e_celestia = { set_coa = k_xia }
 				title:e_celestia = { set_color_from_title = title:k_xia }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1505,13 +1829,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_shanzhou
 				}
+				house = {
+					add_house_modifier = e_qiang #大羌皇族
+				}
 				title:e_celestia = { set_title_name = e_qiang }
 				title:e_celestia = { set_coa = k_xia }
 				title:e_celestia = { set_color_from_title = title:k_xia }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1519,12 +1847,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xijing
 				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1532,12 +1864,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_pingyi
 				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1545,12 +1881,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_binning
 				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1558,13 +1898,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_fufang
 				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1572,12 +1916,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_jinshang
 				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
 				title:e_celestia = { set_title_name = k_qin }
 				title:e_celestia = { set_coa = k_qin }
 				title:e_celestia = { set_color_from_title = title:k_qin }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1585,12 +1933,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_hanzhong
 				}
+				house = {
+					add_house_modifier = e_han #汉皇族
+				}
 				title:e_celestia = { set_title_name = e_han }
 				title:e_celestia = { set_coa = e_han }
 				title:e_celestia = { set_color_from_title = title:e_han }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1598,14 +1950,18 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_jingxiang
 				}
-				title:e_celestia = { set_title_name = e_han }
-				title:e_celestia = { set_coa = e_han }
-				title:e_celestia = { set_color_from_title = title:e_han }
+				house = {
+					add_house_modifier = e_sui #隋皇族
+				}
+				title:e_celestia = { set_title_name = e_sui }
+				title:e_celestia = { set_coa = e_sui }
+				title:e_celestia = { set_color_from_title = title:e_sui }
 			}
 
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1613,12 +1969,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xichuan
 				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
 				title:e_celestia = { set_title_name = k_shu }
 				title:e_celestia = { set_coa = k_shu }
 				title:e_celestia = { set_color_from_title = title:k_shu }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1626,13 +1986,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_dongchuan
 				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
 				title:e_celestia = { set_title_name = k_shu }
 				title:e_celestia = { set_coa = k_shu }
 				title:e_celestia = { set_color_from_title = title:k_shu }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1640,12 +2004,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_luzhou
 				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
 				title:e_celestia = { set_title_name = k_shu }
 				title:e_celestia = { set_coa = k_shu }
 				title:e_celestia = { set_color_from_title = title:k_shu }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1653,13 +2021,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_yongping
 				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
 				title:e_celestia = { set_title_name = k_shu }
 				title:e_celestia = { set_coa = k_shu }
 				title:e_celestia = { set_color_from_title = title:k_shu }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1667,12 +2039,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_ba
 				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
 				title:e_celestia = { set_title_name = k_shu }
 				title:e_celestia = { set_coa = k_shu }
 				title:e_celestia = { set_color_from_title = title:k_shu }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1680,14 +2056,18 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_ningjiang
 				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
 				title:e_celestia = { set_title_name = k_chu }
 				title:e_celestia = { set_coa = k_chu }
 				title:e_celestia = { set_color_from_title = title:k_chu }
 			}
 
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1695,12 +2075,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_shaanguo
 				}
+				house = {
+					add_house_modifier = k_zhou #周皇族
+				}
 				title:e_celestia = { set_title_name = k_zhou }
 				title:e_celestia = { set_coa = k_zhou }
 				title:e_celestia = { set_color_from_title = title:k_zhou }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1708,13 +2092,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_heyang
 				}
+				house = {
+					add_house_modifier = k_zhou #周皇族
+				}
 				title:e_celestia = { set_title_name = k_zhou }
 				title:e_celestia = { set_coa = k_zhou }
 				title:e_celestia = { set_color_from_title = title:k_zhou }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1722,12 +2110,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_pucao
 				}
+				house = {
+					add_house_modifier = e_cao #曹皇族
+				}
 				title:e_celestia = { set_title_name = e_cao }
 				title:e_celestia = { set_coa = d_pucao }
 				title:e_celestia = { set_color_from_title = title:d_pucao }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1735,12 +2127,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xusi
 				}
+				house = {
+					add_house_modifier = e_xuu #许皇族
+				}
 				title:e_celestia = { set_title_name = e_xuu }
 				title:e_celestia = { set_coa = d_xusi }
 				title:e_celestia = { set_color_from_title = title:d_xusi }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1748,12 +2144,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_ziqing
 				}
+				house = {
+					add_house_modifier = k_qi #齐皇族
+				}
 				title:e_celestia = { set_title_name = k_qi }
 				title:e_celestia = { set_coa = k_qi }
 				title:e_celestia = { set_color_from_title = title:d_ziqing }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1761,13 +2161,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_denglai
 				}
+				house = {
+					add_house_modifier = k_qi #齐皇族
+				}
 				title:e_celestia = { set_title_name = k_qi }
 				title:e_celestia = { set_coa = k_qi }
 				title:e_celestia = { set_color_from_title = title:d_denglai }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1775,12 +2179,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_jingnan
 				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
 				title:e_celestia = { set_title_name = k_chu }
 				title:e_celestia = { set_coa = k_chu}
 				title:e_celestia = { set_color_from_title = title:k_chu }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1788,12 +2196,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_eyue
 				}
-				title:e_celestia = { set_title_name = e_sui }
-				title:e_celestia = { set_coa = d_eyue}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu}
 				title:e_celestia = { set_color_from_title = title:d_eyue }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1801,13 +2213,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_hunan
 				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
 				title:e_celestia = { set_title_name = k_chu }
 				title:e_celestia = { set_coa = k_chu}
 				title:e_celestia = { set_color_from_title = title:k_chu }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1815,12 +2231,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_huainan
 				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
+				}
 				title:e_celestia = { set_title_name = k_wu }
 				title:e_celestia = { set_coa = k_wu }
 				title:e_celestia = { set_color_from_title = title:d_huainan }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1828,12 +2248,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_huaixi
 				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
+				}
 				title:e_celestia = { set_title_name = k_wu }
 				title:e_celestia = { set_coa = k_wu }
 				title:e_celestia = { set_color_from_title = title:d_huaixi }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1841,12 +2265,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_zhenhai
 				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
+				}
 				title:e_celestia = { set_title_name = e_wuyue }
 				title:e_celestia = { set_coa = d_zhenhai }
 				title:e_celestia = { set_color_from_title = title:k_yue }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1854,12 +2282,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_xuanshe
 				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
+				}
 				title:e_celestia = { set_title_name = k_wu }
 				title:e_celestia = { set_coa = k_wu }
 				title:e_celestia = { set_color_from_title = title:d_xuanshe }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1867,13 +2299,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_jiangxi
 				}
+				house = {
+					add_house_modifier = e_gan #赣皇族
+				}
 				title:e_celestia = { set_title_name = e_gan }
 				title:e_celestia = { set_coa = d_jiangxi }
 				title:e_celestia = { set_color_from_title = title:d_jiangxi }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1881,12 +2317,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_zhexi
 				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
+				}
 				title:e_celestia = { set_title_name = e_wuyue }
 				title:e_celestia = { set_coa = d_zhexi }
 				title:e_celestia = { set_color_from_title = title:d_zhexi }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1894,14 +2334,18 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_zhedong
 				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
+				}
 				title:e_celestia = { set_title_name = e_wuyue }
 				title:e_celestia = { set_coa = d_zhedong }
 				title:e_celestia = { set_color_from_title = title:d_zhedong }
 			}
 
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1909,12 +2353,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_lingnan
 				}
+				house = {
+					add_house_modifier = k_nanyue #南越皇族
+				}
 				title:e_celestia = { set_title_name = k_nanyue }
 				title:e_celestia = { set_coa = k_nanyue }
 				title:e_celestia = { set_color_from_title = title:k_nanyue }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1922,12 +2370,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_chaoshan
 				}
+				house = {
+					add_house_modifier = k_nanyue #南越皇族
+				}
 				title:e_celestia = { set_title_name = k_nanyue }
 				title:e_celestia = { set_coa = k_nanyue }
 				title:e_celestia = { set_color_from_title = title:k_nanyue }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1935,12 +2387,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_qiongya
 				}
+				house = {
+					add_house_modifier = e_viet #大越皇族 #大越皇族
+				}
 				title:e_celestia = { set_title_name = e_viet }
 				title:e_celestia = { set_coa = k_nanyue }
 				title:e_celestia = { set_color_from_title = title:k_nanyue }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1948,12 +2404,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_rongguan
 				}
+				house = {
+					add_house_modifier = cn_pu #大濮皇族
+				}
 				title:e_celestia = { set_title_name = cn_pu }
 				title:e_celestia = { set_coa = k_nanyue }
 				title:e_celestia = { set_color_from_title = title:k_nanyue }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1961,12 +2421,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_guiguan
 				}
+				house = {
+					add_house_modifier = cn_pu #大濮皇族
+				}
 				title:e_celestia = { set_title_name = cn_pu }
 				title:e_celestia = { set_coa = k_nanyue }
 				title:e_celestia = { set_color_from_title = title:k_nanyue }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1974,13 +2438,17 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_yongguan
 				}
+				house = {
+					add_house_modifier = cn_pu #大濮皇族
+				}
 				title:e_celestia = { set_title_name = cn_pu }
 				title:e_celestia = { set_coa = k_nanyue }
 				title:e_celestia = { set_color_from_title = title:k_nanyue }
 			}
 
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -1988,12 +2456,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_jiaozhi
 				}
+				house = {
+					add_house_modifier = e_viet #大越皇族
+				}
 				title:e_celestia = { set_title_name = e_viet }
 				title:e_celestia = { set_coa = k_annan }
 				title:e_celestia = { set_color_from_title = title:k_annan }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier = tier_kingdom 
@@ -2001,18 +2473,1618 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}	
 					root.capital_province.duchy = title:d_jiuzhen
 				}
+				house = {
+					add_house_modifier = e_viet #大越皇族
+				}
 				title:e_celestia = { set_title_name = e_viet }
 				title:e_celestia = { set_coa = k_annan }
 				title:e_celestia = { set_color_from_title = title:k_annan }
 			}
-			if = {
+			else_if = {
 				limit = {
+					royal_members_trigger = no##非皇族
 					NOT = { 
 						any_held_title = { 
 							tier >= tier_duchy 
 						}
 					}	
 					root.capital_province.county = title:c_qianzhong
+				}
+				house = {
+					add_house_modifier = cn_xie
+				}
+				title:e_celestia = { set_title_name = cn_xie }
+				title:e_celestia = { set_coa = k_qianzhong }
+				title:e_celestia = { set_color_from_title = title:k_qianzhong }
+			}
+
+			####复国恢复国号
+
+			if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					house = {
+						has_house_modifier = e_tang #唐皇族
+					}
+				}
+				title:e_celestia = { set_title_name = e_tang }
+				title:e_celestia = { set_coa = e_tang }
+				title:e_celestia = { set_color_from_title = title:e_celestia }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					house = {
+						has_house_modifier = e_song #宋皇族 #宋皇族
+					}
+				}
+				title:e_celestia = { set_title_name = e_song }
+				title:e_celestia = { set_coa = e_song }
+				title:e_celestia = { set_color_from_title = title:e_song }
+			}
+						else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_liao
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_grand_liao #大辽皇族
+				}
+				title:e_celestia = { set_title_name = e_grand_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_zhao
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
+				}
+				title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_yan
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
+				}
+				title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_wei
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_wei #魏皇族
+				}
+				title:e_celestia = { set_title_name = k_wei }
+				title:e_celestia = { set_coa = k_wei }
+				title:e_celestia = { set_color_from_title = title:k_wei }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_tengri
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
+				title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_jin
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_jin #晋皇族
+				}
+				title:e_celestia = { set_title_name = k_jin }
+				title:e_celestia = { set_coa = k_jin }
+				title:e_celestia = { set_color_from_title = title:k_jin }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_xia_east
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
+				}
+				title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_longxi
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_longxi #岐皇族
+				}
+				title:e_celestia = { set_title_name = k_longxi }
+				title:e_celestia = { set_coa = k_longxi }
+				title:e_celestia = { set_color_from_title = title:k_longxi }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_qin
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_shu
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
+				title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_zhou
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_zhou #周皇族
+				}
+				title:e_celestia = { set_title_name = k_zhou }
+				title:e_celestia = { set_coa = k_zhou }
+				title:e_celestia = { set_color_from_title = title:k_zhou }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_qi
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_qi #齐皇族
+				}
+				title:e_celestia = { set_title_name = k_qi }
+				title:e_celestia = { set_coa = k_qi }
+				title:e_celestia = { set_color_from_title = title:k_qi }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_chu
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu }
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_wu
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
+				}
+				title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:k_wu }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_yue
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
+				}
+				title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = k_yue }
+				title:e_celestia = { set_color_from_title = title:k_yue }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_qianzhong
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_qian #大黔皇族
+				}
+				title:e_celestia = { set_title_name = e_qian }
+				title:e_celestia = { set_coa = k_qianzhong }
+				title:e_celestia = { set_color_from_title = title:k_qianzhong }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_nanyue
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_nanyue #南越皇族
+				}
+				title:e_celestia = { set_title_name = k_nanyue }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_annan
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_viet #大越皇族
+				}
+				title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_annan }
+				title:e_celestia = { set_color_from_title = title:k_annan }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_nanzhong
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_dali #大礼皇族
+				}
+				title:e_celestia = { set_title_name = e_dali }
+				title:e_celestia = { set_coa = k_nanzhong }
+				title:e_celestia = { set_color_from_title = title:k_nanzhong }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_lanxang
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_lanxang #大寮皇族
+				}
+				title:e_celestia = { set_title_name = e_lanxang }
+				title:e_celestia = { set_coa = k_lanxang }
+				title:e_celestia = { set_color_from_title = title:k_lanxang }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_goryeo
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = k_goryeo #高丽皇族
+				}
+				title:e_celestia = { set_title_name = k_goryeo }
+				title:e_celestia = { set_coa = k_goryeo }
+				title:e_celestia = { set_color_from_title = title:k_goryeo }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_xia
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_hexi #凉皇族
+				}
+				title:e_celestia = { set_title_name = e_hexi }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_khitan
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title =  { has_title = title:k_jubu }
+					}
+					
+				}
+				house = {
+					add_house_modifier = e_grand_liao #大辽皇族
+				}
+				title:e_celestia = { set_title_name = e_grand_liao }
+				title:e_celestia = { set_coa = k_khitan }
+				title:e_celestia = { set_color_from_title = title:k_khitan }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_jurchen
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_grand_liao #大辽皇族
+				}
+				title:e_celestia = { set_title_name = e_grand_liao }
+				title:e_celestia = { set_coa = k_jurchen }
+				title:e_celestia = { set_color_from_title = title:k_jurchen }
+			}
+			else_if = {
+				limit = {
+					root.capital_province.kingdom = title:k_jubu
+					royal_members_trigger = yes ##前皇族
+				}
+				house = {
+					add_house_modifier = e_yuan
+				}
+				title:e_celestia = { set_title_name = e_yuan }
+				title:e_celestia = { set_coa = k_jubu }
+				title:e_celestia = { set_color_from_title = title:k_jubu }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_heluo
+				}
+				house = {
+					add_house_modifier = e_zhou
+				}
+				title:e_celestia = { set_title_name = e_zhou }
+				title:e_celestia = { set_coa = d_heluo }
+				title:e_celestia = { set_color_from_title = title:d_heluo }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhenghua
+				}
+				house = {
+					add_house_modifier = e_zheng
+				}
+				title:e_celestia = { set_title_name = e_zheng }
+				title:e_celestia = { set_coa = d_zhenghua }
+				title:e_celestia = { set_color_from_title = title:d_zhenghua }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_chenxu
+				}
+				house = {
+					add_house_modifier = e_chen
+				}
+				title:e_celestia = { set_title_name = e_chen }
+				title:e_celestia = { set_coa = d_chenxu }
+				title:e_celestia = { set_color_from_title = title:d_chenxu }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_biansong
+				}
+				house = {
+					add_house_modifier = e_song #宋皇族
+				}
+				title:e_celestia = { set_title_name = e_song }
+				title:e_celestia = { set_coa = d_biansong }
+				title:e_celestia = { set_color_from_title = title:d_biansong }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fujian
+				}
+				house = {
+					add_house_modifier = e_min #闽皇族
+				}
+				title:e_celestia = { set_title_name = e_min }
+				title:e_celestia = { set_coa = d_fujian }
+				title:e_celestia = { set_color_from_title = title:d_fujian }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_taining
+				}
+				house = {
+					add_house_modifier = e_lu #鲁皇族
+				}
+				title:e_celestia = { set_title_name = e_lu }
+				title:e_celestia = { set_coa = d_taining }
+				title:e_celestia = { set_color_from_title = title:d_taining }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xiangwei
+				}
+				house = {
+					add_house_modifier = e_weei #卫皇族
+				}
+				title:e_celestia = { set_title_name = e_weei }
+				title:e_celestia = { set_coa = d_xiangwei }
+				title:e_celestia = { set_color_from_title = title:d_xiangwei }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yiding
+				}
+				house = {
+					add_house_modifier = e_zhongshan #中山皇族
+				}
+				title:e_celestia = { set_title_name = e_zhongshan }
+				title:e_celestia = { set_coa = d_yiding }
+				title:e_celestia = { set_color_from_title = title:d_yiding }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hedong 
+				}
+				house = {
+					add_house_modifier = e_tang #唐皇族
+				}
+				title:e_celestia = { set_title_name = e_tang }
+				title:e_celestia = { set_coa = d_hedong }
+				title:e_celestia = { set_color_from_title = title:e_tang }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_liaodong
+				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
+				title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_liaoxi
+				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
+				title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_gewu
+				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
+				title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_rangnang
+				}
+				house = {
+					add_house_modifier = k_liao #辽皇族
+				}
+				title:e_celestia = { set_title_name = k_liao }
+				title:e_celestia = { set_coa = k_liao }
+				title:e_celestia = { set_color_from_title = title:k_liao }
+			}
+
+			else_if = {
+				limit = {
+				royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_chengde
+				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
+				}
+				title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+			else_if = {
+				limit = {
+				royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xingci
+				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
+				}
+				title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+			else_if = {
+				limit = {
+				royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zelu
+				}
+				house = {
+					add_house_modifier = k_zhao #赵皇族
+				}
+				title:e_celestia = { set_title_name = k_zhao }
+				title:e_celestia = { set_coa = k_zhao }
+				title:e_celestia = { set_color_from_title = title:k_zhao }
+			}
+
+			else_if = {
+				limit = {
+				royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_youzhou
+				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
+				}
+				title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+			}
+			else_if = {
+				limit = {
+				royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_lulong
+				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
+				}
+				title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+			}
+			else_if = {
+				limit = {
+				royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yingmo
+				}
+				house = {
+					add_house_modifier = k_yan #燕皇族
+				}
+				title:e_celestia = { set_title_name = k_yan }
+				title:e_celestia = { set_coa = k_yan }
+				title:e_celestia = { set_color_from_title = title:k_yan }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_weibo
+				}
+				house = {
+					add_house_modifier = k_wei #魏皇族
+				}
+				title:e_celestia = { set_title_name = k_wei }
+				title:e_celestia = { set_coa = k_wei }
+				title:e_celestia = { set_color_from_title = title:k_wei }
+			}
+			else_if = {
+				limit = {	
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_henghai
+				}
+				house = {
+					add_house_modifier = k_wei #魏皇族
+				}
+				title:e_celestia = { set_title_name = k_wei }
+				title:e_celestia = { set_coa = k_wei }
+				title:e_celestia = { set_color_from_title = title:k_wei }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhenwu
+				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
+				title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fengzhou
+				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
+				title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ordos
+				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
+				title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yunzhong
+				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
+				title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yanmen
+				}
+				house = {
+					add_house_modifier = k_tengri #代皇族
+				}
+				title:e_celestia = { set_title_name = k_tengri }
+				title:e_celestia = { set_coa = k_tengri }
+				title:e_celestia = { set_color_from_title = title:k_tengri }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hezhong
+				}
+				house = {
+					add_house_modifier = k_jin #晋皇族
+				}
+				title:e_celestia = { set_title_name = k_jin }
+				title:e_celestia = { set_coa = k_jin }
+				title:e_celestia = { set_color_from_title = title:k_jin }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xiazhou
+				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
+				}
+				title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xia
+				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
+				}
+				title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_shuofang
+				}
+				house = {
+					add_house_modifier = k_xia_east #夏皇族
+				}
+				title:e_celestia = { set_title_name = k_xia_east }
+				title:e_celestia = { set_coa = k_xia_east }
+				title:e_celestia = { set_color_from_title = title:k_xia_east }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fengxiang
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jingyuan
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_longxi
+				}
+				house = {
+					add_house_modifier = e_qiang #大羌皇族
+				}
+				title:e_celestia = { set_title_name = e_qiang }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_longnan
+				}
+				house = {
+					add_house_modifier = e_qiang #大羌皇族
+				}
+				title:e_celestia = { set_title_name = e_qiang }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_shanzhou
+				}
+				house = {
+					add_house_modifier = e_qiang #大羌皇族
+				}
+				title:e_celestia = { set_title_name = e_qiang }
+				title:e_celestia = { set_coa = k_xia }
+				title:e_celestia = { set_color_from_title = title:k_xia }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xijing
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_pingyi
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_binning
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_fufang
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jinshang
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hanzhong
+				}
+				house = {
+					add_house_modifier = e_han #汉皇族
+				}
+				title:e_celestia = { set_title_name = e_han }
+				title:e_celestia = { set_coa = e_han }
+				title:e_celestia = { set_color_from_title = title:e_han }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jingxiang
+				}
+				house = {
+					add_house_modifier = e_sui #隋皇族
+				}
+				title:e_celestia = { set_title_name = e_sui }
+				title:e_celestia = { set_coa = e_sui }
+				title:e_celestia = { set_color_from_title = title:e_sui }
+			}
+
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xichuan
+				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
+				title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_dongchuan
+				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
+				title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_luzhou
+				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
+				title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yongping
+				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
+				title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ba
+				}
+				house = {
+					add_house_modifier = k_shu #蜀皇族
+				}
+				title:e_celestia = { set_title_name = k_shu }
+				title:e_celestia = { set_coa = k_shu }
+				title:e_celestia = { set_color_from_title = title:k_shu }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ningjiang
+				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu }
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_shaanguo
+				}
+				house = {
+					add_house_modifier = k_zhou #周皇族
+				}
+				title:e_celestia = { set_title_name = k_zhou }
+				title:e_celestia = { set_coa = k_zhou }
+				title:e_celestia = { set_color_from_title = title:k_zhou }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_heyang
+				}
+				house = {
+					add_house_modifier = k_zhou #周皇族
+				}
+				title:e_celestia = { set_title_name = k_zhou }
+				title:e_celestia = { set_coa = k_zhou }
+				title:e_celestia = { set_color_from_title = title:k_zhou }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_pucao
+				}
+				house = {
+					add_house_modifier = e_cao #曹皇族
+				}
+				title:e_celestia = { set_title_name = e_cao }
+				title:e_celestia = { set_coa = d_pucao }
+				title:e_celestia = { set_color_from_title = title:d_pucao }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xusi
+				}
+				house = {
+					add_house_modifier = e_xuu #许皇族
+				}
+				title:e_celestia = { set_title_name = e_xuu }
+				title:e_celestia = { set_coa = d_xusi }
+				title:e_celestia = { set_color_from_title = title:d_xusi }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_ziqing
+				}
+				house = {
+					add_house_modifier = k_qi #齐皇族
+				}
+				title:e_celestia = { set_title_name = k_qi }
+				title:e_celestia = { set_coa = k_qi }
+				title:e_celestia = { set_color_from_title = title:d_ziqing }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_denglai
+				}
+				house = {
+					add_house_modifier = k_qi #齐皇族
+				}
+				title:e_celestia = { set_title_name = k_qi }
+				title:e_celestia = { set_coa = k_qi }
+				title:e_celestia = { set_color_from_title = title:d_denglai }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jingnan
+				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu}
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_eyue
+				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu}
+				title:e_celestia = { set_color_from_title = title:d_eyue }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_hunan
+				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu}
+				title:e_celestia = { set_color_from_title = title:k_chu }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_huainan
+				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
+				}
+				title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:d_huainan }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_huaixi
+				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
+				}
+				title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:d_huaixi }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhenhai
+				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
+				}
+				title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = d_zhenhai }
+				title:e_celestia = { set_color_from_title = title:k_yue }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_xuanshe
+				}
+				house = {
+					add_house_modifier = k_wu #吴皇族
+				}
+				title:e_celestia = { set_title_name = k_wu }
+				title:e_celestia = { set_coa = k_wu }
+				title:e_celestia = { set_color_from_title = title:d_xuanshe }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jiangxi
+				}
+				house = {
+					add_house_modifier = e_gan #赣皇族
+				}
+				title:e_celestia = { set_title_name = e_gan }
+				title:e_celestia = { set_coa = d_jiangxi }
+				title:e_celestia = { set_color_from_title = title:d_jiangxi }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhexi
+				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
+				}
+				title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = d_zhexi }
+				title:e_celestia = { set_color_from_title = title:d_zhexi }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_zhedong
+				}
+				house = {
+					add_house_modifier = e_wuyue #吴越皇族
+				}
+				title:e_celestia = { set_title_name = e_wuyue }
+				title:e_celestia = { set_coa = d_zhedong }
+				title:e_celestia = { set_color_from_title = title:d_zhedong }
+			}
+
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_lingnan
+				}
+				house = {
+					add_house_modifier = k_nanyue #南越皇族
+				}
+				title:e_celestia = { set_title_name = k_nanyue }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_chaoshan
+				}
+				house = {
+					add_house_modifier = k_nanyue #南越皇族
+				}
+				title:e_celestia = { set_title_name = k_nanyue }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_qiongya
+				}
+				house = {
+					add_house_modifier = e_viet #大越皇族
+				}
+				title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_rongguan
+				}
+				house = {
+					add_house_modifier = cn_pu #大濮皇族
+				}
+				title:e_celestia = { set_title_name = cn_pu }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_guiguan
+				}
+				house = {
+					add_house_modifier = cn_pu #大濮皇族
+				}
+				title:e_celestia = { set_title_name = cn_pu }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_yongguan
+				}
+				house = {
+					add_house_modifier = cn_pu #大濮皇族
+				}
+				title:e_celestia = { set_title_name = cn_pu }
+				title:e_celestia = { set_coa = k_nanyue }
+				title:e_celestia = { set_color_from_title = title:k_nanyue }
+			}
+
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jiaozhi
+				}
+				house = {
+					add_house_modifier = e_viet #大越皇族
+				}
+				title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_annan }
+				title:e_celestia = { set_color_from_title = title:k_annan }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier = tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_jiuzhen
+				}
+				house = {
+					add_house_modifier = e_viet #大越皇族
+				}
+				title:e_celestia = { set_title_name = e_viet }
+				title:e_celestia = { set_coa = k_annan }
+				title:e_celestia = { set_color_from_title = title:k_annan }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = yes ##前皇族
+					NOT = { 
+						any_held_title = { 
+							tier >= tier_duchy 
+						}
+					}	
+					root.capital_province.county = title:c_qianzhong
+				}
+				house = {
+					add_house_modifier = cn_xie
 				}
 				title:e_celestia = { set_title_name = cn_xie }
 				title:e_celestia = { set_coa = k_qianzhong }
@@ -2021,8 +4093,32 @@ east_on_title_gain_effects = { #by 糜三小姐
 		}
 	}
 }
+
+yearly_playable_pulse = {
+	effect = {
+		If = {  #年号年份+1
+			limit = {
+				has_variable = nianhao_date
+			}			
+			change_variable = {
+				name = nianhao_date
+				add = 1
+			}
+		}
+	}
+}
+three_year_playable_pulse = {
+	events = {
+		east_title.0003
+	}
+}
 on_death = {
 	events = {
-		east_title.0002	
+		#shihao.1 #自动帝孤谥
+		#shihao.2 #自动王孤谥
+		#east_title.0002  #随机尊谥
+		miaohao.1  #选定庙号
+		shihao.8  #选定谥号	
+		delay = { days = 20 }
 	}
 }
