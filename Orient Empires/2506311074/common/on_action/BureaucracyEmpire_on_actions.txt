@@ -158,12 +158,11 @@ BureaucracyEmpire_on_game_start_trait = {
 on_title_gain = { #内核触发，只做接口，尽量不要动
 	on_actions = {
 		BureaucracyEmpire_on_title_gain
-		BureaucracyEmpire_on_title_gain_trait #角色获得资历
 	}
 }
 BureaucracyEmpire_on_title_gain = {
 	trigger = {
-		#文官制和所有流官继承头衔
+		#在天朝体制下
 		top_liege = {
 			OR = {
 				has_title = title:e_celestia
@@ -179,6 +178,7 @@ BureaucracyEmpire_on_title_gain = {
 	}
 	on_actions = {
 		delay = { days = 30 }
+		BureaucracyEmpire_on_title_gain_trait #角色获得资历
 		BureaucracyEmpire_on_title_gain_inheritance #官僚制帝国MOD，角色继承头衔时触发
 		BureaucracyEmpire_on_title_gain_granted #官僚制帝国MOD，角色被授予头衔时触发
 	}
@@ -187,18 +187,8 @@ BureaucracyEmpire_on_title_gain = {
 #角色获得资历
 BureaucracyEmpire_on_title_gain_trait = {
 	trigger = {
-		top_liege = {
-			OR = {
-				has_title = title:e_celestia
-				has_title = title:e_song
-			}	
-		}
-		AND = {
-			highest_held_title_tier <= tier_county
-			#highest_held_title_tier <= tier_duchy
-		}
+		highest_held_title_tier >= tier_barony
 		is_independent_ruler = no
-		has_realm_law = official_succession_law
 	}
 	effect = { 
 		if = {
@@ -206,6 +196,11 @@ BureaucracyEmpire_on_title_gain_trait = {
 				NOT = { has_trait = BureaucracyEmpire_lifestyle_bureaucrat }
 			}
 			add_trait = BureaucracyEmpire_bureaucrat_1
+			change_trait_rank = {
+				trait = BureaucracyEmpire_lifestyle_bureaucrat
+				rank = 1
+				max = 1
+			}
 		}
 		if = {
 			limit = {
@@ -225,7 +220,7 @@ BureaucracyEmpire_on_title_gain_inheritance = {
 	trigger = { 
 		OR = {
 			scope:transfer_type = flag:inheritance #继承
-			scope:transfer_type = flag:abdication #退位继承
+			#scope:transfer_type = flag:abdication #退位继承 #因自建人物问题改动
 		}
 	}
 	effect = { 
@@ -303,7 +298,7 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 			#是领主的内阁成员的话，额外获得一点
 			if = {
 				limit = { is_councillor = yes }
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 1 }	
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 3 }	
 			}
 			#是皇帝近臣的话，额外获得一点
 			if = {
@@ -311,12 +306,12 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 					is_courtier = yes
 					court_owner = { has_title = title:e_celestia }
 				}
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 3 }	
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 5 }	
 			}
 			#是头衔继承人的话，额外获得一点
 			if = {
 				limit = { any_heir_title =  { count >= 1 } }
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 2 }	
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 3 }	
 			}
 			#领地发展度上升了，提升资历等级
 			every_held_title = {
@@ -324,7 +319,7 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 				if = { 
 					limit = { development_level >  var:saved_development_level }
 					scope:character = {
-						change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 3 }	
+						change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 4 }	
 					}
 					set_variable = { name = saved_development_level value = development_level }
 				}
@@ -336,7 +331,7 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 					if = {
 						limit = { combined_building_level >  var:saved_combined_building_level }
 						scope:character = {
-							change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 2 }
+							change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 5 }
 						}
 						set_variable = { name = saved_combined_building_level value = combined_building_level }
 					}
@@ -418,7 +413,7 @@ BureaucracyEmpire_ask_for_position_pulse = {
 				highest_held_title_tier >= tier_county
 		#文官制和所有流官继承头衔
 		OR = {
-			#has_government = bureau_government
+			has_government = bureau_government
 			has_realm_law = official_succession_law
 		}
 		#伯爵级以上，国王级以下

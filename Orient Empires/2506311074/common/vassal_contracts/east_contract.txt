@@ -11,8 +11,12 @@
 			vassal_modifier = {#民州
 				domain_limit = -10
 			}
-			#tax_factor = 0.2
-			levies_factor = 1
+			liege_modifier = {
+				monthly_income = 0.6#每个民州为皇帝提供0.5的税收基础
+				vassal_limit = -0.25#每个民州额外占用四分之一的封臣上限
+			}
+			tax = 0.02
+			#levies_factor = 1
 			ai_liege_desire = 0
 			ai_vassal_desire = 10
 		}
@@ -23,6 +27,8 @@
 			tax_factor = -0.2
 			levies_factor = 0.3
 			liege_modifier = {
+				levy_reinforcement_rate = 0.05 #每个军府提供5%的征召兵恢复速度，可以换成其他
+				vassal_limit = 0.25#每个军府少占用四分之一的封臣上限
 			}
 			vassal_modifier = {
 				levy_size = 0.3
@@ -42,7 +48,8 @@
 			tax_factor = -0.3
 			levies_factor = -0.8
 			liege_modifier = {
-				
+				tax_mult = -0.025 #藩王会减少国家收入修正系数
+				vassal_limit = 2 #藩王会提供封臣上限
 			}
 			vassal_modifier = {
 				monthly_county_control_change_factor = -0.2
@@ -60,7 +67,7 @@
 special_imperial_corps = {
 	display_mode = radiobutton
 	is_shown = {
-		scope:vassal.primary_title.tier >= tier_duchy
+		scope:vassal.primary_title.tier >= tier_county
 		scope:vassal = { 
 			vassal_contract_has_flag = imperial_contract_1 
 		}
@@ -74,31 +81,35 @@ special_imperial_corps = {
 			ai_liege_desire = 0
 			ai_vassal_desire = 10
 		}
-		special_imperial_corps_1 = { #防御
+		special_imperial_corps_1 = { #防御(神策军)
 			is_valid = {
 				scope:vassal.primary_title.tier >= tier_county
+				scope:vassal = { 
+					#is_ai = yes #仅限ai
+					vassal_contract_has_flag = imperial_contract_1 
+				}
 			}
 			parent = special_imperial_corps_0
 			position = { 0 2 }
-			tax_factor = -1.2
-			levies_factor = 0.3
+			tax = -0.12
+			levies_factor = 0.1
 			liege_modifier = {
-				knight_limit = 1
+				knight_limit = -2 #中央派将军去指挥神策军
+				levy_size = -0.15 #每个防御将分走一部分兵源
+				men_at_arms_cap = 0.25 #每个防御提供0.25兵士数量
+				men_at_arms_maintenance = 0.1 #每个防御使将提高10%的军队维护费
 				#men_at_arms_maintenance = -0.1
 				#vassal_opinion = -2
+				monthly_income = -2 #神策军军费
 			}
 			vassal_modifier = {
-				men_at_arms_maintenance = -0.5
+				men_at_arms_maintenance = -0.75
+				levy_size = 0.15 #承接中央兵源
 				ai_war_chance = 2
+				men_at_arms_cap = 2
+				men_at_arms_limit = 2
 				supply_limit_mult = 0.5
-				#opinion_of_liege = -35
-
-				ai = {
-					arrange_marriage = yes
-					use_goals = yes
-					use_scripted_guis = yes
-					perform_religious_reformation = yes
-				}
+				monthly_income = 2 #神策军军费
 			}
 			flag = imperial_corps_1
 			
@@ -108,15 +119,19 @@ special_imperial_corps = {
 		special_imperial_corps_2 = { #藩镇
 			is_valid = {
 				scope:vassal.primary_title.tier >= tier_duchy
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_1 
+				}
 			}
-			parent = special_imperial_corps_1
+			parent = special_imperial_corps_0
 			position = { 0 3 }
-			tax_factor = -1
+			tax = -0.12
 			levies_factor = 0.5
 			liege_modifier = {
 				men_at_arms_limit = 1
 				knight_limit = 1
 				levy_size = -0.02
+				domain_limit = 0.25 #每个藩镇提供0.25直辖
 			}
 			vassal_modifier = {
 				domain_limit = 3
@@ -134,7 +149,7 @@ special_imperial_corps = {
 
 				ai_war_chance = 2
 				supply_limit_mult = 0.5
-				#opinion_of_liege = -35
+				opinion_of_liege = -25
 
 				ai = {
 					arrange_marriage = yes
@@ -151,14 +166,19 @@ special_imperial_corps = {
 		special_imperial_corps_3 = { #羁縻
 			is_valid = {
 				scope:vassal.primary_title.tier >= tier_duchy
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_1 
+					NOT = { has_culture_group = culture_group:chinese_group }
+				}
 			}
 			flag = vassal_contract_cannot_revoke_titles
-			parent = special_imperial_contract_2
+			parent = special_imperial_contract_0
 			position = { 0 4 }
 			tax_factor = -0.1
 			levies_factor = -0.1
 			liege_modifier = {
-				
+				monthly_dynasty_prestige = 0.1 #每个羁縻提供月度0.1的家族威望
+				monthly_income = -5 #羁縻需要赋税去养
 			}
 			vassal_modifier = {
 				monthly_dynasty_prestige = 0.1
@@ -171,12 +191,20 @@ special_imperial_corps = {
 		special_imperial_corps_4 = { #都护
 			is_valid = {
 				scope:vassal.primary_title.tier >= tier_duchy
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_1 
+					NOT = {
+						capital_province.empire = title:e_celestia				   
+					}
+				}
 			}
-			parent = special_imperial_contract_2
+			parent = special_imperial_contract_0
 			position = { 0 5 }
-			tax_factor = -1.0
+			tax = -0.12.0
 			levies_factor = -0.8
 			liege_modifier = {
+				monthly_dynasty_prestige = 0.15 #每个都护提供月度0.15的家族威望
+				monthly_income = -8 #都护需要赋税去养
 			}
 			vassal_modifier = {
 				monthly_dynasty_prestige = 0.35
@@ -208,11 +236,16 @@ special_imperial_bureau = {
 		}
 		special_imperial_bureau_1 = {#轻徭薄赋
 			parent = special_imperial_bureau_0
+			is_valid = {
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_0 
+				}
+			}
 			position = { 0 2 }
-			tax_factor = -1
+			tax = -0.12
 			levies_factor = -1
 			liege_modifier = {
-				tax_mult = 0.05
+				tax_mult = 0.05 #每个轻徭薄赋的民州为皇帝提供5%的税收增幅
 			}
 			vassal_modifier = {
 				development_growth_factor = 0.3
@@ -227,6 +260,7 @@ special_imperial_bureau = {
 		special_imperial_bureau_2 = {#榷司
 			is_valid = {
 				scope:vassal = {
+					vassal_contract_has_flag = imperial_contract_0 
 					any_held_county = {
 						OR = {
 							is_coastal_county = yes
@@ -243,7 +277,8 @@ special_imperial_bureau = {
 			position = { 0 3 }
 			tax_factor = 0.2
 			levies_factor = -0.3
-			liege_modifier = {
+			liege_modifier = {#帝国自由市加成
+				monthly_income = 1
 				tax_mult = 0.05
 				vassal_opinion = 2
 				development_growth = 0.05
@@ -265,11 +300,14 @@ special_imperial_bureau = {
 			levies_factor = -1
 			is_valid = {
 				scope:vassal.primary_title.tier >= tier_duchy
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_0 
+				}
 			}
 			liege_modifier = {
-				tax_mult = 0.05
-				development_growth = 0.05
-				men_at_arms_maintenance = 0.05
+				tax_mult = -0.05
+				monthly_income = 3
+				development_growth = 0.1
 			}
 			vassal_modifier = {
 				liege_modifier = 50
@@ -307,9 +345,7 @@ special_imperial_royal = {
 			tax_factor = 0.2
 			levies_factor = -0.3
 			liege_modifier = {
-				tax_mult = 0.05
-				development_growth = 0.05
-				men_at_arms_maintenance = 0.05
+				
 			}
 			vassal_modifier = {
 				monthly_county_control_change_factor = -0.2
@@ -325,6 +361,7 @@ special_imperial_royal = {
 			parent = special_imperial_royal_0
 			is_valid = {
 				scope:vassal.primary_title.tier >= tier_duchy
+				scope:liege.primary_title.tier >= tier_kingdom #帝王专用
 			}
 			position = { 0 3 }
 			tax_factor = 0.2
