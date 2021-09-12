@@ -108,12 +108,14 @@ class CK3_Event:
             ret_str = ''
 
             ev_str_begin = '''
-    %s.%s.%s = {''' % (self.year,self.month,self.day)# TODO print a list
+    %s.%s.%s = {
+        %s = {''' % (self.year,self.month,self.day,self.eventtype)# TODO print a list
             ev_str_list = ''''''
             for detail in self.eventcontent:
                 ev_str_list += str(detail)
                 
             ev_str_end = '''
+        }
     }
             '''
             return ret_str+ev_str_begin+ev_str_list+ev_str_end
@@ -122,7 +124,7 @@ class Eventdetail:
         self.reason = reason
         self.detail = detail
     def __str__(self) -> str:
-        eventdetailstr = '''\n        %s = %s''' % (self.reason,self.detail)
+        eventdetailstr = '''\n            %s = %s''' % (self.reason,self.detail)
         return eventdetailstr
 
 class Person:
@@ -150,6 +152,7 @@ class Person:
         self.disallow_random_traits = "no" # TODO
         self.father = None
         self.mother = None
+        self.employer = None
         self.eventlist =[
             # CK3_Event("730.1.1","birth"),
             # CK3_Event("790.1.1","death")
@@ -190,6 +193,7 @@ class Person:
 
         father_str = self.skill_to_str('father')
         mother_str = self.skill_to_str('mother')
+        employer_str = self.skill_to_str('employer')
         event_str= ''
         end_str = '\n}'
         for event in self.eventlist:
@@ -199,6 +203,7 @@ class Person:
                 females_str+\
                 dynasty_str+\
                 house_str+\
+                employer_str+\
                 religion_str+\
                 culture_str+\
                 trait_str+\
@@ -224,7 +229,7 @@ if __name__ == '__main__':
     Chao.mother = 'han0011'
     Chao.martial = 15
     Chao.eventlist.append(CK3_Event("842.1.1","birth","yes"))
-    Chao.eventlist.append(CK3_Event("916.1.1","add_spouse","304194"))
+    Chao.eventlist.append(CK3_Event("916.1.1","add_spouse","304194"))# TODO 同一时间发生多个事情
     Chao.eventlist.append(CK3_Event("935.1.1","death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
     # TODO 925.12.28 = { effect = { imprison = 194325 } }
     print (Chao)
