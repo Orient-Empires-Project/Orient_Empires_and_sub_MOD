@@ -1,0 +1,292 @@
+﻿on_war_won_attacker = {
+    on_actions = {
+        VassalWarContributionToReward_on_war_won_attacker
+    }
+}
+on_war_won_defender = {
+    on_actions = {
+        VassalWarContributionToReward_on_war_won_defender
+    }
+}
+VassalWarContributionToReward_on_war_won_attacker = {
+	trigger = {
+        scope:attacker = { is_leader_in_war = scope:war }
+		scope:war = {
+			any_war_attacker = {
+				AND = {
+					NOT = { this = scope:attacker }
+					this = { is_vassal_or_below_of = scope:attacker }
+				}
+			}
+		}
+    }
+	effect = {
+		scope:attacker = {
+			save_scope_as = winnerleader 
+			trigger_event = {
+				on_action = VassalWarContributionToReward_on_war_won_action
+			}
+		}
+	}
+}
+VassalWarContributionToReward_on_war_won_defender = {
+	trigger = {
+        scope:defender = { is_leader_in_war = scope:war }
+		scope:war = {
+			any_war_defender = {
+				AND = {
+					NOT = { this = scope:defender }
+					this = { is_vassal_or_below_of = scope:defender }
+				}
+			}
+		}
+    }
+	effect = {
+		scope:defender = {
+			save_scope_as = winnerleader 
+			trigger_event = {
+				on_action = VassalWarContributionToReward_on_war_won_action
+			}
+		}
+	}
+}
+
+VassalWarContributionToReward_on_war_won_action = {
+	effect = {
+		scope:war = {
+			every_war_participant = {
+				remove_variable = war_contribution_value
+				remove_variable = war_contribution_persent
+			}
+		}
+        scope:war = {
+			every_war_attacker = {
+				save_scope_as = temp_character
+				scope:temp_character = {
+					set_local_variable = {
+						name = temp_war_contribution_value
+						value = 0
+					}
+					while = { # 1000~1000*1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > { value = local_var:temp_war_contribution_value add = 1000 }
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1000
+						}
+					}
+					while = { # 1~1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > local_var:temp_war_contribution_value
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1
+						}
+					}
+					set_variable = {
+						name = war_contribution_value
+						value = local_var:temp_war_contribution_value
+					}
+				}
+			}
+			set_local_variable = {
+				name = war_total_contribution
+				value = 0
+			}
+			every_war_attacker = {
+				limit = { exists = var:war_contribution_value }
+				change_local_variable = {
+					name = war_total_contribution
+					add = this.var:war_contribution_value
+				}
+			}
+			every_war_attacker = {
+				limit = { exists = var:war_contribution_value }
+				set_variable = {
+					name = war_contribution_persent
+					value = {
+						value = this.var:war_contribution_value
+						divide = local_var:war_total_contribution
+					}
+				}
+			}
+			remove_variable = war_total_contribution
+		}
+		scope:war = {
+			every_war_defender = {
+				save_scope_as = temp_character
+				scope:temp_character = {
+					set_local_variable = {
+						name = temp_war_contribution_value
+						value = 0
+					}
+					while = { # 1000~1000*1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > { value = local_var:temp_war_contribution_value add = 1000 }
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1000
+						}
+					}
+					while = { # 1~1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > local_var:temp_war_contribution_value
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1
+						}
+					}
+					set_variable = {
+						name = war_contribution_value
+						value = local_var:temp_war_contribution_value
+					}
+				}
+			}
+			set_local_variable = {
+				name = war_total_contribution
+				value = 0
+			}
+			every_war_defender = {
+				limit = { exists = var:war_contribution_value }
+				change_local_variable = {
+					name = war_total_contribution
+					add = this.var:war_contribution_value
+				}
+			}
+			every_war_defender = {
+				limit = { exists = var:war_contribution_value }
+				set_variable = {
+					name = war_contribution_persent
+					value = {
+						value = this.var:war_contribution_value
+						divide = local_var:war_total_contribution
+					}
+				}
+			}
+			remove_variable = war_total_contribution
+		}
+        scope:winnerleader = {
+            if = {
+                limit = {
+                    is_attacker_in_war = scope:war
+                }
+                scope:war = {
+                    ordered_war_attacker = {
+                        limit = {
+                            exists = var:war_contribution_value
+                        }
+                        order_by = var:war_contribution_value
+                        max = 99
+                        check_range_bounds = no
+                        add_to_list = temp_list
+                    }
+                }
+            }
+            else = {
+                scope:war = {
+                    ordered_war_defender = {
+                        limit = {
+                            exists = var:war_contribution_value
+                        }
+                        order_by = var:war_contribution_value
+                        max = 99
+                        check_range_bounds = no
+                        add_to_list = temp_list
+                    }
+                }
+            }
+            every_in_list = {
+                list = temp_list
+				if = {
+					limit = {
+						this = scope:winnerleader
+					}
+					save_scope_value_as = {
+						name = winnerleader_index
+						value = yes
+					}
+				}
+				if = {
+					limit = { exists = scope:winnerleader_index }
+				}
+                else_if = {
+                    limit = { NOT = { exists = scope:war_contribution_1 } }
+                    save_scope_as = war_contribution_1
+                }
+                else_if = {
+                    limit = { NOT = { exists = scope:war_contribution_2 } }
+                    save_scope_as = war_contribution_2
+                }
+                else_if = {
+                    limit = { NOT = { exists = scope:war_contribution_3 } }
+                    save_scope_as = war_contribution_3
+                }
+            }
+			trigger_event = { on_action = VassalWarContributionToReward_reward_vassal_action }
+			clear_saved_scope = winnerleader_index
+            remove_variable = temp_list
+		}
+    }
+}
+VassalWarContributionToReward_reward_vassal_action = {
+	effect = {
+		if = {
+			limit = {
+				exists = var:war_contribution_1
+				exists = var:war_contribution_2
+				exists = var:war_contribution_3
+			}
+			remove_variable = war_contribution_1
+			remove_variable = war_contribution_2
+			remove_variable = war_contribution_3
+		}
+		else_if = {
+			limit = { NOT = { exists = var:war_contribution_1 } }
+			scope:winnerleader = {
+				scope:war_contribution_1 = { save_scope_as = war_contribution_one }
+				set_variable = { name = war_contribution_1 value = yes }
+				trigger_event = VassalWarContributionToReward.03
+			}
+		}
+		else_if = {
+			limit = { NOT = { exists = var:war_contribution_2 } }
+			scope:winnerleader = {
+				scope:war_contribution_2 = { save_scope_as = war_contribution_one }
+				set_variable = { name = war_contribution_2 value = yes }
+				trigger_event = VassalWarContributionToReward.03
+			}
+		}
+		else_if = {
+			limit = { NOT = { exists = var:war_contribution_3 } }
+			scope:winnerleader = {
+				scope:war_contribution_3 = { save_scope_as = war_contribution_one }
+				set_variable = { name = war_contribution_3 value = yes }
+				trigger_event = VassalWarContributionToReward.03
+			}
+		}
+	}
+}
