@@ -1,6 +1,6 @@
 ﻿#核心功能，寻找一个合理的对象接替该头衔
 #主语是需要被替补的头衔，必填
-BureaucracyEmpire_bureaucracy_success_effect = {
+ BureaucracyEmpire_bureaucracy_success_effect= {
 	if = {
 		limit = { 
 			#如果因为某些原因已经交接过了，不再继续交接
@@ -136,9 +136,23 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 				}
 			}
 			
-#			$TEMP_HOLDER$ = {
+			$TEMP_HOLDER$ = {
 #				trigger_event = bureaucracy.0001
-#			}
+				save_scope_as = bureaucrat
+				if = {
+					limit = {
+						NOT = { has_character_flag = save_east_contract }
+						scope:previous_holder = {
+							NOT = { has_character_flag = save_east_contract }
+						}	
+					}
+					add_character_flag = { #标记角色已经存储过
+						flag = save_east_contract
+						months = 9
+					}
+					save_east_contract_effect = yes	
+				}
+			}
 			#开始交接
 			create_title_and_vassal_change = {
 				type = usurped
@@ -212,6 +226,8 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 				}
 			}
 			scope:lucky = { 
+				
+				inter_east_contract_effect = yes #继承契约
 				every_vassal = { #幸运者的旧封臣如果存在，还给法理领主
 					limit = {
 						is_in_list = lucky_old_vassal
@@ -306,6 +322,11 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 			}
 			
 			scope:lucky = { #最后，转属法理领主
+				
+				trigger_event = {
+					id = east_contract.0003
+					days = 3
+				}
 				if = {
 					limit = {
 						primary_title.de_jure_liege = {
