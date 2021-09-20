@@ -3,7 +3,6 @@
 
 	allowed_for_character = {
 		scope:attacker = {
-			#is_ai = no
 			OR = {
 				has_trait = adventurer
 				has_trait = peasant_leader
@@ -13,7 +12,12 @@
 
 	allowed_against_character = {
 		scope:attacker = {
-			top_liege = scope:defender
+			OR = {
+				top_liege = scope:defender
+				AND = {
+					is_at_war_with_liege = scope:defender
+				}
+			}
 		}
 	}
 	
@@ -253,53 +257,9 @@
 		resolve_title_and_vassal_change = scope:change
 	
 	}
-
-	on_white_peace_desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = { scope:defender = { is_local_player = yes } }
-				desc = player_independence_war_white_peace_defender_desc
-			}
-			triggered_desc = {
-				trigger = {
-					scope:attacker = {
-						is_local_player = yes
-					}
-				}
-				desc = player_independence_war_white_peace_attacker_desc
-			}
-			desc = player_independence_war_white_peace_desc
-		}
-		
-	}
-
-	on_white_peace = {
-		scope:attacker = {
-			show_pow_release_message_effect = yes
-			stress_impact = {
- 				ambitious = medium_stress_impact_gain
- 				arrogant = medium_stress_impact_gain
- 			}
-		}
-		hidden_effect = {
-			scope:attacker = {
-				add_truce_both_ways = {
-					character = scope:defender
-					days = 1825
-					war = root.war
-					result = white_peace
-				}
-			}
-		}
-
-		scope:defender = {
-			add_prestige = minor_prestige_value
-			stress_impact = {
- 				arrogant = medium_stress_impact_gain
- 			}
-		}
-	}
-
+	
+	on_white_peace_desc = {}
+	
 	on_defeat_desc = {
 		first_valid = {
 			triggered_desc = {
@@ -326,7 +286,6 @@
 			# Prestige for Defender
 			add_prestige = medium_prestige_value
 		}
-		destroy_title = scope:attacker.primary_title
 		scope:attacker = {
 			hard_imprison_character_effect = {
 				TARGET = this
@@ -358,14 +317,24 @@
 				}
 			}
 		}
+		if = { #黄巢战败
+			limit = {
+				scope:attacker = character:1403799
+			}
+			scope:defender = {
+				trigger_event = HuangChaoBingBian.01
+			}
+		}
 	}
+
 
 	white_peace_possible = no
 
 	on_invalidated_desc = msg_invalidate_war_title
-
+	
+	check_attacker_inheritance_validity = no
 	check_defender_inheritance_validity = no
-
+	
 	on_primary_attacker_death = inherit
 	on_primary_defender_death = inherit
 	
