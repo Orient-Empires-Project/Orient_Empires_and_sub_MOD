@@ -2,6 +2,7 @@ import re
 # from tqdm import tqdm
 import csv
 import codecs
+import collections
 # filenamelist = ['东方王朝王国头衔',
 # '东方王朝帝国头衔'
 # ]
@@ -77,54 +78,44 @@ class CK3_Event:
             self.month = paras[1] #month
             self.day = paras[2] #day
             self.ck3_date = CK3_Date(self.year, self.month, self.day)
-            self.eventtype = paras[3] #eventtype
-            self.eventcontent = paras[4] #eventcontent
         elif type(paras[0])==type(CK3_Date('1.1.1')):
             self.ck3_date = paras[0] # CK3_Date
             self.year = self.ck3_date.year
             self.month = self.ck3_date.month
             self.day = self.ck3_date.day
-            self.eventtype = paras[1] #eventtypettype
-            self.eventcontent = paras[2] #eventcontent # can be a event or a event list
         elif type(paras[0])==type(''):
             self.year = paras[0].split('.')[0]
             self.month = paras[0].split('.')[1]
             self.day = paras[0].split('.')[2]
             self.ck3_date = CK3_Date(self.year, self.month, self.day)
-            self.eventtype = paras[1] #eventtypettype
-            self.eventcontent = paras[2] #eventcontent # can be a event or a event list
-
+        self.timeblock = []# a list of event pairs(class Eventdetail). eventtype = eventcontent
+        # TODO 暂时不做初始化带时间
+        # self.eventtype = paras[-2] #eventtypettype
+        # self.eventcontent = paras[-1] #eventcontent # can be a event or a event list
     def __str__(self) -> str:
-        if type(self.eventcontent) == type(''):
-            ret_str = ''
-
-            ev_str = '''
-    %s.%s.%s = {
-        %s = %s
-    }
-            ''' % (self.year,self.month,self.day,self.eventtype,self.eventcontent)
-            return ret_str+ev_str
-        elif type(self.eventcontent) == type([]):
-            ret_str = ''
-
-            ev_str_begin = '''
-    %s.%s.%s = {
-        %s = {''' % (self.year,self.month,self.day,self.eventtype)# TODO print a list
-            ev_str_list = ''''''
-            for detail in self.eventcontent:
-                ev_str_list += str(detail)
-                
-            ev_str_end = '''
+        begin_str = '''
+    %s.%s.%s = {'''% (self.year,self.month,self.day)
+        end_str = '''
         }
-    }
-            '''
-            return ret_str+ev_str_begin+ev_str_list+ev_str_end
+        '''
+        event_str = ''''''
+        for pair in self.timeblock:
+            event_str += str(pair)
+        return begin_str+event_str+end_str
+
 class Eventdetail:
     def __init__(self,reason,detail) -> None:
         self.reason = reason
         self.detail = detail
     def __str__(self) -> str:
-        eventdetailstr = '''\n            %s = %s''' % (self.reason,self.detail)
+        # eventdetailstr = '''\n            %s = %s''' % (self.reason,self.detail)
+        if type(self.detail)==type(''):
+            eventdetailstr = '''\n            '''+str(self.reason)+''' = '''+str(self.detail)
+        elif type(self.detail)==type([]):
+            detailstr='{'
+            for d in self.detail:
+                detailstr += str(d)# TODO 缩进
+            eventdetailstr = '''\n            '''+str(self.reason)+''' = '''+detailstr+'\n            }'
         return eventdetailstr
 
 class Person:
@@ -148,15 +139,16 @@ class Person:
         self.fertility = None # 生育率
         self.health = None #健康
 
-        self.traitlist = [] # a list of trait
+        self.traitlist = set() # a list of trait
         self.disallow_random_traits = "no" # TODO
         self.father = None
         self.mother = None
         self.employer = None
-        self.eventlist =[
-            # CK3_Event("730.1.1","birth"),
-            # CK3_Event("790.1.1","death")
-        ]
+        # self.eventlist =[
+        #     # CK3_Event("730.1.1","birth"),
+        #     # CK3_Event("790.1.1","death")
+        # ]
+        self.eventhistory = collections.OrderedDict()
     def skill_to_str(self,skill:str) -> str:
         skillValue= eval("self."+skill)
         if skillValue == None:
@@ -196,7 +188,7 @@ class Person:
         employer_str = self.skill_to_str('employer')
         event_str= ''
         end_str = '\n}'
-        for event in self.eventlist:
+        for event in self.eventhistory.values():
             event_str += (str(event)+'')# 自带\n
         return id_str+id_comment_str+\
                 name_str+\
@@ -210,8 +202,7 @@ class Person:
                 disallow_random_traits_str+\
                 diplomacy_str+martial_str+stewardship_str+intrigue_str+learning_str+prowess_str+\
                 fertility_str+health_str+\
-                father_str+\
-                mother_str+\
+                father_str+mother_str+\
                 event_str+\
                 end_str
 if __name__ == '__main__':
@@ -223,13 +214,24 @@ if __name__ == '__main__':
     Chao.religion="vajrayana"
     Chao.culture="han"
 
-    Chao.traitlist.append('education_martial_4')
-    Chao.traitlist.append('ambitious')
+    Chao.traitlist.add('education_martial_4')
+    Chao.traitlist.add('ambitious')
     Chao.father = 'han0010'
     Chao.mother = 'han0011'
     Chao.martial = 15
-    Chao.eventlist.append(CK3_Event("842.1.1","birth","yes"))
-    Chao.eventlist.append(CK3_Event("916.1.1","add_spouse","304194"))# TODO 同一时间发生多个事情
-    Chao.eventlist.append(CK3_Event("935.1.1","death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
+    # Chao.eventlist.append(CK3_Event("842.1.1","birth","yes"))
+    # Chao.eventlist.append(CK3_Event("842.1.1"))
+    Chao.eventhistory["842.1.1"] = CK3_Event("842.1.1")
+    Chao.eventhistory["842.1.1"].timeblock.append(Eventdetail("birth","yes"))
+    # Chao.eventlist[-1].timeblock.append(Eventdetail("birth","yes"))
+    Chao.eventhistory["916.1.1"] = CK3_Event("916.1.1")
+    # Chao.eventlist.append(CK3_Event("916.1.1"))
+    Chao.eventhistory["916.1.1"].timeblock.append(Eventdetail("add_spouse","304194"))
+    Chao.eventhistory["916.1.1"].timeblock.append(Eventdetail("add_spouse","304195"))
+    Chao.eventhistory["935.1.1"] = CK3_Event("935.1.1")
+    Chao.eventhistory["935.1.1"].timeblock.append(Eventdetail("death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
+    # Chao.eventhistory["935.1.1"].timeblock.append(Eventdetail("death_reason","death_dungeon"))
+    # Chao.eventhistory["935.1.1"].timeblock.append(Eventdetail("killer","張撒八"))
+    # Chao.eventlist.append(CK3_Event("935.1.1","death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
     # TODO 925.12.28 = { effect = { imprison = 194325 } }
     print (Chao)
