@@ -9,6 +9,7 @@
 
 import wx
 import wx.xrc
+import wx.adv
 
 ###########################################################################
 ## Class MyFrame1
@@ -16,7 +17,6 @@ import wx.xrc
 from 人物生成器test1 import *
 import testDialog
 dynasty_Choices_number = [ u"dynasty01", u"dynasty02" ]
-religion_Choices_number = [ u"Taoism", u"Buddhism", u"Confucianism" ]
 houseList = [
 	["无分家", u"宗族1家族1", u"宗族1家族2"],# 宗族1
 	["无分家",u"宗族2家族1", u"宗族2家族2"] # 宗族2
@@ -32,11 +32,22 @@ cultureList = [
 	["无文化分支","东邪", "西毒",'南帝','北丐' ],# 中原
 	["无文化分支","匈奴","鲜卑","羯","羌","氐"] # 胡人
 ]
-cultureList_number =[
+cultureList_number = [
 	[None,"东邪", "西毒",'南帝','北丐'],# 中原
 	[None,"匈奴","鲜卑","羯","羌","氐"] # 胡人
 ]
+religionGroupList = [ u"道教", u"佛教", u"儒家" ]
 
+religionList = [# TODO 从文件读取 _adj
+	["无信仰分支","正一派", "上清派",'全真派' ],# taoism_religion:0 "道教"
+	["无信仰分支","阿利僧派","上座部佛教","大乘佛教","金刚乘佛教","藏传佛教"], # 佛教
+	["无信仰分支","理学", "新学",'心学','经学','攘夷派' ]# 儒家
+]
+religionList_number = [
+	[None,"zhengyi", "shangqing",'quanzhen'],# taoism_religion:0 "道教"
+	[None,"ari","theravada","mahayana","vajrayana","lamaism"], # 佛教
+	[None,"lixue", "jingshi",'xinxue','jingxue','rangyi']# 儒家
+]
 nicknameList_number = ["nickname1","nickname2"]
 class MyBirthdayValidator(wx.Validator):
 	def __init__(self, parent ):
@@ -97,6 +108,9 @@ class MyFrame1 ( wx.Frame ):
 
 		dynasty_box.Add( self.house_choice, 0, wx.ALL, 5 )
 
+		self.edit_dynasty_and_house_button4 = wx.Button( dynasty_box.GetStaticBox(), wx.ID_ANY, u"编辑宗族家族", wx.DefaultPosition, wx.DefaultSize, 0 )
+		dynasty_box.Add( self.edit_dynasty_and_house_button4, 0, wx.ALL, 5 )
+
 
 		gbSizer1.Add( dynasty_box, wx.GBPosition( 1, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
@@ -126,11 +140,17 @@ class MyFrame1 ( wx.Frame ):
 
 		religion_box = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"religion" ), wx.VERTICAL )
 
+		religionGroup_listBoxChoices = religionGroupList
+		self.religionGroup_listBox = wx.ListBox( religion_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, religionGroup_listBoxChoices, 0 )
+		religion_box.Add( self.religionGroup_listBox, 0, wx.ALL, 5 )
+
 		religion_listBoxChoices = [ u"道教", u"佛教", u"儒教" ]
 		self.religion_listBox = wx.ListBox( religion_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, religion_listBoxChoices, 0 )
 		self.religion_listBox.SetSelection(0)
 		religion_box.Add( self.religion_listBox, 0, wx.ALL, 5 )
-
+		# TODO 加入图标
+		# self.m_bcomboBox1 = wx.adv.BitmapComboBox( religion_box.GetStaticBox(), wx.ID_ANY, u"Combo!", wx.DefaultPosition, wx.DefaultSize, "", 0 )
+		# religion_box.Add( self.m_bcomboBox1, 0, wx.ALL, 5 )
 
 		gbSizer1.Add( religion_box, wx.GBPosition( 4, 0 ), wx.GBSpan( 1, 1 ), wx.EXPAND, 5 )
 
@@ -349,7 +369,9 @@ class MyFrame1 ( wx.Frame ):
 
 		# Connect Events
 		self.dynasty_choice.Bind( wx.EVT_CHOICE, self.Change_house )
+		self.edit_dynasty_and_house_button4.Bind( wx.EVT_BUTTON, self.EditDynastyAndHouse )
 		self.cultureGroup_listBox.Bind( wx.EVT_LISTBOX, self.Change_culturelist )
+		self.religionGroup_listBox.Bind( wx.EVT_LISTBOX, self.Change_religionlist )
 		self.traitlist_button.Bind( wx.EVT_BUTTON, self.OpenTraitDial )
 		self.diplomacy_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_diplomacy )
 		self.martial_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_martial )
@@ -372,11 +394,18 @@ class MyFrame1 ( wx.Frame ):
 		self.house_choice.SetSelection(0)
 		# self.Layout()
 		event.Skip()
+		
+	def EditDynastyAndHouse( self, event ):
+		event.Skip()
 
 	def Change_culturelist( self, event ):
 		self.culture_listBox.SetItems(cultureList[self.cultureGroup_listBox.GetSelection()])
 		self.culture_listBox.SetSelection(0)
-		# self.Layout()
+		event.Skip()
+
+	def Change_religionlist( self, event ):
+		self.religion_listBox.SetItems(religionList[self.religionGroup_listBox.GetSelection()])
+		self.religion_listBox.SetSelection(0)
 		event.Skip()
 
 	def OpenTraitDial( self, event ):
@@ -422,7 +451,7 @@ class MyFrame1 ( wx.Frame ):
 		self.newChar.dynasty=dynasty_Choices_number[self.dynasty_choice.GetSelection()]
 		self.newChar.house=houseList_number[self.dynasty_choice.GetSelection()][self.house_choice.GetSelection()]
 		self.newChar.culture=cultureList_number[self.cultureGroup_listBox.GetSelection()][self.culture_listBox.GetSelection()]
-		self.newChar.religion=religion_Choices_number[self.religion_listBox.GetSelection()]
+		self.newChar.religion=religionList_number[self.religionGroup_listBox.GetSelection()][self.religion_listBox.GetSelection()]
 
 		self.newChar.diplomacy=self.diplomacy_spinCtrl.GetValue() if self.diplomacy_checkBox.GetValue() else None
 		self.newChar.martial=self.martial_spinCtrl.GetValue() if self.martial_checkBox.GetValue() else None

@@ -3,6 +3,7 @@ import re
 import csv
 import codecs
 import collections
+from typing import overload
 # filenamelist = ['东方王朝王国头衔',
 # '东方王朝帝国头衔'
 # ]
@@ -104,17 +105,23 @@ class CK3_Event:
         return begin_str+event_str+end_str
 
 class Eventdetail:
-    def __init__(self,reason,detail) -> None:
+    # @overload
+    # def __init__(self,reason:str ,detail:Eventdetail) -> None:# TODO 虽然使用时可以自我引用，但是声明class时无法嵌套或者提前声明
+    #     ...
+    def __init__(self,reason ,detail) -> None:
         self.reason = reason
         self.detail = detail
     def __str__(self) -> str:
-        # eventdetailstr = '''\n            %s = %s''' % (self.reason,self.detail)
         if type(self.detail)==type(''):
             eventdetailstr = '''\n            '''+str(self.reason)+''' = '''+str(self.detail)
         elif type(self.detail)==type([]):
             detailstr='{'
             for d in self.detail:
                 detailstr += str(d)# TODO 缩进
+            eventdetailstr = '''\n            '''+str(self.reason)+''' = '''+detailstr+'\n            }'
+        else:
+            detailstr='{'
+            detailstr += str(self.detail)# TODO 缩进
             eventdetailstr = '''\n            '''+str(self.reason)+''' = '''+detailstr+'\n            }'
         return eventdetailstr
 
@@ -148,7 +155,7 @@ class Person:
         #     # CK3_Event("730.1.1","birth"),
         #     # CK3_Event("790.1.1","death")
         # ]
-        self.eventhistory = collections.OrderedDict()
+        self.eventhistory = {} # TODO 排序
     def skill_to_str(self,skill:str) -> str:
         skillValue= eval("self."+skill)
         if skillValue == None:
@@ -159,6 +166,12 @@ class Person:
         #     return '    %s = %s\n' % (skill,'yes')
         else:
             return f'    {skill} = {skillValue}\n'# TODO %全面换成f{}
+    def set_event_time(self,date:str) -> None:
+        self.eventhistory[date] = CK3_Event(date)
+    def set_event_detail(self,date:str,detail:Eventdetail) -> None:
+        if date not in self.eventhistory:
+            self.eventhistory[date] = CK3_Event(date)
+        self.eventhistory[date].timeblock.append(detail)
     def __str__(self) -> str:
         id_str = '%s = {' % (self.id)
         id_comment_str = ' '+self.id_comment+'\n'
@@ -219,19 +232,16 @@ if __name__ == '__main__':
     Chao.father = 'han0010'
     Chao.mother = 'han0011'
     Chao.martial = 15
-    # Chao.eventlist.append(CK3_Event("842.1.1","birth","yes"))
-    # Chao.eventlist.append(CK3_Event("842.1.1"))
-    Chao.eventhistory["842.1.1"] = CK3_Event("842.1.1")
-    Chao.eventhistory["842.1.1"].timeblock.append(Eventdetail("birth","yes"))
-    # Chao.eventlist[-1].timeblock.append(Eventdetail("birth","yes"))
-    Chao.eventhistory["916.1.1"] = CK3_Event("916.1.1")
-    # Chao.eventlist.append(CK3_Event("916.1.1"))
-    Chao.eventhistory["916.1.1"].timeblock.append(Eventdetail("add_spouse","304194"))
-    Chao.eventhistory["916.1.1"].timeblock.append(Eventdetail("add_spouse","304195"))
-    Chao.eventhistory["935.1.1"] = CK3_Event("935.1.1")
-    Chao.eventhistory["935.1.1"].timeblock.append(Eventdetail("death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
-    # Chao.eventhistory["935.1.1"].timeblock.append(Eventdetail("death_reason","death_dungeon"))
-    # Chao.eventhistory["935.1.1"].timeblock.append(Eventdetail("killer","張撒八"))
-    # Chao.eventlist.append(CK3_Event("935.1.1","death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
-    # TODO 925.12.28 = { effect = { imprison = 194325 } }
+
+    # Chao.set_event_time("842.1.1")
+    #直接插入，不一定要先声明时间块
+    Chao.set_event_detail("842.1.1",Eventdetail("birth","yes"))
+
+    Chao.set_event_detail("916.1.1",Eventdetail("add_spouse","304194"))
+    Chao.set_event_detail("916.1.1",Eventdetail("add_spouse","304195"))
+
+    Chao.set_event_detail("925.12.28",Eventdetail("effect",Eventdetail("imprison","194325")))
+
+    Chao.set_event_detail("935.1.1",Eventdetail("death",[Eventdetail("death_reason","death_dungeon"),Eventdetail("killer","張撒八")]))
+
     print (Chao)
