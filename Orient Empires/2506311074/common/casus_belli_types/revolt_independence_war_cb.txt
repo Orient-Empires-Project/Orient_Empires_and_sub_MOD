@@ -255,11 +255,67 @@
 		custom_tooltip = fp1_varangian_adventurer_conquest.summaries.control_rebate
 		scope:attacker = { trigger_event = fp1_varangian_adventures.0001 }
 		resolve_title_and_vassal_change = scope:change
-	
+
+		scope:defender = {  #王朝崩溃
+			add_prestige = massive_prestige_loss
+			stress_impact = {
+ 				arrogant = high_stress_impact_gain
+ 			}
+			every_vassal = {
+				trigger_event = {
+					id = east_title.0001
+					days = 10
+				}
+			}
+		}	
 	}
-	
-	on_white_peace_desc = {}
-	
+
+
+	on_white_peace_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = player_independence_war_white_peace_defender_desc
+			}
+			triggered_desc = {
+				trigger = {
+					scope:attacker = {
+						is_local_player = yes
+					}
+				}
+				desc = player_independence_war_white_peace_attacker_desc
+			}
+			desc = player_independence_war_white_peace_desc
+		}
+		
+	}
+
+	on_white_peace = {
+		scope:attacker = {
+			show_pow_release_message_effect = yes
+			stress_impact = {
+ 				ambitious = medium_stress_impact_gain
+ 				arrogant = medium_stress_impact_gain
+ 			}
+		}
+		hidden_effect = {
+			scope:attacker = {
+				add_truce_both_ways = {
+					character = scope:defender
+					days = 1825
+					war = root.war
+					result = white_peace
+				}
+			}
+		}
+		scope:defender = {
+			add_prestige = massive_prestige_value
+			stress_impact = {
+ 				arrogant = high_stress_impact_gain
+ 			}
+		}	
+	}
+
 	on_defeat_desc = {
 		first_valid = {
 			triggered_desc = {
@@ -282,10 +338,15 @@
 	on_defeat = {
 		scope:attacker = { show_pow_release_message_effect = yes }
 		scope:defender = {
-			add_dread = medium_dread_gain
 			# Prestige for Defender
 			add_prestige = medium_prestige_value
+			add_prestige = massive_prestige_loss
+			stress_impact = {
+ 				arrogant = high_stress_impact_gain
+ 			}
+			add_realm_law_skip_effects =  crown_authority_0
 		}
+
 		scope:attacker = {
 			hard_imprison_character_effect = {
 				TARGET = this
