@@ -41,6 +41,7 @@
 			}
 		}
 	}
+	
 	has_valid_target = {
 		exists = scope:target
 	}	
@@ -58,11 +59,6 @@
 
 	
 	is_valid_showing_failures_only = {
-		
-		scope:actor = {
-			prestige >= 0
-		}
-		
 		scope:recipient = {
 			is_ruler = yes
 		}
@@ -136,99 +132,8 @@
 	}
 		
 	on_accept = {
-		if = {
-			limit = { scope:give_gold = yes }
-			scope:actor = {
-				pay_short_term_income = {
-					target = scope:recipient
-					months = 3
-				}
-			}
-		}
-		if = {
-			limit = {
-				exists = scope:target
-				scope:recipient = {
-					NOR = {
-						is_at_war_with = scope:target.primary_defender
-						is_at_war_with = scope:target.primary_attacker
-					}
-				}
-			}
-			scope:target = {
-				hidden_effect = {
-					set_called_to = scope:recipient
-				}
-				if = {
-					limit = {
-						is_attacker = scope:actor
-					}
-					add_attacker = scope:recipient
-					scope:actor = {
-						if = {
-							limit = {
-								scope:recipient.primary_title.tier = tier_county
-							}
-							add_prestige = minor_prestige_loss
-						}
-						else_if = {
-							limit = {
-								scope:recipient.primary_title.tier = tier_duchy
-							}
-							add_prestige = medium_prestige_loss
-						}
-						else_if = {
-							limit = {
-								scope:recipient.primary_title.tier = tier_kingdom
-							}
-							add_prestige = major_prestige_loss
-						}
-						else = {
-							add_prestige = massive_prestige_loss
-						}
-					}
-				}
-				else = {
-					add_defender = scope:recipient
-					scope:actor = {
-						if = {
-							limit = {
-								scope:recipient.primary_title.tier = tier_county
-							}
-							add_prestige = {
-								value = minor_prestige_loss
-								multiply = 0.5
-							}
-						}
-						else_if = {
-							limit = {
-								scope:recipient.primary_title.tier = tier_duchy
-							}
-							add_prestige = {
-								value = medium_prestige_loss
-								multiply = 0.5
-							}
-						}
-						else_if = {
-							limit = {
-								scope:recipient.primary_title.tier = tier_kingdom
-							}
-							add_prestige = {
-								value = major_prestige_loss
-								multiply = 0.5
-							}
-						}
-						else = {
-							add_prestige = {
-								value = medium_prestige_loss
-								multiply = 0.5
-							}
-						}
-					}
-				}
-			}
-			
-		}
+		call_ally_interaction_effect = yes
+
 		save_scope_value_as = {
 			name = call_vassal_to_war_interaction
 			value = yes
@@ -301,9 +206,9 @@
 			}
 		}
 	}
-
+	
 	ai_accept = {
-		base = 0
+		base = 20
 
 		modifier = {  # Refuse call against Heir
 			add = -1000
@@ -319,23 +224,23 @@
 		}
 
 		# Government modifiers
-		modifier = { #领主拥有律令制
-			add = 10
+		modifier = {
+			add = 20
 			scope:actor = {
 				has_government = imperial_government
 			}
 			desc = LIEGE_IS_imperial_REASON
 		}
 
-		modifier = { #封臣拥有律令制
-			add = 10
+		modifier = {
+			add = 20
 			scope:recipient = {
 				has_government = imperial_government
 			}
 			desc = VASSAL_IS_imperial_REASON
 		}
 
-		modifier = { #封臣是军镇制
+		modifier = {
 			add = -20
 			scope:recipient = {
 				is_corps_government_trigger = yes
@@ -377,185 +282,20 @@
 			}
 			desc = WONT_FIGHT_SPOUSE_REASON
 		}
-		#Opinion Factor recipient - actor
-		opinion_modifier = { # recipient对actor好感
+
+		opinion_modifier = { # Opinion Factor
 			who = scope:recipient
 			opinion_target = scope:actor
 			multiplier = 1.0
 			desc = AI_OPINION_REASON
 		}
-		modifier = { #Friend modifier.
-			desc = offer_vassalization_interaction_aibehavior_friend_tt
-			trigger = {
-				scope:recipient = {
-					has_relation_friend = scope:actor
-					NOT = { has_relation_best_friend = scope:actor }
-				}
-			}
-			add = 10
-		}
-		modifier = { #Best Friend modifier.
-			desc = offer_vassalization_interaction_aibehavior_best_friend_tt
-			trigger = {
-				scope:recipient = {
-					has_relation_best_friend = scope:actor
-				}
-			}
-			add = 20
-		}
-		modifier = { #Rivalry modifier.
-			desc = offer_vassalization_interaction_aibehavior_rival_tt
-			trigger = {
-				scope:recipient = {
-					has_relation_rival = scope:actor
-					NOT = { has_relation_nemesis = scope:actor }
-				}
-			}
-			add = -10
-		}
-		modifier = { #Nemesis modifier.
-			desc = offer_vassalization_interaction_aibehavior_nemesis_tt
-			trigger = {
-				scope:recipient = {
-					has_relation_nemesis = scope:actor
-				}
-			}
-			add = -1000
-		}
-		#Opinion Factor: recipient - primary_attacker
-		opinion_modifier = { #recipient对primary_attacker好感
-			trigger = {
-				scope:target.casus_belli = {
-					primary_attacker = {
-						NOT = { this = scope:actor }
-					}
-					primary_defender = {
-						this = scope:actor
-					}
-				}
-			}
-			who = scope:recipient
-			opinion_target = scope:target.casus_belli.primary_attacker
-			multiplier = -1.0
-			desc = AI_OPINION_REASON
-		}
-		modifier = { #Friend modifier.
-			trigger = {
-				scope:target.casus_belli = {
-					primary_attacker = {
-						NOT = { this = scope:actor }
-					}
-					primary_defender = {
-						this = scope:actor
-					}
-				}
-				scope:target.casus_belli = {
-					primary_attacker = {
-						has_relation_friend = scope:recipient
-						NOT = { has_relation_best_friend = scope:recipient }
-					}
-				}
-			}
-			add = -10
-			desc = RECIPIENT_IS_FRIEND_WITH_PRIMARY_ATTACKER
-		}
-		modifier = { #Best Friend modifier.
-			trigger = {
-				scope:target.casus_belli = {
-					primary_attacker = {
-						NOT = { this = scope:actor }
-					}
-					primary_defender = {
-						this = scope:actor
-					}
-				}
-				scope:target.casus_belli = {
-					primary_attacker = {
-						has_relation_best_friend = scope:recipient
-					}
-				}
-			}
-			add = -20
-			desc = RECIPIENT_IS_BEST_FRIEND_WITH_PRIMARY_ATTACKER
-		}
-		modifier = { #Rivalry modifier.
-			trigger = {
-				scope:target.casus_belli = {
-					primary_attacker = {
-						NOT = { this = scope:actor }
-					}
-					primary_defender = {
-						this = scope:actor
-					}
-				}
-				scope:target.casus_belli = {
-					primary_attacker = {
-						has_relation_rival = scope:recipient
-						NOT = { has_relation_nemesis = scope:recipient }
-					}
-				}
-			}
-			add = 10
-			desc = RECIPIENT_IS_RIVALRY_WITH_PRIMARY_ATTACKER
-		}
-		modifier = { #Nemesis modifier.
-			trigger = {
-				scope:target.casus_belli = {
-					primary_attacker = {
-						NOT = { this = scope:actor }
-					}
-					primary_defender = {
-						this = scope:actor
-					}
-				}
-				scope:target.casus_belli = {
-					primary_attacker = {
-						has_relation_nemesis = scope:recipient
-					}
-				}
-			}
-			add = 1000
-			desc = RECIPIENT_IS_NEMESIS_WITH_PRIMARY_ATTACKER
-		}
-		
-		#Opinion Factor recipient - primary_defender
-		opinion_modifier = { #recipient对primary_defender好感
-			trigger = {
-				scope:target.casus_belli = {
-					primary_attacker = {
-						this = scope:actor
-					}
-					primary_defender = {
-						NOT = { this = scope:actor }
-					}
-				}
-			}
-			who = scope:recipient
-			opinion_target = scope:target.casus_belli.primary_defender
-			multiplier = -1.0
-			desc = AI_OPINION_REASON
-		}
-		
-		
-		
-		
+
 		# Honor factor
 		ai_value_modifier = {
 			ai_honor = 1
 			min = 0
 		}
-		
-		modifier = { #不倾向于参加进攻战争
-			add = -20
-			AND = {
-				scope:target.casus_belli.primary_attacker = scope:actor
-				scope:target.casus_belli.war = {
-					is_civil_war = no
-				}
-			}
-			desc = NOT_TEND_TO_JOIN_OFFENSIVE_WAR
-		}
-		
+
 		modifier = {  # Tends to join defensive wars
 			add = 20
 			AND = {
@@ -566,138 +306,7 @@
 			}
 			desc = NOT_CIVIL_DEFENSIVE_WAR_REASON
 		}
-		#Option Factor:
-		modifier = { #give gold option
-			add = 30
-			scope:give_gold = yes
-			desc = OPTION_GIVE_GOLD_CHOOSE
-		}
-		
-		# MilitaryStrength Factor:
-		modifier = { # recipient的军力强于actor
-			desc = MilitaryStrengthDifferentDesc
-			trigger = {
-				scope:recipient = {
-					this.max_military_strength > scope:actor.max_military_strength
-				}
-			}
-			add = {
-				value = 1
-				subtract = {
-					value = scope:recipient.max_military_strength
-					divide = { value = scope:actor.max_military_strength min = 1 }
-				}
-				multiply = 100
-				ceiling = yes
-	  		}
-		}
-		modifier = { # recipient的军力弱于actor
-			desc = RECIPIENT_MILITARYSTRENGTH_WEAK
-			trigger = {
-				scope:recipient = {
-					this.max_military_strength < scope:actor.max_military_strength
-				}
-			}
-			add = {
-				add = scope:actor.max_military_strength
-				subtract = scope:recipient.max_military_strength
-				divide = scope:recipient.max_military_strength
-				multiply = -10
-				round = yes
-			}
-		}
-		modifier = { #双方军力差别
-			trigger = {
-				scope:target.casus_belli = {
-					OR = {
-						primary_attacker = { this = scope:actor }
-						primary_defender = { this = scope:actor }
-					}
-				}
-			}
-			add = {
-				value = 0
-				if = {
-					limit = {
-						scope:target.casus_belli = {
-							primary_defender = { this = scope:actor }
-						}
-					}
-					scope:target = {
-						every_war_attacker = { add = this.max_military_strength }
-						divide = {
-							primary_defender = { add = this.max_military_strength }
-						}
-					}
-					subtract = 1
-					multiply = 100
-				}
-				else_if = {
-					limit = {
-						scope:target.casus_belli = {
-							primary_attacker = { this = scope:actor }
-						}
-					}
-					scope:target = {
-						primary_defender = { add = this.max_military_strength }
-						divide = {
-							every_war_attacker = { add = this.max_military_strength }
-						}
-					}
-					subtract = 1
-					multiply = 100
-				}
-				round = yes
-				
-			}
-			desc = TWOSIDE_MILITARYSTRENGTH_DIFFERENT
-		}
-		modifier = { #双方持有金钱差别
-			trigger = {
-				scope:target.casus_belli = {
-					OR = {
-						primary_attacker = { this = scope:actor }
-						primary_defender = { this = scope:actor }
-					}
-				}
-			}
-			add = {
-				value = 0
-				if = {
-					limit = {
-						scope:target.casus_belli = {
-							primary_defender = { this = scope:actor }
-						}
-					}
-					scope:target = {
-						every_war_attacker = { add = this.gold }
-						divide = {
-							primary_defender = { add = this.gold }
-						}
-					}
-				}
-				else_if = {
-					limit = {
-						scope:target.casus_belli = {
-							primary_attacker = { this = scope:actor }
-						}
-					}
-					scope:target = {
-						primary_defender = { add = this.gold }
-						divide = {
-							every_war_attacker = { add = this.gold }
-						}
-					}
-				}
-				subtract = 1
-				multiply = 10
-				max = 50
-				round = yes
-			}
-			desc = TWOSIDE_HOLDCASH_DIFFERENT
-		}
-		
-		
+
 		compare_modifier = { # Likes fighting infidels
 			trigger = {
 				scope:recipient.faith = scope:actor.faith
@@ -767,9 +376,6 @@
 			}
 			desc = WONT_ATTACK_RELIGIOUS_BRETHREN_REASON
 		}
-	
-	
-	
 	}
 
 	# Score above 0 means the AI will call this ally. Note that DESIRED_WAR_SIDE_STRENGTH still applies and can prevent calling the ally
@@ -884,15 +490,6 @@
 		}
 		flag = hook
 		localization = SCHEME_HOOK
-	}
-	send_option = {
-		is_valid = {
-			scope:actor = {
-				gold > 100
-			}
-		}
-		flag = give_gold
-		localization = OPTION_GIVE_GOLD
 	}
 	should_use_extra_icon = {
 		scope:actor = { has_usable_hook = scope:recipient }
