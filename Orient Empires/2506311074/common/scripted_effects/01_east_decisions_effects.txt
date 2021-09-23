@@ -145,6 +145,148 @@ found_new_chinese_empire_effect = {
 	}	
 }
 
+found_steppe_chinese_empire_decision_effect = {
+	custom_tooltip = create_new_empire
+	show_as_tooltip = {
+		every_held_title = {
+			custom = create_title_every_held_kingdom
+			limit = {
+				tier <= tier_kingdom
+			}
+			custom_tooltip = create_custom_empire_de_jure_changes
+		}
+	}
+
+	create_title_and_vassal_change = {
+		type = created
+		save_scope_as = title_change
+		add_claim_on_loss = no
+	}
+	title:e_cathay = {
+		change_title_holder = {
+			holder = root
+			change = scope:title_change
+		}
+	}
+	resolve_title_and_vassal_change = scope:title_change
+
+	every_held_title = {
+		limit = {
+			tier = tier_kingdom
+		}
+		if = {
+			limit = {
+				#Check if you need to notify a player
+				exists = empire
+				empire = {
+					exists = holder
+					holder = {
+						NOT = { this = root }
+						is_ai = no
+					}
+				}
+			}
+			add_to_temporary_list = kingdoms_for_notification
+			root = {
+				save_temporary_scope_value_as = {
+					name = send_notifications
+					value = yes
+				}
+			}
+		}
+		set_de_jure_liege_title = title:e_cathay
+	}
+
+	every_sub_realm_county = {
+		limit = {
+			exists = kingdom
+			NOT = { exists = kingdom.holder }
+			holder.top_liege = root
+			kingdom = {
+				save_temporary_scope_as = test_kingdom
+			}
+			holder.top_liege = {
+				completely_controls = scope:test_kingdom
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					kingdom = {
+						is_in_list = additional_de_jure_kingdoms
+					}
+				}
+			}
+			kingdom = {
+				set_de_jure_liege_title = title:e_cathay
+				add_to_list = additional_de_jure_kingdoms
+			}
+		}
+	}
+
+	root = {
+		add_pressed_claim = title:e_celestia
+	}
+
+	title:e_cathay = {
+		set_coa = scope:old_title
+		set_color_from_title = scope:old_title
+		set_capital_county = scope:old_title.title_capital_county
+		copy_title_history = scope:old_title
+	}
+	set_primary_title_to = title:e_cathay
+	trigger_event = major_decisions.1103
+
+	every_player = {
+		if = {
+			limit = {
+				top_liege = scope:founder
+				NOT = { this = root }
+			}
+			trigger_event = major_decisions.1104
+		}
+		else_if = {
+			#Notify any players who lose de jure territory
+			limit = {
+				exists = scope:send_notifications
+				NOT = { this = root }
+				NOT = { top_liege = scope:founder }
+				any_held_title = {
+					any_in_de_jure_hierarchy = {
+						continue = {
+							tier > tier_kingdom
+						}
+						tier = tier_kingdom
+						is_in_list = kingdoms_for_notification
+					}
+				}
+			}
+			every_held_title = {
+				every_in_de_jure_hierarchy = {
+					continue = {
+						tier > tier_kingdom
+					}
+					limit = {
+						tier = tier_kingdom
+						is_in_list = kingdoms_for_notification
+					}
+					add_to_list = notification_titles
+				}
+			}
+			if = {
+				limit = {
+					any_in_list = {
+						list = notification_titles
+						count > 0
+					}
+				}
+				trigger_event = major_decisions.1105
+			}
+		}
+	}
+}
+
+
 create_tang_empire_scripted_effect = {
 	add_trait = founding_monarch
 	create_title_and_vassal_change = {
