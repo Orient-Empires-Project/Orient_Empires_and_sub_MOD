@@ -168,7 +168,8 @@ class Person:
             return f'    {skill} = {skillValue}\n'# TODO %全面换成f{}
     def set_event_time(self,date:str) -> None:
         self.eventhistory[date] = CK3_Event(date)
-    def set_event_detail(self,date:str,detail:Eventdetail) -> None:
+    def set_event_detail(self,date,detail:Eventdetail) -> None:
+        date = str(date)
         if date not in self.eventhistory:
             self.eventhistory[date] = CK3_Event(date)
         self.eventhistory[date].timeblock.append(detail)

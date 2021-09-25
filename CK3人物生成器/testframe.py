@@ -142,9 +142,10 @@ class MyFrame1 ( wx.Frame ):
 
 		religionGroup_listBoxChoices = religionGroupList
 		self.religionGroup_listBox = wx.ListBox( religion_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, religionGroup_listBoxChoices, 0 )
+		self.religionGroup_listBox.SetSelection(0)
 		religion_box.Add( self.religionGroup_listBox, 0, wx.ALL, 5 )
 
-		religion_listBoxChoices = [ u"道教", u"佛教", u"儒教" ]
+		religion_listBoxChoices = religionList[0]
 		self.religion_listBox = wx.ListBox( religion_box.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, religion_listBoxChoices, 0 )
 		self.religion_listBox.SetSelection(0)
 		religion_box.Add( self.religion_listBox, 0, wx.ALL, 5 )
@@ -379,7 +380,7 @@ class MyFrame1 ( wx.Frame ):
 		self.intrigue_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_intrigue )
 		self.learning_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_learning )
 		self.prowess_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_prowess )
-		self.fertility_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_fertikity )
+		self.fertility_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_fertility )
 		self.health_checkBox.Bind( wx.EVT_CHECKBOX, self.Check_health )
 		self.DNA_toggleBtn.Bind( wx.EVT_TOGGLEBUTTON, self.Check_DNA )
 		self.output_button.Bind( wx.EVT_BUTTON, self.createCode )
@@ -409,7 +410,7 @@ class MyFrame1 ( wx.Frame ):
 		event.Skip()
 
 	def OpenTraitDial( self, event ):
-		dial = testDialog.trait_dialog(self)
+		dial = testDialog.trait_dialog(self, self.newChar)
 		# dial.m_staticText5.SetLabelText('试一试')
 		dial.Show()
 		event.Skip()
@@ -422,24 +423,52 @@ class MyFrame1 ( wx.Frame ):
 		event.Skip()
 
 	def Check_martial( self, event ):
+		if self.martial_checkBox.GetValue():
+			self.martial_spinCtrl.Enable()
+		else:
+			self.martial_spinCtrl.Disable()
 		event.Skip()
 
 	def Check_stewardship( self, event ):
+		if self.stewardship_checkBox.GetValue():
+			self.stewardship_spinCtrl.Enable()
+		else:
+			self.stewardship_spinCtrl.Disable()
 		event.Skip()
 		
 	def Check_intrigue( self, event ):
+		if self.intrigue_checkBox.GetValue():
+			self.intrigue_spinCtrl.Enable()
+		else:
+			self.intrigue_spinCtrl.Disable()
 		event.Skip()
 
 	def Check_learning( self, event ):
+		if self.learning_checkBox.GetValue():
+			self.learning_spinCtrl.Enable()
+		else:
+			self.learning_spinCtrl.Disable()
 		event.Skip()
 
 	def Check_prowess( self, event ):
+		if self.prowess_checkBox.GetValue():
+			self.prowess_spinCtrl.Enable()
+		else:
+			self.prowess_spinCtrl.Disable()
 		event.Skip()
 
-	def Check_fertikity( self, event ):
+	def Check_fertility( self, event ):
+		if self.fertility_checkBox.GetValue():
+			self.fertility_spinCtrlDouble.Enable()
+		else:
+			self.fertility_spinCtrlDouble.Disable()
 		event.Skip()
 
 	def Check_health( self, event ):
+		if self.health_checkBox.GetValue():
+			self.health_spinCtrlDouble.Enable()
+		else:
+			self.health_spinCtrlDouble.Disable()
 		event.Skip()
 
 	def Check_DNA( self, event ):
@@ -460,6 +489,9 @@ class MyFrame1 ( wx.Frame ):
 		self.newChar.learning=self.learning_spinCtrl.GetValue() if self.learning_checkBox.GetValue() else None
 		self.newChar.prowess=self.prowess_spinCtrl.GetValue() if self.prowess_checkBox.GetValue() else None
 
+		self.newChar.fertility =self.fertility_spinCtrlDouble.GetValue() if self.fertility_checkBox.GetValue() else None
+		self.newChar.health=self.health_spinCtrlDouble.GetValue() if self.health_checkBox.GetValue() else None
+
 		self.newChar.father=self.father_id.GetValue() if (self.father_id.GetValue()!='爸爸ID' and self.father_id.GetValue()!='') else None
 		self.newChar.mother=self.mother_id.GetValue() if (self.mother_id.GetValue()!='妈妈ID' and self.mother_id.GetValue()!='') else None
 
@@ -476,9 +508,9 @@ class MyFrame1 ( wx.Frame ):
 		if birthday>deathday:
 			check_str += "生日晚于忌日\n"
 		self.result_text.SetLabelText(check_str)
-		self.newChar.eventlist.clear()
-		self.newChar.eventlist.append(CK3_Event(birthday,"birth","yes"))
-		self.newChar.eventlist.append(CK3_Event(deathday,"death","yes"))
+		self.newChar.eventhistory.clear()
+		self.newChar.set_event_detail(birthday,Eventdetail("birth","yes"))
+		self.newChar.set_event_detail(deathday,Eventdetail("death","yes"))
 		# if self.religion_listBox1.IsShown():
 		# 	self.religion_listBox1.Hide()
 		# elif not self.religion_listBox1.IsShown():
