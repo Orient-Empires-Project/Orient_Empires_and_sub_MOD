@@ -110,7 +110,7 @@
 	}
 
 	can_be_picked = {
-		can_join_war_liege_vassal_check_trigger = { WARRIOR = scope:actor JOINER = scope:recipient }
+		#can_join_war_liege_vassal_check_trigger = { WARRIOR = scope:actor JOINER = scope:recipient }
 
 		scope:target = {
 			is_war_leader = scope:actor
@@ -622,12 +622,12 @@
 					}
 					scope:target = {
 						every_war_attacker = { add = this.max_military_strength }
+						every_war_defender = { subtract = this.max_military_strength }
 						divide = {
-							primary_defender = { add = this.max_military_strength }
+							every_war_defender = { add = this.max_military_strength }
 						}
 					}
-					subtract = 1
-					multiply = 100
+					multiply = 10
 				}
 				else_if = {
 					limit = {
@@ -641,8 +641,7 @@
 							every_war_attacker = { add = this.max_military_strength }
 						}
 					}
-					subtract = 1
-					multiply = 100
+					multiply = 10
 				}
 				round = yes
 				
@@ -668,8 +667,17 @@
 					}
 					scope:target = {
 						every_war_attacker = { add = this.gold }
+						every_war_defender = { subtract = this.gold }
 						divide = {
-							primary_defender = { add = this.gold }
+							every_war_defender = {
+								if = {
+									limit = { this.gold < 0 }
+									add = this.gold
+									multiply = -1
+								}
+								else = { add = this.gold }
+							}
+							min = 1
 						}
 					}
 				}
@@ -680,16 +688,24 @@
 						}
 					}
 					scope:target = {
-						primary_defender = { add = this.gold }
+						every_war_defender = { add = this.gold }
+						every_war_attacker = { subtract = this.gold }
 						divide = {
-							every_war_attacker = { add = this.gold }
+							every_war_attacker = {
+								if = {
+									limit = { this.gold < 0 }
+									add = this.gold
+									multiply = -1
+								}
+								else = { add = this.gold }
+							}
+							min = 1
 						}
 					}
 				}
-				subtract = 1
 				multiply = 10
-				max = 50
 				round = yes
+				max = 300
 			}
 			desc = TWOSIDE_HOLDCASH_DIFFERENT
 		}
@@ -794,7 +810,7 @@
 			scope:actor = {
 				opinion = {
 					target = scope:recipient
-					value < 50
+					value < 0
 				}
 			}
 			factor = 0
@@ -885,7 +901,7 @@
 	send_option = {
 		is_valid = {
 			scope:actor = {
-				gold > 100
+				gold >= 100
 			}
 		}
 		flag = give_gold
