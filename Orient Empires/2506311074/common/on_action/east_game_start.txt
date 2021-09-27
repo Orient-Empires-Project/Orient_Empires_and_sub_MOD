@@ -328,7 +328,7 @@ east_on_after_lobby_effects = {
 					top_liege = { has_primary_title = title:e_celestia }
 					has_culture = culture:han
 					current_date >= 763.1.1
-					current_date <= 887.1.1	
+					current_date <= 907.1.1	
 				}
 				every_realm_county = {
 					limit = { 
@@ -355,7 +355,7 @@ east_on_after_lobby_effects = {
 					limit = { 
 						OR = {
 							county_control <= 55
-							current_date <= 881.1.1	
+							current_date <= 960.1.1	
 						}
 					} #盐帮、洪泛			
 					add_county_modifier = {
@@ -405,8 +405,9 @@ east_on_title_gain_effects = { #by 糜三小姐
 				has_government = imperial_government
 				is_bureau_government_trigger = yes
 				top_liege = { is_oe_imperial_government_trigger = yes }
-				NOT = {
+				NOR = {
 					capital_province = { has_holding_type = church_holding }
+					has_title = title:d_confucius
 				}
 				is_ai = yes
 			}
@@ -418,18 +419,80 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 		if = { # 获得藩镇 藩镇的藩镇还是藩镇，前任是藩镇还是藩镇
 			limit = {
-				highest_held_title_tier <= tier_duchy
+				highest_held_title_tier <= tier_kingdom
 				is_independent_ruler = no
 				top_liege = { is_oe_imperial_government_trigger = yes }
 				OR = {
 					liege = { is_corps_government_trigger = yes }
-					has_realm_law = corps_succession_law
-				}
-				is_corps_government_trigger = yes			
+					is_corps_government_trigger = yes	
+				}		
 			}			
-			change_government_corps_government_effect = yes
-			add_realm_law_skip_effects = corps_succession_law
-			add_realm_law_skip_effects = male_only_law
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_contract
+				level = 1
+			}
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_corps
+				level = 2
+			}
+			if = { 
+				limit = { NOT = { has_realm_law = corps_succession_law } }
+				add_realm_law_skip_effects = corps_succession_law
+			}
+		}
+
+		if = { 	# 获得藩王
+			limit = {
+				top_liege = { has_primary_title = title:e_celestia }
+				OR = {
+					has_title = title:k_chinese_title_1
+					has_title = title:k_chinese_title_2
+					has_title = title:k_chinese_title_3
+					has_title = title:k_chinese_title_4
+					has_title = title:k_chinese_title_5
+					has_title = title:k_chinese_title_6
+				}
+			}
+			change_government = imperial_government
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_contract
+				level = 2
+			}
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_corps
+				level = 1
+			}
+			if = { 
+				limit = { NOT = { has_realm_law = tradition_succession_law } }
+				add_realm_law_skip_effects = tradition_succession_law
+			}
+		}
+
+		if = { 	# 获得公卿
+			limit = {
+				top_liege = { has_primary_title = title:e_celestia }
+				OR = {
+					has_title = title:d_chinese_title_1
+					has_title = title:d_chinese_title_2
+					has_title = title:d_chinese_title_3
+					has_title = title:d_chinese_title_4
+					has_title = title:d_chinese_title_5
+					has_title = title:d_chinese_title_6
+					has_title = title:d_chinese_title_7
+					has_title = title:d_chinese_title_8
+					has_title = title:d_chinese_title_9
+					has_title = title:d_confucius
+				}
+			}
+			change_government = imperial_government
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_contract
+				level = 2
+			}
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_corps
+				level = 2
+			}
 		}
 
 		if = { # 玩家开局
@@ -474,9 +537,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 		if = { # 独立文官伯爵转封建
 			limit = {
 				is_independent_ruler = yes
-				has_government = imperial_government
-				vassal_contract_has_flag = imperial_contract_0
-				#can_have_official_succession_law_trigger = yes
+				is_bureau_government_trigger = yes
 			}
 			change_government = feudal_government 
 			if = { 
@@ -488,10 +549,9 @@ east_on_title_gain_effects = { #by 糜三小姐
 		if = { # 独立军镇改世袭制
 			limit = {
 				is_independent_ruler = yes
-				has_government = imperial_government
-				vassal_contract_has_flag = imperial_contract_1
-				#can_have_official_succession_law_trigger = yes
+				is_corps_government_trigger = yes
 			}
+			change_government = corps_government 
 			if = { 
 				limit = { NOT = { has_realm_law = tradition_succession_law } }
 				add_realm_law_skip_effects = tradition_succession_law

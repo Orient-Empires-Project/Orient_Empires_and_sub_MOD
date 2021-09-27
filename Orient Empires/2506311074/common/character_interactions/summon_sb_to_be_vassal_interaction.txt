@@ -640,7 +640,10 @@
 	}
 
 	ai_will_do = {
-		base = 0
+		if = {
+			limit = { has_realm_law = crown_authority_1 }
+			value = 1
+		}
 	}
 }
 revolt_liege_to_be_enemy_vassal_interaction = { #反叛互动
@@ -1077,7 +1080,10 @@ revolt_liege_to_be_enemy_vassal_interaction = { #反叛互动
 	}
 
 	ai_will_do = {
-		base = 0
+		if = {
+			limit = { liege = { has_realm_law = crown_authority_2 } }
+			value = 1
+		}
 	}
 }
 offer_vassalization_interaction = { #要求臣服互动重写
@@ -1776,6 +1782,344 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			scope:recipient = {
 				is_ai = no
 			}
+		}
+	}
+}
+
+
+#宣誓效忠后成为羁縻
+offer_fealty_interaction = {
+	category = interaction_category_vassal
+
+
+	desc = offer_fealty_interaction_desc
+
+	is_shown = {
+		scope:recipient = {
+			NOT = { this = scope:actor }
+		}
+		scope:actor.highest_held_title_tier < scope:recipient.highest_held_title_tier
+		scope:actor.liege = scope:actor
+		scope:recipient = {
+			liege = this
+			is_landed = yes
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			is_imprisoned = no
+			is_at_war = no
+		}
+		scope:recipient = {
+			custom_description = {
+				text = "offer_fealty_neighboring_condition"
+				subject = scope:recipient
+				OR = {
+					any_neighboring_top_liege_realm_owner = { this = scope:actor }
+					any_held_title = {
+						is_de_jure_liege_or_above_target = scope:actor.capital_barony
+					}
+				}
+			}
+		}
+	}
+
+	greeting = positive
+	notification_text = OFFER_FEALTY_INTERACTION_NOTIFICATION
+	
+	ai_min_reply_days = 5
+	ai_max_reply_days = 10
+
+	ai_accept = {
+		base = 50
+		#MAIN
+		#Heretic/Infidel modifier.
+		#Tier difference modifier.
+		#Dejure modifier.
+		#Distant/Remote Realm modifier.
+
+		#MINOR
+		#Rivalry modifier.
+		#Same Dynasty modifier.
+		#Cultural/Cultural Group modifiers.
+		#Claimant modifier.
+
+		#OPINION SCALES
+		#Personality modifier.
+		#Compare Opinion modifier.
+		#MAIN
+		modifier = { #Different faith, no pluralism.
+			desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+			trigger = {
+				scope:actor = {
+					NOR = { #Of two different faiths AND the potential vassal's faith is not pluralistic.
+						faith = scope:recipient.faith
+						faith = { has_doctrine = doctrine_pluralism_pluralistic }
+					}
+				}
+			}
+			add = {
+				value = -25
+				if = {
+					limit = {
+						scope:actor.faith = {
+							faith_hostility_level = {
+								target = scope:recipient.faith
+								value >= faith_hostile_level
+							}
+						}
+					}
+					add = -10
+				}
+				if = {
+					limit = {
+						scope:actor.faith = {
+							faith_hostility_level = {
+								target = scope:recipient.faith
+								value >= faith_evil_level
+							}
+						}
+					}
+					add = -25
+				}
+			}
+		}
+
+		modifier = { #I am a King!
+			desc = offer_fealty_interaction_aibehavior_amkingtier_tt
+			trigger = {
+				scope:actor = { highest_held_title_tier = tier_kingdom }
+			}
+			add = -10
+		}
+		modifier = { #Wide difference in rank
+			desc = offer_vassalization_interaction_aibehavior_widetitletier_tt
+			trigger = {
+				scope:actor = {
+					tier_difference = {
+						target = scope:recipient
+						value > 1
+					}
+				}
+			}
+			add = 20
+		}
+		modifier = { # They are my Rightful Liege
+			desc = offer_vassalization_interaction_aibehavior_rightfulvassaltitleholder_tt
+			trigger = {
+				is_rightful_liege_of_trigger = {
+					VASSAL = scope:actor
+					LIEGE = scope:recipient
+				}
+			}
+			add = 25
+		}
+		modifier = { #Distant Realm.
+			desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
+			trigger = {
+				scope:actor = {
+					NOT = {
+						any_neighboring_top_liege_realm_owner = { this = scope:recipient }
+					}
+				}
+				scope:actor.capital_province = { squared_distance = { target = scope:recipient.capital_province value < 200000 } }
+			}
+			add = -15
+		}
+		modifier = { #Remote Realm.
+			desc = offer_vassalization_interaction_aibehavior_remoterealm_tt
+			trigger = {
+				scope:actor = {
+					NOT = {
+						any_neighboring_top_liege_realm_owner = { this = scope:recipient }
+					}
+				}
+				scope:actor.capital_province = { squared_distance = { target = scope:recipient.capital_province value >= 200000 } }
+			}
+			add = -25
+		}
+
+		#MINOR
+		modifier = { #Rivalry modifier.
+			desc = offer_vassalization_interaction_aibehavior_rival_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_rival = scope:actor
+					NOT = { has_relation_nemesis = scope:actor }
+				}
+			}
+			add = -10
+		}
+		modifier = { #Nemesis modifier.
+			desc = offer_vassalization_interaction_aibehavior_nemesis_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_nemesis = scope:actor
+				}
+			}
+			add = -30
+		}
+		modifier = { #Same Dynasty modifier.
+			desc = offer_vassalization_interaction_aibehavior_dynasty_tt
+			trigger = {
+				scope:recipient = {
+					dynasty = scope:actor.dynasty
+				}
+			}
+			add = 10
+		}
+		modifier = { #Cultural modifiers.
+			add = -5
+			desc = offer_vassalization_interaction_aibehavior_culture_tt
+			trigger = {
+				scope:actor = {
+					has_same_culture_group_as = scope:recipient
+					NOT = { has_same_culture_as = scope:recipient }
+				}
+			}
+		}
+		
+		modifier = { #Cultural Group modifiers.
+			add = -10
+			desc = offer_vassalization_interaction_aibehavior_culture_tt
+			trigger = {
+				scope:actor = {
+					NOT = { has_same_culture_group_as = scope:recipient }
+				}
+			}
+		}
+
+		modifier = { #Claimant modifier.
+			desc = offer_vassalization_interaction_aibehavior_claimant_tt
+			trigger = {
+				scope:actor.primary_title = {
+					scope:recipient = {
+						has_claim_on = prev
+					}
+				}
+			}
+			add = -15
+		}
+
+		#PERSONALITY
+		ai_value_modifier = {
+			ai_greed = 0.75
+			min = 0
+		}
+
+		#OPINION INFLUENCE
+		opinion_modifier = { #Compare Opinion modifier.
+			who = scope:recipient
+			opinion_target = scope:actor
+			multiplier = 0.5
+		}
+
+		# CONTRACT OPTIONS
+		modifier = {
+			add = {
+				value = -10
+				if = {
+					limit = { scope:recipient = { has_trait = zealous } }
+					add = -30
+				}
+				else_if = {
+					limit = { scope:recipient = { has_trait = cynical } }
+					add = 30
+				}
+			}
+			scope:actor = {	has_government = feudal_government }
+			scope:religious_taxation = yes
+			desc = CONTRACT_RELIGIOUS_TAXATION_REASON
+		}
+		modifier = {
+			add = -40
+			scope:actor = {	has_government = feudal_government }
+			scope:low_obligations = yes
+			desc = CONTRACT_LOW_TAXES_REASON
+		}
+		modifier = {
+			add = 40
+			scope:actor = {	has_government = feudal_government }
+			scope:high_obligations = yes
+			desc = CONTRACT_HIGH_TAXES_REASON
+		}
+	}
+
+	# High starting obligations
+	send_option = {
+		is_shown = {
+			scope:actor = {
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
+			}
+		}
+		flag = high_obligations	
+		localization = high_obligations	
+	}
+
+	# Medium starting obligations
+	send_option = {										
+		is_shown = {
+			scope:actor = {
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
+			}
+		}
+		flag = normal_obligations						
+		localization = normal_obligations				
+		starts_enabled = { always = yes	}				
+
+	}
+
+	# Low starting obligations
+	send_option = {
+		is_shown = {
+			scope:actor = {
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
+			}
+		}
+		flag = low_obligations
+		localization = low_obligations	
+	}
+
+	# Medium-high starting obligations + religious protection
+	send_option = {
+		is_shown = {
+			scope:actor = {
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
+			}
+		}
+		is_valid = {
+			NOT = { scope:recipient.faith = scope:actor.faith }
+		}
+		flag = religious_taxation
+		localization = religious_taxation
+	}
+
+	send_options_exclusive = yes
+
+	on_accept = {
+		offer_fealty_interaction_effect = yes
+
+		scope:actor = {
+			trigger_event = char_interaction.0010
+		}
+	}
+
+	on_decline = {
+		scope:actor = {
+			trigger_event = char_interaction.0011
 		}
 	}
 }
