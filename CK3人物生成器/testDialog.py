@@ -22,11 +22,11 @@ trait_education_list_str = [
 	"尽责的书吏","有见地的思想家","明睿的智者","哲学大师"
 	]
 trait_education_list=[
-	'trait_education_intrigue_1','trait_education_intrigue_2','trait_education_intrigue_3','trait_education_intrigue_4',
-	'trait_education_diplomacy_1','trait_education_diplomacy_2','trait_education_diplomacy_3','trait_education_diplomacy_4',
-	'trait_education_stewardship_1','trait_education_stewardship_2','trait_education_stewardship_3','trait_education_stewardship_4',
-	'trait_education_martial_1','trait_education_martial_2','trait_education_martial_3','trait_education_martial_4',
-	'trait_education_learning_1','trait_education_learning_2','trait_education_learning_3','trait_education_learning_4'
+	'education_intrigue_1','education_intrigue_2','education_intrigue_3','education_intrigue_4',
+	'education_diplomacy_1','education_diplomacy_2','education_diplomacy_3','education_diplomacy_4',
+	'education_stewardship_1','education_stewardship_2','education_stewardship_3','education_stewardship_4',
+	'education_martial_1','education_martial_2','education_martial_3','education_martial_4',
+	'education_learning_1','education_learning_2','education_learning_3','education_learning_4'
 ]
 class trait_dialog ( wx.Dialog ):
 
