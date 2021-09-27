@@ -224,7 +224,7 @@
 			}
 			desc = independence_war_victory_desc_local_player_attacker_alone # Desc for a third party involved
 		}
-		
+		desc = revolt_independence_war_victory_desc
 	}
 
 	on_victory = {
@@ -340,40 +340,70 @@
 
 	on_defeat = {
 		scope:attacker = { show_pow_release_message_effect = yes }
-		scope:defender = {
+		scope:attacker = {
 			# Prestige for Defender
 			add_prestige = massive_prestige_loss
 			add_prestige_level = 1
 			stress_impact = {
  				arrogant = high_stress_impact_gain
  			}
-			add_realm_law_skip_effects =  crown_authority_0
+			#add_realm_law_skip_effects =  crown_authority_0
 		}
-
+		custom_tooltip = revolt_independence_on_war_defeat_custom_tooltip
 		scope:attacker = {
 			hard_imprison_character_effect = {
 				TARGET = this
 				IMPRISONER = scope:defender
 			}
-			create_title_and_vassal_change = {
-				type = conquest
-				save_scope_as = change
-				add_claim_on_loss = yes
-			}
-			setup_invasion_cb = {
-				titles = scope:attacker.primary_title
-				attacker = scope:defender
-				defender = scope:attacker
-				change = scope:change
-				take_occupied = yes
-			}		
-			every_held_title = {
-				change_title_holder = {
-					holder = scope:defender
-					change = scope:change
+
+			hidden_effect = {
+				every_courtier = {
+					hard_imprison_character_effect = {
+						TARGET = this
+						IMPRISONER = scope:defender
+					}
+					scope:defender = {
+						add_opinion = {
+							target = prev
+							modifier = aganist_me_in_revolt_war
+						}
+					}
 				}
+				create_title_and_vassal_change = {
+					type = conquest
+					save_scope_as = change
+					add_claim_on_loss = yes
+				}
+				every_vassal = {
+					limit = { highest_held_title_tier >= tier_county }
+					change_liege = {
+						liege = scope:defender
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
 			}
-			resolve_title_and_vassal_change = scope:change
+      
+#			create_title_and_vassal_change = {
+#				type = conquest
+#				save_scope_as = change
+#				add_claim_on_loss = yes
+#			}
+#			setup_invasion_cb = {
+#				titles = scope:attacker.primary_title
+#				attacker = scope:defender
+#				defender = scope:attacker
+#				change = scope:change
+#				take_occupied = yes
+#			}		
+#			every_held_title = {
+#				change_title_holder = {
+#					holder = scope:defender
+#					change = scope:change
+#				}
+#			}
+#			resolve_title_and_vassal_change = scope:change
+
 			scope:defender = {
 				add_opinion = {
 					target = prev
@@ -411,25 +441,15 @@
 	interface_priority = 120
 
 	attacker_wargoal_percentage = 0.8
-
-	max_attacker_score_from_battles = 100
-	max_defender_score_from_battles = 50
-
+	defender_ticking_warscore = 0.0001
+	max_attacker_score_from_battles = 200
+	max_defender_score_from_battles = 200
+	attacker_score_from_occupation_scale = 0.001
+	defender_score_from_occupation_scale = 0.001
+	attacker_score_from_battles_scale = 20
+	defender_score_from_battles_scale = 20
 	max_ai_diplo_distance_to_title = 500
 
 	full_occupation_by_defender_gives_victory = no 		# Full occupation by the defender won't automatically give 100% warscore
 	landless_attacker_needs_armies = yes 
-
-	attacker_wargoal_percentage = 2
-	attacker_ticking_warscore = 0.2
-	defender_ticking_warscore = 0.000001
-	defender_ticking_warscore_delay = { months = 360 }
-
-	defender_score_from_occupation_scale = 0.0001
-	max_defender_score_from_occupation = 0.001
-	attacker_score_from_battles_scale = 80
-	max_attacker_score_from_battles = 100	
-
-	battle_participation_mult = 3.0
-	siege_participation_mult = 3.0	
 }
