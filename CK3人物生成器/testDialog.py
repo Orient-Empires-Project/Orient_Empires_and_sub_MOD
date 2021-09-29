@@ -14,20 +14,18 @@ import wx.xrc
 ###########################################################################
 ## Class trait_dialog
 ###########################################################################
-trait_education_list_str = [
-	"业余阴谋家","浮夸的欺诈师","暗中策划者","难以捉摸的影子",
-	"天真的绥靖者","合格的谈判者","魅力非凡的说客","幕后操控人",
-	"放荡的浪子","节俭的职员","财富创造者","点石成金者",
-	"鲁莽的战士","坚强的战士","优秀战术家","天才军事家",
-	"尽责的书吏","有见地的思想家","明睿的智者","哲学大师"
-	]
-trait_education_list=[
-	'education_intrigue_1','education_intrigue_2','education_intrigue_3','education_intrigue_4',
-	'education_diplomacy_1','education_diplomacy_2','education_diplomacy_3','education_diplomacy_4',
-	'education_stewardship_1','education_stewardship_2','education_stewardship_3','education_stewardship_4',
-	'education_martial_1','education_martial_2','education_martial_3','education_martial_4',
-	'education_learning_1','education_learning_2','education_learning_3','education_learning_4'
-]
+
+trait_education_dict = {
+	'education_intrigue_1':"业余阴谋家",   'education_intrigue_2':"浮夸的欺诈师",  'education_intrigue_3':"暗中策划者",     'education_intrigue_4':"难以捉摸的影子",
+	'education_diplomacy_1':"天真的绥靖者",'education_diplomacy_2':"合格的谈判者", 'education_diplomacy_3':"魅力非凡的说客", 'education_diplomacy_4':"幕后操控人",
+	'education_stewardship_1':"放荡的浪子",'education_stewardship_2':"节俭的职员", 'education_stewardship_3':"财富创造者",  'education_stewardship_4':"点石成金者",
+	'education_martial_1':"鲁莽的战士",    'education_martial_2':"坚强的战士",     'education_martial_3':"优秀战术家",      'education_martial_4':"天才军事家",
+	'education_learning_1':"尽责的书吏",   'education_learning_2':"有见地的思想家",'education_learning_3':"明睿的智者",      'education_learning_4':"哲学大师"
+}
+
+trait_education_list = list(trait_education_dict.keys())
+trait_education_list_str = list(trait_education_dict.values())
+
 class trait_dialog ( wx.Dialog ):
 
 	def __init__( self, parent , newChar):
@@ -37,22 +35,54 @@ class trait_dialog ( wx.Dialog ):
 
 		bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-		self.m_staticText5 = wx.StaticText( self, wx.ID_ANY, u"以后再做", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText5.Wrap( -1 )
+		self.TODO_staticText = wx.StaticText( self, wx.ID_ANY, u"以后再做", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.TODO_staticText.Wrap( -1 )
 
-		bSizer1.Add( self.m_staticText5, 0, wx.ALL, 5 )
+		bSizer1.Add( self.TODO_staticText, 0, wx.ALL, 5 )
 
-		m_choice5Choices = trait_education_list_str #[ u"教育特质1", u"教育特质" ]
-		self.m_choice5 = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_choice5Choices, 0 )
-		self.m_choice5.SetSelection( 0 )
+		Education_Traits_choiceChoices =trait_education_list_str# [ u"教育特质1", u"教育特质" ]
+		self.Education_Traits_choice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Education_Traits_choiceChoices, 0 )
+		self.Education_Traits_choice.SetSelection( 0 )
 		for item in trait_education_list:
 			if item in self.newChar.traitlist:
-				self.m_choice5.SetSelection( trait_education_list.index(item) )
-		bSizer1.Add( self.m_choice5, 0, wx.ALL, 5 )
+				self.Education_Traits_choice.SetSelection( trait_education_list.index(item) )
+		bSizer1.Add( self.Education_Traits_choice, 0, wx.ALL, 5 )
 
-		m_listBox4Choices = [ u"特质1", u"特质2" ]
-		self.m_listBox4 = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, m_listBox4Choices, wx.LB_MULTIPLE )
-		bSizer1.Add( self.m_listBox4, 0, wx.ALL, 5 )
+		Lifestyle_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Lifestyle_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Lifestyle_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Lifestyle_Traits_listBox, 0, wx.ALL, 5 )
+
+		Personality_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Personality_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Personality_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Personality_Traits_listBox, 0, wx.ALL, 5 )
+
+		Stress_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Stress_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Stress_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Stress_Traits_listBox, 0, wx.ALL, 5 )
+
+		Health_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Health_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Health_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Health_Traits_listBox, 0, wx.ALL, 5 )
+
+		Physical_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Physical_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Physical_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Physical_Traits_listBox, 0, wx.ALL, 5 )
+
+		Fame_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Fame_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Fame_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Fame_Traits_listBox, 0, wx.ALL, 5 )
+
+		Revolting_Leader_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Revolting_Leader_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Revolting_Leader_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Revolting_Leader_Traits_listBox, 0, wx.ALL, 5 )
+
+		Commander_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.Commander_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, Commander_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.Commander_Traits_listBox, 0, wx.ALL, 5 )
+
+		State_Traits_listBoxChoices = [ u"特质1", u"特质2" ]
+		self.State_Traits_listBox = wx.ListBox( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, State_Traits_listBoxChoices, wx.LB_MULTIPLE )
+		bSizer1.Add( self.State_Traits_listBox, 0, wx.ALL, 5 )
 
 		self.m_listCtrl1 = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_ICON )
 		bSizer1.Add( self.m_listCtrl1, 0, wx.ALL, 5 )
@@ -69,6 +99,7 @@ class trait_dialog ( wx.Dialog ):
 
 		self.SetSizer( bSizer1 )
 		self.Layout()
+		bSizer1.Fit( self )
 
 		self.Centre( wx.BOTH )
 
@@ -86,7 +117,7 @@ class trait_dialog ( wx.Dialog ):
 
 	def closeTheResultOK( self, event ):
 		self.newChar.traitlist.clear()
-		self.newChar.traitlist.add(trait_education_list[self.m_choice5.GetSelection()])
+		self.newChar.traitlist.add(trait_education_list[self.Education_Traits_choice.GetSelection()])
 		event.Skip()
 
 
