@@ -1,10 +1,126 @@
 ﻿
+namespace = revolt_war_end
+#黄巢 - character:1403799
+
+#进攻方战败被囚，销毁其主头衔
+revolt_war_end.01 = {
+	type = character_event
+	title = revolt_war_end.01.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:attacker = character:1403799
+				}
+				desc = revolt_war_end.01.desc.huangchao
+			}
+			desc = revolt_war_end.01.desc.normal
+		}
+	}
+	theme = prison
+	left_portrait = root
+	right_portrait = {
+		character = scope:attacker
+		animation = fear
+	}
+	trigger = {
+		scope:attacker = { is_imprisoned_by = root }
+	}
+	immediate = {
+		add_character_flag = fired_from_event
+	}
+	option = { # 暂缓处刑
+		name = revolt_war_end.01.a
+		remove_character_flag = fired_from_event
+	}
+	option = { # 立即处刑
+		name = revolt_war_end.01.b
+		trigger_event = revolt_war_end.02
+		execute_prisoner_effect = {
+			VICTIM = scope:attacker
+			EXECUTIONER = root
+		}
+	}
+	after = {
+		scope:attacker = {
+			this.primary_title = { 
+				every_title_heir = { is_imprisoned_by = root }
+				change_title_holder_include_vassals = root
+			}
+			destroy_title = this.primary_title
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change
+				add_claim_on_loss = yes
+			}
+			every_held_title = {
+				limit = { NOT = { this = prev.primary_title } }
+				change_title_holder = {
+					holder = scope:defender
+					change = scope:change
+				}
+			}
+			resolve_title_and_vassal_change = scope:change
+		}
+	}
+}
+#首领处刑事件
+revolt_war_end.02 = {
+	type = character_event
+	title = revolt_war_end.02.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:attacker = character:1403799
+				}
+				desc = revolt_war_end.02.desc.huangchao
+			}
+			desc = revolt_war_end.02.desc.normal
+		}
+	}
+	theme = prison
+	left_portrait = root
+	right_portrait = {
+		character = scope:attacker
+		animation = fear
+	}
+	trigger = {
+		always = yes
+	}
+	immediate = {
+		
+	}
+	option = {
+		name = revolt_war_end.02.a
+		remove_character_flag = fired_from_event
+		if = {
+			limit = {
+				scope:attacker = { is_alive = yes }
+			}
+			execute_prisoner_effect = {
+				VICTIM = scope:attacker
+				EXECUTIONER = root
+			}
+		}
+		else = {
+			show_as_tooltip = {
+				scope:attacker = {
+					death = {
+						death_reason = death_execution
+						killer = root
+					}
+				}
+			}
+		}
+	}
+}
+
 namespace = chinese_revolt
-
-
 ###############################
 # 867 - 唐末民众战争 #
 ###############################
+
 
 ###戍卒请求归乡
 chinese_revolt.1 = { #归乡请求
@@ -20,7 +136,7 @@ chinese_revolt.1 = { #归乡请求
 			tier = tier_county
 			county = { has_county_modifier = county_corruption_deserting_levies_modifier }
 		}
-		NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
+		#NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
 	}
 
 	option = {
@@ -108,7 +224,7 @@ chinese_revolt.4 = { #
 			tier = tier_county
 			county = { has_county_modifier = county_corruption_deserting_levies_modifier }
 		}
-		NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
+		#NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
 	}
 
 	option = {
@@ -167,7 +283,7 @@ chinese_revolt.5 = { #
 		 has_trait = sadistic
 		 }
 		}
-		NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
+		#NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
 	}
 
 	option = {
@@ -216,7 +332,7 @@ chinese_revolt.6 = { #
 			is_target_of_council_task = task_develop_county
 			}
 		 }
-		 NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
+		 #NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
 	}
 
 	option = {
@@ -267,7 +383,7 @@ chinese_revolt.7 = { #
 			has_county_modifier = county_corruption_deserting_levies_modifier
 			NOT = { has_county_modifier = county_corruption_deserting_levies_modifier }}
 		 }
-		 NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
+		 #NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
 	}
 
 	immediate = { 
@@ -324,7 +440,7 @@ chinese_revolt.8 = { #
 			NOT = { has_county_modifier = county_corruption_bandits_rampant_modifier }
 			}
 		 }
-		 NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
+		 #NOT = {  has_character_modifier = shuzu_positive_cha_modifier }
 	}
 
 	option = {
@@ -335,7 +451,7 @@ chinese_revolt.8 = { #
 					years = 3
 				    }
 		}
-		add_character_modifier = { modifier = shuzu_positive_cha_modifier years = 1 }
+		#add_character_modifier = { modifier = shuzu_positive_cha_modifier years = 1 }
 	}
 	
 	option = {
@@ -657,7 +773,7 @@ chinese_revolt.3 = {
 			list = occupied_baronies
 			scope:county = {
 				change_county_control = -10
-				remove_county_modifier = county_corruption_hengzhengbaolian_modifier
+				remove_county_modifier = county_corruption_lackluster_administration_modifier
 			}
 		}
 	}
@@ -678,9 +794,9 @@ chinese_revolt.11 = { #天补均平大将军
 	   any_held_title = {
 			tier = tier_county
 			county = { 
-			has_county_modifier = county_corruption_peasant_war_modifier
+			has_county_modifier = county_corruption_lack_of_courts_modifier
 			}
-			any_neighboring_county = { has_county_modifier = county_corruption_peasant_war_modifier }
+			any_neighboring_county = { has_county_modifier = county_corruption_lack_of_courts_modifier }
 		}
 		top_liege = { NOT = { piety = 0 } }
 	}
@@ -689,9 +805,9 @@ chinese_revolt.11 = { #天补均平大将军
 		random_held_title = {
 			limit = { 
 			tier = tier_county
-			county = { has_county_modifier = county_corruption_peasant_war_modifier } }
+			county = { has_county_modifier = county_corruption_lack_of_courts_modifier } }
 			save_scope_as = peasant_county
-			remove_county_modifier = county_corruption_peasant_war_modifier
+			remove_county_modifier = county_corruption_lack_of_courts_modifier
 		}
 		create_character = {
 			location = scope:peasant_county.title_province
@@ -1130,124 +1246,6 @@ chinese_revolt.41 = { #
 	}
 	
 }
-
-namespace = revolt_war_end
-#黄巢 - character:1403799
-
-#进攻方战败被囚，销毁其主头衔
-revolt_war_end.01 = {
-	type = character_event
-	title = revolt_war_end.01.title
-	desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = {
-					scope:attacker = character:1403799
-				}
-				desc = revolt_war_end.01.desc.huangchao
-			}
-			desc = revolt_war_end.01.desc.normal
-		}
-	}
-	theme = prison
-	left_portrait = root
-	right_portrait = {
-		character = scope:attacker
-		animation = fear
-	}
-	trigger = {
-		scope:attacker = { is_imprisoned_by = root }
-	}
-	immediate = {
-		add_character_flag = fired_from_event
-	}
-	option = { # 暂缓处刑
-		name = revolt_war_end.01.a
-		remove_character_flag = fired_from_event
-	}
-	option = { # 立即处刑
-		name = revolt_war_end.01.b
-		trigger_event = revolt_war_end.02
-		execute_prisoner_effect = {
-			VICTIM = scope:attacker
-			EXECUTIONER = root
-		}
-	}
-	after = {
-		scope:attacker = {
-			this.primary_title = { 
-				every_title_heir = { is_imprisoned_by = root }
-				change_title_holder_include_vassals = root
-			}
-			destroy_title = this.primary_title
-			create_title_and_vassal_change = {
-				type = conquest
-				save_scope_as = change
-				add_claim_on_loss = yes
-			}
-			every_held_title = {
-				limit = { NOT = { this = prev.primary_title } }
-				change_title_holder = {
-					holder = scope:defender
-					change = scope:change
-				}
-			}
-			resolve_title_and_vassal_change = scope:change
-		}
-	}
-}
-#首领处刑事件
-revolt_war_end.02 = {
-	type = character_event
-	title = revolt_war_end.02.title
-	desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = {
-					scope:attacker = character:1403799
-				}
-				desc = revolt_war_end.02.desc.huangchao
-			}
-			desc = revolt_war_end.02.desc.normal
-		}
-	}
-	theme = prison
-	left_portrait = root
-	right_portrait = {
-		character = scope:attacker
-		animation = fear
-	}
-	trigger = {
-		always = yes
-	}
-	immediate = {
-		
-	}
-	option = {
-		name = revolt_war_end.02.a
-		remove_character_flag = fired_from_event
-		if = {
-			limit = {
-				scope:attacker = { is_alive = yes }
-			}
-			execute_prisoner_effect = {
-				VICTIM = scope:attacker
-				EXECUTIONER = root
-			}
-		}
-		else = {
-			show_as_tooltip = {
-				scope:attacker = {
-					death = {
-						death_reason = death_execution
-						killer = root
-					}
-				}
-			}
-		}
-	}
-}
-
 
 
 
