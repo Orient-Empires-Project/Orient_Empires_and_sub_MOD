@@ -65,88 +65,26 @@ tribute_effects = {
 }
 
 #天下只能有一个天子，否则…
-celestia_throne_effects = {
-	effect = {
-		title:e_celestia.holder = {			
-			if = {  #相邻有一个帝国
-				limit = {
-					any_neighboring_realm_same_rank_owner = {
-						count = 1
-					}
-				}
-				modifier = {
-					monthly_prestige_gain = -10
-					monthly_prestige_gain_mult = -1
-					monthly_dynasty_prestige_mult = -0.5
-					monthly_county_control_change_factor = -0.5
-				}
-				if = {
-					limit = { 
-						has_realm_law = crown_authority_3
-					}
-					add_realm_law_skip_effects = crown_authority_2
-				}
-			}
-			if = {  #相邻超过一个帝国
-				limit = {
-					any_neighboring_realm_same_rank_owner = {
-						count >= 2
-					}
-				}
-				modifier = {
-					monthly_prestige_gain = -20
-					monthly_prestige_gain_mult = -2
-					monthly_dynasty_prestige_mult = -1
-					monthly_county_control_change_factor = -1
-				}
-				if = {
-					limit = { 
-						OR = { 
-							has_realm_law = crown_authority_3
-							has_realm_law = crown_authority_2
-						}
-					}
-					add_realm_law_skip_effects = crown_authority_1
-				}
-			}
-			if = {  #相邻未服王化的王国
-				limit = {
-					any_neighboring_top_liege_realm_owner = {
-						highest_held_title_tier >= tier_kingdom
-						OR = {
-							NOT = { has_same_culture_group_as = title:e_celestia.holder }
-							NOT = { is_allied_to = title:e_celestia.holder }
-							is_hostile = yes
-							has_claim_on = title:e_celestia
-							has_pressed_claim_on = title:e_celestia
-							domain_size > 20
-							has_trait = peasant_leader
-						}
-					}
-				}
-				modifier = {
-					monthly_prestige_gain = -15
-					monthly_dynasty_prestige_mult = -1
-					monthly_county_control_change_factor = -1
-				}
-				add_prestige_level = -2
-				if = {
-					limit = { 
-						OR = { 
-							has_realm_law = crown_authority_3
-							has_realm_law = crown_authority_2
-						}
-					}
-					add_realm_law_skip_effects = crown_authority_1
-				}
-				every_realm_county = {
-					limit = { culture = culture:han }
-					change_county_control = -10
-				}
-			}
-		}
-	}
-}
+#celestia_throne_effects = {
+#	effect = {
+#		title:e_celestia.holder = {			
+#			if = {  
+#				limit = { 
+#					#相邻有一个帝国
+#					any_neighboring_realm_same_rank_owner = {
+#						count >= 1
+#					}
+#					has_realm_law = crown_authority_3
+#				}
+#				add_realm_law_skip_effects = crown_authority_2
+#				every_realm_county = {
+#					limit = { culture = culture:han }
+#					change_county_control = -10
+#				}
+#			}
+#		}
+#	}
+#}
 
 #藩镇继承法
 on_death = {
@@ -160,13 +98,14 @@ corps_succession_effect = {
 	trigger = {
 				has_government = imperial_government
 				top_liege = { has_title = title:e_celestia }
+				exists = capital_province #WLTDJFIX往来天地间修正
 				capital_province = {
 					geographical_region = world_asia_china
 				}
 				OR = {
 					is_corps_government_trigger = yes
 					has_realm_law = corps_succession_law
-					scope:title = { has_variable = corps_title }
+#					scope:title = { has_variable = corps_title } #WLTDJFIX往来天地间修正
 				}
 	}
 	effect = {
@@ -175,6 +114,21 @@ corps_succession_effect = {
 				exists = primary_heir
 			}
 			primary_heir = {
+#WLTDJFIX往来天地间修正（开始）
+				if = {
+					limit = {
+						is_independent_ruler = yes 
+					}
+					save_scope_as = liege
+				}
+				else_if = {
+					limit = { exists = top_liege }
+					top_liege = { save_scope_as = liege } 
+				}
+				else = {
+					liege = { save_scope_as = liege }
+				}
+#WLTDJFIX往来天地间修正（开始）
 				trigger_event = {
 					days = 10
 					id = bureaucracy.0001
