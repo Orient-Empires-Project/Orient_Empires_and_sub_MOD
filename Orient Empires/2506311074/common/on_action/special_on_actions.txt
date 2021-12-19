@@ -1,12 +1,66 @@
-﻿#藩镇继承、行政损耗、朝贡、军功等机制
+﻿on_game_start_after_lobby = {  
+		on_actions = {
+			great_misit_min_realm_size
+		}
+	}
+	great_misit_min_realm_size = {
+		effect = {
+			set_variable = { name = great_misit_min_realm_size value = 0 add=root.liege.sub_realm_size multiply = 0.4 min = 40 floor = yes }
+		}
+	}
 
-on_game_start_after_lobby = {  
+on_title_gain = {
 	on_actions = {
-		corruption_effects
-		tribute_effects
-		celestia_throne_effects
+		yamato_on_title_gain_effects
+	}
+}	
+
+#下克上
+yamato_on_title_gain_effects = {
+	effect = {		
+		if = { #非继承获得头衔
+			limit = {
+				current_date >= 900.1.1
+				capital_province = { geographical_region = world_asia_japan }
+				top_liege = { has_title = title:k_yamato }
+				NOT = { has_title = title:d_gosho }
+				NOT = { has_government = imperial_government }
+				highest_held_title_tier < tier_kingdom
+				liege = {
+					OR = {
+						has_government = feudal_government
+						has_government = imperial_government
+						has_government = corps_government
+					}
+				}
+				#NOT = { scope:title = title:k_yamato }				
+				NOT = {
+					root.house = scope:previous_holder.house
+				}
+				NOR = {
+					scope:transfer_type = flag:created
+					scope:transfer_type = flag:inheritance
+					scope:transfer_type = flag:revoked
+					scope:transfer_type = flag:granted
+				}
+				NOT = { has_trait = founding_monarch }
+				NOT = { has_government = corps_government }
+			}
+			change_government = corps_government
+		}
 	}
 }
+
+
+
+#藩镇继承、行政损耗、朝贡、军功等机制(已废弃)
+#on_game_start_after_lobby = {  
+#	on_actions = {
+#		#corruption_effects
+#		#tribute_effects
+#		#celestia_throne_effects
+#	}
+#}
 
 #逐级行政损耗
 corruption_effects = {
@@ -87,11 +141,11 @@ tribute_effects = {
 #}
 
 #藩镇继承法
-on_death = {
-	on_actions = { 
-		corps_succession_effect
-	}
-}
+#on_death = {
+#	on_actions = { 
+#		#corps_succession_effect
+#	}
+#}
 
 
 corps_succession_effect = {
@@ -147,7 +201,7 @@ corps_succession_effect = {
 
 on_title_destroyed = {
 	on_actions = { 
-		fengjue_destroyed_effect
+		#fengjue_destroyed_effect
 	}
 }
 

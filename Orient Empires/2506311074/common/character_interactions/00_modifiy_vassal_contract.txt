@@ -1,4 +1,5 @@
 ﻿#往来天地间修改于20211120
+#Chillshadow修改于20211220
 
 liege_modify_vassal_contract_interaction = {
 	special_interaction = modify_vassal_contract
@@ -30,46 +31,60 @@ liege_modify_vassal_contract_interaction = {
 	}
 
 	can_send = {
-		scope:recipient = {			
-			vassal_contract_is_blocked_from_modification = no
-		}
-		scope:actor = {
-			has_changed_contract_obligation_trigger = { WHO = scope:recipient }
-			
-			custom_description = {
-				text = "liege_modify_vassal_contract_cannot_exceed_tyranny_cap"
-				object = scope:actor
-				NOT = {
-					scope:recipient.vassal_obligation_increase_tyranny_gain_multiplier > 1
+		trigger_if = { #If they're blocked we don't want to show anything else
+			limit = {
+				scope:recipient = {
+					vassal_contract_is_blocked_from_modification = yes
 				}
+			}
+			scope:recipient = {			
+				vassal_contract_is_blocked_from_modification = no
+			}
+		}
+		trigger_else = {
+			scope:actor = {
+				has_changed_contract_obligation_trigger = { WHO = scope:recipient }
+
+				custom_description = {
+					text = "liege_modify_vassal_contract_cannot_exceed_tyranny_cap"
+					object = scope:actor
+					NOT = {
+						vassal_obligation_increase_tyranny_gain_multiplier > 1
+						#scope:recipient.vassal_obligation_increase_tyranny_gain_multiplier > 1
+					}
+				}
+
+				# If the trade without the hook usage is already in the vassal's favour or fair then don't waste your hook
+				save_temporary_scope_value_as = {
+					name = obligations_favoring_vassal
+					value = scope:recipient.count_obligation_improvements_for_vassal
+				}
+				trigger_if = {
+					limit = { scope:recipient.count_obligation_improvements_for_vassal > 0 }
+					custom_description = {
+						text = "vassal_modify_vassal_contract_unnecessary_hook_usage_vassal_favor"
+						object = scope:recipient
+						value = scope:recipient.count_obligation_improvements_for_vassal
+						NOT = { always = scope:hook }
+					}
+				}
+				trigger_else_if = {
+					limit = { scope:recipient.count_obligation_improvements_for_vassal = 0 }
+					custom_description = {
+						text = "vassal_modify_vassal_contract_unnecessary_hook_usage_equal"
+						object = scope:recipient
+						NOT = { always = scope:hook }
+					}
+				}
+				trigger_else = {} # Otherwise we're fine!
 			}
 
-			# If the trade without the hook usage is already in the vassal's favour or fair then don't waste your hook
-			trigger_if = {
-				limit = { scope:recipient.count_obligation_improvements_for_vassal > 0 }
-				custom_description = {
-					text = "vassal_modify_vassal_contract_unnecessary_hook_usage_vassal_favor"
-					object = scope:recipient
-					value = scope:recipient.count_obligation_improvements_for_vassal
-					NOT = { always = scope:hook }
-				}
+			# Cannot change more than three things at once
+			custom_description = {
+				text = "vassal_modify_vassal_contract_obligation_change_limit"
+				value = scope:recipient.count_total_obligation_changes
+				scope:recipient.count_total_obligation_changes <= max_contract_changes
 			}
-			trigger_else_if = {
-				limit = { scope:recipient.count_obligation_improvements_for_vassal = 0 }
-				custom_description = {
-					text = "vassal_modify_vassal_contract_unnecessary_hook_usage_equal"
-					object = scope:recipient
-					NOT = { always = scope:hook }
-				}
-			}
-			trigger_else = {} # Otherwise we're fine!
-		}
-			
-		# Cannot change more than three things at once
-		custom_description = {
-			text = "vassal_modify_vassal_contract_obligation_change_limit"
-			value = scope:recipient.count_total_obligation_changes
-			scope:recipient.count_total_obligation_changes <= max_contract_changes
 		}
 	}
 
@@ -95,7 +110,7 @@ liege_modify_vassal_contract_interaction = {
 						always = scope:hook
 					}
 					use_hook = scope:recipient
-					add_achievement_flag = { FLAG = achievement_fine_print_flag }
+					add_achievement_flag_effect = { FLAG = achievement_fine_print_flag }
 				}
 
 				scope:recipient = {
@@ -166,8 +181,18 @@ vassal_modify_vassal_contract_interaction = {
 	}
 
 	can_send = {
-		scope:actor = {
-			vassal_contract_is_blocked_from_modification = no
+		trigger_if = { #If you're blocked we don't want to show anything else
+		limit = {
+			scope:actor = {
+				vassal_contract_is_blocked_from_modification = yes
+			}
+		}
+			scope:actor = {
+				vassal_contract_is_blocked_from_modification = no
+			}
+		}
+		trigger_else = {
+			scope:actor = {
 			has_changed_contract_obligation_trigger = { WHO = scope:actor }
 			
 			# Must be an even trade overall
@@ -184,7 +209,7 @@ vassal_modify_vassal_contract_interaction = {
 				value = count_total_obligation_changes
 				count_total_obligation_changes <= max_contract_changes
 			}
-			
+			}	
 		}
 	}
 
@@ -199,13 +224,13 @@ vassal_modify_vassal_contract_interaction = {
 				if = {
 					limit = { always = scope:hook }
 					use_hook = scope:recipient
-					add_achievement_flag = { FLAG = achievement_fine_print_flag }
+					add_achievement_flag_effect = { FLAG = achievement_fine_print_flag }
 				}
 				
 				hidden_effect = { set_vassal_contract_modification_blocked = yes }
 
-				set_obligation_if_changed_effect = { OBLIGATION_TYPE = feudal_government_taxes } #往来天地间
-				set_obligation_if_changed_effect = { OBLIGATION_TYPE = feudal_government_levies } #往来天地间
+				set_obligation_if_changed_effect = { OBLIGATION_TYPE = imperial_government_taxes } #往来天地间
+				set_obligation_if_changed_effect = { OBLIGATION_TYPE = imperial_government_levies } #往来天地间
 				set_obligation_if_changed_effect = { OBLIGATION_TYPE = feudal_government_taxes }
 				set_obligation_if_changed_effect = { OBLIGATION_TYPE = feudal_government_levies }
 				set_obligation_if_changed_effect = { OBLIGATION_TYPE = special_contract }

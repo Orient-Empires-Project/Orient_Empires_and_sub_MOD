@@ -49,7 +49,6 @@ convert_to_imperialism_decision = {
 	
 	effect = {
 		change_government = corps_government
-		#change_government_tribute_government_effect = yes
 		add_realm_law_skip_effects = crown_authority_0
 	}
 	
@@ -102,11 +101,19 @@ convert_whole_realm_to_imperialism_decision = {
 		capital_province.county = {
 			development_level >= convert_to_feudalism_development_requirement
 		}
-		any_neighboring_top_liege_realm_owner = { 
-			AND = {
-				has_culture_group = culture_group:chinese_group
-				has_title = title:e_celestia
+		OR = {
+			top_liege = {
+				AND = {
+					has_culture_group = culture_group:chinese_group
+					has_title = title:e_celestia
+				}
 			}
+			any_neighboring_top_liege_realm_owner = { 
+				AND = {
+					has_culture_group = culture_group:chinese_group
+					has_title = title:e_celestia
+				}
+		}
 		}
 		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
 			text = has_all_tribal_innovations
@@ -139,7 +146,7 @@ convert_whole_realm_to_imperialism_decision = {
 	}
 
 	effect = {
-		change_government = imperial_government
+		#change_government = imperial_government
 		trigger_event = major_decisions.0001
 		save_scope_as = actor
 		convert_whole_realm_to_feudalism_effect = yes
@@ -166,11 +173,143 @@ convert_whole_realm_to_imperialism_decision = {
 	}
 }
 
+#请封军府
+convert_to_legion_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	title = convert_to_legion_decision
+	confirm_text = convert_to_legion_decision_confirm
+	major = yes
+	desc = convert_to_legion_decision_desc
+	selection_tooltip = convert_to_legion_decision_tooltip
+	
+	ai_check_interval = 36
+	
+	is_shown = {
+		has_government = imperial_government
+		vassal_contract_has_flag = imperial_contract_0
+		primary_title.tier > tier_county
+		primary_title.tier < tier_empire
+		top_liege = { has_title = title:e_celestia }
+		is_ai = no
+	}
+	
+	is_valid = {
+		OR = {
+			prestige_level >= high_prestige_level
+			dynasty = { dynasty_prestige_level >= 4 }
+			martial_lifestyle_perk_points >= 10
+		}
+		OR = {
+			liege = { has_realm_law = crown_authority_0 }
+			liege = { has_realm_law = crown_authority_1 }
+			liege = { has_realm_law = crown_authority_2 }
+		}
+	}
+	
+	cost = {
+		prestige = 450
+	}
+	
+	effect = {
+		change_government_legion_government_effect = yes
+		add_realm_law_skip_effects = crown_authority_2
+	}
+	
+	ai_frequency = 5
+	
+	ai_potential = {
+		is_ruler = yes
+	}
+	
+	ai_will_do = {
+		base = 0
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			prestige_level > 3
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			dynasty = { dynasty_prestige_level >3 }
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 50
+			martial_lifestyle_perk_points >18
+		}
+	}
+}
+
+#请封藩镇
+transfer_to_corps_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	title = transfer_to_corps_decision
+	confirm_text = transfer_to_corps_decision_confirm
+	desc = transfer_to_corps_decision_desc
+	selection_tooltip = transfer_to_corps_decision_tooltip
+	
+	ai_check_interval = 38
+	
+	is_shown = {
+		has_government = imperial_government
+		vassal_contract_has_flag = imperial_contract_1
+		is_corps_government_trigger = no
+		primary_title.tier > tier_county
+		primary_title.tier < tier_empire
+		top_liege = { has_title = title:e_celestia }
+		is_ai = no
+	}
+	
+	is_valid = {
+		OR = {
+			prestige_level >= very_high_prestige_level
+			martial_lifestyle_perk_points >= 20
+			is_powerful_vassal = yes
+		}
+		OR = {
+			liege = { has_realm_law = crown_authority_0 }
+			liege = { has_realm_law = crown_authority_1 }
+			liege = { has_realm_law = crown_authority_2 }
+		}
+	}
+	
+	cost = {
+		prestige = 1000
+	}
+	
+	effect = {
+		change_government_corps_government_effect = yes
+		add_realm_law_skip_effects = crown_authority_3
+		add_realm_law_skip_effects = corps_succession_law
+	}
+	
+	ai_frequency = 5
+	
+	ai_potential = {
+		is_ruler = yes
+	}
+	
+	ai_will_do = {
+		base = 0
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			prestige_level >= 5
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			dynasty = { dynasty_prestige_level >= 5 }
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 50
+			martial_lifestyle_perk_points >= 27
+		}
+	}
+}
+
 #独立封建军镇转律令
 adopt_imperial_government_decision = {
 	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	major = yes
-	ai_check_interval = 60
+	ai_check_interval = 50
 
 	desc = adopt_imperial_government_decision_desc
 	selection_tooltip = adopt_imperial_government_decision_tooltip
@@ -209,8 +348,8 @@ adopt_imperial_government_decision = {
 	}
 
 	effect = {
-#		change_government_corps_government_effect = yes #WLTDJFIX往来天地间修正
-		change_government = imperial_government #WLTDJFIX往来天地间修正
+		change_government = imperial_government 
+		change_government_corps_government_effect = yes 
 		add_realm_law_skip_effects = tradition_succession_law
 	}
 	
@@ -223,133 +362,6 @@ adopt_imperial_government_decision = {
 		modifier = { #Go for the more lenient decision if this is the case
 			add = 100
 			liege = { has_government = imperial_government } 
-		}
-	}
-}
-
-
-#请封军府
-transfer_to_imperialism_decision = { 
-	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
-	major = yes
-	desc = transfer_to_imperialism_decision_desc
-	
-	ai_check_interval = 36
-	
-	is_shown = {
-		has_government = imperial_government
-		vassal_contract_has_flag = imperial_contract_0
-		primary_title.tier > tier_county
-		primary_title.tier < tier_empire
-		top_liege = { has_title = title:e_celestia }
-		is_ai = no
-	}
-	
-	is_valid = {
-		OR = {
-			prestige_level > high_prestige_level
-			dynasty_prestige_level >2
-			martial_lifestyle_perk_points >10
-		}
-		OR = {
-			liege = { has_realm_law = crown_authority_0 }
-			liege = { has_realm_law = crown_authority_1 }
-			liege = { has_realm_law = crown_authority_2 }
-		}
-	}
-	
-	cost = {
-		prestige = 450
-	}
-	
-	effect = {
-		change_government_legion_government_effect = yes
-		add_realm_law_skip_effects = crown_authority_2
-	}
-	
-	ai_frequency = 10
-	
-	ai_potential = {
-		is_ruler = yes
-	}
-	
-	ai_will_do = {
-		base = 0
-		modifier = { #Go for the more lenient decision if this is the case
-			add = 15
-			prestige_level > high_prestige_level
-		}
-		modifier = { #Go for the more lenient decision if this is the case
-			add = 15
-			dynasty_prestige_level >3
-		}
-		modifier = { #Go for the more lenient decision if this is the case
-			add = 50
-			martial_lifestyle_perk_points >18
-		}
-	}
-}
-
-#请封藩镇
-transfer_to_corps_decision = { 
-	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
-	major = yes
-	desc = transfer_to_corps_decision_desc
-	
-	ai_check_interval = 38
-	
-	is_shown = {
-		has_government = imperial_government
-		vassal_contract_has_flag = imperial_contract_1
-		is_corps_government_trigger = no
-		primary_title.tier > tier_county
-		primary_title.tier < tier_empire
-		top_liege = { has_title = title:e_celestia }
-		is_ai = no
-	}
-	
-	is_valid = {
-		OR = {
-			prestige_level > very_high_prestige_level
-			martial_lifestyle_perk_points >20
-			is_powerful_vassal = yes
-		}
-		OR = {
-			liege = { has_realm_law = crown_authority_0 }
-			liege = { has_realm_law = crown_authority_1 }
-			liege = { has_realm_law = crown_authority_2 }
-		}
-	}
-	
-	cost = {
-		prestige = 1000
-	}
-	
-	effect = {
-		change_government_corps_government_effect = yes
-		add_realm_law_skip_effects = crown_authority_3
-		add_realm_law_skip_effects = corps_succession_law
-	}
-	
-	ai_frequency = 10
-	
-	ai_potential = {
-		is_ruler = yes
-	}
-	
-	ai_will_do = {
-		base = 0
-		modifier = { #Go for the more lenient decision if this is the case
-			add = 15
-			prestige_level > 5
-		}
-		modifier = { #Go for the more lenient decision if this is the case
-			add = 15
-			dynasty_prestige_level > 4
-		}
-		modifier = { #Go for the more lenient decision if this is the case
-			add = 50
-			martial_lifestyle_perk_points > 27
 		}
 	}
 }

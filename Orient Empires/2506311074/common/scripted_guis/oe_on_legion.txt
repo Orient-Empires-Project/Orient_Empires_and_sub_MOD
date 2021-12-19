@@ -1,0 +1,75 @@
+raise_new_hm_legion = { 
+	scope = character 
+	saved_scopes = {
+		target
+	}
+	effect = {
+		if = {
+			limit = {
+				NOT = {
+					any_character_war = {
+						scope:target = {
+							is_attacker_in_war = PREV
+						}
+					}
+				}
+				NOT = {
+					any_character_war = {
+						scope:target = {
+							is_defender_in_war = PREV
+						}
+					}
+				}
+			}
+			trigger_event = {
+				on_action = oehm_on_legion_raise
+			}
+			scope:target = {
+				set_variable = {
+					name = legion_available
+					value = 50
+					years = 5
+				}
+			}
+			every_character_war = {
+				if = {
+					limit = {
+						PREV = { is_attacker_in_war = PREV }
+					}
+						
+					add_attacker = scope:target
+				}
+				if = {
+					limit = {
+						PREV = { is_defender_in_war = PREV }
+					}
+					add_defender = scope:target
+				}
+			}
+		}
+	}
+}
+
+update_legions_list = {
+	scope = character
+	
+	effect = {
+		clear_variable_list = oehm_legion_counties
+		
+		every_vassal = {
+			limit = { 
+				is_landed = yes
+				highest_held_title_tier >= tier_county
+				has_government = imperial_government
+				is_bureau_government_trigger = no
+			}
+			save_scope_as = corps_government_ally
+			root = {
+				add_to_variable_list = {
+					name = oehm_legion_counties
+					target = scope:corps_government_ally
+				}
+			}
+		}
+	}
+}

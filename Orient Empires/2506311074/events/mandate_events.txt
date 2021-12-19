@@ -1,0 +1,374 @@
+# 天命之战抉择
+namespace = mandate
+
+mandate.0001 = {
+
+	type = character_event
+
+	title = mandate.0001.t
+	desc = mandate.0001.desc
+
+	theme = war
+
+	trigger = {
+		is_at_war_with_liege = no
+		highest_held_title_tier > tier_county
+	}
+	immediate = {
+		save_scope_as = china_vassal
+	}
+	override_background = {
+		event_background = battlefield
+	}
+
+	left_portrait = {
+		character = scope:attacker
+		animation = personality_rational
+	}
+
+	right_portrait = {
+		character = scope:defender
+		animation = worry
+	}
+
+	# 加入反叛
+	option = {
+		name = mandate.0001.a
+		scope:defender = {
+			add_opinion = {
+				modifier = hate_opinion
+				target = scope:china_vassal
+				opinion = -50
+			}
+		}
+		scope:war = { add_attacker = scope:china_vassal }
+	
+		ai_chance = {
+			base = 100
+			modifier = { #I am a King!
+				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+				trigger = {
+					scope:china_vassal = { highest_held_title_tier = tier_kingdom }
+				}
+				add = 20
+			}
+			modifier = {
+				add = 20
+				NOT = { scope:china_vassal.faith = scope:defender.faith }
+			}
+			modifier = {
+				add = 20
+				NOT = { scope:china_vassal.culture = scope:defender.culture }
+			}
+			modifier = {
+				add = 20
+				scope:attacker = {
+					prestige_level > 2 
+				}
+			}
+			modifier = {
+				add = 40
+				scope:attacker = {
+					prestige_level > 3 
+				}
+			}
+			modifier = {
+				add = 60
+				scope:attacker = {
+					prestige_level > 4 
+				}
+			}
+			modifier = {
+				add = intimidated_halved_reason_value
+				scope:recipient = {
+					has_dread_level_towards = {
+						target = scope:attacker
+						level = 1
+					}
+				}
+				desc = INTIMIDATED_REASON
+			}
+			modifier = {
+				add = cowed_halved_reason_value
+				scope:recipient = {
+					has_dread_level_towards = {
+						target = scope:attacker
+						level = 2
+					}
+				}
+				desc = COWED_REASON
+			}
+			modifier = { #Comparative military strength.
+				desc = offer_vassalization_interaction_aibehavior_power_tt
+					add = {
+					value = 1
+						add = {
+						value = scope:attacker.max_military_strength
+						divide = { value = scope:defender.max_military_strength min = 1 }
+						}
+					multiply = 50
+					max = 50
+				  }
+			}
+			
+			modifier = {
+				factor = 50
+				AND = {
+					NOT = {
+						any_in_list = {
+							list = target_titles
+							any_in_de_jure_hierarchy = {
+								tier = tier_county
+								holder = {
+									target_is_same_character_or_above = ROOT
+								}
+							}
+						}
+					}
+					has_relation_rival = scope:defender
+				}
+			}
+		}
+	}
+	
+	# 加入保皇军
+	option = {
+		name = mandate.0001.b
+		scope:china_vassal = {
+			add_opinion = {
+				modifier = friendliness_opinion
+				target = scope:attacker
+				opinion = -30
+			}
+		}
+		scope:attacker = {
+			add_opinion = {
+				modifier = friendliness_opinion
+				target = scope:china_vassal
+				opinion = -30
+			}
+		}
+
+		scope:war = { add_defender = scope:china_vassal }
+
+		ai_chance = {
+			base = 20
+
+			modifier = {
+				add = 20
+				scope:china_vassal.faith = scope:defender.faith
+			}
+			modifier = {
+				add = 20
+				scope:china_vassal.culture = scope:defender.culture
+			}
+			modifier = {
+				add = 10
+				opinion = {
+					target = scope:defender
+					value >= 10
+				}
+			}
+
+			modifier = {
+				add = 20
+				opinion = {
+					target = scope:defender
+					value >= 20
+				}
+			}
+
+			modifier = {
+				add = 30
+				opinion = {
+					target = scope:defender
+					value >= 30
+				}
+			}
+
+			modifier = {
+				add = -40
+				opinion = {
+					target = scope:defender
+					value <= -30
+				}
+			}
+
+			modifier = {
+				add = -60
+				opinion = {
+					target = scope:defender
+					value <= -50
+				}
+			}
+
+			modifier = {
+				add = -100
+				opinion = {
+					target = scope:defender
+					value <= -75
+				}
+			}
+
+			modifier = {
+				add = 10
+				scope:defender = {
+					prestige_level > 2 
+				}
+			}
+			modifier = {
+				add = 20
+				scope:defender = {
+					prestige_level > 3 
+				}
+			}
+			modifier = {
+				add = 30
+				scope:defender = {
+					prestige_level > 4 
+				}
+			}
+			modifier = { #Comparative military strength.
+				desc = offer_vassalization_interaction_aibehavior_power_tt
+					add = {
+					value = 1
+						add = {
+						value = scope:defender.max_military_strength
+						divide = { value = scope:attacker.max_military_strength min = 1 }
+						}
+					multiply = 50
+					max = 50
+				  }
+			}
+			
+			modifier = {
+				factor = 30
+				AND = {
+					NOT = {
+						any_in_list = {
+							list = target_titles
+							any_in_de_jure_hierarchy = {
+								tier = tier_county
+								holder = {
+									target_is_same_character_or_above = ROOT
+								}
+							}
+						}
+					}
+					has_relation_rival = scope:attacker
+				}
+			}			
+		}
+	}
+
+	# 自发反叛
+	option = {
+		name = mandate.0001.c
+		
+		scope:defender = {
+			add_opinion = {
+				modifier = negative_opinion
+				target = scope:china_vassal
+				opinion = -30
+			}
+		}
+		scope:attacker = {
+			add_opinion = {
+				modifier = negative_opinion
+				target = scope:china_vassal
+				opinion = -30
+			}
+		}
+		scope:china_vassal = {
+			add_claim = scope:defender.primary_title
+			start_war = {
+				casus_belli = mandate_war_cb
+				target = scope:defender
+				claimant = scope:china_vassal
+				target_title = title:e_celestia
+			}
+		}
+	
+		ai_chance = {
+			base = 50
+			modifier = { #I am a King!
+				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+				trigger = {
+					scope:china_vassal = { highest_held_title_tier = tier_kingdom }
+				}
+				add = 50
+			}
+			ai_value_modifier = {
+				who = china_vassal
+				ai_greed = {
+					if = {
+						limit = {
+							OR = {
+								scope:china_vassal = { has_trait = ambitious  }
+							}							
+						}
+						value = 1
+					}
+				}
+			}
+		}
+		modifier = { #Comparative military strength.
+		desc = mandate.0001.c_desc
+			add = {
+			value = 20
+				add = {
+				value = scope:china_vassal.max_military_strength
+				divide = { value = scope:defender.max_military_strength min = 1 }
+				}
+			multiply = 50
+			max = 300
+			}
+		}
+	}
+}
+
+mandate.0002 = {
+	title = mandate.0002.title
+	desc = {
+		desc = mandate.0002.base.desc
+	}
+	left_portrait = {
+		character = scope:attacker
+		animation = war_attacker
+	}
+	lower_right_portrait = scope:defender
+
+	theme = faith
+	override_background = {
+		event_background = armory
+	}
+	
+	immediate = {
+		play_music_cue = "mx_cue_combat_2"
+	}
+
+	option = {
+		name = mandate.0002.a
+	}
+}
+
+mandate.0003 = {
+	title = mandate.0003.title
+	desc = {
+		desc = mandate.0003.base.desc
+	}
+	left_portrait = {
+		character = scope:defender
+		animation = war_defender
+	}
+	lower_right_portrait = scope:attacker
+
+	theme = faith
+	override_background = {
+		event_background = armory
+	}
+
+	option = {
+		name = mandate.0003.a
+	}
+}
