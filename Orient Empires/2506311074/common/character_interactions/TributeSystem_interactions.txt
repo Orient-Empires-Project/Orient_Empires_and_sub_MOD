@@ -2,6 +2,13 @@
 # by 往来天地间 WangLaiTianDiJian
 # TributeSystem
 
+#WLTDJ20211219
+
+
+#不让AI进行解除朝贡、贿赂成为附属国这类操作，一来增加运算量，二来这些操作都有可能对AI造成不利影响，削弱AI（例如要花钱、要承受撕破脸带来的好感度惩罚等）
+
+
+
 TributeSystem_offer_allegiance_interaction = {#请求成为朝贡国
 	category = interaction_category_diplomacy
 	ai_min_reply_days = 4
@@ -130,7 +137,32 @@ TributeSystem_offer_allegiance_interaction = {#请求成为朝贡国
 	}
 	
 	ai_accept = { # Similar to Negotiate Alliance, but without modifiers for Liege, being an heir, etc.
-		base = -50#以下照抄原版生活方式解锁的同盟谈判，同盟谈判基础接受度为-25
+		base = -50
+		modifier = {
+			scope:actor = {
+				is_ai = yes
+				primary_title.tier >= tier_duchy
+#				has_government = tribal_government
+#				NOT = { any_neighboring_top_liege_realm_owner = { is_ai = no } }
+			}
+			scope:recipient = {
+				is_ai = yes
+			}
+			add = 100
+		}
+		modifier = {
+			scope:actor = {
+				is_ai = yes
+				primary_title.tier >= tier_kingdom
+#				has_government = tribal_government
+#				NOT = { any_neighboring_top_liege_realm_owner = { is_ai = no } }
+			}
+			scope:recipient = {
+				is_ai = yes
+			}
+			add = 100
+		}
+#以下照抄原版生活方式解锁的同盟谈判，同盟谈判基础接受度为-25
 ##########照抄原版开始
 		# Tier Differences
 		modifier = {
@@ -482,7 +514,7 @@ TributeSystem_offer_allegiance_interaction = {#请求成为朝贡国
 	}
 ##########照抄原版结束
 	ai_potential = {
-		always = no
+#		always = no
 		is_at_war = no
 	}
 	
@@ -506,51 +538,19 @@ TributeSystem_offer_allegiance_interaction = {#请求成为朝贡国
 		}
 		modifier = {
 			scope:actor = {
-				has_realm_law = crown_authority_0
+				primary_title.tier = tier_duchy
+#				has_government = tribal_government
+				NOT = { any_neighboring_top_liege_realm_owner = { is_ai = no } }
 			}
-			factor = 20
+			add = 50
 		}
 		modifier = {
 			scope:actor = {
-				has_realm_law = crown_authority_1
+				primary_title.tier = tier_kingdom
+#				has_government = tribal_government
+				NOT = { any_neighboring_top_liege_realm_owner = { is_ai = no } }
 			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_2
-			}
-			factor = 5
-		}
-		modifier = {
-			scope:actor = {
-				prestige_level < 3
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				dynasty_prestige_level < 3
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				realm_size > 40
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				diplomacy_lifestyle_perk_points > 10
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_01_trigger = yes
-			}
-			factor = 25
+			add = 50
 		}
 	}
 	
@@ -685,7 +685,18 @@ TributeSystem_demand_allegiance_interaction = {#要求成为朝贡国
 	}
 	
 	ai_accept = { # Similar to Negotiate Alliance, but without modifiers for Liege, being an heir, etc.
-		base = -50#以下照抄原版生活方式解锁的同盟谈判，同盟谈判基础接受度为-25
+		base = -50
+		modifier = {
+			scope:actor = {
+				is_ai = yes
+				primary_title.tier >= tier_kingdom
+			}
+			scope:recipient = {
+				is_ai = yes
+			}
+			add = 300
+		}
+#以下照抄原版生活方式解锁的同盟谈判，同盟谈判基础接受度为-25
 ##########照抄原版开始
 		# Tier Differences
 		modifier = {
@@ -1037,13 +1048,13 @@ TributeSystem_demand_allegiance_interaction = {#要求成为朝贡国
 	}
 ##########照抄原版结束
 	ai_potential = {
-		always = no
+#		always = no
 		is_at_war = no
 	}
 	
 	ai_targets = {
 		ai_recipients = neighboring_rulers
-		max = 10
+		max = 30
 	}
 	
 	ai_frequency = 72
@@ -1061,51 +1072,63 @@ TributeSystem_demand_allegiance_interaction = {#要求成为朝贡国
 		}
 		modifier = {
 			scope:actor = {
-				has_realm_law = crown_authority_0
+				primary_title.tier = tier_kingdom
 			}
-			factor = 20
+			add = 20
+		}
+		modifier = {
+			scope:actor = {
+				primary_title.tier = tier_empire
+			}
+			add = 30
 		}
 		modifier = {
 			scope:actor = {
 				has_realm_law = crown_authority_1
 			}
-			factor = 10
+			add = 5
 		}
 		modifier = {
 			scope:actor = {
 				has_realm_law = crown_authority_2
 			}
-			factor = 5
+			add = 10
 		}
 		modifier = {
 			scope:actor = {
-				prestige_level < 3
+				has_realm_law = crown_authority_3
 			}
-			factor = 10
+			add = 20
 		}
 		modifier = {
 			scope:actor = {
-				dynasty_prestige_level < 3
+				prestige_level > 3
 			}
-			factor = 10
+			add = 10
 		}
 		modifier = {
 			scope:actor = {
-				realm_size > 40
+				dynasty.dynasty_prestige_level > 3
 			}
-			factor = 10
+			add = 10
+		}
+		modifier = {
+			scope:actor = {
+				sub_realm_size > 40
+			}
+			add = 10
 		}
 		modifier = {
 			scope:actor = {
 				diplomacy_lifestyle_perk_points > 10
 			}
-			factor = 10
+			add = 10
 		}
 		modifier = {
 			scope:actor = {
-				SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_01_trigger = yes
+				SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_01_trigger = yes
 			}
-			factor = 25
+			add = 25
 		}
 	}
 	
@@ -1243,55 +1266,7 @@ TributeSystem_demand_allegiance_with_wealth_offer_interaction = {#贿赂其成�
 	}
 	
 	ai_will_do = {
-		base = 25
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_0
-			}
-			factor = 20
-		}
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_1
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_2
-			}
-			factor = 5
-		}
-		modifier = {
-			scope:actor = {
-				prestige_level < 3
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				dynasty_prestige_level < 3
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				realm_size > 40
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				diplomacy_lifestyle_perk_points > 10
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_01_trigger = yes
-			}
-			factor = 25
-		}
+		base = 0
 	}
 	
 }
@@ -1370,55 +1345,7 @@ TributeSystem_suzerain_break_tribute_relation_interaction = {#宗主国抛弃朝
 	}
 	
 	ai_will_do = {
-		base = 50
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_0
-			}
-			factor = -20
-		}
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_1
-			}
-			factor = -10
-		}
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_2
-			}
-			factor = -10
-		}
-		modifier = {
-			scope:actor = {
-				prestige_level > 3
-			}
-			factor = -10
-		}
-		modifier = {
-			scope:actor = {
-				dynasty_prestige_level > 3
-			}
-			factor = -10
-		}
-		modifier = {
-			scope:actor = {
-				realm_size > 100
-			}
-			factor = -10
-		}
-		modifier = {
-			scope:actor = {
-				diplomacy_lifestyle_perk_points > 10
-			}
-			factor = -10
-		}
-		modifier = {
-			scope:actor = {
-				SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_01_trigger = yes
-			}
-			factor = -50
-		}
+		base = 0
 	}
 	
 }
@@ -1494,60 +1421,12 @@ TributeSystem_tributary_break_tribute_relation_interaction = {#朝贡国提出�
 	auto_accept = yes
 
 	ai_potential = {
-		always = yes
+		always = no
 	}
 	
 	ai_will_do = {
-		base = 10
-
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_0
-			}
-			factor = 20
-		}
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_1
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				has_realm_law = crown_authority_2
-			}
-			factor = 5
-		}
-		modifier = {
-			scope:actor = {
-				prestige_level < 3
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				dynasty_prestige_level < 3
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				realm_size > 40
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				diplomacy_lifestyle_perk_points > 10
-			}
-			factor = 10
-		}
-		modifier = {
-			scope:actor = {
-				SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_01_trigger = yes
-			}
-			factor = 25
-		}
+		base = 0
 	}
+	
 }
 
