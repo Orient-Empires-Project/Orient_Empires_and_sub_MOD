@@ -4,13 +4,13 @@
 
 	war_name = "MANDATE_WAR_NAME"
 	war_name_base = "MANDATE_WAR_NAME_BASE"
-	cb_name = "MANDATE_CB_NAME"
+	cb_name = "MANDATE_WAR_CB_NAME"
 
 	combine_into_one = yes
 	should_show_war_goal_subview = yes
 	mutually_exclusive_titles = { always = yes }
 
-	target_titles = all
+	target_titles = neighbor_land_or_water
 	target_title_tier = all
 	target_de_jure_regions_above = yes
 	use_de_jure_wargoal_only = yes
@@ -58,6 +58,10 @@
 	allowed_for_character = {		
 		capital_province = { geographical_region = world_asia_china }
 		highest_held_title_tier >= tier_duchy
+		NAND = {
+			is_bureau_government_trigger = yes
+			liege = scope:defender
+		}
 	}
 	
 	# Root is the title
@@ -80,6 +84,13 @@
 				}
 				prestige_level >= 1
 			}
+			trigger_if = {
+				limit = {
+					has_government = imperial_government
+					is_corps_government_trigger = yes
+				}
+				has_claim_on = title:e_celestia
+			}
 			trigger_else_if = {
 				limit = {
 					faith.religious_head = scope:attacker
@@ -100,9 +111,11 @@
 			custom_description = {
 				text = has_used_lifetime_subjugation
 				subject = scope:attacker
-				NOT = {
+				NOR = {
 					scope:attacker = {
 						has_character_flag = used_lifetime_subjugation
+						has_character_flag = join_mandate_war_attacker
+						has_character_flag = join_mandate_war_defender
 					}
 				}
 			}
@@ -137,7 +150,7 @@
 #		}
 		
 		scope:defender = {
-				is_oe_imperial_government_trigger = yes
+			is_oe_imperial_government_trigger = yes
 #			trigger_if = {
 #				limit = { scope:attacker = { is_ai = no } } # Already pre-filtered by the AI due to ai_only_against_neighbors = yes. any_neighboring_top_liege_realm_owner is expensive
 #				scope:attacker = {
@@ -500,7 +513,12 @@
 			save_scope_as = change
 			add_claim_on_loss = yes
 		}
-		scope:defender.primary_title = { add_to_temporary_list = titles_taken }
+		scope:defender = {
+			remove_trait = BureaucracyEmpire_lifestyle_bureaucrat
+			every_held_title = {
+				add_to_temporary_list = titles_taken
+			}
+		}
 		# go through the dejure hierarchy under target titles, transfer titles with same or worse tolerance holders (their religion equaly or less tolerated than the defender's),
 		# take the holder as vassal otherwise and don't go deeper
 		every_in_list = {
@@ -518,15 +536,15 @@
 							}
 						}
 						NOT = {
+							holder = { is_ai = no }
+						}
+						NOT = {
 							holder = {
 								has_character_flag = join_mandate_war_attacker				
 							}
 						}
 						holder = {
 							has_character_flag = join_mandate_war_defender				
-						}
-						holder = {
-							has_character_flag = join_mandate_war_another				
 						}
 						AND = {
 							scope:attacker.faith = {
@@ -535,6 +553,7 @@
 								}
 							}
 							holder = {
+								is_ai = yes
 								OR = {
 									this = scope:defender
 									target_is_liege_or_above = scope:defender
@@ -548,6 +567,7 @@
 					tier = tier_county
 					exists = holder
 					holder = {
+						is_ai = yes
 						OR = {
 							this = scope:defender
 							target_is_liege_or_above = scope:defender
@@ -596,10 +616,11 @@
 			}
 		}	
 		resolve_title_and_vassal_change = scope:change
+		
 
-#		scope:attacker = {
-#			found_new_chinese_empire_effect = yes
-#		}
+		scope:attacker = {
+			found_new_chinese_empire_effect = yes
+		}
 #
 #		create_title_and_vassal_change = {
 #			type = swear_fealty

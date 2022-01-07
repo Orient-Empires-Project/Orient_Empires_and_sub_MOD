@@ -6,13 +6,17 @@
 	mutually_exclusive_titles = { always = yes }
 	
 	allowed_for_character = {
-		capital_province = { geographical_region = world_asia_china }
-		is_independent_ruler = yes
+		scope:attacker = {
+			is_independent_ruler = yes
+			capital_province = { geographical_region = world_asia_china }
+		}
 	}
 	allowed_against_character = {
-		capital_province = { geographical_region = world_asia_china }
-		is_independent_ruler = yes
-		NOT = { has_primary_title = title:k_xia }
+		scope:defender = {
+			is_independent_ruler = yes
+			capital_province = { geographical_region = world_asia_china }
+			NOT = { has_primary_title = title:k_xia }
+		}
 	}
 	target_titles = neighbor_land
 	target_title_tier = kingdom
@@ -26,7 +30,6 @@
 		gold = scope:attacker.diplomacy
 		piety = 100
 		prestige = 100
-		desc = CB_BASE_COST
 	}
 
 	on_victory_desc = {
@@ -55,6 +58,12 @@
 			defender = scope:defender
 			change = scope:change
 			take_occupied = yes
+		}
+		scope:target_titles = {
+			change_title_holder = {
+				holder = scope:attacker
+				change = scope:change
+			}
 		}
 		resolve_title_and_vassal_change = scope:change
 
@@ -273,7 +282,10 @@ steppe_war = {
 	}
 	
 	on_victory = {
-		scope:attacker = { show_pow_release_message_effect = yes }
+		scope:attacker = {
+			show_pow_release_message_effect = yes
+			imprison = { target = scope:defender }
+		}
 		create_title_and_vassal_change = {
 			type = conquest
 			save_scope_as = change
@@ -295,7 +307,10 @@ steppe_war = {
 				every_held_title = {
 					if = {
 						limit = {
-							tier = scope:defender.primary_title.tier
+							OR = {
+								tier = scope:defender.primary_title.tier
+								tier >= tier_kingdom
+							}
 						}
 						change_title_holder = {
 							holder = scope:attacker
@@ -334,7 +349,7 @@ steppe_war = {
 				}
 			}
 			
-			scope:defender = {
+			scope:defender = {			
 				change_liege = {
 					liege = scope:attacker
 					change = scope:change
