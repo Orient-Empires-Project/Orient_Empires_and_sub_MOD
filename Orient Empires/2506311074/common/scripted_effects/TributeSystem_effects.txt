@@ -2,13 +2,13 @@
 # by 往来天地间 WangLaiTianDiJian
 # TributeSystem
 
-#WLTDJ20220109
+#WLTDJ20220116
 
 
 
 TributeSystem_create_tribute_relation_effect = {
-	scope:$TRIBUTARY$ = { save_scope_as = tributary }
-	scope:$SUZERAIN$ = { save_scope_as = suzerain }
+#	scope:$TRIBUTARY$ = { save_scope_as = tributary }
+#	scope:$SUZERAIN$ = { save_scope_as = suzerain }
 	scope:$TRIBUTARY$ = { 
 		every_relation = {
 			type = WLTDJ_suzerain
@@ -22,6 +22,8 @@ TributeSystem_create_tribute_relation_effect = {
 			modifier = TributeSystem_in_relation_on_suzerain_opinion
 			target = scope:$SUZERAIN$
 		}
+		set_variable = { name = TributeSystem_current_suzerain value = scope:$SUZERAIN$ }
+		set_variable = { name = TributeSystem_completed_tribute_counter value = 0 }
 	}
 	scope:$SUZERAIN$ = {
 		add_opinion = {
@@ -161,5 +163,78 @@ TributeSystem_all_tribute_relation_validity_check_effect = {
 		}
 	}
 }
+
+
+TributeSystem_succession_handling_for_tributary_effect = {
+	if = {
+		limit = {
+			scope:$predecessor$ = {
+				any_relation = { type = WLTDJ_suzerain }
+				has_variable = TributeSystem_current_suzerain
+				has_variable = TributeSystem_completed_tribute_counter			
+			}
+		}
+
+		scope:$successor$ = {
+			set_global_variable = { name = TributeSystem_current_suzerain value = scope:$predecessor$.var:TributeSystem_current_suzerain }
+			set_variable = { name = TributeSystem_completed_tribute_counter value = scope:$predecessor$.var:TributeSystem_completed_tribute_counter }
+		}
+
+		scope:$predecessor$ = {#只有一个宗主国
+			every_relation = {
+				type = WLTDJ_tributary
+				save_temporary_scope_as = suzerain
+			}
+		}
+
+		TributeSystem_create_tribute_relation_effect = { SUZERAIN = suzerain TRIBUTARY = $successor$ }
+	}
+}
+
+
+TributeSystem_succession_handling_for_suzerain_effect = {
+	if = {
+		limit = {
+			scope:$predecessor$ = {
+				any_relation = { type = WLTDJ_tributary }
+			}
+		}
+
+		every_relation = {
+			type = WLTDJ_tributary
+			save_temporary_scope_as = tributary
+			set_global_variable = { name = TributeSystem_current_suzerain value = scope:$successor$ }
+			TributeSystem_create_tribute_relation_effect = { SUZERAIN = $successor$ TRIBUTARY = tributary }
+		}
+	}
+}
+
+
+TributeSystem_death_succession_handling_effect = {
+	random_list = {
+		50 = {
+			trigger = { any_relation = { type = WLTDJ_tributary } }
+			save_temporary_scope_as = predecessor
+			primary_heir = { save_temporary_scope_as = successor }
+			TributeSystem_succession_handling_for_suzerain_effect = { predecessor = predecessor successor = successor }			
+		}
+		50 = {}
+	}
+
+	random_list = {
+		50 = {
+			trigger = { any_relation = { type = WLTDJ_suzerain } }
+			save_temporary_scope_as = predecessor
+			primary_heir = { save_temporary_scope_as = successor }
+			TributeSystem_succession_handling_for_tributary_effect = { predecessor = predecessor successor = successor }
+		}
+		50 = {}
+	}
+}
+
+
+
+
+
 
 

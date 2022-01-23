@@ -1,0 +1,200 @@
+﻿pool_bureaucrat = {
+	valid_character = {
+		is_capable_adult = yes
+		is_imprisoned = no
+		is_male = yes
+
+		OR = {
+			has_culture_group = culture_group:chinese_group
+			has_same_culture_group_as = scope:base
+		}
+
+		trigger_if = {
+			limit = {
+				scope:base = { has_realm_law = female_only_law }
+			}
+			is_female = yes
+		}
+		trigger_if = {
+			limit = {
+				scope:base = { has_realm_law = male_only_law }
+			}
+			is_male = yes
+		}
+
+		OR = {
+			is_lowborn = yes
+			is_courtier_of = scope:base
+			AND = {
+				exists = dynasty
+				exists = scope:base.dynasty
+				dynasty = scope:base.dynasty				
+			}
+#			AND = {
+#				exists = dynasty
+#				dynasty = {
+#					any_dynasty_member = {
+#						count <= 10
+#					}
+#				}
+#			}
+		}
+		has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+		OR = {
+			is_landed = no
+			is_bureau_government_trigger = yes
+		}
+	}
+	
+	character_score = {
+		base = 5
+		
+		modifier = {
+			add = 100
+			is_courtier_of = scope:base
+		}
+		modifier = {
+			add = { value = age max = 50 }
+		}
+		modifier = {
+			add = 50 	
+			is_lowborn = yes
+		}
+		modifier = {
+			every_close_or_extended_family_member = {
+				limit = {
+					is_alive = yes
+					is_ruler = yes
+				}
+				add = 5
+			}
+		}
+		modifier = {
+			add = {
+				value = var:BureaucracyEmpire_bureaucrat_exp
+			} 
+		}		
+		modifier = {
+			highest_held_title_tier = tier_barony
+			add = -30 	
+		}
+		modifier = {
+			highest_held_title_tier = tier_county
+			add = -100 	
+		}
+		modifier = {  #朝野不兼
+			highest_held_title_tier = tier_duchy
+			add = -300 	
+		}
+		modifier = {
+			add = { value = stewardship_lifestyle_perk_points }
+		}
+		modifier = {
+			add = { value = learning_lifestyle_perk_points }
+		}
+		modifier = {
+			add = { value = diplomacy_lifestyle_perk_points }
+		}
+		modifier = {
+			factor = -500
+			is_female = yes
+		}	
+	}
+	
+	
+	config = {
+		background = bureaucrat
+		age = { 20 80 }
+	}
+	
+	selection_count = 5
+	
+	pool = faith
+	#court = yes
+	gender = male
+}
+
+
+pool_bureaucracy_succession = {   #这就是科举制
+	valid_character = {
+		is_capable_adult = yes
+		is_imprisoned = no
+
+		OR = {
+			has_culture_group = culture_group:chinese_group
+			has_same_culture_group_as = scope:base
+		}
+
+		trigger_if = {
+			limit = {
+				scope:base = { has_realm_law = female_only_law }
+			}
+			is_female = yes
+		}
+		trigger_if = {
+			limit = {
+				scope:base = { has_realm_law = male_only_law }
+			}
+			is_male = yes
+		}
+		has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+		is_landed = no
+	}
+	
+	character_score = {
+		base = 0		
+		modifier = {  #随从
+			add = 20
+			is_courtier_of = scope:base
+		}
+		modifier = {  #亲戚
+			add = 20
+			AND = {
+				exists = dynasty
+				exists = scope:base.dynasty
+				dynasty = scope:base.dynasty				
+			}
+		}
+		modifier = { #门第
+			add = {
+				value = dynasty.dynasty_prestige_level
+				multiply = 10
+			} 
+		}
+		modifier = {  #年级
+			add = { value = age max = 50 }
+		}
+		modifier = {  #寒门
+			add = 20 	
+			is_lowborn = yes
+		}
+		modifier = {  #中产
+			add = 10 	
+			AND = {
+				exists = dynasty
+				dynasty = {
+					any_dynasty_member = {
+						count <= 10
+					}
+				}
+			}
+		}
+		modifier = {  #考分
+			add = { value = learning_lifestyle_perk_points }
+		}
+		modifier = {  #女子无才便是德
+			factor = -500
+			is_female = yes
+		}	
+	}
+	
+	config = {
+		background = bureaucrat
+		age = { 16 85 }
+	}
+	
+	selection_count = 25  #候补梯队
+	
+	pool = faith
+	gender = male
+}

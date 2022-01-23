@@ -2,7 +2,7 @@
 # by 往来天地间 WangLaiTianDiJian
 # SpecialRelevantFactorImpactOnRuler
 
-#WLTDJ20220109
+#WLTDJ20220116
 
 #小心注意，修改某个trigger可能引起本文件其他若干trigger变化，具体搜一下被修改的这个trigger名字就知道
 
@@ -277,10 +277,10 @@ SpecialRelevantFactorImpactOnRuler_any_relevant_factor_is_type_A_08_trigger = {
 }
 
 
-#9.【】（$SpecialRelevantFactorImpactOnRuler_type_A_09_A_character_modifier_for_tips$）
-#统治者A：律令制，独立统治者，王国级或以上,玩家角色
+#9.向廷臣发俸禄（$SpecialRelevantFactorImpactOnRuler_type_A_09_A_character_modifier_for_tips$）
+#统治者A：律令制，独立统治者，王国级或以上，玩家角色
 #角色B：为A的廷臣
-#A获得的修正：每有一个符合条件的AB组合获得正面修正：“$SpecialRelevantFactorImpactOnRuler_type_A_09_A_character_modifier_for_tips$”。若A是玩家，头衔等级与A相差越小的B给A带来增益越多，每一档的修正最大叠加数量为10，对AI则无视头衔级别差异，增益均一致，且无前述数量限制
+#A受到的影响：每年A均要向B支付金钱，金钱数额和B的能力总和成正比
 
 
 SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_09_trigger = {
@@ -300,5 +300,78 @@ SpecialRelevantFactorImpactOnRuler_any_relevant_factor_is_type_A_09_trigger = {
 	}
 }
 
+#10.向内阁成员发俸禄（$SpecialRelevantFactorImpactOnRuler_type_A_10_A_character_modifier_for_tips$）
+#统治者A：律令制，独立统治者，王国级或以上，玩家角色
+#角色B：为A的内阁成员（广义）
+#A受到的影响：每年A均要向B支付金钱，金钱数额和B的能力总和成正比
 
+
+SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_10_trigger = {
+	SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_09_trigger = yes
+}
+
+SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_10_trigger = {
+	is_councillor_of = scope:$RULER$
+}
+
+SpecialRelevantFactorImpactOnRuler_any_relevant_factor_is_type_A_10_trigger = {
+	any_councillor = {
+		SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_10_trigger = { RULER = $RULER$ }
+	}
+}
+
+#11.向直属封臣发俸禄（$SpecialRelevantFactorImpactOnRuler_type_A_11_A_character_modifier_for_tips$）
+#统治者A：律令制，独立统治者，王国级或以上，玩家角色
+#角色B：为A的直属封臣
+#A受到的影响：每年A均要向B支付金钱，金钱数额和B的领地规模、收入呈正相关
+
+
+SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_11_trigger = {
+	SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_09_trigger = yes
+}
+
+SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_11_trigger = {
+	is_vassal_of = scope:$RULER$
+}
+
+SpecialRelevantFactorImpactOnRuler_any_relevant_factor_is_type_A_11_trigger = {
+	any_vassal = {
+		SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_11_trigger = { RULER = $RULER$ }
+	}
+}
+
+
+#12.转移支付（$SpecialRelevantFactorImpactOnRuler_type_A_12_A_character_modifier_for_tips$）
+#统治者A：律令制，独立统治者，王国级或以上，玩家角色
+#角色B：为A的直接或间接封臣,伯爵级或以上,其直接持有的任一伯爵领满足以下条件之一：文化与A不同，或，持有者为部落制，或，与异国接壤
+#A受到的影响：每年A均要向B支付金钱，金钱数额计算方法：对B直接持有的每一块满足前述条件的伯爵领，若该伯爵领总收入低于最高统治者全国之内伯爵领的平均收入，则A为这一块伯爵领支付的金额为该伯爵领与前述平均收入的差额，但B实际收到的金额则会受A、B首府间距离大小的影响，距离越远，B实际收到的金额越小，换言之，有一部分A支付的金额凭空损失掉了
+
+
+SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_12_trigger = {
+	SpecialRelevantFactorImpactOnRuler_trigger_ruler_is_type_A_09_trigger = yes
+}
+
+SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_12_trigger = {
+	primary_title.tier > tier_barony
+	any_realm_county = { SpecialRelevantFactorImpactOnRuler_type_A_12_county_trigger = yes }
+	is_vassal_or_below_of = scope:$RULER$
+
+}
+
+SpecialRelevantFactorImpactOnRuler_any_relevant_factor_is_type_A_12_trigger = {
+	any_vassal_or_below = {
+		SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_12_trigger = { RULER = $RULER$ }
+	}
+}
+
+SpecialRelevantFactorImpactOnRuler_type_A_12_county_trigger = {
+	holder.top_liege = { save_temporary_scope_as = temp_character }
+	OR = {
+		NOT = { culture = holder.top_liege.culture }
+		holder = { has_government = tribal_government }
+		any_neighboring_county = {
+			NOT = { holder.top_liege = scope:temp_character }
+		}
+	}
+}
 

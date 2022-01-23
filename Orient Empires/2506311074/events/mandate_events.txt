@@ -49,19 +49,13 @@ mandate.0001 = {
 		}
 	
 		ai_chance = {
-			base = 100
+			base = 50
 			modifier = { #I am a King!
 				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
 				trigger = {
 					scope:china_vassal = { highest_held_title_tier = tier_kingdom }
 				}
 				add = -20
-			}
-			modifier = { #		
-				trigger = {
-					scope:china_vassal = { is_vassal_of = scope:defender }
-				}
-			add = -70
 			}
 			modifier = {
 				add = 20
@@ -117,7 +111,7 @@ mandate.0001 = {
 						value = scope:attacker.max_military_strength
 						divide = { value = scope:defender.max_military_strength min = 1 }
 						}
-					multiply = 10
+					multiply = 50
 					max = 50
 				  }
 			}
@@ -143,12 +137,51 @@ mandate.0001 = {
 				add = 100
 				is_allied_to = scope:attacker
 			}
+			modifier = {#生活方式点数的差值
+				desc = lifestyle_perks_difference
+				add = {
+					add = scope:china_vassal.lifestyle_perk_points
+					add = {
+						value = scope:attacker.lifestyle_perk_points
+						multiply = -1
+					}
+				}
+			}
+			modifier = {
+				add = 200
+				is_vassal_of = scope:attacker
+			}
+			opinion_modifier = {#对领主的好感修正
+				trigger = {
+					scope:china_vassal = {
+						opinion = {
+							target = scope:china_vassal.liege
+							value < 0
+						}
+					}
+				}
+				who = scope:china_vassal
+				opinion_target = scope:china_vassal.liege
+				multiplier = -1
+			}
+			opinion_modifier = { #recipient对actor的好感修正
+				who = scope:china_vassal
+				opinion_target = scope:attacker
+			}
+			#Option:
+			modifier = { #弱牵制加成
+				add = 30
+				scope:hook = yes
+				scope:defender = { has_weak_hook = scope:china_vassal }
+				desc = OPTION_HOOKUSE
+			}
 		}
 	}
 	
 	# 加入保皇军
 	option = {
 		name = mandate.0001.b
+		base = 50
 		scope:china_vassal = {
 			add_opinion = {
 				modifier = friendliness_opinion
@@ -181,35 +214,12 @@ mandate.0001 = {
 				is_allied_to = scope:defender
 			}
 			modifier = {
-				add = 30
+				add = 20
 				scope:china_vassal.faith = scope:defender.faith
 			}
 			modifier = {
-				add = 30
-				scope:china_vassal.culture = scope:defender.culture
-			}
-			modifier = {
-				add = 10
-				opinion = {
-					target = scope:defender
-					value >= 10
-				}
-			}
-
-			modifier = {
 				add = 20
-				opinion = {
-					target = scope:defender
-					value >= 20
-				}
-			}
-
-			modifier = {
-				add = 40
-				opinion = {
-					target = scope:defender
-					value >= 40
-				}
+				scope:china_vassal.culture = scope:defender.culture
 			}
 
 			modifier = {
@@ -262,7 +272,7 @@ mandate.0001 = {
 						value = scope:defender.max_military_strength
 						divide = { value = scope:attacker.max_military_strength min = 1 }
 						}
-					multiply = 10
+					multiply = 50
 					max = 50
 				  }
 			}
@@ -283,6 +293,54 @@ mandate.0001 = {
 					}
 					has_relation_rival = scope:attacker
 				}
+			}
+			modifier = {#生活方式点数的差值
+				desc = lifestyle_perks_difference
+				add = {
+					add = scope:china_vassal.lifestyle_perk_points
+					add = {
+						value = scope:attacker.lifestyle_perk_points
+						multiply = -1
+					}
+				}
+			}
+			# OPINION INFLUENCE
+			modifier = { #Dread Level 1 Modifier
+				add = intimidated_external_reason_value
+				scope:china_vassal = {
+					has_dread_level_towards = {
+						target = scope:defender
+						level = 1
+					}
+				}
+				desc = INTIMIDATED_REASON
+			}
+			modifier = { #Dread Level 2 Modifier
+				add = cowed_external_reason_value
+				scope:china_vassal = {
+					has_dread_level_towards = {
+						target = scope:defender
+						level = 2
+					}
+				}
+				desc = COWED_REASON
+			}
+			opinion_modifier = { #recipient对actor的好感修正
+				who = scope:china_vassal
+				opinion_target = scope:defender
+				multiplier = 0.5
+			}
+			#Option:
+			modifier = { #弱牵制加成
+				add = 30
+				scope:hook = yes
+				scope:defender = { has_weak_hook = scope:china_vassal }
+				desc = OPTION_HOOKUSE
+			}
+			modifier = { #民州选项修正
+				add = 20
+				is_bureau_government_trigger = yes
+				desc = OPTION_MINGZHOU_CHOOSE
 			}			
 		}
 	}
@@ -430,6 +488,12 @@ mandate.0001 = {
 					}
 				}
 			}
+			modifier = { #		
+				trigger = {
+					scope:china_vassal = { is_vassal_of = scope:defender }
+				}
+				add = 100
+			}
 			modifier = { #Comparative military strength.
 				desc = mandate.0001.c_desc
 				add = {
@@ -563,7 +627,7 @@ mandate.0005 = {
 	}
 
 	right_portrait = {
-		character = character:194326
+		character = title:e_cathay.holder
 		animation =  personality_rational
 	}
 	option = {
@@ -573,17 +637,19 @@ mandate.0005 = {
 			always = yes
 		}
 
-		scope:attacker = {
 		create_title_and_vassal_change = {
 			type = conquest
 			save_scope_as = change
 			add_claim_on_loss = no
 		}
+
+		title:e_celestia.holder = {
 			every_held_title = {
 				if = {
 					limit = {
 						OR = { 
 							target_is_de_jure_liege_or_above = title:k_yan
+							target_is_de_jure_liege_or_above = title:d_youzhou
 							target_is_de_jure_liege_or_above = title:d_yunzhong
 						}						
 					}
@@ -599,6 +665,7 @@ mandate.0005 = {
 						any_held_title = {
 							OR = {
 								target_is_de_jure_liege_or_above = title:k_yan
+								target_is_de_jure_liege_or_above = title:d_youzhou
 								target_is_de_jure_liege_or_above = title:d_yunzhong
 							}
 						}
@@ -609,17 +676,29 @@ mandate.0005 = {
 					}
 				}
 			}
-		resolve_title_and_vassal_change = scope:change
 		}
+		resolve_title_and_vassal_change = scope:change
+
 		hidden_effect = {
-			title:k_yan = { de_jure_liege = e_cathay }
-			title:k_khitan = { de_jure_liege = e_cathay }
-			title:k_jurchen = { de_jure_liege = e_cathay }
-			title:d_yunzhong = { de_jure_liege = k_khitan }
-			title:c_linzhou_shaan.holder = { 
-				becomes_independent = yes
+			scope:attacker = {
+				add_truce_both_ways = {
+					character = title:e_cathay.holder
+					days = 1825
+					war = root.war
+					result = white_peace
+				}
 			}
 		}
+
+#		hidden_effect = {
+#			title:k_yan = { de_jure_liege = e_cathay }
+#			title:k_khitan = { de_jure_liege = e_cathay }
+#			title:k_jurchen = { de_jure_liege = e_cathay }
+#			title:d_yunzhong = { de_jure_liege = k_khitan }
+#			title:c_linzhou_shaan.holder = { 
+#				becomes_independent = yes
+#			}
+#		}
 		ai_chance = 10000
 	}
 
@@ -652,13 +731,9 @@ mandate.0006 = {
 	immediate = {
 		
 	}
-	left_portrait = {
-		character = scope:attacker
-		animation = personality_dishonorable
-	}
 
 	right_portrait = {
-		character = character:194326
+		character = character:1406215
 		animation =  personality_rational
 	}
 	option = {
@@ -667,6 +742,10 @@ mandate.0006 = {
 		ai_potential = {
 			always = yes
 		}
+		ai_will_do = {
+			base = 10000
+		}
+		ai_frequency = 100
 
 		create_title_and_vassal_change = {
 			type = usurped
@@ -679,9 +758,8 @@ mandate.0006 = {
 		}
 		resolve_title_and_vassal_change = scope:change
 
-	character:1406215 = {
-		create_tang_empire_scripted_effect = yes
-		#add_trait = founding_monarch
-	}
-		ai_chance = 10000
+		character:1406215 = {
+			create_tang_empire_scripted_effect = yes
+			#add_trait = founding_monarch
+		}
 	}
