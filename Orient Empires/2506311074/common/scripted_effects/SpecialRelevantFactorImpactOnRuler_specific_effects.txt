@@ -2,7 +2,7 @@
 # by 往来天地间 WangLaiTianDiJian
 # SpecialRelevantFactorImpactOnRuler
 
-#WLTDJ20220116
+#WLTDJ20220205
 
 
 ###########不同类别具体修正，可修改
@@ -256,18 +256,40 @@ SpecialRelevantFactorImpactOnRuler_type_A_05_impact_effect = {#自定义，对�
 		scope:affected_ruler_throughout = {
 			if = {
 				limit = { is_ai = yes }
-				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_A_01_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
-			}
-			else_if = {
-				limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_05_character_flag_auto_pay_minimum_maintenance }
-				SpecialRelevantFactorImpactOnRuler_event_0001_option_A_effect = yes
-			}
-			else_if = {
-				limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_05_character_flag_auto_pay_more_to_get_positive_modifier }
-				SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
+				#add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_A_01_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRuler_type_A_05_add_modifier_effect = yes
 			}
 			else = {
-				trigger_event = { id = SpecialRelevantFactorImpactOnRuler.0001 }
+				SpecialRelevantFactorImpactOnRuler_event_0001_parameter_calculation_effect = yes
+				if = {
+					limit = {
+						#has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_05_character_flag_auto_pay_minimum_maintenance
+						has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_05_law_1
+					}
+					SpecialRelevantFactorImpactOnRuler_event_0001_option_A_effect = yes
+				}
+				else_if = {
+					limit = {
+						#has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_05_character_flag_auto_pay_more_to_get_positive_modifier
+						has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_05_law_2
+					}
+					SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
+				}
+				else_if = {
+					limit = {
+						has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_05_law_3
+					}
+					SpecialRelevantFactorImpactOnRuler_event_0001_option_C_effect = yes
+				}
+	#			else_if = {
+	#				limit = {
+	#					has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_05_law_4
+	#				}
+	#				SpecialRelevantFactorImpactOnRuler_event_0001_option_D_effect = yes
+	#			}
+				else = {
+					trigger_event = { id = SpecialRelevantFactorImpactOnRuler.0001 }
+				}
 			}
 		}		
 
@@ -275,6 +297,22 @@ SpecialRelevantFactorImpactOnRuler_type_A_05_impact_effect = {#自定义，对�
 
 	clear_saved_scope = affected_ruler_throughout
 	clear_saved_scope = relevant_factor_throughout
+}
+
+
+SpecialRelevantFactorImpactOnRuler_event_0001_parameter_calculation_effect = {
+	save_scope_value_as = {
+		name = pay_income_multiplier
+		value = {
+			value = scope:relevant_factor_throughout.max_military_strength
+			divide = scope:affected_ruler_throughout.max_military_strength #兵力比值，超过此比例，赏赐如同岁币 0.1-2
+			multiply = scope:relevant_factor_throughout.sub_realm_size
+			divide = scope:affected_ruler_throughout.sub_realm_size #领土比值，领土比越大赏赐负担越小 0.01-1
+			multiply = SpecialRelevantFactorImpactOnRuler_tribute_interval_year #朝贡要钱事件发生间隔
+			multiply = 40 #再加一层倍率修正，可以看出每年给对方多少个月的收入（针对维持关系）
+			multiply = { value = scope:relevant_factor_throughout.var:TributeSystem_completed_tribute_counter subtract = 1 multiply = 0.2 add = 1 } #每连续发生一次，花费比初次发生时加20%
+		}
+	}
 }
 
 
@@ -301,15 +339,131 @@ SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = {
 			name = temp_max_modifier_count
 			value = { value = scope:relevant_factor_throughout.var:TributeSystem_completed_tribute_counter subtract = 1 }
 		}
-		add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_A_01_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
-		SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
-			MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_B_01_character_modifier
-			YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
-			MAXMODIFIERCOUNT = scope:temp_max_modifier_count
-		}
+#		add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_A_01_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+
+
+#		SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+#			MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_B_01_character_modifier
+#			YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+#			MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+#		}
+		
+		SpecialRelevantFactorImpactOnRuler_type_A_05_add_modifier_effect = yes
+
 		clear_saved_scope = temp_max_modifier_count
 	}
 }
+
+SpecialRelevantFactorImpactOnRuler_event_0001_option_C_effect = {
+	SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
+	scope:affected_ruler_throughout = {
+#		add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_A_01_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+		SpecialRelevantFactorImpactOnRuler_spawn_cultural_event_troop_function_C_effect = {
+			ARMY_RECEIVER = affected_ruler_throughout
+			ORIGINOWNER = relevant_factor_throughout
+			SIZE_FACTOR = 0.05
+			NAME = SpecialRelevantFactorImpactOnRuler.0001.c.troop.name
+			COST_FACTOR = 0.5
+		}
+	}
+}
+
+SpecialRelevantFactorImpactOnRuler_event_0001_option_D_effect = {
+	if = {
+		limit = { is_allied_to = scope:relevant_factor_throughout }
+		SpecialRelevantFactorImpactOnRuler_break_alliance_function_effect = { ACTOR = affected_ruler_throughout TARGET = relevant_factor_throughout }
+	}
+	if = {
+		limit = { has_relation_WLTDJ_tributary = scope:relevant_factor_throughout }
+		TributeSystem_break_tribute_relation_effect = {	SUZERAIN = affected_ruler_throughout TRIBUTARY = relevant_factor_throughout }
+	}
+}
+
+
+SpecialRelevantFactorImpactOnRuler_type_A_05_add_modifier_effect = {
+	scope:affected_ruler_throughout = {
+		if = {
+			limit = { is_ai = yes }
+			if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_01_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_01_for_suzerain_initial_ai_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_01_for_suzerain_additional_ai_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+			else_if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_02_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_02_for_suzerain_initial_ai_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_02_for_suzerain_additional_ai_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+			else_if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_03_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_03_for_suzerain_initial_ai_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_03_for_suzerain_additional_ai_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+			else_if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_04_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_04_for_suzerain_initial_ai_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_04_for_suzerain_additional_ai_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_01_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_01_for_suzerain_initial_player_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_01_for_suzerain_additional_player_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+			else_if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_02_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_02_for_suzerain_initial_player_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_02_for_suzerain_additional_player_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+			else_if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_03_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_03_for_suzerain_initial_player_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_03_for_suzerain_additional_player_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+			else_if = {
+				limit = { scope:relevant_factor_throughout = { TributeSystem_is_type_04_tributary_of_trigger = { suzerain = affected_ruler_throughout } } }
+				add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_04_for_suzerain_initial_player_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
+				SpecialRelevantFactorImpactOnRule_add_modifier_function_effect = {
+					MODIFIERNAME = SpecialRelevantFactorImpactOnRuler_type_A_05_tributary_04_for_suzerain_additional_player_character_modifier
+					YEARS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
+					MAXMODIFIERCOUNT = scope:temp_max_modifier_count
+				}
+			}
+		}
+
+	}
+}
+
+
 
 
 SpecialRelevantFactorImpactOnRuler_type_A_07_impact_effect = {#自定义，对于每一类关系可定制
@@ -510,6 +664,7 @@ SpecialRelevantFactorImpactOnRuler_type_A_08_impact_effect = {#自定义，对�
 	clear_saved_scope = affected_ruler_throughout
 }
 
+############################################
 
 SpecialRelevantFactorImpactOnRuler_type_A_09_impact_effect = {#自定义，对于每一类关系可定制
 	scope:trigger_ruler_throughout = { save_scope_as = affected_ruler_throughout }
@@ -538,11 +693,17 @@ SpecialRelevantFactorImpactOnRuler_type_A_09_impact_effect = {#自定义，对�
 #	}
 
 	if = {
-		limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_09_character_flag_auto_accept }
+		limit = {
+#			has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_09_character_flag_auto_accept
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_09_law_1
+		}
 		SpecialRelevantFactorImpactOnRuler_event_0002_option_A_effect = yes
 	}
 	else_if = {
-		limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_09_character_flag_auto_reject }
+		limit = {
+#			has_character_flag = has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_09_character_flag_auto_reject
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_09_law_2
+		}
 		SpecialRelevantFactorImpactOnRuler_event_0002_option_B_effect = yes
 	}
 	else = {
@@ -553,14 +714,14 @@ SpecialRelevantFactorImpactOnRuler_type_A_09_impact_effect = {#自定义，对�
 	clear_saved_scope = relevant_factor_throughout
 }
 
-#SpecialRelevantFactorImpactOnRuler_event_0002_option_A_effect = {
+#SpecialRelevantFactorImpactOnRuler_event_0002_option_A_effect = {不能删
 #	pay_short_term_gold = {
 #		target = scope:relevant_factor_throughout
 #		gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_courtier_annuity_value
 #	}	
 #}
 
-#SpecialRelevantFactorImpactOnRuler_event_0002_option_B_effect = {
+#SpecialRelevantFactorImpactOnRuler_event_0002_option_B_effect = {不能删
 #	scope:relevant_factor_throughout = {
 #		add_opinion = {
 #			target = scope:affected_ruler_throughout
@@ -570,29 +731,45 @@ SpecialRelevantFactorImpactOnRuler_type_A_09_impact_effect = {#自定义，对�
 #}
 
 
+#SpecialRelevantFactorImpactOnRuler_event_0002_option_A_effect = {不能删
+#	every_in_list = {
+#		list = relevant_factor_list
+#		save_scope_as = relevant_factor_throughout
+#		scope:affected_ruler_throughout = {
+#			pay_short_term_gold = {
+#				target = scope:relevant_factor_throughout
+#				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_courtier_annuity_value
+#			}
+#		}
+#	}
+#}
+
+
 SpecialRelevantFactorImpactOnRuler_event_0002_option_A_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		save_scope_as = relevant_factor_throughout
-		scope:affected_ruler_throughout = {
-			pay_short_term_gold = {
-				target = scope:relevant_factor_throughout
-				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_courtier_annuity_value
+	#custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0002_option_A_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_gold = SpecialRelevantFactorImpactOnRuler_courtier_annuity_value
+		}
+	}
+	remove_short_term_gold = SpecialRelevantFactorImpactOnRuler_courtier_total_annuity_value
+}
+
+SpecialRelevantFactorImpactOnRuler_event_0002_option_B_effect = {
+	custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0002_option_B_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_opinion = {
+				target = scope:affected_ruler_throughout
+				modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_my_annuity_courtier_opinion
 			}
 		}
 	}
 }
 
-SpecialRelevantFactorImpactOnRuler_event_0002_option_B_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		add_opinion = {
-			target = scope:affected_ruler_throughout
-			modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_my_annuity_courtier_opinion
-		}
-	}
-}
-
+############################################
 
 SpecialRelevantFactorImpactOnRuler_type_A_10_impact_effect = {#自定义，对于每一类关系可定制
 	scope:trigger_ruler_throughout = { save_scope_as = affected_ruler_throughout }
@@ -621,11 +798,17 @@ SpecialRelevantFactorImpactOnRuler_type_A_10_impact_effect = {#自定义，对�
 #	}
 
 	if = {
-		limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_10_character_flag_auto_accept }
+		limit = {
+#			has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_10_character_flag_auto_accept
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_10_law_1
+		}
 		SpecialRelevantFactorImpactOnRuler_event_0003_option_A_effect = yes
 	}
 	else_if = {
-		limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_10_character_flag_auto_reject }
+		limit = {
+#			has_character_flag = has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_10_character_flag_auto_reject
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_10_law_2
+		}
 		SpecialRelevantFactorImpactOnRuler_event_0003_option_B_effect = yes
 	}
 	else = {
@@ -652,29 +835,44 @@ SpecialRelevantFactorImpactOnRuler_type_A_10_impact_effect = {#自定义，对�
 #	}
 #}
 
+#SpecialRelevantFactorImpactOnRuler_event_0003_option_A_effect = {
+#	every_in_list = {
+#		list = relevant_factor_list
+#		save_scope_as = relevant_factor_throughout
+#		scope:affected_ruler_throughout = {
+#			pay_short_term_gold = {
+#				target = scope:relevant_factor_throughout
+#				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_councillor_annuity_value
+#			}
+#		}
+#	}
+#}
+
 SpecialRelevantFactorImpactOnRuler_event_0003_option_A_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		save_scope_as = relevant_factor_throughout
-		scope:affected_ruler_throughout = {
-			pay_short_term_gold = {
-				target = scope:relevant_factor_throughout
-				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_councillor_annuity_value
+	#custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0003_option_A_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_gold = SpecialRelevantFactorImpactOnRuler_councillor_annuity_value
+		}
+	}
+	remove_short_term_gold = SpecialRelevantFactorImpactOnRuler_councillor_total_annuity_value
+}
+
+SpecialRelevantFactorImpactOnRuler_event_0003_option_B_effect = {
+	custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0003_option_B_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_opinion = {
+				target = scope:affected_ruler_throughout
+				modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_my_annuity_councillor_opinion
 			}
 		}
 	}
 }
 
-SpecialRelevantFactorImpactOnRuler_event_0003_option_B_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		add_opinion = {
-			target = scope:affected_ruler_throughout
-			modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_my_annuity_councillor_opinion
-		}
-	}
-}
-
+############################################
 
 SpecialRelevantFactorImpactOnRuler_type_A_11_impact_effect = {#自定义，对于每一类关系可定制
 	scope:trigger_ruler_throughout = { save_scope_as = affected_ruler_throughout }
@@ -690,11 +888,11 @@ SpecialRelevantFactorImpactOnRuler_type_A_11_impact_effect = {#自定义，对�
 #		scope:affected_ruler_throughout = {
 #			if = {
 #				limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_11_character_flag_auto_accept }
-#				SpecialRelevantFactorImpactOnRuler_event_0001_option_A_effect = yes
+#				SpecialRelevantFactorImpactOnRuler_event_0004_option_A_effect = yes
 #			}
 #			else_if = {
 #				limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_11_character_flag_auto_reject }
-#				SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
+#				SpecialRelevantFactorImpactOnRuler_event_0004_option_B_effect = yes
 #			}
 #			else = {
 #				trigger_event = { id = SpecialRelevantFactorImpactOnRuler.0004 }
@@ -702,12 +900,18 @@ SpecialRelevantFactorImpactOnRuler_type_A_11_impact_effect = {#自定义，对�
 #		}		
 
 		if = {
-			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_11_character_flag_auto_accept }
-			SpecialRelevantFactorImpactOnRuler_event_0001_option_A_effect = yes
+		limit = {
+#			has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_11_character_flag_auto_accept
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_11_law_1
+		}
+			SpecialRelevantFactorImpactOnRuler_event_0004_option_A_effect = yes
 		}
 		else_if = {
-			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_11_character_flag_auto_reject }
-			SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
+		limit = {
+#			has_character_flag = has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_11_character_flag_auto_reject
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_11_law_2
+		}
+			SpecialRelevantFactorImpactOnRuler_event_0004_option_B_effect = yes
 		}
 		else = {
 			trigger_event = { id = SpecialRelevantFactorImpactOnRuler.0004 }
@@ -734,33 +938,49 @@ SpecialRelevantFactorImpactOnRuler_type_A_11_impact_effect = {#自定义，对�
 #	}
 #}
 
+#SpecialRelevantFactorImpactOnRuler_event_0004_option_A_effect = {
+#	every_in_list = {
+#		list = relevant_factor_list
+#		save_scope_as = relevant_factor_throughout
+#		scope:affected_ruler_throughout = {
+#			pay_short_term_gold = {
+#				target = scope:relevant_factor_throughout
+#				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_direct_vassal_annuity_value
+#			}
+#		}
+#	}
+#}
+
 SpecialRelevantFactorImpactOnRuler_event_0004_option_A_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		save_scope_as = relevant_factor_throughout
-		scope:affected_ruler_throughout = {
-			pay_short_term_gold = {
-				target = scope:relevant_factor_throughout
-				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_direct_vassal_annuity_value
+	#custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0004_option_A_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_gold = SpecialRelevantFactorImpactOnRuler_direct_vassal_annuity_value
+		}
+	}
+	remove_short_term_gold = SpecialRelevantFactorImpactOnRuler_direct_vassal_total_annuity_value
+}
+
+SpecialRelevantFactorImpactOnRuler_event_0004_option_B_effect = {
+	custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0004_option_B_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_opinion = {
+				target = scope:affected_ruler_throughout
+				modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_my_annuity_direct_vassal_opinion
 			}
 		}
 	}
 }
 
-SpecialRelevantFactorImpactOnRuler_event_0004_option_B_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		add_opinion = {
-			target = scope:affected_ruler_throughout
-			modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_my_annuity_direct_vassal_opinion
-		}
-	}
-}
-
+############################################
 
 SpecialRelevantFactorImpactOnRuler_type_A_12_impact_effect = {#自定义，对于每一类关系可定制
 	scope:trigger_ruler_throughout = { save_scope_as = affected_ruler_throughout }
 	SpecialRelevantFactorImpactOnRuler_affected_ruler_info_initialization_effect = yes
+	SpecialRelevantFactorImpactOnRuler_event_0005_preparation_effect = yes
 
 	every_vassal_or_below = {
 		limit = { SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_12_trigger = { RULER = trigger_ruler_throughout } }
@@ -772,11 +992,11 @@ SpecialRelevantFactorImpactOnRuler_type_A_12_impact_effect = {#自定义，对�
 #		scope:affected_ruler_throughout = {
 #			if = {
 #				limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_accept }
-#				SpecialRelevantFactorImpactOnRuler_event_0001_option_A_effect = yes
+#				SpecialRelevantFactorImpactOnRuler_event_0005_option_A_effect = yes
 #			}
 #			else_if = {
 #				limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_reject }
-#				SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
+#				SpecialRelevantFactorImpactOnRuler_event_0005_option_B_effect = yes
 #			}
 #			else = {
 #				trigger_event = { id = SpecialRelevantFactorImpactOnRuler.0005 }
@@ -785,12 +1005,18 @@ SpecialRelevantFactorImpactOnRuler_type_A_12_impact_effect = {#自定义，对�
 #	}
 
 	if = {
-		limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_accept }
-		SpecialRelevantFactorImpactOnRuler_event_0001_option_A_effect = yes
+		limit = {
+#			has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_accept
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_12_law_1
+		}
+		SpecialRelevantFactorImpactOnRuler_event_0005_option_A_effect = yes
 	}
 	else_if = {
-		limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_reject }
-		SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
+		limit = {
+#			has_character_flag = has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_reject
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_12_law_2
+		}
+		SpecialRelevantFactorImpactOnRuler_event_0005_option_B_effect = yes
 	}
 	else = {
 		trigger_event = { id = SpecialRelevantFactorImpactOnRuler.0005 }
@@ -798,6 +1024,14 @@ SpecialRelevantFactorImpactOnRuler_type_A_12_impact_effect = {#自定义，对�
 
 	clear_saved_scope = affected_ruler_throughout
 	clear_saved_scope = relevant_factor_throughout
+	remove_variable = SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_variable
+
+}
+
+
+SpecialRelevantFactorImpactOnRuler_event_0005_preparation_effect = {
+	set_variable = { name = SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_variable value = SpecialRelevantFactorImpactOnRuler_average_county_monthly_income }
+
 }
 
 #SpecialRelevantFactorImpactOnRuler_event_0005_option_A_effect = {
@@ -817,27 +1051,188 @@ SpecialRelevantFactorImpactOnRuler_type_A_12_impact_effect = {#自定义，对�
 #	}
 #}
 
+#SpecialRelevantFactorImpactOnRuler_event_0005_option_A_effect = {
+#	every_in_list = {
+#		list = relevant_factor_list
+#		save_scope_as = relevant_factor_throughout
+#		scope:affected_ruler_throughout = {
+#			pay_short_term_gold = {
+#				target = scope:relevant_factor_throughout
+#				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_type_A_12_actual_total_subsidy_for_a_person
+#			}
+#			remove_short_term_gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_type_A_12_waste_total_subsidy_for_a_person
+#		}
+#	}
+#}
+
 SpecialRelevantFactorImpactOnRuler_event_0005_option_A_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		save_scope_as = relevant_factor_throughout
-		scope:affected_ruler_throughout = {
-			pay_short_term_gold = {
-				target = scope:relevant_factor_throughout
-				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_type_A_12_actual_total_subsidy_for_a_person
+	#custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0005_option_A_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_gold = SpecialRelevantFactorImpactOnRuler_type_A_12_actual_total_subsidy_for_a_person
+		}
+	}
+	remove_short_term_gold = SpecialRelevantFactorImpactOnRuler_type_A_12_aggregated_theoretical_total_subsidy
+}
+
+SpecialRelevantFactorImpactOnRuler_event_0005_option_B_effect = {
+	custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0005_option_B_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_opinion = {
+				target = scope:affected_ruler_throughout
+				modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_subsidy_opinion
 			}
-			remove_short_term_gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_type_A_12_waste_total_subsidy_for_a_person
 		}
 	}
 }
 
-SpecialRelevantFactorImpactOnRuler_event_0005_option_B_effect = {
-	every_in_list = {
-		list = relevant_factor_list
-		add_opinion = {
-			target = scope:affected_ruler_throughout
-			modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_subsidy_opinion
+############################################
+
+SpecialRelevantFactorImpactOnRuler_type_A_13_impact_effect = {#自定义，对于每一类关系可定制
+	scope:trigger_ruler_throughout = { save_scope_as = affected_ruler_throughout }
+	SpecialRelevantFactorImpactOnRuler_affected_ruler_info_initialization_effect = yes
+
+	if = {
+		limit = { exists = house }
+		house = {
+			every_house_member = {
+				limit = { SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_13_trigger = { RULER = trigger_ruler_throughout } }
+				add_to_list = relevant_factor_list
+			}
+		}
+	}
+	every_close_family_member = {
+		limit = { SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_13_trigger = { RULER = trigger_ruler_throughout } }
+		add_to_list = relevant_factor_list
+	}
+	every_extended_family_member = {
+		limit = { SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_13_trigger = { RULER = trigger_ruler_throughout } }
+		add_to_list = relevant_factor_list
+	}
+	every_consort = {
+		limit = { SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_13_trigger = { RULER = trigger_ruler_throughout } }
+		add_to_list = relevant_factor_list
+	}
+	every_concubine = {
+		limit = { SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_13_trigger = { RULER = trigger_ruler_throughout } }
+		add_to_list = relevant_factor_list
+	}
+
+	if = {
+		limit = {
+#			has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_accept
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_13_law_1
+
+		}
+		SpecialRelevantFactorImpactOnRuler_event_0006_option_A_effect = yes
+	}
+	else_if = {
+		limit = {
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_13_law_2
+		}
+		SpecialRelevantFactorImpactOnRuler_event_0006_option_B_effect = yes
+	}
+	else_if = {
+		limit = {
+#			has_character_flag = has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_reject
+			has_realm_law = SpecialRelevantFactorImpactOnRuler_type_A_13_law_3
+		}
+		SpecialRelevantFactorImpactOnRuler_event_0006_option_C_effect = yes
+	}
+	else = {
+		trigger_event = { id = SpecialRelevantFactorImpactOnRuler.0006 }
+	}
+
+	clear_saved_scope = affected_ruler_throughout
+	clear_saved_scope = relevant_factor_throughout
+}
+
+
+
+
+
+
+#SpecialRelevantFactorImpactOnRuler_event_0006_option_A_effect = {
+#	every_in_list = {
+#		list = relevant_factor_list
+#		save_scope_as = relevant_factor_throughout
+#		scope:affected_ruler_throughout = {
+#			pay_short_term_gold = {
+#				target = scope:relevant_factor_throughout
+#				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value
+#			}
+#		}
+#	}
+#}
+
+SpecialRelevantFactorImpactOnRuler_event_0006_option_A_effect = {
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_gold = SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value
+		}
+	}
+	remove_short_term_gold = SpecialRelevantFactorImpactOnRuler_loyal_family_total_annuity_value
+}
+
+#SpecialRelevantFactorImpactOnRuler_event_0006_option_B_effect = {
+#	scope:affected_ruler_throughout = {
+#		add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_13_A_1_character_modifier years = 1 }
+#	}
+#	every_in_list = {
+#		list = relevant_factor_list
+#		save_scope_as = relevant_factor_throughout
+#		scope:affected_ruler_throughout = {
+#			pay_short_term_gold = {
+#				target = scope:relevant_factor_throughout
+#				gold = scope:relevant_factor_throughout.SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_annuity_value
+#			}
+#		}
+#		add_opinion = {
+#			target = scope:affected_ruler_throughout
+#			modifier = SpecialRelevantFactorImpactOnRuler_pay_me_extra_annuity_loyal_family_opinion
+#		}
+#		add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_13_A_2_character_modifier years = 1 }
+#	}
+#}
+
+SpecialRelevantFactorImpactOnRuler_event_0006_option_B_effect = {
+	custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0006_option_B_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_gold = SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_annuity_value
+			add_opinion = {
+				target = scope:affected_ruler_throughout
+				modifier = SpecialRelevantFactorImpactOnRuler_pay_me_extra_annuity_loyal_family_opinion
+			}
+			add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_13_A_2_character_modifier years = 1 }
+		}
+	}
+	add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_13_A_1_character_modifier years = 1 }
+	remove_short_term_gold = SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_total_annuity_value
+}
+
+
+SpecialRelevantFactorImpactOnRuler_event_0006_option_C_effect = {
+	custom_tooltip = SpecialRelevantFactorImpactOnRuler_event_0006_option_C_effect_custom_tooltip
+	hidden_effect = {
+		every_in_list = {
+			list = relevant_factor_list
+			add_opinion = {
+				target = scope:affected_ruler_throughout
+				modifier = SpecialRelevantFactorImpactOnRuler_refuse_to_pay_my_annuity_loyal_family_opinion
+			}
 		}
 	}
 }
+
+
+
+
+
+
 

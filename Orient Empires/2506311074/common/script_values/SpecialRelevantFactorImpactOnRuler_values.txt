@@ -2,7 +2,9 @@
 # by 往来天地间 WangLaiTianDiJian
 # SpecialRelevantFactorImpactOnRuler
 
-#WLTDJ20220123
+#WLTDJ20220205
+
+
 
 SpecialRelevantFactorImpactOnRuler_learning_culture_progress_value = {#文化学习
 	value = 0
@@ -29,34 +31,24 @@ SpecialRelevantFactorImpactOnRuler_courtier_annuity_value = { #廷臣俸禄
 	add = learning
 	add = prowess
 	multiply = 0.03
-	if = {
-		limit = { is_close_family_of = liege }
-		add = 0.1
-	}
-	else_if = {
-		limit = { is_extended_family_of = liege }
-		add = 0.1
-	}
-	else_if = {
-		limit = { house = liege.house }
-		add = 0.1
-	}
-	if = {
-		limit = { is_consort_of = liege }
-		add = 0.1
-	}
-	else_if = {
-		limit = { is_concubine_of = liege }
-		add = 0.1
-	}
-
 }
+
+SpecialRelevantFactorImpactOnRuler_courtier_total_annuity_value = {
+	every_courtier = {
+		limit = {
+			SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_09_trigger = { RULER = trigger_ruler_throughout }
+			save_temporary_scope_as = temp_character
+		}
+		add = scope:temp_character.SpecialRelevantFactorImpactOnRuler_courtier_annuity_value
+	}
+}
+
 
 SpecialRelevantFactorImpactOnRuler_councillor_annuity_value = { #内阁成员俸禄
 	value = 0
 	add = perk_points_assigned
-	add = { value = { every_close_family_member = { add = 0.5 } }	}  #家眷
-	multiply = { value = root.dynasty.dynasty_prestige_level multiply=0.3 add=0.7 }  #荫荣
+	add = { value = { every_close_family_member = { add = 0.5 } } }  #家眷
+	multiply = { value = dynasty.dynasty_prestige_level multiply = 0.3 add = 0.7 }  #荫荣
 	multiply = { #禄级
 		value = 0.2
 		if = {
@@ -98,15 +90,25 @@ SpecialRelevantFactorImpactOnRuler_councillor_annuity_value = { #内阁成员俸
 	}
 }
 
+SpecialRelevantFactorImpactOnRuler_councillor_total_annuity_value = {
+	every_councillor = {
+		limit = {
+			SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_10_trigger = { RULER = trigger_ruler_throughout }
+			save_temporary_scope_as = temp_character
+		}
+		add = scope:temp_character.SpecialRelevantFactorImpactOnRuler_councillor_annuity_value
+	}
+}
+
 SpecialRelevantFactorImpactOnRuler_direct_vassal_annuity_value = { #直属封臣俸禄
 	value = 0
 	#add = { value = sub_realm_size multiply = 1.2 }
 	#add = { value = monthly_character_income multiply = 1.2 }
 
 	add = { value = sub_realm_size }  #差遣
-	add = { value = vassal_count } #兼领
+	add = { value = { every_vassal = { add = 1 } } } #兼领
 	add = { value = { every_held_title = { add = 1 } } }  #使职
-	add = { value = root.dynasty.dynasty_prestige_level }  #荫荣
+	add = { value = dynasty.dynasty_prestige_level }  #荫荣
 	multiply = { value = highest_held_title_tier multiply = 0.33 }  #官阶
 	multiply = { #禄级
 		value = 0.1
@@ -149,6 +151,60 @@ SpecialRelevantFactorImpactOnRuler_direct_vassal_annuity_value = { #直属封臣
 	}
 }
 
+SpecialRelevantFactorImpactOnRuler_direct_vassal_total_annuity_value = {
+	every_vassal = {
+		limit = {
+			SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_11_trigger = { RULER = trigger_ruler_throughout }
+			save_temporary_scope_as = temp_character
+		}
+		add = scope:temp_character.SpecialRelevantFactorImpactOnRuler_direct_vassal_annuity_value
+	}
+}
+
+
+SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value = {#皇亲国戚俸禄，正常情形
+	value = 0
+	if = {
+		limit = { is_close_family_of = scope:affected_ruler_throughout }
+		add = 0.1
+	}
+	else_if = {
+		limit = { is_extended_family_of = scope:affected_ruler_throughout }
+		add = 0.01
+	}
+	else_if = {
+		limit = { house = scope:affected_ruler_throughout.house }
+		add = 0.001
+	}
+	if = {
+		limit = { is_consort_of = scope:affected_ruler_throughout }
+		add = 0.5
+	}
+	else_if = {
+		limit = { is_concubine_of = scope:affected_ruler_throughout }
+		add = 0.05
+	}
+	multiply = 100
+}
+
+SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_annuity_value = {#皇亲国戚俸禄，奢侈情形
+	value = SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value
+	multiply = 3
+}
+
+SpecialRelevantFactorImpactOnRuler_loyal_family_total_annuity_value = {
+	every_in_list = {
+		list = relevant_factor_list
+		add = SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value
+	}
+}
+
+SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_total_annuity_value = {
+	every_in_list = {
+		list = relevant_factor_list
+		add = SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_annuity_value
+	}
+}
 
 ################################转移支付
 SpecialRelevantFactorImpactOnRuler_county_monthly_income = {
@@ -168,10 +224,19 @@ SpecialRelevantFactorImpactOnRuler_average_county_monthly_income = {
 }
 
 
-
-SpecialRelevantFactorImpactOnRuler_type_A_12_county_total_income = {
-	
+SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_static = {
+	value = 0
+	if = {
+		limit = { has_variable = SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_variable }
+		add = var:SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_variable
+	}
+	else = {
+		value = SpecialRelevantFactorImpactOnRuler_average_county_monthly_income
+	}
 }
+
+
+
 
 
 
@@ -271,8 +336,8 @@ SpecialRelevantFactorImpactOnRuler_type_A_12_actual_to_theoretical_subsidy_ratio
 SpecialRelevantFactorImpactOnRuler_type_A_12_theoretical_single_county_subsidy = {
 	value = 0
 	if = {
-		limit = { SpecialRelevantFactorImpactOnRuler_county_monthly_income < holder.top_liege.SpecialRelevantFactorImpactOnRuler_average_county_monthly_income }
-		add = holder.top_liege.SpecialRelevantFactorImpactOnRuler_average_county_monthly_income
+		limit = { SpecialRelevantFactorImpactOnRuler_county_monthly_income < holder.top_liege.SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_static }
+		add = holder.top_liege.SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_static
 		subtract = SpecialRelevantFactorImpactOnRuler_county_monthly_income
 		#multiply = 1   #修改
 	}
@@ -338,5 +403,31 @@ SpecialRelevantFactorImpactOnRuler_type_A_12_waste_total_subsidy_for_a_person = 
 		}
 	}
 }
+
+SpecialRelevantFactorImpactOnRuler_type_A_12_aggregated_theoretical_total_subsidy = {
+	every_vassal_or_below = {
+		limit = {
+			SpecialRelevantFactorImpactOnRuler_relevant_factor_is_type_A_12_trigger = { RULER = trigger_ruler_throughout }
+			save_temporary_scope_as = temp_character
+		}
+		add = scope:temp_character.SpecialRelevantFactorImpactOnRuler_type_A_12_waste_total_subsidy_for_a_person
+	}
+}
+
+
+##############effect启用设置参数
+SpecialRelevantFactorImpactOnRuler_type_A_01_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_02_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_03_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_04_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_05_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_06_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_07_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_08_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_09_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_10_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_11_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_12_effect_enable_value = 1
+SpecialRelevantFactorImpactOnRuler_type_A_13_effect_enable_value = 1
 
 

@@ -2,6 +2,8 @@
 ##################### MY REALM #######################
 ######################################################
 
+#WLTDJ20220130
+
 window = {
 	name = "my_realm_window"
 	datacontext = "[GetVariableSystem]"
@@ -299,7 +301,7 @@ window = {
 ############往来天地间（开始）
 
 					button_tab = {
-						name = "tutorial_highlight_tributaries_tab"
+						name = "OE_tributaries_tab"
 						layoutpolicy_horizontal = expanding
 						layoutpolicy_vertical = expanding
 						#onclick = "[MyRealmWindow.ShowTributaries]"
@@ -308,12 +310,20 @@ window = {
 						visible = "[AND( GetScriptedGui('TributeSystem_update_WLTDJ_tribute_relation_list').IsValid( GuiScope.SetRoot( GetPlayer.MakeScope ).End ), GreaterThan_int32( GetDataModelSize(GetPlayer.MakeScope.GetList('WLTDJ_tributary_list')), '(int32)0' ) ) ]"
 						onclick = "[GetScriptedGui('TributeSystem_update_WLTDJ_tribute_relation_list').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) ]"
 						onclick = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_suggested_tributary_targets_update_list').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) ]" #1212
-						onclick = "[GetVariableSystem.Set( 'realm_tabs', 'tributaries' )]"						
-						down = "[GetVariableSystem.HasValue( 'realm_tabs', 'tributaries' )]"
+						onclick = "[GetVariableSystem.Set( 'realm_tabs', 'OE_tributaries' )]"						
+						down = "[GetVariableSystem.HasValue( 'realm_tabs', 'OE_tributaries' )]"
 
 						text = "MY_REALM_WINDOW_TRIBUTARIES_TAB"
 					}
 
+					button_tab = {
+						name = "OE_laws_tab"
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+						onclick = "[GetVariableSystem.Set( 'realm_tabs', 'OE_laws' )]"						
+						down = "[GetVariableSystem.HasValue( 'realm_tabs', 'OE_laws' )]"
+						text = "MY_REALM_WINDOW_OE_LAWS_TAB"
+					}
 ############往来天地间（结束）
 
 					button_tab = {
@@ -327,6 +337,17 @@ window = {
 
 						text = "MY_REALM_WINDOW_SUCCESSION_TAB"
 					}
+
+############往来天地间（开始）
+					button_tab = {
+						name = "WLTDJ_player_options_tab"
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+						onclick = "[GetVariableSystem.Set( 'realm_tabs', 'WLTDJ_player_options' )]"						
+						down = "[GetVariableSystem.HasValue( 'realm_tabs', 'WLTDJ_player_options' )]"
+						text = "MY_REALM_WINDOW_WLTDJ_player_optionS_TAB"
+					}
+############往来天地间（结束）
 				}
 
 				### DOMAIN TAB
@@ -337,7 +358,7 @@ window = {
 					#visible = "[MyRealmWindow.IsShowingDomain]" #往来天地间
 					visible = "[GetVariableSystem.HasValue( 'realm_tabs', 'domain' )]" #往来天地间
 					#visible = "[OR(MyRealmWindow.IsShowingDomain,GetVariableSystem.HasValue( 'realm_tabs', 'domain' ))]" #往来天地间
-					#visible = "[AND(GetVariableSystem.HasValue( 'realm_tabs', 'domain' ),NOT(GetVariableSystem.HasValue( 'realm_tabs', 'tributaries' )),NOT(GetVariableSystem.HasValue( 'realm_tabs', 'vassals' )),NOT(GetVariableSystem.HasValue( 'realm_tabs', 'succession' )))]" #往来天地间
+					#visible = "[AND(GetVariableSystem.HasValue( 'realm_tabs', 'domain' ),NOT(GetVariableSystem.HasValue( 'realm_tabs', 'OE_tributaries' )),NOT(GetVariableSystem.HasValue( 'realm_tabs', 'vassals' )),NOT(GetVariableSystem.HasValue( 'realm_tabs', 'succession' )))]" #往来天地间
 
 					using = Animation_Tab_Switch
 
@@ -989,7 +1010,7 @@ window = {
 					name = "tab_tributaries"
 					layoutpolicy_horizontal = expanding
 					layoutpolicy_vertical = expanding
-					visible = "[GetVariableSystem.HasValue( 'realm_tabs', 'tributaries' )]"
+					visible = "[GetVariableSystem.HasValue( 'realm_tabs', 'OE_tributaries' )]"
 
 					state = {
 						name = _show
@@ -1076,6 +1097,854 @@ window = {
 
 				}
 
+			### LAWS TAB
+				vbox = {
+					name = "tab_OE_laws"
+					layoutpolicy_horizontal = expanding
+					layoutpolicy_vertical = expanding
+					visible = "[GetVariableSystem.HasValue( 'realm_tabs', 'OE_laws' )]"
+
+					state = {
+						name = _show
+						using = Animation_FadeIn_Quick
+					}
+
+					state = {
+						name = _hide
+						alpha = 0
+					}
+
+
+					text_single = {
+						visible = "[MyRealmWindow.HasGovernmentTypeFilter]"
+						margin_top = 5
+						margin_bottom = 10
+
+						text = "[MyRealmWindow.GetGovernmentTypeFilter.GetVassalsLabel]"
+					}
+
+					scrollbox = {
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+
+						blockoverride "scrollbox_margins" {
+							margin = { 5 5 }
+						}
+
+						blockoverride "scrollbox_content"
+						{
+
+							vbox = {
+								name = "crown_authority"
+								datamodel = "[MyRealmWindow.GetRealmLaws]"
+								ignoreinvisible = yes
+
+								item = {
+									vbox = {
+										layoutpolicy_vertical = expanding
+										datacontext = "[GuiLawGroup.GetLawGroup]"
+										visible = "[And( GuiLawGroup.GetLawGroup.HasFlag( 'realm_law' ), GuiLawGroup.IsAvailable )]"
+										ignoreinvisible = yes
+
+										text_label_center = {
+											visible = "[Not(GetPlayer.HasLiege)]"
+											text = "[LawGroup.GetName]"
+										}
+
+										hbox = {
+											margin_left = 5
+											layoutpolicy_horizontal = expanding
+
+											text_label_left = {
+												visible = "[GetPlayer.HasLiege]"
+												layoutpolicy_horizontal = expanding
+												text = "[LawGroup.GetName]"
+											}
+										}
+
+										spacer = {
+											visible = "[GetPlayer.HasLiege]"
+											size = { 5 8 }
+										}
+
+										hbox = {
+											datamodel = "[GuiLawGroup.GetLaws]"
+
+											background = {
+												texture = "gfx/lines/line_lifestyles_unavailable.dds"
+												margin = { -8 -12 }
+												tintcolor = { 0.7 0.5 0.25 1 }
+											}
+
+											item = {
+												icon_button_decorative = {
+													datacontext = "[GuiLaw.GetLaw]"
+													size = { 60 60 }
+													enabled = "[Or(GuiLaw.CanEnact, GuiLaw.IsEnacted)]"
+													down = "[GuiLaw.IsEnacted]"
+													alwaystransparent = "[GuiLaw.IsEnacted]"
+													onclick = "[GuiLaw.Enact]"
+													tooltipwidget = { pass_law_tooltip = {} }
+													using = tooltip_below
+
+													icon_button_decorative = {
+														size = { 54 54 }
+														parentanchor = center
+														alwaystransparent = yes
+													}
+
+												button_icon = {
+														visible = "[Not(GuiLaw.IsEnacted)]"
+														texture = "[Law.GetIcon]"
+														parentanchor = center
+														size = { 42 42 }
+														alwaystransparent = yes
+													}
+
+													icon = {
+														visible = "[And( GuiLaw.IsEnacted , Not( GuiLaw.CanEnact ) )]"
+														texture = "[Law.GetIcon]"
+														parentanchor = center
+														size = { 42 42 }
+														alwaystransparent = yes
+
+														using = Master_Button_Modify_Texture
+
+														blockoverride "master_color_frame" {
+															frame = 2
+														}
+													}
+												}
+											}
+										}
+
+										expand = {
+											visible = "[GetPlayer.HasLiege]"
+											layoutpolicy_horizontal = expanding
+										}
+									}
+								}
+							}
+
+							vbox = {
+								name = "OE_additional_laws"
+								datamodel = "[MyRealmWindow.GetRealmLaws]"
+								ignoreinvisible = yes
+
+								item = {
+									vbox = {
+										layoutpolicy_vertical = expanding
+										datacontext = "[GuiLawGroup.GetLawGroup]"
+										visible = "[And( GuiLawGroup.GetLawGroup.HasFlag( 'OE_law' ), GuiLawGroup.IsAvailable )]"
+										ignoreinvisible = yes
+
+
+										text_label_center = {
+											visible = "[Not(GetPlayer.HasLiege)]"
+											text = "[LawGroup.GetName]"
+										}
+
+										hbox = {
+											margin_left = 5
+											layoutpolicy_horizontal = expanding
+
+											text_label_left = {
+												visible = "[GetPlayer.HasLiege]"
+												layoutpolicy_horizontal = expanding
+												text = "[LawGroup.GetName]"
+											}
+										}
+
+										spacer = {
+											visible = "[GetPlayer.HasLiege]"
+											size = { 5 8 }
+										}
+
+										hbox = {
+											datamodel = "[GuiLawGroup.GetLaws]"
+
+											background = {
+												texture = "gfx/lines/line_lifestyles_unavailable.dds"
+												margin = { -8 -12 }
+												tintcolor = { 0.7 0.5 0.25 1 }
+											}
+
+											item = {
+												icon_button_decorative = {
+													datacontext = "[GuiLaw.GetLaw]"
+													size = { 60 60 }
+													enabled = "[Or(GuiLaw.CanEnact, GuiLaw.IsEnacted)]"
+													down = "[GuiLaw.IsEnacted]"
+													alwaystransparent = "[GuiLaw.IsEnacted]"
+													onclick = "[GuiLaw.Enact]"
+													tooltipwidget = { pass_law_tooltip = {} }
+													using = tooltip_below
+
+													icon_button_decorative = {
+														size = { 54 54 }
+														parentanchor = center
+														alwaystransparent = yes
+													}
+
+													button_icon = {
+														visible = "[Not(GuiLaw.IsEnacted)]"
+														texture = "[Law.GetIcon]"
+														parentanchor = center
+														size = { 42 42 }
+														alwaystransparent = yes
+													}
+
+													icon = {
+														visible = "[And( GuiLaw.IsEnacted , Not( GuiLaw.CanEnact ) )]"
+														texture = "[Law.GetIcon]"
+														parentanchor = center
+														size = { 42 42 }
+														alwaystransparent = yes
+
+														using = Master_Button_Modify_Texture
+
+														blockoverride "master_color_frame" {
+															frame = 2
+														}
+													}
+												}
+											}
+										}
+
+										expand = {
+											visible = "[GetPlayer.HasLiege]"
+											layoutpolicy_horizontal = expanding
+										}
+									}
+								}
+							}
+
+						}
+
+					}
+
+
+				}
+
+
+				### PLAYER OPTIONS TAB
+				vbox = {
+					name = "tab_WLTDJ_player_options"
+					layoutpolicy_horizontal = expanding
+					layoutpolicy_vertical = expanding
+					visible = "[GetVariableSystem.HasValue( 'realm_tabs', 'WLTDJ_player_options' )]"
+
+					state = {
+						name = _show
+						using = Animation_FadeIn_Quick
+					}
+
+					state = {
+						name = _hide
+						alpha = 0
+					}
+
+
+					text_single = {
+						visible = "[MyRealmWindow.HasGovernmentTypeFilter]"
+						margin_top = 5
+						margin_bottom = 10
+
+						text = "[MyRealmWindow.GetGovernmentTypeFilter.GetVassalsLabel]"
+					}
+
+					scrollbox = {
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+
+						blockoverride "scrollbox_margins" {
+							margin = { 5 5 }
+						}
+
+						blockoverride "scrollbox_content"
+						{
+							vbox = {
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "SpecialRelevantFactorImpactOnRuler_show_alert_event_law"
+								}
+								hbox = {
+									name = SpecialRelevantFactorImpactOnRuler_show_alert_event_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_show_alert_event_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_show_alert_event_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_show_alert_event_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_show_alert_event_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_show_alert_event_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_show_alert_event_law_1_check_box_text"
+										}
+									}
+								}
+
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "SpecialRelevantFactorImpactOnRuler_type_A_05_law"
+								}
+								hbox = {
+									name = SpecialRelevantFactorImpactOnRuler_type_A_05_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_05_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_05_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_1_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_05_law_2_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_2_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_2_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_05_law_3_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_3_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_05_law_3_check_box_text"
+										}
+									}						
+								}
+
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "SpecialRelevantFactorImpactOnRuler_type_A_09_law"
+								}
+								hbox = {
+									name = SpecialRelevantFactorImpactOnRuler_type_A_09_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_09_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_09_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_09_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_09_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_09_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_09_law_1_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_09_law_2_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_09_law_2_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_09_law_2_check_box_text"
+										}
+									}
+								}
+
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "SpecialRelevantFactorImpactOnRuler_type_A_10_law"
+								}
+								hbox = {
+									name = SpecialRelevantFactorImpactOnRuler_type_A_10_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_10_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_10_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_10_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_10_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_10_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_10_law_1_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_10_law_2_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_10_law_2_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_10_law_2_check_box_text"
+										}
+									}
+								}
+
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "SpecialRelevantFactorImpactOnRuler_type_A_11_law"
+								}
+								hbox = {
+									name = SpecialRelevantFactorImpactOnRuler_type_A_11_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_11_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_11_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_11_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_11_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_11_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_11_law_1_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_11_law_2_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_11_law_2_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_11_law_2_check_box_text"
+										}
+									}
+								}
+
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "SpecialRelevantFactorImpactOnRuler_type_A_12_law"
+								}
+								hbox = {
+									name = SpecialRelevantFactorImpactOnRuler_type_A_12_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_12_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_12_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_12_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_12_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_12_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_12_law_1_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_12_law_2_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_12_law_2_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_12_law_2_check_box_text"
+										}
+									}
+								}
+
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "SpecialRelevantFactorImpactOnRuler_type_A_13_law"
+								}
+								hbox = {
+									name = SpecialRelevantFactorImpactOnRuler_type_A_13_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_13_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_13_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_1_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_13_law_2_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_2_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_2_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('SpecialRelevantFactorImpactOnRuler_type_A_13_law_3_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_3_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "SpecialRelevantFactorImpactOnRuler_type_A_13_law_3_check_box_text"
+										}
+									}
+								}
+
+								spacer = {
+									size = {0 30}
+								}
+								text_label_center = {
+									text = "DifficultyRelated_type_A_01_law"
+								}
+								hbox = {
+									name = DifficultyRelated_type_A_01_law_check_box_row
+									layoutpolicy_horizontal = expanding
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('DifficultyRelated_type_A_01_law_0_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "DifficultyRelated_type_A_01_law_0_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "DifficultyRelated_type_A_01_law_0_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('DifficultyRelated_type_A_01_law_1_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "DifficultyRelated_type_A_01_law_1_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "DifficultyRelated_type_A_01_law_1_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('DifficultyRelated_type_A_01_law_2_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "DifficultyRelated_type_A_01_law_2_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "DifficultyRelated_type_A_01_law_2_check_box_text"
+										}
+									}
+									button_checkbox_label = {
+										max_width = 300
+										layoutpolicy_horizontal = expanding
+										datacontext = "[GetScriptedGui('DifficultyRelated_type_A_01_law_3_check_box_scripted_gui')]"
+										onclick = "[ScriptedGui.Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										tooltip = "DifficultyRelated_type_A_01_law_3_effects_not_in_prev"
+										blockoverride "checkbox"
+										{
+											checked = "[ScriptedGui.IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End)]"
+										}
+										blockoverride "text"
+										{
+											text = "DifficultyRelated_type_A_01_law_3_check_box_text"
+										}
+									}
+								}
+
+
+####采用法律形式（开始）
+								vbox = {
+									name = "WLTDJ_player_options_box_1"
+									datamodel = "[MyRealmWindow.GetRealmLaws]"
+									ignoreinvisible = yes
+
+									item = {
+										vbox = {
+											layoutpolicy_vertical = expanding
+											datacontext = "[GuiLawGroup.GetLawGroup]"
+											visible = "[And( GuiLawGroup.GetLawGroup.HasFlag( 'WLTDJ_player_option_hide' ), GuiLawGroup.IsAvailable )]"#暂时隐藏
+											ignoreinvisible = yes
+
+
+											text_label_center = {
+												visible = "[Not(GetPlayer.HasLiege)]"
+												text = "[LawGroup.GetName]"
+											}
+
+											hbox = {
+												margin_left = 5
+												layoutpolicy_horizontal = expanding
+
+												text_label_left = {
+													visible = "[GetPlayer.HasLiege]"
+													layoutpolicy_horizontal = expanding
+													text = "[LawGroup.GetName]"
+												}
+											}
+
+											spacer = {
+												visible = "[GetPlayer.HasLiege]"
+												size = { 5 8 }
+											}
+
+											hbox = {
+												datamodel = "[GuiLawGroup.GetLaws]"
+
+												background = {
+													texture = "gfx/lines/line_lifestyles_unavailable.dds"
+													margin = { -8 -12 }
+													tintcolor = { 0.7 0.5 0.25 1 }
+												}
+
+												item = {
+													icon_button_decorative = {
+														datacontext = "[GuiLaw.GetLaw]"
+														size = { 60 60 }
+														enabled = "[Or(GuiLaw.CanEnact, GuiLaw.IsEnacted)]"
+														down = "[GuiLaw.IsEnacted]"
+														alwaystransparent = "[GuiLaw.IsEnacted]"
+														onclick = "[GuiLaw.Enact]"
+														tooltipwidget = { pass_law_tooltip = {} }
+														using = tooltip_below
+
+														icon_button_decorative = {
+															size = { 54 54 }
+															parentanchor = center
+															alwaystransparent = yes
+														}
+
+														button_icon = {
+															visible = "[Not(GuiLaw.IsEnacted)]"
+															texture = "[Law.GetIcon]"
+															parentanchor = center
+															size = { 42 42 }
+															alwaystransparent = yes
+														}
+
+														icon = {
+															visible = "[And( GuiLaw.IsEnacted , Not( GuiLaw.CanEnact ) )]"
+															texture = "[Law.GetIcon]"
+															parentanchor = center
+															size = { 42 42 }
+															alwaystransparent = yes
+
+															using = Master_Button_Modify_Texture
+
+															blockoverride "master_color_frame" {
+																frame = 2
+															}
+														}
+													}
+												}
+											}
+
+											expand = {
+												visible = "[GetPlayer.HasLiege]"
+												layoutpolicy_horizontal = expanding
+											}
+										}
+									}
+								}
+####采用法律形式（结束）
+							}
+
+						}
+
+					}
+
+
+				}
 
 ###########往来天地间（结束）
 
@@ -1115,10 +1984,13 @@ window = {
 							margin_bottom = 5
 							ignoreinvisible = yes
 							layoutpolicy_horizontal = expanding
+							#datamodel_wrap = 5没用
 
 							item = {
 								hbox = {
-									visible = "[And( Not( GuiLawGroup.GetLawGroup.HasFlag( 'realm_law' ) ), GuiLawGroup.IsAvailable )]"
+									#visible = "[And( Not( GuiLawGroup.GetLawGroup.HasFlag( 'realm_law' ) ), GuiLawGroup.IsAvailable )]"#往来天地间
+									#visible = "[And( Not( OR ( GuiLawGroup.GetLawGroup.HasFlag( 'realm_law' ),GuiLawGroup.GetLawGroup.HasFlag( 'WLTDJ_player_option' ) ) ), GuiLawGroup.IsAvailable )]"#往来天地间
+									visible = "[And(Or( GuiLawGroup.GetLawGroup.HasFlag( 'succession_order_laws' ), GuiLawGroup.GetLawGroup.HasFlag( 'succession_gender_laws' )), GuiLawGroup.IsAvailable )]"#往来天地间
 									layoutpolicy_horizontal = growing
 
 									vbox = {

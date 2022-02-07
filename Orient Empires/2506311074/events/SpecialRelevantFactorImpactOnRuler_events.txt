@@ -2,11 +2,11 @@
 # by 往来天地间 WangLaiTianDiJian
 # SpecialRelevantFactorImpactOnRuler
 
-#WLTDJ20220118
+#WLTDJ20220131
 
 namespace = SpecialRelevantFactorImpactOnRuler
 
-SpecialRelevantFactorImpactOnRuler.0001 = { #朝贡国要钱事件
+ SpecialRelevantFactorImpactOnRuler.0001= { #朝贡国要钱事件
 	type = character_event
 	title = SpecialRelevantFactorImpactOnRuler.0001.tt
 	theme = realm
@@ -21,18 +21,7 @@ SpecialRelevantFactorImpactOnRuler.0001 = { #朝贡国要钱事件
 	}
 	override_background = { event_background = throne_room }
 	immediate = {
-		save_scope_value_as = {
-			name = pay_income_multiplier
-			value = {
-				value = scope:relevant_factor_throughout.max_military_strength
-				divide = scope:affected_ruler_throughout.max_military_strength #兵力比值，超过此比例，赏赐如同岁币 0.1-2
-				multiply = scope:relevant_factor_throughout.sub_realm_size
-				divide = scope:affected_ruler_throughout.sub_realm_size #领土比值，领土比越大赏赐负担越小 0.01-1
-				multiply = SpecialRelevantFactorImpactOnRuler_tribute_interval_year #朝贡要钱事件发生间隔
-				multiply = 40 #再加一层倍率修正，可以看出每年给对方多少个月的收入（针对维持关系）
-				multiply = { value = scope:relevant_factor_throughout.var:TributeSystem_completed_tribute_counter subtract = 1 multiply = 0.2 add = 1 } #每连续发生一次，花费比初次发生时加20%
-			}
-		}
+		SpecialRelevantFactorImpactOnRuler_event_0001_parameter_calculation_effect = yes
 	}
 	option = {
 		name = SpecialRelevantFactorImpactOnRuler.0001.a
@@ -44,35 +33,11 @@ SpecialRelevantFactorImpactOnRuler.0001 = { #朝贡国要钱事件
 	}
 	option = {
 		name = SpecialRelevantFactorImpactOnRuler.0001.c
-		SpecialRelevantFactorImpactOnRuler_event_0001_option_B_effect = yes
-#		SpecialRelevantFactorImpactOnRuler_pay_income_function_effect = {
-#			ACTOR = affected_ruler_throughout
-#			TARGET = relevant_factor_throughout
-#			THRESHOLD = 2
-#			MONTHS = SpecialRelevantFactorImpactOnRuler_tribute_interval_year
-#			MULTIPLIER = pay_income_multiplier
-#		}
-		scope:affected_ruler_throughout = {
-#			add_character_modifier = { modifier = SpecialRelevantFactorImpactOnRuler_type_A_05_A_01_character_modifier years = SpecialRelevantFactorImpactOnRuler_tribute_interval_year }
-			SpecialRelevantFactorImpactOnRuler_spawn_cultural_event_troop_function_C_effect = {
-				ARMY_RECEIVER = affected_ruler_throughout
-				ORIGINOWNER = relevant_factor_throughout
-				SIZE_FACTOR = 0.05
-				NAME = SpecialRelevantFactorImpactOnRuler.0001.c.troop.name
-				COST_FACTOR = 0.5
-			}
-		}
+		SpecialRelevantFactorImpactOnRuler_event_0001_option_C_effect = yes
 	}
 	option = {
 		name = SpecialRelevantFactorImpactOnRuler.0001.d
-		if = {
-			limit = { is_allied_to = scope:relevant_factor_throughout }
-			SpecialRelevantFactorImpactOnRuler_break_alliance_function_effect = { ACTOR = affected_ruler_throughout TARGET = relevant_factor_throughout }
-		}
-		if = {
-			limit = { has_relation_WLTDJ_tributary = scope:relevant_factor_throughout }
-			TributeSystem_break_tribute_relation_effect = {	SUZERAIN = affected_ruler_throughout TRIBUTARY = relevant_factor_throughout }
-		}
+		SpecialRelevantFactorImpactOnRuler_event_0001_option_D_effect = yes
 	}
 }
 
@@ -169,6 +134,36 @@ SpecialRelevantFactorImpactOnRuler.0005 = { #支付地方财政补贴
 }
 
 
+SpecialRelevantFactorImpactOnRuler.0006 = { #给皇亲国戚发俸禄
+	type = character_event
+	title = SpecialRelevantFactorImpactOnRuler.0006.tt
+	theme = realm
+	desc = SpecialRelevantFactorImpactOnRuler.0006.desc
+	left_portrait = {
+		character = scope:affected_ruler_throughout
+		animation = personality_rational
+	}
+	right_portrait = {
+		character = scope:relevant_factor_throughout
+		animation = personality_rational
+	}
+	override_background = { event_background = throne_room }
+
+	option = {
+		name = SpecialRelevantFactorImpactOnRuler.0006.a
+		SpecialRelevantFactorImpactOnRuler_event_0006_option_A_effect = yes
+	}
+	option = {
+		name = SpecialRelevantFactorImpactOnRuler.0006.b
+		SpecialRelevantFactorImpactOnRuler_event_0006_option_B_effect = yes
+	}
+	option = {
+		name = SpecialRelevantFactorImpactOnRuler.0006.c
+		SpecialRelevantFactorImpactOnRuler_event_0006_option_C_effect = yes
+	}
+}
+
+
 
 
 ##########################
@@ -227,7 +222,6 @@ SpecialRelevantFactorImpactOnRuler.1003 = {#决议，设置在每年初的机制
 			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_no_effect_alert_at_all }
 			remove_character_flag = SpecialRelevantFactorImpactOnRuler_no_effect_alert_at_all
 		}
-
 	}
 }
 
@@ -547,6 +541,46 @@ SpecialRelevantFactorImpactOnRuler.3005 = {#设置自动答复是否支付地方
 		if = {
 			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_accept }
 			remove_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_12_character_flag_auto_accept
+		}
+	}
+}
+
+
+SpecialRelevantFactorImpactOnRuler.3006 = {#设置自动答复是否支付皇亲国戚俸禄。备用而已，实际选项和文字描述不符，以后需要再启用
+	type = character_event
+	title = SpecialRelevantFactorImpactOnRuler.3006.tt
+	theme = realm
+	desc = SpecialRelevantFactorImpactOnRuler.3006.desc
+	left_portrait = {
+		character = scope:affected_ruler_throughout
+		animation = personality_rational
+	}
+	override_background = { event_background = throne_room }
+	option = {
+		name = SpecialRelevantFactorImpactOnRuler.3006.a
+		add_character_flag = { flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_accept }
+		if = {
+			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_reject }
+			remove_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_reject
+		}
+	}
+	option = {
+		name = SpecialRelevantFactorImpactOnRuler.3006.b
+		add_character_flag = { flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_reject }
+		if = {
+			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_accept }
+			remove_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_accept
+		}
+	}
+	option = {
+		name = SpecialRelevantFactorImpactOnRuler.3006.c
+		if = {
+			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_reject }
+			remove_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_reject
+		}
+		if = {
+			limit = { has_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_accept }
+			remove_character_flag = SpecialRelevantFactorImpactOnRuler_type_A_13_character_flag_auto_accept
 		}
 	}
 }
