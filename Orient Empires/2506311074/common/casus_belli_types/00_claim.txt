@@ -21,7 +21,7 @@
 				scope:attacker = {
 					culture = {
 						OR = {
-							has_innovation = innovation_divine_right
+							has_innovation = innovation_rightful_ownership
 							has_innovation = innovation_centralization_of_authority
 						}
 					}
@@ -127,14 +127,10 @@
 				}
 			}
 		}
-		#The Byzantine Emperor must be unblemished
+		#Under Byzantine law, a ruler must be unblemished
 		trigger_if = {
 			limit = {
-				OR = {
-					root = title:e_byzantium
-					root = title:e_roman_empire
-				}
-				scope:defender = { has_culture_group = culture_group:byzantine_group }
+				scope:defender.culture = { has_cultural_parameter = physical_disfigurement_blocks_inheritance }
 			}
 			scope:claimant = {
 				custom_description = {
@@ -158,7 +154,7 @@
 		#Under Byzantine law, a ruler must be able to produce children.
 		trigger_if = {
 			limit = {
-				scope:defender = { has_culture_group = culture_group:byzantine_group }
+				scope:defender.culture = { has_cultural_parameter = physical_disfigurement_blocks_inheritance }
 			}
 			scope:claimant = {
 				custom_description = {
@@ -528,6 +524,21 @@
 				}
 			}
 
+			# Culture
+			if = {
+				limit = {
+					scope:attacker = {
+						culture = {
+							has_cultural_parameter = cheaper_cbs
+						}
+					}
+				}
+				multiply = {
+					value = 0.8
+					desc = "CB_ATTACKER_CULTURE"
+				}
+			}
+
 			# Vassal contract in-realm cost reduction
 			if = {
 				limit = {
@@ -670,14 +681,8 @@
 			limit = {
 				NOT = { scope:claimant = scope:attacker }
 				scope:claimant.primary_title.tier < scope:attacker.primary_title.tier
-				trigger_if = {
-					limit = {
-						exists = scope:claimant.liege
-					}
-					NOT = { scope:claimant.liege = scope:attacker }
-				}
-				trigger_else = {
-					always = yes
+				scope:claimant = {
+					NOT = { target_is_liege_or_above = scope:attacker }
 				}
 			}
 
@@ -865,10 +870,8 @@
 
 		# Attacker pays gold to the defender as reparations.
 		scope:attacker = {
-			pay_short_term_gold = {
-				gold = 3
-				target = scope:defender
-				yearly_income = yes
+			pay_short_term_gold_reparations_effect = {
+				GOLD_VALUE = 3
 			}
 		}
 		# Create an 'helper' claim CB which we won't execute, but can use to determine how much Prestige should be given to war participants.
@@ -885,7 +888,7 @@
 			LOSER = scope:attacker
 			FAME_BASE = scope:cb_prestige_factor # Set by 'setup_claim_cb'
 			IS_RELIGIOUS_WAR = no
-			WINNER_FAME_SCALE = 10
+			WINNER_FAME_SCALE = scale_10_war_defender_win
 			LOSER_FAME_SCALE = -10
 			WINNER_ALLY_FAME_SCALE = 10
 			LOSER_ALLY_FAME_SCALE = 10

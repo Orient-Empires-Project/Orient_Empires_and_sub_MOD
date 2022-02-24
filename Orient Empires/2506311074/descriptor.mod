@@ -1,4 +1,4 @@
-version="1.4.*"
+version="1.5.*"
 tags={
 	"Graphics"
 	"Map"
@@ -10,6 +10,6 @@ tags={
 	"Character Interactions"
 	"Bookmarks"
 }
-name="Oriental Empires 1.3"
-supported_version="1.4.*"
+name="Oriental Empires( for ver.1.5)"
+supported_version="1.5.*"
 remote_file_id="2506311074"

@@ -13,10 +13,15 @@
 		}
 		triggered_desc = {
 			trigger = {
-				exists = scope:councillor_liege.dynasty
-				scope:councillor_liege.dynasty = { has_dynasty_perk = erudition_legacy_5 }
+				councillor_liege_has_erudition_legacy_5_perk = yes
 			}
 			desc = task_disrupt_schemes_hostile_scheme_resistance_legacy_bonus
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_disrupt_schemes_hostile_scheme_resistance_family_business_bonus
 		}
 		desc = task_disrupt_schemes_discovery_chance_base
 		triggered_desc = {
@@ -25,10 +30,15 @@
 		}
 		triggered_desc = {
 			trigger = {
-				exists = scope:councillor_liege.dynasty
-				scope:councillor_liege.dynasty = { has_dynasty_perk = erudition_legacy_5 }
+				councillor_liege_has_erudition_legacy_5_perk = yes
 			}
 			desc = task_disrupt_schemes_discovery_chance_legacy_bonus
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_disrupt_schemes_discovery_chance_family_business_bonus
 		}
 		desc = {
 			desc = council_task_possible_side_effects
@@ -75,6 +85,12 @@
 	}
 
 	council_owner_modifier = {
+		name = task_disrupt_schemes_erudition_legacy_5_modifier #TO EDIT?
+		hostile_scheme_resistance_add = 1.0
+		scale = scope:councillor.spymaster_disrupt_schemes_family_business_modifier_scale
+	}
+
+	council_owner_modifier = {
 		name = task_disrupt_schemes_modifier
 		scheme_discovery_chance_mult = 1.0
 		scale = { value = scope:councillor.spymaster_disrupt_schemes_scheme_discovery_modifier divide = 200 }
@@ -92,164 +108,19 @@
 		scale = { value = scope:councillor.spymaster_disrupt_schemes_erudition_legacy_5_discovery_modifier_scale divide = 200 }
 	}
 
-	on_start_task = {
-		liege = {
-			add_character_flag = {
-				flag = no_spymaster_side_effects_first_month
-				days = 30
-			}
-		}
+	council_owner_modifier = {
+		name = task_disrupt_schemes_erudition_legacy_5_modifier #TO EDIT
+		scheme_discovery_chance_mult = 1.0
+		scale = { value = scope:councillor.spymaster_disrupt_schemes_family_business_discovery_modifier_scale divide = 200 }
 	}
 
-	on_monthly = {
-		liege = {
-			if = {
-				limit = {
-					has_character_flag = no_spymaster_side_effects_first_month
-				}
-				remove_character_flag = no_spymaster_side_effects_first_month
-			}
-			else = {
-				trigger_event = {
-					on_action = task_disrupt_schemes_side_effects
-					days = { 1 30 }
-				}
-			}
-		}
-	}
+	monthly_on_action = task_disrupt_schemes_side_effects
 
 	ai_will_do = {
 		value = 1 # Always a good backup
 	}
 }
 
-councillor_shumishi_2 = {
-	position = councillor_shumishi
-
-	task_type = task_type_general
-	task_progress = task_progress_infinite
-	
-	effect_desc = {
-		### MaA Maintenance
-		desc = task_train_commanders_maa_effect_desc
-		triggered_desc = {
-			trigger = {
-				exists = scope:councillor_liege.dynasty
-				scope:councillor_liege.dynasty = { has_dynasty_perk = erudition_legacy_5 }
-			}
-			desc = task_train_commanders_maa_erudition_bonus_desc
-		}
-
-		### Commander Improvement
-		desc = task_train_commanders_effect_desc
-		triggered_desc = {
-			trigger = {
-				exists = scope:councillor_liege.dynasty
-				scope:councillor_liege.dynasty = { has_dynasty_perk = erudition_legacy_5 }
-			}
-			desc = task_train_commanders_commander_erudition_bonus_desc
-		}
-
-		desc = {
-			desc = council_task_possible_side_effects
-			triggered_desc = {
-				trigger = {
-					martial > mediocre_skill_rating
-				}
-				desc = task_train_commanders_commander_learns_from_commander
-			}
-			triggered_desc = {
-				trigger = {
-					martial > mediocre_skill_rating
-				}
-				desc = task_train_commanders_knight_improved
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_train_commanders_commander_wounded
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_train_commanders_commander_maimed
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_train_commanders_commander_killed
-			}
-		}
-	}
-	
-	council_owner_modifier = {
-		name = task_train_commanders_modifier
-		men_at_arms_maintenance = -1
-		#monthly_income = -5
-		scale = marshal_train_commanders_maa_total
-	}
-
-	on_start_task = {
-		liege = {
-			add_character_flag = {
-				flag = no_marshal_side_effects_first_month
-				days = 30
-			}
-		}
-	}
-
-	on_monthly = {
-		liege = {
-			random = {
-				chance = scope:councillor.marshal_train_commanders_monthly_chance_value
-				trigger_event = {
-					on_action = train_commanders_success_effect
-				}
-			}
-			if = {
-				limit = {
-					has_character_flag = no_marshal_side_effects_first_month
-				}
-				remove_character_flag = no_marshal_side_effects_first_month
-			}
-			else = {
-				trigger_event = {
-					on_action = train_commanders_marshal_task_side_effects
-					days = { 1 30 }
-				}
-			}
-		}
-	}
-
-	ai_will_do = {
-		value = 0
-		if = { # Try to save up a war chest before starting to Organize Levies
-			limit = {
-				scope:councillor_liege = {
-					number_of_maa_regiments >= 1
-					OR = {
-						scope:councillor_liege.gold < scope:councillor_liege.ai_war_chest_desired_gold_value
-						is_at_war = yes
-					}
-				}
-			}
-			add = 100
-		}
-		if = { # Try to avoid Bankruptcy during war
-			limit = {
-				scope:councillor_liege = {
-					number_of_maa_regiments >= 1
-					is_at_war = yes
-					monthly_character_income < monthly_character_expenses
-				}
-			}
-			add = 2000
-		}
-	}
-}
 
 councillor_shumishi_3 = {
 	position = councillor_shumishi
@@ -371,8 +242,7 @@ councillor_shumishi_3 = {
 		}
 		if = {
 			limit = {
-				exists = scope:councillor_liege.dynasty
-				scope:councillor_liege.dynasty = { has_dynasty_perk = erudition_legacy_5 }
+				councillor_liege_has_erudition_legacy_5_perk = yes
 			}
 			add = {
 				value = scope:councillor.marshal_increase_county_control_erudition_bonus_monthly_change
@@ -380,10 +250,38 @@ councillor_shumishi_3 = {
 			}
 		}
 		if = {
+			limit = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_family_business_bonus_monthly_change
+				desc = FAMILY_BUSINESS_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				scope:councillor = { has_character_modifier = event_bonus_to_county_control }
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_experience_bonus_monthly_change
+				desc = INCREASE_COUNTY_CONTROL_EXPERIENCE_BONUS_VALUE
+			}
+		}
+		if = {
 			limit = { exists = scope:county }
 			multiply = {
 				value = scope:county.county_control_rate_modifier
 				desc = MARSHAL_COUNTY_SPEED_MODIFIERS
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:county
+				scope:county = { has_county_modifier = petition_liege_county_control_modifier }
+			}
+			add = {
+				value = scope:councillor.petition_liege_county_convert_modifier_value
+				desc = MARSHAL_INCREASE_CONTROL_LOCAL_COUNTY_MODIFIERS
 			}
 		}
 	}
@@ -407,7 +305,6 @@ councillor_shumishi_3 = {
 	county_modifier = {
 		name = marshal_increase_control_modifier
 		monthly_county_control_change_add = 1
-		#monthly_income = -5
 		scale = marshal_increase_control_total
 	}
 
@@ -425,14 +322,7 @@ councillor_shumishi_3 = {
 		}
 	}
 
-	on_start_task = {
-		liege = {
-			add_character_flag = {
-				flag = no_marshal_side_effects_first_month
-				days = 30
-			}
-		}
-	}
+	monthly_on_action = task_increase_control_side_effects
 
 	on_monthly_county = {
 		random = {
@@ -441,46 +331,227 @@ councillor_shumishi_3 = {
 				marshal_remove_random_county_corruption_modifier_effect = yes
 			}
 		}
-		if = {
-			limit = {
-				has_character_flag = no_marshal_side_effects_first_month
-			}
-			remove_character_flag = no_marshal_side_effects_first_month
-		}
-		else = {
-			#Side effects
-			scope:councillor_liege = {
-				trigger_event = {
-					on_action = task_increase_control_side_effects
-					days = { 1 30 }
-				}
-			}
-		}
 	}
 
 	ai_will_do = {
 		value = 1000 # Highest prio
-		if = { # Keep doing Train Commanders if you're at war
+		if = { # Keep doing Organize levies if you're at war
 			limit = {
-				is_performing_council_task = task_train_commanders
+				is_performing_council_task = task_organize_levies
 				scope:councillor_liege = {
 					is_at_war = yes
 				}
 			}
 			add = -1000
 		}
-		if = { # Stop doing this if Train Commanders could help you lose less gold during a war
+		if = { # Stop doing this if Organize levies could help you lose less gold during a war
 			limit = {
 				NOT = {
-					is_performing_council_task = task_train_commanders
+					is_performing_council_task = task_organize_levies
 				}
 				scope:councillor_liege = {
-					number_of_maa_regiments >= 1
 					is_at_war = yes
 					monthly_character_income < monthly_character_expenses
 				}
 			}
 			add = -1000
+		}
+	}
+}
+
+councillor_shumishi_2 = {
+	position = councillor_shumishi
+
+	task_type = task_type_general
+	task_progress = task_progress_infinite
+	
+	effect_desc = {
+		desc = task_manage_guards_knights_desc
+		desc = task_manage_guards_scheme_desc
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			desc = task_manage_guards_erudition_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_manage_guards_family_business_bonus_desc
+		}
+
+		desc = {
+			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					martial > mediocre_skill_rating
+				}
+				desc = task_manage_guards_knight_improved
+			}
+			triggered_desc = {
+				trigger = {
+					martial > mediocre_skill_rating
+				}
+				desc = task_manage_guards_scheme_disrupted
+			}
+			triggered_desc = {
+				trigger = {
+					martial < high_skill_rating
+				}
+				desc = task_manage_guards_knight_wounded
+			}
+			triggered_desc = {
+				trigger = {
+					martial < high_skill_rating
+				}
+				desc = task_manage_guards_disorganized
+			}
+		}
+	}
+
+	is_shown = {
+		has_dlc_feature = royal_court
+	}
+
+	council_owner_modifier = {
+		name = task_manage_guards_knight_modifier
+		knight_effectiveness_mult = 1
+		scale = {
+			value = marshal_knights_overtime_boost_scale
+			divide = 100
+		}
+	}
+	council_owner_modifier = {
+		name = task_manage_guards_scheme_modifier
+		enemy_hostile_scheme_success_chance_add = -1
+		scale = {
+			value = marshal_scheme_overtime_boost_scale
+		}
+	}
+	
+	is_valid_showing_failures_only = {
+		scope:councillor_liege = {
+			court_grandeur_current_level >= 3
+		}
+	}
+
+	on_start_task = {
+		set_variable = { 
+			name = marshal_overtime_boost
+			value = 0 
+		}
+		set_variable = { 
+			name = marshal_overtime_decrease
+			value = 0 
+		}
+	}
+
+	on_cancel_task = {
+		remove_variable = marshal_overtime_boost
+		remove_variable = marshal_overtime_decrease
+	}
+
+	monthly_on_action = manage_guards_marshal_task_side_effects
+
+	on_monthly = {
+		if = {
+			limit = {
+				has_variable = marshal_overtime_boost
+				var:marshal_overtime_boost < marshal_knight_overtime_boost_max
+			}
+			change_variable = {
+				name = marshal_overtime_boost
+				add = marshal_knight_overtime_boost_monthly_increase
+			}
+		}
+		if = {
+			limit = {
+				has_variable = marshal_overtime_decrease
+				var:marshal_overtime_decrease > marshal_scheme_overtime_boost_max
+			}
+			change_variable = {
+				name = marshal_overtime_decrease
+				add = marshal_scheme_overtime_boost_monthly_increase
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+
+		#AI is more likely to do it the higher the court grandeur level
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 3
+				}
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 4
+				}
+			}
+			add = 5
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 5
+				}
+			}
+			add = 10
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 6
+				}
+			}
+			add = 15
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 7
+				}
+			}
+			add = 20
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 8
+				}
+			}
+			add = 25
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 9
+				}
+			}
+			add = 30
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 10
+				}
+			}
+			add = 35
+		}
+
+		#AI keeps doing it once it started
+		if = {
+			limit = {
+				is_performing_council_task = task_manage_guards
+			}
+			add = martial
 		}
 	}
 }

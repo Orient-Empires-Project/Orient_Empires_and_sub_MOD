@@ -2,7 +2,7 @@
 # by 往来天地间 WangLaiTianDiJian
 # SpecialRelevantFactorImpactOnRuler
 
-#WLTDJ20220205
+#WLTDJ20220220B
 
 
 
@@ -161,8 +161,9 @@ SpecialRelevantFactorImpactOnRuler_direct_vassal_total_annuity_value = {
 	}
 }
 
+#皇亲国戚俸禄。以年初事件发放形式。不会对以内阁职位工资形式发放造成影响
 
-SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value = {#皇亲国戚俸禄，正常情形
+SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value = {#皇亲国戚俸禄，正常情形。以年初事件发放形式。不会对以内阁职位工资形式发放造成影响
 	value = 0
 	if = {
 		limit = { is_close_family_of = scope:affected_ruler_throughout }
@@ -187,24 +188,70 @@ SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value = {#皇亲国戚�
 	multiply = 100
 }
 
-SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_annuity_value = {#皇亲国戚俸禄，奢侈情形
+SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_annuity_value = {#皇亲国戚俸禄，奢侈情形。以年初事件发放形式。不会对以内阁职位工资形式发放造成影响
 	value = SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value
 	multiply = 3
 }
 
-SpecialRelevantFactorImpactOnRuler_loyal_family_total_annuity_value = {
+SpecialRelevantFactorImpactOnRuler_loyal_family_total_annuity_value = {#以年初事件发放形式。不会对以内阁职位工资形式发放造成影响
 	every_in_list = {
 		list = relevant_factor_list
 		add = SpecialRelevantFactorImpactOnRuler_loyal_family_annuity_value
 	}
 }
 
-SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_total_annuity_value = {
+SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_total_annuity_value = {#以年初事件发放形式。不会对以内阁职位工资形式发放造成影响
 	every_in_list = {
 		list = relevant_factor_list
 		add = SpecialRelevantFactorImpactOnRuler_loyal_family_extravegant_annuity_value
 	}
 }
+
+#皇亲国戚俸禄。以内阁职位工资形式发放
+SpecialRelevantFactorImpactOnRuler_loyal_family_related_court_position_salary_individual = {
+	value = 0
+	if = {
+		limit = { is_close_family_of = scope:affected_ruler_throughout }
+		add = 0.1
+	}
+	else_if = {
+		limit = { is_extended_family_of = scope:affected_ruler_throughout }
+		add = 0.01
+	}
+	else_if = {
+		limit = { house = scope:affected_ruler_throughout.house }
+		add = 0.001
+	}
+	if = {
+		limit = { is_consort_of = scope:affected_ruler_throughout }
+		add = 0.5
+	}
+	else_if = {
+		limit = { is_concubine_of = scope:affected_ruler_throughout }
+		add = 0.05
+	}
+	multiply = 10
+}
+
+
+SpecialRelevantFactorImpactOnRuler_loyal_family_related_court_position_total_salary = {
+	every_in_list = {
+		list = relevant_factor_list
+		add = SpecialRelevantFactorImpactOnRuler_loyal_family_related_court_position_salary_individual
+	}
+}
+
+SpecialRelevantFactorImpactOnRuler_loyal_family_related_court_position_total_salary_static = {
+	value = 0
+	if = {
+		limit = { has_variable = SpecialRelevantFactorImpactOnRuler_loyal_family_related_court_position_total_salary_variable }
+		add = var:SpecialRelevantFactorImpactOnRuler_loyal_family_related_court_position_total_salary_variable
+	}
+	else = {
+		add = 5 #每年初更新一次皇亲国戚总俸禄，若年初时还没有符合发放皇亲国戚俸禄的条件，则以该值作为此职位的俸禄
+	}
+}
+
 
 ################################转移支付
 SpecialRelevantFactorImpactOnRuler_county_monthly_income = {
@@ -231,7 +278,7 @@ SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_static = {
 		add = var:SpecialRelevantFactorImpactOnRuler_average_county_monthly_income_variable
 	}
 	else = {
-		value = SpecialRelevantFactorImpactOnRuler_average_county_monthly_income
+		add = SpecialRelevantFactorImpactOnRuler_average_county_monthly_income
 	}
 }
 

@@ -11,31 +11,33 @@
 			vassal_modifier = {#民州
 				domain_limit = -10
 			}
+			#tax_factor = 0.2
 			liege_modifier = {
 				monthly_income = 0.5#每个民州为皇帝提供0.5的税收基础
 				vassal_limit = -0.25#每个民州额外占用四分之一的封臣上限
 			}
 			#levies_factor = 1
-			ai_liege_desire = 10
-			ai_vassal_desire = 0
+			ai_liege_desire = 4
+			ai_vassal_desire = 2
 		}
 		special_imperial_contract_1 = {#军府
 			parent = special_imperial_contract_0
 			position = { 0 2 }
 			flag = vassal_contract_war_override
-			levies_factor = 0.5
+			#tax_factor = -0.2
+			levies_factor = 0.3
 			liege_modifier = {
 				levy_reinforcement_rate = 0.05 #每个军府提供5%的征召兵恢复速度，可以换成其他
 				vassal_limit = 0.25#每个军府少占用四分之一的封臣上限
 			}
 			vassal_modifier = {
-				levy_size = 0.5
+				levy_size = 0.3
 				men_at_arms_maintenance = -0.1
 			}
 			flag = imperial_contract_1
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 3
+			ai_vassal_desire = 3
 		}
 		special_imperial_contract_2 = {#皇家采邑
 			is_valid = {
@@ -43,6 +45,7 @@
 			}
 			parent = special_imperial_contract_0
 			position = { 0 3 }
+			#tax_factor = -0.3
 			levies_factor = -0.8
 			liege_modifier = {
 				tax_mult = -0.05 #藩王会减少国家收入修正系数
@@ -74,10 +77,9 @@ special_imperial_corps = {
 			default = yes
 			position = { 0 1 }
 			flag = imperial_corps_0
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 3
+			ai_vassal_desire = 3
 		}
 		special_imperial_corps_1 = { #防御(神策军)
 			is_valid = {
@@ -109,10 +111,9 @@ special_imperial_corps = {
 				monthly_income = 10 #神策军军费
 			}
 			flag = imperial_corps_1
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 3
+			ai_vassal_desire = 2
 		}
 		special_imperial_corps_2 = { #藩镇
 			is_valid = {
@@ -123,6 +124,7 @@ special_imperial_corps = {
 			}
 			parent = special_imperial_corps_0
 			position = { 0 3 }
+			tax_factor = -1
 			levies_factor = -1
 			liege_modifier = {
 				men_at_arms_limit = 1
@@ -157,9 +159,8 @@ special_imperial_corps = {
 				}
 			}
 			flag = imperial_corps_2
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
+			ai_liege_desire = 1
 			ai_vassal_desire = 10
 		}
 		special_imperial_corps_3 = { #羁縻
@@ -167,7 +168,12 @@ special_imperial_corps = {
 				scope:vassal.primary_title.tier >= tier_duchy
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_1 
-					NOT = { has_culture_group = culture_group:chinese_group }
+					OR = {
+						#NOT = { culture = { has_cultural_pillar = heritage_chinese } }
+						NOT = { culture = { has_same_culture_heritage = scope:liege.culture } }
+						NOT = { has_government = imperial_government }
+						NOT = { religion = scope:liege.religion }
+					}
 				}
 			}
 			flag = vassal_contract_cannot_revoke_titles
@@ -183,9 +189,8 @@ special_imperial_corps = {
 				monthly_income = 3 #羁縻需要赋税去养
 			}
 			flag = imperial_corps_3
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
+			ai_liege_desire = 1
 			ai_vassal_desire = 10
 		}
 		special_imperial_corps_4 = { #都护
@@ -207,12 +212,12 @@ special_imperial_corps = {
 			}
 			vassal_modifier = {
 				monthly_dynasty_prestige = 0.35
-				monthly_income = -6 #都护需要赋税去养
+				monthly_county_control_change_add = 0.01
+				monthly_income = 5 #都护需要赋税去养
 			}
 			flag = imperial_corps_4
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
+			ai_liege_desire = 1
 			ai_vassal_desire = 10
 		}
 	 }		
@@ -230,11 +235,10 @@ special_imperial_bureau = {
 			default = yes
 			position = { 0 1 }
 			flag = imperial_bureau_0
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
 			
-			ai_liege_desire = 10
-			ai_vassal_desire = 0
+			ai_liege_desire = 4
+			ai_vassal_desire = 2
 		}
 		special_imperial_bureau_1 = {#轻徭薄赋
 			parent = special_imperial_bureau_0
@@ -255,15 +259,15 @@ special_imperial_bureau = {
 				general_opinion = 50
 			}
 			flag = imperial_bureau_1
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 1
+			ai_vassal_desire = 5
 		}
 		special_imperial_bureau_2 = {#榷司
 			is_valid = {
 				scope:vassal = {
 					vassal_contract_has_flag = imperial_contract_0 
+					scope:vassal.primary_title.tier < tier_kingdom
 					any_held_county = {
 						OR = {
 							is_coastal_county = yes
@@ -283,7 +287,7 @@ special_imperial_bureau = {
 				monthly_income = 1
 				tax_mult = 0.05
 				vassal_opinion = 2
-				development_growth = 0.05
+				development_growth_factor = 0.3
 			}
 			vassal_modifier = {
 				domain_limit = -10
@@ -291,34 +295,38 @@ special_imperial_bureau = {
 				monthly_county_control_change_factor = -0.3
 			}
 			flag = imperial_bureau_2
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 2
+			ai_vassal_desire = 4
 		}
-		special_imperial_bureau_3 = {#庄市自治
+		special_imperial_bureau_3 = {#贵族自治
 			parent = special_imperial_bureau_0
 			position = { 0 2 }
+			tax_factor = 0.5
 			levies_factor = -1
 			is_valid = {
-				#scope:vassal.primary_title.tier >= tier_duchy  #修正
+				scope:vassal.primary_title.tier < tier_kingdom
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_0 
 				}
 			}
 			liege_modifier = {
-				tax_mult = -0.05
-				monthly_income = 3
-				development_growth = 0.1
+				tax_mult = 0.05
+				levy_size = -0.05  #劳动力留在庄市中
+				men_at_arms_maintenance = 0.05
 			}
 			vassal_modifier = {
-				opinion_of_liege = 30
+				domain_limit = 4
+				development_growth_factor = 0.3
+				levy_size = 0.2
+				opinion_of_liege = 50
+				monthly_county_control_change_factor = 0.5
 			}
 			flag = imperial_bureau_3
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
+			flag = vassal_contract_cannot_revoke_titles
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 1
+			ai_vassal_desire = 5
 		}
 	 }		
 }
@@ -335,10 +343,9 @@ special_imperial_royal = {
 			default = yes
 			position = { 0 1 }
 			flag = imperial_royal_0
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 5
+			ai_vassal_desire = 1
 		}
 		special_imperial_royal_1 = {#藩王领
 			parent = special_imperial_royal_0
@@ -348,7 +355,7 @@ special_imperial_royal = {
 			position = { 0 2 }
 			levies_factor = -0.3
 			liege_modifier = {
-				
+				development_growth = -0.05
 			}
 			vassal_modifier = {
 				monthly_county_control_change_factor = -0.2
@@ -356,15 +363,14 @@ special_imperial_royal = {
 				monthly_dynasty_prestige = 0.02
 			}
 			flag = imperial_royal_1
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 10
+			ai_liege_desire = 1
+			ai_vassal_desire = 5
 		}
 		special_imperial_royal_2 = {#宫廷属地
 			parent = special_imperial_royal_0
 			is_valid = {
-				scope:vassal.primary_title.tier >= tier_duchy
+				scope:vassal.primary_title.tier < tier_duchy
 				scope:liege.primary_title.tier >= tier_kingdom #帝王专用
 			}
 			position = { 0 3 }
@@ -390,6 +396,7 @@ special_imperial_royal = {
 
 				development_growth_factor = 0.2
 				development_growth = 0.4
+				corruption_negative = 0.4
 				build_speed = 0.3
 				build_gold_cost = 0.4
 
@@ -399,10 +406,9 @@ special_imperial_royal = {
 				general_opinion = -20
 			}
 			flag = imperial_royal_2
-			#tax = { add = scope:vassal.CorruptionSystem_tax_value }
 			
-			ai_liege_desire = 10
-			ai_vassal_desire = 5
+			ai_liege_desire = 4
+			ai_vassal_desire = 2
 		}
 	 }		
 }

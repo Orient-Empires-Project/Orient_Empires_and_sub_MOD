@@ -40,7 +40,7 @@ east_on_after_lobby_effects = {
 			if = { # 藩镇开局
 				limit = {
 					highest_held_title_tier <= tier_duchy
-					has_culture_group = culture_group:chinese_group
+					culture = { has_cultural_pillar = heritage_chinese }
 					is_independent_ruler = no
 					is_corps_government_trigger = yes
 				}
@@ -52,25 +52,25 @@ east_on_after_lobby_effects = {
 			if = { # 非大和军镇转律令藩镇
 				limit = {
 					highest_held_title_tier <= tier_duchy
-					NOT = { has_culture_group = culture_group:yamato_group }
+					NOT = { culture = { has_cultural_pillar = heritage_yamato } }
 					is_independent_ruler = no
 					has_government = corps_government
 					top_liege = { has_government = imperial_government }
 				}
 				change_government_corps_government_effect = yes
 				if = { 
-					limit = { has_culture_group = culture_group:chinese_group NOT = { has_realm_law = corps_succession_law } }
+					limit = { culture = { has_cultural_pillar = heritage_chinese } NOT = { has_realm_law = corps_succession_law } }
 					add_realm_law_skip_effects = corps_succession_law
 				}
 				if = { 
-					limit = { has_culture_group = culture_group:chinese_group NOT = { has_realm_law = male_only_law } }
+					limit = { culture = { has_cultural_pillar = heritage_chinese } NOT = { has_realm_law = male_only_law } }
 					add_realm_law_skip_effects = male_only_law
 				}
 			}
 			if = { # 玩家开局
 				limit = {
 					top_liege = { is_oe_imperial_government_trigger = yes }
-					has_culture_group = culture_group:chinese_group
+					culture = { has_cultural_pillar = heritage_chinese }
 					is_bureau_government_trigger = yes
 					highest_held_title_tier <= tier_duchy
 					is_independent_ruler = no
@@ -91,9 +91,10 @@ east_on_after_lobby_effects = {
 					top_liege = { is_oe_imperial_government_trigger = yes }					
 					is_bureau_government_trigger = yes
 					highest_held_title_tier <= tier_duchy
-					has_culture_group = culture_group:chinese_group
+					culture = { has_cultural_pillar = heritage_chinese }
 					is_independent_ruler = no
 					is_ai = yes
+					NOT = { vassal_contract_has_flag = imperial_bureau_3 }
 				}
 				if = { 
 					limit = { NOT = { has_realm_law = official_succession_law } }
@@ -108,12 +109,30 @@ east_on_after_lobby_effects = {
 				limit = {
 					highest_held_title_tier <= tier_duchy
 					primary_title.tier >= tier_county
-					#has_culture_group = culture_group:chinese_group
+					#culture = { has_cultural_pillar = heritage_chinese }
 					is_independent_ruler = yes
 					is_bureau_government_trigger = yes
 					#can_have_official_succession_law_trigger = yes
 				}
 				change_government = feudal_government
+				if = { 
+					limit = { NOT = { has_realm_law = high_partition_succession_law } }
+					add_realm_law_skip_effects = high_partition_succession_law
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = tradition_succession_law } }
+					add_realm_law_skip_effects = tradition_succession_law
+				}
+			}
+			if = { # 独立藩镇转军镇制
+				limit = {
+					highest_held_title_tier <= tier_duchy
+					primary_title.tier >= tier_county
+					#culture = { has_cultural_pillar = heritage_chinese }
+					is_independent_ruler = yes
+					is_corps_government_trigger = yes
+				}
+				change_government = corps_government
 				if = { 
 					limit = { NOT = { has_realm_law = high_partition_succession_law } }
 					add_realm_law_skip_effects = high_partition_succession_law
@@ -126,9 +145,9 @@ east_on_after_lobby_effects = {
 			if = { # 男性继承法
 				limit = {
 					OR = {
-						has_culture_group = culture_group:chinese_group
-						has_culture_group = culture_group:yamato_group
-						has_culture_group = culture_group:goryeo_group
+						culture = { has_cultural_pillar = heritage_chinese }
+						culture = { has_cultural_pillar = heritage_yamato }
+						culture = { has_cultural_pillar = heritage_goryeo }
 						religion = religion:confucianism_religion
 					}			
 					OR = {
@@ -326,7 +345,7 @@ east_on_after_lobby_effects = {
 			if = {
 				limit = { 
 					is_independent_ruler = no
-					has_culture_group = culture_group:chinese_group
+					culture = { has_cultural_pillar = heritage_chinese }
 					current_date > 763.1.1
 					current_date <= 980.1.1
 					primary_title.tier = tier_county
@@ -352,7 +371,7 @@ east_on_after_lobby_effects = {
 			if = {
 				limit = { 
 					is_independent_ruler = no
-					has_culture_group = culture_group:chinese_group
+					culture = { has_cultural_pillar = heritage_chinese }
 					current_date > 980.1.1
 					liege = { 
 						has_primary_title = title:e_song
@@ -377,14 +396,14 @@ east_on_after_lobby_effects = {
 			if = {
 				limit = {
 					top_liege = { has_primary_title = title:e_celestia }
-					has_culture = culture:han
+					culture = { has_cultural_pillar = heritage_chinese }
 					current_date >= 763.1.1
 					current_date <= 892.1.1	
 				}
 				every_realm_county = {
 					limit = { 
 						OR = {
-							culture = culture:han
+							culture = { has_cultural_pillar = heritage_chinese }
 						}					
 					}
 					#土地兼并
@@ -448,7 +467,7 @@ on_title_gain = {
 
 east_on_title_gain_effects = { #by 糜三小姐
 	effect = { 
-#		if = { # 获得民州，民州的封臣还是民州
+#		if = { # 获得民州，民州的封臣转流官制
 #			limit = {
 #				highest_held_title_tier <= tier_duchy
 #				is_independent_ruler = no
@@ -501,7 +520,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 ##			}
 ##WLTDJFIX往来天地间修正（结束）
 #			if = { 
-#				limit = { NOT = { has_realm_law = corps_succession_law } is_ai = no culture_group = culture_group:chinese_group } #修改
+#				limit = { NOT = { has_realm_law = corps_succession_law } is_ai = no culture = { has_cultural_pillar = heritage_chinese } } #修改
 #				add_realm_law_skip_effects = corps_succession_law
 #			}
 #		}
@@ -565,7 +584,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 				level = 2
 			}
 			if = { 
-				limit = { NOT = { has_realm_law = official_succession_law } culture_group = culture_group:chinese_group }
+				limit = { NOT = { has_realm_law = official_succession_law } culture = { has_cultural_pillar = heritage_chinese } }
 				add_realm_law_skip_effects = official_succession_law
 			}
 		}
@@ -574,7 +593,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			limit = {
 				highest_held_title_tier <= tier_duchy
 				top_liege = { has_primary_title = title:e_celestia }
-				has_culture_group = culture_group:chinese_group
+				culture = { has_cultural_pillar = heritage_chinese }
 				is_ai = no
 				#can_have_official_succession_law_trigger = yes
 			}
@@ -598,13 +617,13 @@ east_on_title_gain_effects = { #by 糜三小姐
 					geographical_region = world_asia_china
 				}
 				OR = {
-					has_culture_group = culture_group:chinese_group
+					culture = { has_cultural_pillar = heritage_chinese }
 					can_have_tradition_succession_law_trigger = yes
 				}
 			}
 			change_government = imperial_government 
 			if = { 
-				limit = { NOT = { has_realm_law = tradition_succession_law } culture_group = culture_group:chinese_group }
+				limit = { NOT = { has_realm_law = tradition_succession_law } culture = { has_cultural_pillar = heritage_chinese } }
 				add_realm_law_skip_effects = tradition_succession_law
 			}
 		}
@@ -618,27 +637,34 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			change_government = feudal_government 
 			if = { 
-				limit = { NOT = { has_realm_law = tradition_succession_law } culture_group = culture_group:chinese_group }
+				limit = { NOT = { has_realm_law = tradition_succession_law } culture = { has_cultural_pillar = heritage_chinese } }
 				add_realm_law_skip_effects = tradition_succession_law
 			}
 		}
 
 		if = { # 独立军镇改世袭制
 			limit = {
-				culture_group = culture_group:chinese_group
+				culture = { has_cultural_pillar = heritage_chinese }
 				is_independent_ruler = yes
 				is_legion_government_trigger = yes
 			}
 			change_government = corps_government 
 			if = { 
-				limit = { NOT = { has_realm_law = tradition_succession_law } culture_group = culture_group:chinese_group }
+				limit = { NOT = { has_realm_law = tradition_succession_law } culture = { has_cultural_pillar = heritage_chinese } }
 				add_realm_law_skip_effects = tradition_succession_law
 			}
 		}
 
 		if = { #改朝换代
-			limit = {				
-				scope:title = title:e_celestia
+			limit = {
+				OR = {
+					scope:title = title:e_celestia
+					scope:title = title:e_tang
+					scope:title = title:e_han
+					scope:title = title:e_shu
+					scope:title = title:e_wu
+					scope:title = title:e_song
+				}				
 				
 				NOT = {
 					root.house = scope:previous_holder.house
@@ -648,15 +674,97 @@ east_on_title_gain_effects = { #by 糜三小姐
 					scope:transfer_type = flag:inheritance
 				}
 				NOT = { has_trait = founding_monarch }
-				NOR = { 
-					top_liege = { has_trait = founding_monarch }
-					top_liege = { has_character_flag = used_lifetime_subjugation }
-					top_liege = { has_character_flag = join_mandate_war_attacker }
-				}
+#				NOR = { 
+#					top_liege = { has_trait = founding_monarch }
+#					top_liege = { has_character_flag = used_lifetime_subjugation }
+#					top_liege = { has_character_flag = join_mandate_war_attacker }
+#				}
 			}
 			save_scope_as = new_ruler
-			trigger_event = east_title.0004
-			
+			if = {
+				limit = { scope:new_ruler = { is_ai = no } }
+				trigger_event = east_title.0004
+			}
+			if = { 
+				limit = { NOT = { has_realm_law = tradition_succession_law } }
+				add_realm_law_skip_effects = tradition_succession_law
+			}
+			if = { 
+				limit = { NOT = { has_realm_law = male_only_law } }
+				add_realm_law_skip_effects = male_only_law
+			}
+
+			scope:previous_holder = {
+				remove_trait = BureaucracyEmpire_lifestyle_bureaucrat
+	
+				imprison_character_effect = {
+					TARGET = this
+					IMPRISONER = scope:new_ruler
+				}
+	
+				hidden_effect = {
+					every_courtier = {
+						imprison_character_effect = {
+							TARGET = this
+							IMPRISONER = scope:new_ruler
+						}
+					}
+					every_close_or_extended_family_member = {
+						if = {
+							limit = {
+								root.location.province_owner = { top_liege = e_celestia }
+							}
+							imprison_character_effect = {
+								TARGET = this
+								IMPRISONER = scope:new_ruler
+							}
+						}
+					}
+				}
+			}
+
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change
+				add_claim_on_loss = yes
+			}
+			title:e_celestia = {
+				every_in_de_jure_hierarchy = {					
+					if = {
+						limit = {
+							holder = scope:previous_holder
+						}
+						add_to_temporary_list = titles_taken
+					}
+					else_if = {
+						limit = {
+							top_liege = scope:previous_holder
+						}
+						holder = {
+							add_to_temporary_list = vassals_taken
+						}
+					}
+				}
+			}
+			every_in_list = {
+				list = titles_taken
+				change_title_holder = {
+					holder = scope:new_ruler
+					change = scope:change
+					take_baronies = no
+				}
+			}
+			every_in_list = {
+				list = vassals_taken
+				change_liege = {
+					liege = scope:new_ruler
+					change = scope:change
+				}
+			}	
+
+			resolve_title_and_vassal_change = scope:change
+
+			#表态效忠			
 			every_vassal = {
 				limit = {
 					primary_title.tier >= tier_duchy
@@ -685,26 +793,55 @@ east_on_title_gain_effects = { #by 糜三小姐
 				}
 			}
 		}
-		if = {  ##### 改国号##
-			limit = {
+		
+		if = { #销毁多余帝国
+			limit = {				
 				scope:title = title:e_celestia
 				OR = {
-					has_title = title:e_celestia
-					has_title = title:e_cathay
-					has_title = title:e_tang
+					has_title = title:e_shu
 					has_title = title:e_han
-					AND = {
-						highest_held_title_tier = tier_empire
-						OR = {
-							has_culture_group = culture_group:chinese_group
-							has_culture = culture:shatuo
-							has_culture = culture:tuyuhun
-							has_culture = culture:tangut
-							has_culture = culture:bai
-							has_culture_group = culture_group:goryeo_group
-						}
-					}
+					has_title = title:e_wu
+					has_title = title:e_tang
+					has_title = title:e_song
+					has_title = title:e_huangqi
 				}
+			}
+			if = {
+				limit = { has_title = title:e_shu }
+				destroy_title = title:e_shu
+			}
+			else_if = {
+				limit = { has_title = title:e_han }
+				destroy_title = title:e_han
+			}
+			else_if = {
+				limit = { has_title = title:e_wu }
+				destroy_title = title:e_wu
+			}
+			else_if = {
+				limit = { has_title = title:e_tang }
+				destroy_title = title:e_tang
+			}
+			else_if = {
+				limit = { has_title = title:e_song }
+				destroy_title = title:e_song
+			}
+			else_if = {
+				limit = { has_title = title:e_huangqi }
+				destroy_title = title:e_huangqi
+			}
+		}
+			
+		if = {  ##### 改国号##
+			limit = {
+				OR = {
+					scope:title = title:e_celestia
+					scope:title = title:e_tang
+					scope:title = title:e_han
+					scope:title = title:e_shu
+					scope:title = title:e_wu
+					scope:title = title:e_song
+				}	
 				NOT = {
 					root.house = scope:previous_holder.house
 				}
@@ -1151,12 +1288,20 @@ east_on_title_gain_effects = { #by 糜三小姐
 			else_if = {
 				limit = {
 					royal_members_trigger = no ##非皇族
-					NOT = { 
-						any_held_title = { 
-							tier >= tier_kingdom 
+					OR = {
+						AND = {
+							NOT = { 
+								any_held_title = { 
+									tier >= tier_kingdom 
+								}
+							}	
+							root.capital_province.duchy = title:d_biansong
 						}
-					}	
-					root.capital_province.duchy = title:d_biansong
+						has_title = title:d_dianqian
+						root = character:217721
+						root = character:1401294
+						root = character:1401292
+					}
 				}
 				house = {
 					add_house_modifier = e_song #宋皇族
@@ -1189,8 +1334,11 @@ east_on_title_gain_effects = { #by 糜三小姐
 						any_held_title = { 
 							tier >= tier_kingdom 
 						}
+					}
+					OR = {
+						root.capital_province.duchy = title:d_taining
+						has_primary_title = title:d_confucius
 					}	
-					root.capital_province.duchy = title:d_taining
 				}
 				house = {
 					add_house_modifier = e_lu #鲁皇族
@@ -1238,7 +1386,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					royal_members_trigger = no ##非皇族
 #					NOT = { 
 #						any_held_title = { 
-#				>			tier = tier_kingdom 
+#							tier = tier_kingdom 
 #						}
 #					}	
 					root.capital_province.duchy = title:d_hedong 
@@ -1742,6 +1890,40 @@ east_on_title_gain_effects = { #by 糜三小姐
 							tier >= tier_kingdom 
 						}
 					}	
+					root.capital_province.duchy = title:d_baosai
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = no ##非皇族
+					NOT = { 
+						any_held_title = { 
+							tier >= tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_longxi
+				}
+				house = {
+					add_house_modifier = k_qin #秦皇族
+				}
+				title:e_celestia = { set_title_name = k_qin }
+				title:e_celestia = { set_coa = k_qin }
+				title:e_celestia = { set_color_from_title = title:k_qin }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = no ##非皇族
+					NOT = { 
+						any_held_title = { 
+							tier >= tier_kingdom 
+						}
+					}	
 					root.capital_province.duchy = title:d_binning
 				}
 				house = {
@@ -2048,6 +2230,23 @@ east_on_title_gain_effects = { #by 糜三小姐
 				title:e_celestia = { set_title_name = k_chu }
 				title:e_celestia = { set_coa = k_chu}
 				title:e_celestia = { set_color_from_title = title:d_jingnan }
+			}
+			else_if = {
+				limit = {
+					royal_members_trigger = no ##非皇族
+					NOT = { 
+						any_held_title = { 
+							tier >= tier_kingdom 
+						}
+					}	
+					root.capital_province.duchy = title:d_weisheng
+				}
+				house = {
+					add_house_modifier = k_chu #楚皇族
+				}
+				title:e_celestia = { set_title_name = k_chu }
+				title:e_celestia = { set_coa = k_chu}
+				title:e_celestia = { set_color_from_title = title:d_weisheng }
 			}
 			else_if = {
 				limit = {
@@ -2793,8 +2992,11 @@ east_on_title_gain_effects = { #by 糜三小姐
 						any_held_title = { 
 							tier >= tier_kingdom 
 						}
-					}	
-					root.capital_province.duchy = title:d_taining
+					}
+					OR = {
+						root.capital_province.duchy = title:d_taining
+						has_primary_title = title:d_confucius
+					}
 				}
 				house = {
 					add_house_modifier = e_lu #鲁皇族
@@ -4066,10 +4268,12 @@ on_shihao_effect = {
 		else_if = {
 			limit = { 
 				scope:death_man = {			
-				OR = {
-					has_trait = shanghuang
-					has_trait = fahuang
-				} 
+					OR = {
+						has_trait = shanghuang
+						has_trait = fahuang
+					} 
+				}
+			}
 			top_liege = {
 				save_scope_as = heir
 				trigger_event = {
@@ -4084,5 +4288,3 @@ on_shihao_effect = {
 		}
 	}
 }
-
-###TO DO 东南亚按首都男爵领名命名王朝

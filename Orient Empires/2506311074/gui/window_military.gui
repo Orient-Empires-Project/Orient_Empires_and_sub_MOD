@@ -21,7 +21,6 @@ window = {
 		using = Window_Position_MainTab
 
 		on_start = "[GetVariableSystem.Set( 'military_view_tabs', 'troops' )]"
-		on_start = "[GetVariableSystem.Clear( 'event_troop_open' )]"
 	}
 
 	state = {
@@ -34,7 +33,7 @@ window = {
 	margin_widget = {
 		size = { 100% 100% }
 		margin = { 0 26 }
-		#margin_right = 20
+		margin_right = 20
 
 		widget = {
 			size = { 100% 100% }
@@ -90,7 +89,7 @@ window = {
 							enabled = "[PlayerCanRaiseAnyRaiderRallyPoint]"
 
 							text = "RAISE_ALL_RAIDERS"
-							size = {210 32}
+							size = { 200 32 }
 
 							tooltip = "[GetPlayerRaiseAllRaidersTooltip]"
 							using = tooltip_se
@@ -99,11 +98,12 @@ window = {
 
 						button_standard = {
 							datacontext = "[GetPlayer]"
+
 							onclick = "[PlayerDisbandAll]"
 							enabled = "[PlayerCanDisbandAll]"
 
 							text = "DISBAND_ALL"
-							size = {135 32}
+							size = { 135 32 }
 
 							tooltip = "[GetDisbandAllTooltip]"
 							using = tooltip_se
@@ -111,7 +111,7 @@ window = {
 						}
 					}
 				}
-				
+
 				hbox = {
 					layoutpolicy_horizontal = expanding
 					margin_bottom = 5
@@ -169,20 +169,6 @@ window = {
 							alpha = "[Select_float( DataModelHasItems( MilitaryView.GetAllHolyOrders ), '(float)1.0', '(float)0.5' )]"
 						}
 					}
-					button_tab = {
-						layoutpolicy_horizontal = expanding
-						onclick = "[GetVariableSystem.Set( 'military_view_tabs', 'oe_legions' )]"
-						down = "[GetVariableSystem.HasValue( 'military_view_tabs', 'oe_legions' )]"
-						visible = "[EqualTo_string(GetPlayer.GetGovernment.GetName, GetGovernment('imperial_government').GetName)]"
-
-						text_single = {
-							text = "[oe_legions]"
-							parentanchor = center
-
-							maximumsize = { 400 -1 }
-							default_format = "#low"
-						}
-					}
 				}
 
 				vbox = {
@@ -235,6 +221,7 @@ window = {
 										layoutpolicy_horizontal = expanding
 										margin = { 10 5 }
 										tooltip = "[ArmyComposition.GetArmyCompositionTooltip]"
+										ignoreinvisible = no
 
 										background = {
 											using = Background_Area
@@ -307,6 +294,7 @@ window = {
 											layoutpolicy_horizontal = expanding
 											max = "[IntToFloat(ArmyComposition.GetMaxNumberOfSoldiers)]"
 											value = "[IntToFloat(ArmyComposition.GetCurrentNumberOfSoldiers)]"
+											using = Animation_ShowHide_Standard
 										}
 									}
 								}
@@ -470,6 +458,7 @@ window = {
 								}
 
 								vbox = {
+									name = "maa_area"
 									layoutpolicy_horizontal = expanding
 									layoutpolicy_vertical = expanding
 									margin = { 0 0 }
@@ -479,65 +468,65 @@ window = {
 										layoutpolicy_horizontal = expanding
 										margin = { 0 5 }
 										spacing = 5
+										name = "heading"
 
 										hbox = {
 											layoutpolicy_horizontal = expanding
-											spacing = 3
+											ignoreinvisible = no
+											
 
-											text_single = {
-												text = "BANNER_MEN_AT_ARMS_LABEL"
+											vbox = {
+												layoutpolicy_horizontal = expanding
+												layoutpolicy_vertical = expanding
+												expand = {}
+												hbox = {
+													layoutpolicy_horizontal = expanding
+													spacing = 5
+
+													text_single = {
+														text = "BANNER_MEN_AT_ARMS_LABEL"
+													}
+
+													text_single = {
+														layoutpolicy_horizontal = expanding
+														text = "[MilitaryView.GetMAACountAndCapString]"
+														default_format = "#high"
+														tooltip = "[MilitaryView.GetMAACountAndCapTooltip]"
+														using = tooltip_ne
+													}
+												}
 											}
 
-											text_single = {
-												layoutpolicy_horizontal = expanding
-												text = "[MilitaryView.GetMAACountAndCapString]"
-												default_format = "#high"
-												tooltip = "[MilitaryView.GetMAACountAndCapTooltip]"
-												using = tooltip_ne
+											button_tertiary = {
+												visible = "[Not(IsDataModelEmpty(MilitaryItem.GetMAA))]"
+												using = Animation_ShowHide_Standard
+												
+												name = "raise_all_men_at_arms"
+												datacontext = "[GetPlayer]"
+												onclick = "[PlayerRaiseAllMenAtArmsRegiments]"							
+												enabled = "[PlayerCanRaiseAnyMenAtArmsRallyPoint]"
+											
+												text = "RAISE_ALL_MEN_AT_ARMS"
+												size = {200 36}
+											
+												tooltip = "[GetPlayerRaiseAllMenAtArmsTooltip]"
+												using = tooltip_se
+												clicksound = "event:/SFX/UI/Unit/Army/sfx_ui_raise_army"
 											}
 										}
 
 										divider_light = {
 											layoutpolicy_horizontal = expanding
 										}
+
 										
-										
-
-										button_standard = {
-											name = "add_maa"
-											layoutpolicy_horizontal = expanding
-
-											text = "ADD_MEN_AT_ARMS_LABEL"
-
-											onclick = "[MilitaryItem.OnClick]"
-											tooltip = "CREATE_MAA_TOOLTIP"
-											#enabled = "[MilitaryItem.MaACanBeCreated]"
-											down = "[MilitaryItem.IsOpen]"
-											button_plus = {
-												name = "can_be_created"
-												visible = "[MilitaryItem.CanCreateAnyMAAType]"
-												parentanchor = vcenter
-												alwaystransparent = yes
-											}
-
-											# animation_attention = {
-											# 	visible = "[MilitaryItem.CanCreateAnyMAAType]"
-											# }
-
-											icon = {
-												name = "at_cap"
-												visible = "[Not(MilitaryItem.MaACanBeCreated)]"
-												parentanchor = left|vcenter
-												position = { 10 0 }
-												size = { 29 29 }
-
-												texture = "gfx/interface/icons/symbols/icon_warning.dds"
-											}
-										}
 									}
+
+
 
 									hbox = {
 										layoutpolicy_horizontal = expanding
+										name = "maa_tiles"
 
 										fixedgridbox = {
 											datamodel = "[MilitaryItem.GetMAA]"
@@ -586,7 +575,6 @@ window = {
 
 													button_standard_clean = {
 														name = "maa_entry"
-														layoutpolicy_horizontal = expanding
 														size = { 164 90 }
 
 														vbox = {
@@ -602,8 +590,8 @@ window = {
 																}
 
 																icon = {
-																	name = "icon_soldier"
-																	texture = "gfx/interface/icons/icon_soldier.dds"
+																	name = "icon_maa"
+																	texture = [MenAtArmsType.GetIcon]
 																	size = { 20 20 }
 																}
 
@@ -667,53 +655,57 @@ window = {
 
 										expand = {}
 									}
-									vbox = {
+
+									button_standard = {
+										name = "add_maa"
 										layoutpolicy_horizontal = expanding
-										button_standard = {
-											name = "raise_all_men_at_arms"
-											layoutpolicy_horizontal = expanding
-											datacontext = "[GetPlayer]"
-											onclick = "[PlayerRaiseAllMenAtArmsRegiments]"							
-											enabled = "[PlayerCanRaiseAnyMenAtArmsRallyPoint]"
-				
-											text = "RAISE_ALL_MEN_AT_ARMS"
-											size = {210 36}
-				
-											tooltip = "[GetPlayerRaiseAllMenAtArmsTooltip]"
-											using = tooltip_se
-											clicksound = "event:/SFX/UI/Unit/Army/sfx_ui_raise_army"
+
+										text = "ADD_MEN_AT_ARMS_LABEL"
+
+										onclick = "[MilitaryItem.OnClick]"
+										tooltip = "CREATE_MAA_TOOLTIP"
+										#enabled = "[MilitaryItem.MaACanBeCreated]"
+										down = "[MilitaryItem.IsOpen]"
+										
+										button_plus = {
+											name = "can_be_created"
+											visible = "[MilitaryItem.CanCreateAnyMAAType]"
+											parentanchor = vcenter
+											alwaystransparent = yes
+										}
+
+										# animation_attention = {
+										# 	visible = "[MilitaryItem.CanCreateAnyMAAType]"
+										# }
+
+										warning_icon = {
+											name = "at_cap"
+											visible = "[Not(MilitaryItem.MaACanBeCreated)]"
+											parentanchor = left|vcenter
+											position = { 10 0 }
+											size = { 29 29 }
 										}
 									}
-								}
 
+									
+								}
 
 								vbox = {
 									visible = "[Not(IsDataModelEmpty(MilitaryView.GetEventTroops))]"
 									layoutpolicy_horizontal = expanding
 									margin = { 0 5 }
 									spacing = 5
-									
-									
-									button_standard_hover = {
-										size = { 540 30 }
-										text_single = {
-											parentanchor = vcenter|left
-											position = { 3 0 }
-											layoutpolicy_horizontal = expanding
-											text = "MILITARY_VIEW_EVENT_TROOPS"
-											alwaystransparent = yes
-										}
-										onclick = "[GetVariableSystem.Toggle( 'event_troop_open' )]"
+
+									text_single = {
+										layoutpolicy_horizontal = expanding
+										text = "MILITARY_VIEW_EVENT_TROOPS"
 									}
-									
-									
 
 									divider_light = {
 										layoutpolicy_horizontal = expanding
 									}
 
 									vbox = {
-										visible = "[GetVariableSystem.HasValue( 'event_troop_open', 'true' )]"
 										datamodel = "[MilitaryView.GetEventTroops]"
 										layoutpolicy_horizontal = expanding
 
@@ -1023,7 +1015,7 @@ window = {
 								}
 							}
 						}
-					}										
+					}
 				}
 
 				scrollbox = {
@@ -1170,25 +1162,25 @@ window = {
 							item = {
 								vbox = {
 									layoutpolicy_horizontal = expanding
-															
+
 									button_holyorder_list_item = {
 										visible = "[Not(And(HolyOrder.IsHired, HolyOrder.IsPledgedToGreatHolyWar))]"
-										
+
 										datacontext = "[HiredTroopItem.GetHolyOrder]"
 										layoutpolicy_horizontal = expanding
-										
+
 										blockoverride "HiredTroopMenAtArmsTypesDataModel"
 										{
 											datamodel = "[HiredTroopItem.GetRegiments]"
 										}
 									}
-									
+
 									button_holyorder_list_item = {
 										visible = "[And(HolyOrder.IsHired, HolyOrder.IsPledgedToGreatHolyWar)]"
 										size = { 430 120 }
 										datacontext = "[HiredTroopItem.GetHolyOrder]"
 										layoutpolicy_horizontal = expanding
-										
+
 										blockoverride "HiredTroopMenAtArmsTypesDataModel"
 										{
 											datamodel = "[HiredTroopItem.GetRegiments]"
@@ -1310,9 +1302,9 @@ onclick = "[GetScriptedGui('raise_new_hm_legion').Execute( GuiScope.SetRoot( Get
 								}
 							}
 							
-						}	
-					}	
-				}	
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1368,8 +1360,10 @@ types MilitaryView
 				}
 			}
 		}
+
 		hbox = {
 			layoutpolicy_horizontal = expanding
+
 			vbox = {
 				margin = { 5 5 }
 				layoutpolicy_horizontal = expanding
@@ -1379,7 +1373,7 @@ types MilitaryView
 					layoutpolicy_horizontal = expanding
 
 					text_single = {
-						text = "[men_at_arms|E]:"
+						raw_text = "[men_at_arms|E]:"
 					}
 
 					text_single = {
@@ -1441,11 +1435,14 @@ types MilitaryView
 					text_single = {
 						visible = "[MilitaryViewEventTroop.IsInheritable]"
 						text = "MILITARY_VIEW_EVENT_TROOPS_ASSOCIATED_WAR"
+						max_width = 450
+						multiline = yes
 					}
 
 					expand = {}
 				}
 			}
+
 			vbox = {
 				layoutpolicy_vertical = growing
 
@@ -1461,7 +1458,6 @@ types MilitaryView
 					tooltip = "MILITARY_VIEW_EVENT_TROOPS_RAISE_TT"
 
 					hbox = {
-						layoutpolicy_horizontal = expanding
 						margin = { 5 0 }
 
 						button_army_details = {
@@ -1662,7 +1658,7 @@ types HiredTroops
 
 	type button_holyorder_list_item = button_standard_clean {
 		size = { 430 110 }
-		
+
 		background = {
 			using = Background_Area
 		}
@@ -1770,7 +1766,7 @@ types HiredTroops
 				text_single = {
 					name = "maa_type"
 					align = left
-					text = "[men_at_arms|E]:"
+					raw_text = "[men_at_arms|E]:"
 				}
 
 				spacer = {
@@ -1806,7 +1802,7 @@ types HiredTroops
 
 				text_single = {
 					name = "cost_label"
-					text = " [HolyOrder.GetCostDescForPlayer]"
+					text = "[HolyOrder.GetCostDescForPlayer]"
 				}
 			}
 		}
