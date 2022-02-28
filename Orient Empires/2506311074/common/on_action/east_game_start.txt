@@ -161,7 +161,7 @@ east_on_after_lobby_effects = {
 					add_realm_law_skip_effects = male_only_law
 				}
 			}
-			if = { #所有非玩家的听命属臣实行男性流官制
+			if = { #晚唐，所有非玩家的听命属臣实行男性流官制
 				limit = { 
 					top_liege = { is_oe_imperial_government_trigger = yes }
 					has_government = imperial_government
@@ -236,6 +236,45 @@ east_on_after_lobby_effects = {
 					#	level = 4
 					#}
 				}
+			}
+			if = { #北宋，所有非玩家的听命属臣实行男性流官制
+				limit = { 
+					top_liege = { is_oe_imperial_government_trigger = yes }
+					has_government = imperial_government
+					is_independent_ruler = no
+					primary_title.tier >= tier_county
+					primary_title.tier < tier_kingdom
+					current_date > 980.1.1
+					current_date <= 1125.1.1
+					is_ai = yes
+					NOR = { 
+						has_primary_title = title:d_confucius
+						has_primary_title = title:d_gosho
+						has_title = title:c_kongmeng
+					}
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = official_succession_law } }
+					add_realm_law_skip_effects = official_succession_law
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = male_only_law } }
+					add_realm_law_skip_effects = male_only_law
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_taxes }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_taxes
+						level = 3
+					}
+				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:feudal_government_levies }
+					vassal_contract_set_obligation_level = {
+						type = feudal_government_levies
+						level = 3
+					}
+				}						
 			}
 			if = {
 				limit = { 
@@ -694,35 +733,6 @@ east_on_title_gain_effects = { #by 糜三小姐
 				add_realm_law_skip_effects = male_only_law
 			}
 
-			scope:previous_holder = {
-				remove_trait = BureaucracyEmpire_lifestyle_bureaucrat
-	
-				imprison_character_effect = {
-					TARGET = this
-					IMPRISONER = scope:new_ruler
-				}
-	
-				hidden_effect = {
-					every_courtier = {
-						imprison_character_effect = {
-							TARGET = this
-							IMPRISONER = scope:new_ruler
-						}
-					}
-					every_close_or_extended_family_member = {
-						if = {
-							limit = {
-								root.location.province_owner = { top_liege = e_celestia }
-							}
-							imprison_character_effect = {
-								TARGET = this
-								IMPRISONER = scope:new_ruler
-							}
-						}
-					}
-				}
-			}
-
 			create_title_and_vassal_change = {
 				type = conquest
 				save_scope_as = change
@@ -764,6 +774,38 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 			resolve_title_and_vassal_change = scope:change
 
+			scope:previous_holder = {
+				remove_trait = BureaucracyEmpire_lifestyle_bureaucrat
+	
+				imprison_character_effect = {
+					TARGET = this
+					IMPRISONER = scope:new_ruler
+				}
+	
+				hidden_effect = {
+					every_courtier = {
+						imprison_character_effect = {
+							TARGET = this
+							IMPRISONER = scope:new_ruler
+						}
+					}
+					every_close_or_extended_family_member = {
+						if = {
+							limit = {
+								OR = {
+									is_landed = no
+									top_liege = scope:new_ruler
+								}
+							}
+							imprison_character_effect = {
+								TARGET = this
+								IMPRISONER = scope:new_ruler
+							}
+						}
+					}
+				}
+			}
+
 			#表态效忠			
 			every_vassal = {
 				limit = {
@@ -803,7 +845,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					has_title = title:e_wu
 					has_title = title:e_tang
 					has_title = title:e_song
-					has_title = title:e_huangqi
+					has_title = title:e_huang_qi
 				}
 			}
 			if = {
@@ -827,8 +869,8 @@ east_on_title_gain_effects = { #by 糜三小姐
 				destroy_title = title:e_song
 			}
 			else_if = {
-				limit = { has_title = title:e_huangqi }
-				destroy_title = title:e_huangqi
+				limit = { has_title = title:e_huang_qi }
+				destroy_title = title:e_huang_qi
 			}
 		}
 			
