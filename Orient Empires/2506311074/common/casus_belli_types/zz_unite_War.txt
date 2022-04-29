@@ -1,4 +1,4 @@
-﻿unite_war = {  
+﻿unite_war = { 
 	group = conquest
 	
 	combine_into_one = yes
@@ -8,28 +8,39 @@
 	allowed_for_character = {
 		scope:attacker = {
 			is_independent_ruler = yes
-			capital_province = { geographical_region = world_asia_china }
+			OR = {
+				capital_province = { geographical_region = world_asia_china }
+				culture = { has_cultural_pillar = heritage_chinese }
+			}
 		}
 	}
 	allowed_against_character = {
 		scope:defender = {
 			is_independent_ruler = yes
-			capital_province = { geographical_region = world_asia_china }
-			NOT = { has_primary_title = title:k_xia }
+			OR = {
+				capital_province = { geographical_region = world_asia_china }
+				culture = { has_cultural_pillar = heritage_chinese }
+			}
 		}
 	}
 	target_titles = neighbor_land
 	target_title_tier = kingdom
 	target_de_jure_regions_above = yes
+	#ai_can_target_all_titles = yes
 		
 	on_declaration = {
 		on_declared_war = yes
+		scope:defender = {
+			trigger_event = {
+				id = east_title.0001
+				days = 30
+			}
+		}
 	}
 	
 	cost = {
-		gold = scope:attacker.diplomacy
-		piety = 100
-		prestige = 100
+		piety = 60
+		prestige = 60
 	}
 
 	on_victory_desc = {
@@ -47,6 +58,7 @@
 			show_pow_release_message_effect = yes
 			#imprison = { target = scope:defender type = dungeon }
 		}
+
 		create_title_and_vassal_change = {
 			type = conquest
 			save_scope_as = change
@@ -59,7 +71,110 @@
 			change = scope:change
 			take_occupied = yes
 		}
+
+		if = {
+			limit = {
+				scope:defender.primary_title.tier > scope:attacker.primary_title.tier
+				scope:defender.primary_title.tier < tier_empire
+			}
+			scope:defender.primary_title = {
+				change_title_holder = {
+					holder = scope:attacker
+					change = scope:change
+				}
+			}
+		}
+#		scope:defender = {
+#			every_held_title = {
+#				if = {
+#					limit = {					
+#						tier >= tier_kingdom
+#					}
+#					change_title_holder = {
+#						holder = scope:attacker
+#						change = scope:change
+#					}
+#				}
+#				else_if = {
+#					limit = {
+#						OR = {
+#							NOT = { exists = scope:secondary_title }
+#							tier > scope:secondary_title.tier
+#						}
+#					}
+#					save_temporary_scope_as = secondary_title
+#				}
+#			}
+#		}
+#		
+#		scope:defender = {
+#			if = {
+#				limit = {
+#					exists = scope:secondary_title
+#				}
+#				every_vassal = {
+#					limit = {
+#						primary_title.tier >= scope:secondary_title.tier
+#						NOT = {
+#							primary_title.tier = tier_barony
+#						}
+#					}
+#					change_liege = {
+#						liege = scope:attacker
+#						change = scope:change
+#					}
+#				}
+#			}
+#		}
+
 		resolve_title_and_vassal_change = scope:change
+
+		if = {
+			limit = {
+				scope:attacker = {
+					has_primary_title = title:e_celestia
+				}
+			}
+			scope:attacker = { save_scope_as = new_ruler }
+			title:e_celestia = {
+				every_dejure_vassal_title_holder = {
+					limit = {
+						is_independent_ruler = yes
+						character_is_realm_neighbor = scope:attacker
+						NOT = { this = scope:defender }
+						NOT = { this = scope:attacker }
+					}
+					trigger_event = {
+						id = east_title.0001
+						days = 30
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:attacker = {
+					has_primary_title = title:e_celestia
+				}
+				scope:defender = {
+					is_oe_imperial_government_trigger = yes
+					NOT = { has_title = title:e_celestia }
+					NOT = { has_title = title:e_cathay }
+				}
+			}
+			scope:defender = {
+				every_held_title = {
+					limit = { tier = tier_empire }
+					add_to_list = titles_to_destroy
+				}
+			}
+			every_in_list = {
+				list = titles_to_destroy
+				scope:attacker = {
+					destroy_title = prev
+				}
+			}
+		}
 
 		# Attacker gets Prestige Experience, Defender loses Prestige, all other participants gain Prestige based on their war contribution.
 		modify_all_participants_fame_values = {
@@ -193,8 +308,9 @@
 	cb_name_no_target = "WAR_OF_REUNIFICATION"
 	ai_only_against_neighbors = yes
 	interface_priority = 1000
+	truce_days = 300
 	
-	max_attacker_score_from_battles = 100
+	max_attacker_score_from_battles = 200
 	attacker_score_from_battles_scale = 100
 	defender_score_from_battles_scale = 100
 	#attacker_ticking_warscore = NWar::ATTACKER_TICKING_WAR_SCORE
@@ -202,7 +318,7 @@
 	#defender_ticking_warscore = NWar::DEFENDER_TICKING_WAR_SCORE
 	#defender_ticking_warscore_delay = NWar::DEFENDER_TICKING_WAR_SCORE_DELAY_DAYS # e.g. { months = 12 }
 	#ticking_war_score_targets_entire_realm = yes
-	attacker_wargoal_percentage = 1					# How much the Attacker need to occupy of a wargoal to gain ticking War Score. 0.0 means "at least one occupation"
+	attacker_wargoal_percentage = 0.5					# How much the Attacker need to occupy of a wargoal to gain ticking War Score. 0.0 means "at least one occupation"
 	defender_wargoal_percentage = 1
 
 	battle_participation_mult = 1.2
@@ -215,25 +331,32 @@ steppe_war = {
 	mutually_exclusive_titles = { always = yes }
 	
 	allowed_for_character = {
-		capital_province = { geographical_region = world_steppe_east }
+		OR = {
+			culture = { has_cultural_parameter = can_recruit_open_specialist }
+			capital_province = { geographical_region = world_steppe_tartaria }
+		}
 		is_independent_ruler = yes
+		highest_held_title_tier >= tier_kingdom 
 	}
 	allowed_against_character = {
+		exists = capital_province
 		capital_province = {
 			OR = {
 				geographical_region = world_steppe
-				geographical_region = world_asia
+				geographical_region = world_asia	
 			} 
 		}
-		is_independent_ruler = yes
-		NOR = {
-			has_primary_title = title:k_xia
-			has_primary_title = title:e_celestia
-		}
+
+		highest_held_title_tier <= tier_kingdom 
+#		NOR = {
+#			has_primary_title = title:k_xia
+#			has_primary_title = title:e_celestia
+#		}
 	}
 	target_titles = neighbor_land
-	target_title_tier = kingdom
+	target_title_tier = kingdom  #changed
 	target_de_jure_regions_above = yes
+	#ai_can_target_all_titles = yes
 	
 	on_declaration = {
 		on_declared_war = yes
@@ -241,8 +364,8 @@ steppe_war = {
 	
 	cost = {
 		gold = scope:attacker.diplomacy
-		piety = 100
-		prestige = 100
+		piety = 50
+		prestige = 50
 	}
 
 	on_victory_desc = {
@@ -866,16 +989,16 @@ shatuo_unite_war = {
 	on_primary_defender_death = inherit
 	
 	transfer_behavior = transfer
-	attacker_ticking_warscore = 0.01
+	attacker_ticking_warscore = 0.05
 	defender_ticking_warscore = 0.05	
-	truce_days = 1000
+	truce_days = 100
 	ignore_effect = change_title_holder
 	war_name = "SHATUO_UNITE_NAME"
 	cb_name_no_target = "SHATUO_UNITE_NAME"
 	ai_only_against_neighbors = no
 	interface_priority = 100
 	
-	max_attacker_score_from_battles = 100
+	max_attacker_score_from_battles = 200
 	attacker_score_from_battles_scale = 100
 	defender_score_from_battles_scale = 100
 	#attacker_ticking_warscore = NWar::ATTACKER_TICKING_WAR_SCORE
@@ -888,4 +1011,5 @@ shatuo_unite_war = {
 
 	battle_participation_mult = 1.2
 	should_show_war_goal_subview = yes
+	white_peace_possible = no
 }

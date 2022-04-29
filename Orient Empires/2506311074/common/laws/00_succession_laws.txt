@@ -192,6 +192,7 @@ succession_order_laws = {
 				historical_succession_access_single_heir_succession_law_trigger = yes
 				AND = {
 					is_ai = no
+					is_independent_ruler = yes
 					OR = {
 						has_government = imperial_government
 						is_bureau_government_trigger = yes
@@ -350,7 +351,7 @@ succession_order_laws = {
 		}
 		modifier = {
 			player_heir_opinion = 25
-			eligible_child_except_player_heir_opinion = -5
+			eligible_child_except_player_heir_opinion = -25
 		}
 		flag = can_designate_heirs 
 
@@ -362,6 +363,58 @@ succession_order_laws = {
 		}
 	}
 
+	#科举流官制
+	official_succession_law = {
+		can_keep = {
+			can_have_official_succession_law_trigger = yes
+			highest_held_title_tier <= tier_duchy
+			historical_corps_succession_law_trigger = no
+		}
+		can_have = {
+			can_have_official_succession_law_trigger = yes
+			historical_corps_succession_law_trigger = no
+		}
+		should_start_with = {
+			highest_held_title_tier <= tier_duchy
+			NOT = { has_trait = peasant_leader }
+			is_at_war_with_liege = no
+			is_ai = yes	
+			is_independent_ruler = no		
+			historical_corps_succession_law_trigger = no
+			OR = {
+				has_government = imperial_government
+				top_liege = { is_oe_imperial_government_trigger = yes }
+				is_corps_government_trigger = yes
+				is_bureau_government_trigger = yes
+			}
+		}
+		can_pass = {
+			can_pass_official_succession_law_trigger = yes
+		}
+		succession = {
+			order_of_succession = inheritance
+			traversal_order = children
+			rank = oldest
+			title_division = partition
+		}
+	}
+
+	#科举制
+	admin_succession_law = {
+		can_keep = {
+			can_have_admin_succession_law_trigger = yes
+		}
+		can_have = {
+			can_have_admin_succession_law_trigger = yes
+		}
+		should_start_with = {
+			has_government = bureau_government
+		}
+		succession = {
+			order_of_succession = generate
+			pool_character_config = pool_bureaucracy_succession  
+		}
+	}
 
 	#留后册命制（藩镇继承法）
 	corps_succession_law = {
@@ -375,8 +428,10 @@ succession_order_laws = {
 			can_pass_corps_succession_law_trigger = yes
 		}
 		should_start_with = {
-			highest_held_title_tier <= tier_duchy
-			is_corps_government_trigger = yes
+			OR = {
+				has_government = corps_government
+				historical_corps_succession_law_trigger = yes
+			}
 			NOR = {
 				historical_succession_access_single_heir_dynasty_house_trigger = yes
 			}
@@ -398,39 +453,6 @@ succession_order_laws = {
 		}
 		pass_cost = {
 			prestige = change_title_succession_law_prestige_cost
-		}
-	}
-
-	#科举流官制
-	official_succession_law = {
-		can_keep = {
-			can_have_official_succession_law_trigger = yes
-			highest_held_title_tier <= tier_duchy
-		}
-		can_have = {
-			can_have_official_succession_law_trigger = yes
-		}
-		should_start_with = {
-			highest_held_title_tier <= tier_duchy
-			is_ai = yes			
-			OR = {
-				is_bureau_government_trigger = yes
-				has_government = imperial_government
-				is_corps_government_trigger = yes
-			}
-			NOR = {
-				has_title = title:d_chengde
-				has_title = title:d_youzhou
-				has_title = title:d_lulong
-				has_title = title:d_weibo
-			}
-		}
-		can_pass = {
-			can_pass_official_succession_law_trigger = yes
-		}
-		succession = {
-			order_of_succession = generate
-			pool_character_config = pool_bureaucracy_succession  #科举制
 		}
 	}
 
@@ -507,10 +529,7 @@ succession_gender_laws = {
 	
 	male_only_law = {
 		can_title_have = {
-			OR = {
-				can_title_have_law_general_trigger = yes
-				culture = { has_cultural_pillar = heritage_chinese }
-			}			
+			can_title_have_law_general_trigger = yes	
 		}
 		should_show_for_title = { # Never show this in the UI, just apply it through script
 			always = no
@@ -519,13 +538,9 @@ succession_gender_laws = {
 			custom_tooltip = {
 				text = culture_not_female_only_tt
 				OR = {
-					culture = { has_cultural_pillar = heritage_chinese }
-					religion = religion:confucianism_religion
-					AND = {
-						faith = { has_doctrine = doctrine_gender_male_dominated }
-							NOT = {
-								culture = { has_cultural_parameter = female_only_inheritance }
-							}
+					faith = { has_doctrine = doctrine_gender_male_dominated }
+					NOT = {
+						culture = { has_cultural_parameter = female_only_inheritance }
 					}
 				}
 			}
@@ -534,13 +549,9 @@ succession_gender_laws = {
 			can_change_succession_law_trigger = yes
 		}
 		should_start_with = {
-			OR = {
-				culture = { has_cultural_pillar = heritage_chinese }
-				religion = religion:confucianism_religion
-				faith = {
-					has_doctrine = doctrine_gender_male_dominated
-					religion_tag = islam_religion
-				}
+			faith = {
+				has_doctrine = doctrine_gender_male_dominated
+				religion_tag = islam_religion
 			}
 		}
 		succession = {
@@ -729,12 +740,7 @@ succession_gender_laws = {
 	
 	female_only_law = {
 		can_title_have = {
-			OR = {
-				can_title_have_law_general_trigger = yes
-				has_title = title:k_haripunjaya
-				has_title = title:d_haripunjaya
-				has_title = title:c_haripunjaya
-			}			
+			can_title_have_law_general_trigger = yes	
 		}
 		should_show_for_title = { # Never show this in the UI, just apply it through script
 			always = no
@@ -745,9 +751,6 @@ succession_gender_laws = {
 				OR = {
 					faith = { has_doctrine = doctrine_gender_female_dominated }
 					culture = { has_cultural_parameter = female_only_inheritance }
-				has_title = title:k_haripunjaya
-				has_title = title:d_haripunjaya
-				has_title = title:c_haripunjaya
 				}
 			}
 		}

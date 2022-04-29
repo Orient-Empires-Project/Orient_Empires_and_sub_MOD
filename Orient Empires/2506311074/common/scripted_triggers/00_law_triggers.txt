@@ -164,9 +164,7 @@ can_have_single_heir_succession_law_trigger = {
 		culture = {
 				has_innovation = innovation_primogeniture
 		}
-		culture = { has_cultural_parameter = tradition_succession_law }
 		has_government = imperial_government
-		is_bureau_government_trigger = yes
 		is_corps_government_trigger = yes
 	}
 	# Non-tribals only
@@ -254,25 +252,10 @@ can_have_single_heir_dynasty_house_trigger = {
 
 #宗法指认制
 can_have_tradition_succession_law_trigger = {
-	AND = {
-		OR = {
-			culture = { has_cultural_pillar = heritage_chinese }
-			culture = { has_cultural_parameter = can_have_tradition_succession_law }
-		}
-			highest_held_title_tier >= tier_duchy
-			OR = {
-				has_government = imperial_government
-				has_government = corps_government
-				has_government = feudal_government
-			}
-			is_bureau_government_trigger = no
-	}
-		NOR = {
-			has_government = theocracy_government
-			has_government = holy_order_government
-			has_government = republic_government
-			is_bureau_government_trigger = yes
-		}
+		highest_held_title_tier > tier_duchy
+		has_government = imperial_government
+		is_independent_ruler = yes
+		NOT = { has_government = bureau_government }
 }
 
 can_keep_tradition_succession_law_trigger = {
@@ -281,87 +264,64 @@ can_keep_tradition_succession_law_trigger = {
 
 can_pass_tradition_succession_law_trigger = {
 	can_change_succession_law_trigger = yes
-	OR = {
-		AND = {
-			culture = { has_cultural_pillar = heritage_chinese }
-			highest_held_title_tier >= tier_kingdom
-			has_government = imperial_government
-			NOT = {
-				is_bureau_government_trigger = yes
-			}
-		}
-		AND = {
-			culture = { has_cultural_pillar = heritage_chinese }
-			is_ai = no
-			has_government = imperial_government
-			highest_held_title_tier >= tier_county
-			is_corps_government_trigger = yes
-		}
-	}
-	NOR = {
-		has_government = theocracy_government
-		has_government = holy_order_government
-		has_government = republic_government
-		is_bureau_government_trigger = yes
-	}
+	can_have_tradition_succession_law_trigger = yes
 }
 
 
-#留后册命制（藩镇基础继承法）
-can_have_corps_succession_law_trigger = {
-	is_corps_government_trigger = yes
-}
-
-can_keep_corps_succession_law_trigger = {
-	is_corps_government_trigger = yes
-}
-
-can_pass_corps_succession_law_trigger = {
-	can_change_title_law_trigger = yes
-	highest_held_title_tier >= tier_duchy
-	is_corps_government_trigger = yes
-}
-
-#科举流官制（与帝国官僚继承法接驳）
+#流官制（与帝国官僚继承法接驳）
 can_have_official_succession_law_trigger = {
+	is_independent_ruler = no
+	NOT = { has_trait = peasant_leader }
+	has_government = imperial_government
     OR = {
-	AND = {
-		highest_held_title_tier <= tier_duchy
-		OR = {
-			is_bureau_government_trigger = yes
-			is_corps_government_trigger = yes
-			has_government = imperial_government
-			#has_government = feudal_government
-			culture = { has_cultural_pillar = heritage_chinese }
-			culture = { has_cultural_pillar = heritage_goryeo }
-			culture = { has_cultural_pillar = heritage_tunguse }
+		AND = {
+			highest_held_title_tier <= tier_duchy
+			OR = {
+				has_government = imperial_government
+				top_liege = { is_oe_imperial_government_trigger = yes }
+				#historical_succession_access_single_heir_succession_law_trigger = no
+			}
+			NOT = { has_title = title:d_gosho }
 		}
-		NOT = { has_title = title:d_gosho }
-	}
-	AND = {
-		highest_held_title_tier <= tier_kingdom
-		is_royal_government_trigger = yes
-		NOT = { vassal_contract_has_flag = imperial_royal_1 } #WLTDJFIX往来天地间修正
-	}
+		AND = {
+			highest_held_title_tier = tier_kingdom
+			top_liege = { culture = { has_innovation = innovation_court_officials } }
+		}
     }
 }
 
 can_keep_official_succession_law_trigger = {
 	can_have_official_succession_law_trigger = yes
+	is_at_war_with_liege = no
 }
 
 can_pass_official_succession_law_trigger = {
 	can_change_title_law_trigger = yes
-	highest_held_title_tier <= tier_duchy
-	custom_description = {
-		OR = {
-			culture = { has_cultural_pillar = heritage_chinese }
-			culture = { has_cultural_pillar = heritage_goryeo }
-			culture = { has_cultural_pillar = heritage_tunguse }
-		}
+	can_have_official_succession_law_trigger = yes
+}
+
+#留后册命制（藩镇基础继承法）
+can_have_corps_succession_law_trigger = {
+	OR = {
+		is_legion_government_trigger = yes
+		has_government = corps_government
 	}
 }
 
+can_keep_corps_succession_law_trigger = {
+	can_have_corps_succession_law_trigger = yes
+}
+
+can_pass_corps_succession_law_trigger = {
+	can_change_title_law_trigger = yes
+	is_legion_government_trigger = yes
+}
+
+#科举制
+can_have_admin_succession_law_trigger = {
+	has_government = bureau_government
+	is_theocratic_lessee = no
+}
 
 can_have_bishop_theocratic_succession_law_trigger = {
 	OR = {

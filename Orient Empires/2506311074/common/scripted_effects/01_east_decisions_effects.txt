@@ -120,8 +120,9 @@ found_new_chinese_empire_effect = {
 				trigger_event = major_decisions.1105
 			}
 		}
-		else_if = {  #效忠事件
+		else_if = { #效忠事件
 			limit = {
+				exists = capital_province
 				capital_province = { geographical_region = world_asia_china }
 				primary_title.tier > tier_county
 				OR = {
@@ -365,6 +366,7 @@ create_tang_empire_scripted_effect = {
 	set_primary_title_to = title:e_tang
 
 	title:e_tang = {
+		set_title_name = e_tang
 		set_coa = e_tang
 		set_color_from_title = scope:old_title
 		set_capital_county = scope:old_title.title_capital_county
@@ -921,7 +923,7 @@ replace_celestia_empire_effect = {
 	#destroy_title = title:e_celestia
 
 	create_title_and_vassal_change = {
-			type = created
+			type = usurped
 			save_scope_as = change
 			add_claim_on_loss = yes
 		}
@@ -1375,7 +1377,12 @@ found_han_kingdom_effect = {
 
 found_western_protectorate_effect = {
 	add_character_flag = western_protector
-	add_trait = longyou
+	if = {
+		limit = {
+			NOT = { has_title = title:e_celestia }
+		}
+		add_trait = longyou
+	}
 	hidden_effect = {
 		every_held_title = { #Should shift all dejure of all Empires owned at the time.
 			limit = {
@@ -1384,6 +1391,7 @@ found_western_protectorate_effect = {
 			every_in_de_jure_hierarchy = {
 				limit = {
 					tier = tier_kingdom
+					exists = capital_province
 					capital_province = {
 						OR = {
 							geographical_region = world_steppe_east
@@ -1399,6 +1407,7 @@ found_western_protectorate_effect = {
 			limit = {
 				tier = tier_kingdom
 				root = { completely_controls = prev }
+				exists = capital_province
 				capital_province = {
 					OR = {
 						geographical_region = world_steppe_west
@@ -1427,4 +1436,167 @@ found_western_protectorate_effect = {
 
 taichang_banner_effect = {
 	title:e_celestia = { set_coa = e_taichang }
+}
+
+song_clothing_effect = {
+	add_character_flag = flag_song_clothing
+	every_child = {
+		add_character_flag = flag_song_clothing
+	}
+	every_vassal = {
+		if = {
+			limit = {
+				OR = {
+					has_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 3
+					}
+					has_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 4
+					}
+					has_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 5
+					}
+				}
+			}
+			add_character_flag = flag_song_clothing
+		}
+	}
+	every_councillor = {
+		if = {
+			limit = {
+				OR = {
+					has_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 3
+					}
+					has_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 4
+					}
+					has_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 5
+					}
+				}
+			}
+			add_character_flag = flag_song_clothing
+		}
+	}
+}
+
+tang_clothing_effect = {
+	if = {
+		limit = { has_character_flag = flag_song_clothing }
+		remove_character_flag = flag_song_clothing
+	}
+}
+
+tang_usurped_effect = {	
+	primary_title = {
+		save_scope_as = old_title
+	}
+	root.liege = {
+		save_scope_as = liege
+	}
+	scope:liege.primary_title = {
+		save_scope_as = liege_title
+	}
+	create_title_and_vassal_change = {
+		type = usurped
+		save_scope_as = change
+		add_claim_on_loss = yes
+	}
+	scope:liege_title = {
+		change_title_holder = {
+			holder = root
+			change = scope:change
+			take_baronies = no
+		}
+		copy_title_history = scope:old_title
+	}
+	resolve_title_and_vassal_change = scope:change
+
+	create_title_and_vassal_change = {
+		type = conquest
+		save_scope_as = change2
+		add_claim_on_loss = yes
+	}
+	scope:liege.primary_title = {
+		every_in_de_jure_hierarchy = {					
+			if = {
+				limit = {
+					holder = scope:liege
+				}
+				add_to_temporary_list = titles_taken
+			}
+			else_if = {
+				limit = {
+					top_liege = scope:liege
+				}
+				holder = {
+					add_to_temporary_list = vassals_taken
+				}
+			}
+		}
+	}
+	every_in_list = {
+		list = titles_taken
+		change_title_holder = {
+			holder = scope:new_ruler
+			change = scope:change2
+			take_baronies = no
+		}
+	}
+	every_in_list = {
+		list = vassals_taken
+		change_liege = {
+			liege = root
+			change = scope:change2
+		}
+	}	
+
+	resolve_title_and_vassal_change = scope:change2
+
+	create_title_and_vassal_change = {
+		type = swear_fealty
+		save_scope_as = change3
+	}
+	scope:liege = {
+		change_liege = {
+			liege = root
+			change = scope:change3
+		}
+	}
+	resolve_title_and_vassal_change = scope:change3	
+
+	hidden_effect = {
+		if = {
+			limit = {
+				AND = {
+					scope:liege_title = title:e_wu
+					NOT = { exists = title:e_tang.holder }
+				}
+			}
+			create_title_and_vassal_change = {
+				type = created
+				save_scope_as = title_change
+				add_claim_on_loss = no
+			}
+			title:e_tang = {
+				change_title_holder = {
+					holder = root
+					change = scope:title_change
+				}
+				copy_title_history = scope:liege_title
+			}
+			resolve_title_and_vassal_change = scope:title_change
+
+			dynasty_house = house_nantang_li
+
+			destroy_title = title:e_wu
+		}
+	}
 }

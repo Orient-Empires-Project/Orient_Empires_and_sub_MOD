@@ -1,4 +1,146 @@
-﻿pool_bureaucrat = {
+﻿pool_bureaucracy_succession = { #这就是科举制
+	valid_character = {
+		is_capable_adult = yes
+		is_imprisoned = no
+
+		OR = {
+			culture = { has_cultural_pillar = heritage_chinese }
+			culture = { has_innovation = innovation_centralization_of_authority }
+		}
+
+		trigger_if = {
+			limit = {
+				scope:base = { has_realm_law = female_only_law }
+			}
+			is_female = yes
+		}
+		trigger_if = {
+			limit = {
+				scope:base = { has_realm_law = male_only_law }
+			}
+			is_male = yes
+		}
+		OR = {
+			is_lowborn = yes
+			AND = {
+				exists = dynasty
+				exists = scope:base.dynasty
+				dynasty = scope:base.dynasty
+				is_courtier_of = scope:base
+			}
+			AND = {
+				exists = dynasty
+				dynasty = {
+					any_dynasty_member = {
+						count <= 2
+					}
+				}
+			}
+		}
+		has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+		has_trait = jinshi
+		#is_landed = no
+	}
+	
+	character_score = {
+		base = 0
+		modifier = {
+			add = 15
+			culture = { has_same_culture_heritage = scope:base.culture }
+		}
+		modifier = {
+			add = 10
+			culture = { has_same_culture_language = scope:base.culture }
+		}
+		modifier = {
+			add = 5
+			culture = { has_same_culture_ethos = scope:base.culture }
+		}
+
+		modifier = { #随从
+			add = 50
+			is_courtier_of = scope:base
+		}
+		modifier = { #亲戚
+			add = 20
+			AND = {
+				exists = dynasty
+				exists = scope:base.dynasty
+				dynasty = scope:base.dynasty				
+			}
+		}
+		modifier = { #门第
+			factor = {
+				value = scope:base.dynasty.dynasty_prestige_level
+			} 
+		}
+		modifier = { #年级
+			add = { value = age max = 30 }
+		}
+		modifier = { #寒门
+			add = 20 	
+			is_lowborn = yes
+		}
+		modifier = { #中产
+			add = 10 	
+			AND = {
+				exists = dynasty
+				dynasty = {
+					any_dynasty_member = {
+						count <= 10
+					}
+				}
+			}
+		}
+		modifier = { #考分
+			add = { value = learning_lifestyle_perk_points }
+		}
+		#资历
+		modifier = {
+			has_trait = BureaucracyEmpire_bureaucrat_1
+			add = 50
+		}
+		modifier = {
+			has_trait = BureaucracyEmpire_bureaucrat_2
+			add = 60
+		}
+		modifier = {
+			has_trait = BureaucracyEmpire_bureaucrat_3
+			add = 80
+		}
+		modifier = {
+			has_trait = BureaucracyEmpire_bureaucrat_4
+			add = 100
+		}
+		modifier = {
+			has_trait = BureaucracyEmpire_bureaucrat_5
+			add = 200
+		}
+		modifier = { #女子无才便是德
+			factor = -500
+			is_female = yes
+		}
+		modifier = { #玩家继承人
+			add = 1000	
+			is_player_heir_of_trigger = { CHARACTER = root }
+		}	
+	}
+	
+	config = {
+		background = bureaucrat
+		age = { 16 55 }
+	}
+	
+	selection_count = 25  #候补梯队
+	
+	pool = heritage
+	court = yes
+	gender = male
+}
+
+
+
+pool_bureaucrat = {
 	valid_character = {
 		is_capable_adult = yes
 		is_imprisoned = no
@@ -76,7 +218,7 @@
 			highest_held_title_tier = tier_county
 			add = -100 	
 		}
-		modifier = {  #朝野不兼
+		modifier = { #朝野不兼
 			highest_held_title_tier = tier_duchy
 			add = -300 	
 		}
@@ -105,90 +247,5 @@
 	
 	pool = faith
 	#court = yes
-	gender = male
-}
-
-
-pool_bureaucracy_succession = {   #这就是科举制
-	valid_character = {
-		is_capable_adult = yes
-		is_imprisoned = no
-
-		OR = {
-			culture = { has_cultural_pillar = heritage_chinese }
-			culture = { has_innovation = innovation_centralization_of_authority }
-		}
-
-		trigger_if = {
-			limit = {
-				scope:base = { has_realm_law = female_only_law }
-			}
-			is_female = yes
-		}
-		trigger_if = {
-			limit = {
-				scope:base = { has_realm_law = male_only_law }
-			}
-			is_male = yes
-		}
-		has_trait = BureaucracyEmpire_lifestyle_bureaucrat
-		is_landed = no
-	}
-	
-	character_score = {
-		base = 0		
-		modifier = {  #随从
-			add = 20
-			is_courtier_of = scope:base
-		}
-		modifier = {  #亲戚
-			add = 20
-			AND = {
-				exists = dynasty
-				exists = scope:base.dynasty
-				dynasty = scope:base.dynasty				
-			}
-		}
-		modifier = { #门第
-			add = {
-				value = dynasty.dynasty_prestige_level
-				multiply = 10
-			} 
-		}
-		modifier = {  #年级
-			add = { value = age max = 30 }
-		}
-		modifier = {  #寒门
-			add = 20 	
-			is_lowborn = yes
-		}
-		modifier = {  #中产
-			add = 10 	
-			AND = {
-				exists = dynasty
-				dynasty = {
-					any_dynasty_member = {
-						count <= 10
-					}
-				}
-			}
-		}
-		modifier = {  #考分
-			add = { value = learning_lifestyle_perk_points }
-		}
-		modifier = {  #女子无才便是德
-			factor = -500
-			is_female = yes
-		}	
-	}
-	
-	config = {
-		background = bureaucrat
-		age = { 16 65 }
-	}
-	
-	selection_count = 25  #候补梯队
-	
-	pool = faith
 	gender = male
 }

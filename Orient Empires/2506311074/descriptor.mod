@@ -10,6 +10,6 @@ tags={
 	"Character Interactions"
 	"Bookmarks"
 }
-name="Oriental Empires( for ver.1.5)"
+name="Oriental Empires"
 supported_version="1.5.*"
 remote_file_id="2506311074"

@@ -114,7 +114,7 @@ headgear = {
 		}	
 
 		## No headgear for vanity characters with the no_headgear flag, unless they are dukes or higher
-		weight = {  
+		weight = { 
 			base = 0
             modifier = {
                 add = 200
@@ -4598,7 +4598,6 @@ headgear = {
 						}
 					}
 				}
-
 			}
 		}
 	}
@@ -4618,6 +4617,7 @@ headgear = {
 				add = 50
 				any_parent = { highest_held_title_tier = tier_empire }
 				portrait_chinese_clothing_trigger = yes
+				portrait_chinese_clothing_song_trigger = no
 			}
 		}
 	}
@@ -4661,6 +4661,87 @@ headgear = {
 		}
 	}
 
+	chinese_song_headgear = {
+		dna_modifiers = {
+			accessory = {
+				mode = add
+				gene = headgear
+				template = chinese_song_headgear
+				range = { 0 1 } # For the randomness to work correctly
+			}
+		}	
+		weight = {
+			base = -30
+			modifier = {
+				add = 30
+				NAND = {
+					has_trait = peasant_leader
+					OR = {
+						is_ruler = no
+						is_leading_faction_type = peasant_faction
+						AND = {
+							is_ruler = yes
+							is_landed = no
+							OR = {
+								has_government = feudal_government
+								has_government = clan_government
+							}
+						}
+					}
+				}
+				portrait_chinese_clothing_trigger = yes
+				OR = {
+					AND = {
+						OR = {
+							highest_held_title_tier = tier_duchy
+							AND = { is_ruler = yes has_government = theocracy_government }
+						}
+						NOT = { AND = { is_ruler = yes has_government = mercenary_government  } } # Blocked for mercenaries
+					}
+					AND = {
+						exists = primary_spouse
+						OR = {
+							is_ruler = no
+							highest_held_title_tier = tier_barony
+						}
+						primary_spouse = {
+							OR = {
+								highest_held_title_tier = tier_duchy
+								AND = { is_ruler = yes has_government = theocracy_government }
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				add = 170
+				#current_date >= 960.1.1
+				exists = this
+				is_adult = yes
+				OR = {
+					has_character_flag = flag_song_clothing
+					AND = {
+				        exists = liege
+				        liege = {
+							AND = {
+								has_title = title:e_celestia
+								has_government = imperial_government
+								has_character_flag = flag_song_clothing
+							}
+				        }
+				    }
+				}
+				portrait_chinese_wear_helmet_trigger = no
+			}
+			modifier = {
+				add = 30
+				current_date >= 960.1.1
+				exists = this
+				is_adult = yes
+			}
+		}
+	}
+
 	chinese_war = {
 		dna_modifiers = {
 			accessory = {
@@ -4673,10 +4754,11 @@ headgear = {
 		weight = {
 			base = 0
 			modifier = {
-				add = 100
+				add = 150
 				portrait_chinese_wear_helmet_trigger = yes
 				portrait_chinese_clothing_trigger = yes
 				NOR = {
+					religion = religion:christianity_religion
 				    AND = {
 				        religion = religion:christianity_religion
 				        has_government = holy_order_government
