@@ -1,7 +1,7 @@
 ﻿#开局触发
 on_game_start_after_lobby = {
 	on_actions = { 
-		BureaucracyEmpire_on_game_start
+		BureaucracyEmpire_on_game_start #角色获得资历
 	}
 }
 BureaucracyEmpire_on_game_start = {
@@ -14,59 +14,48 @@ BureaucracyEmpire_on_game_start = {
 			}
 		}
 		# 地方官赋予资历
-		title:e_celestia.holder = {
-			every_vassal_or_below = {
-				if = {
-					limit = {
-						OR = {
-							culture = { has_cultural_pillar = heritage_chinese }
-							culture = { has_cultural_pillar = heritage_goryeo }
-						}
-						has_realm_law = official_succession_law
-					}
-					if = {
-						limit = {
-							NOT = { has_trait = BureaucracyEmpire_lifestyle_bureaucrat }
-						}
-						add_trait = BureaucracyEmpire_bureaucrat_1
-						if = {
-							limit = {
-								highest_held_title_tier = tier_county
-							}
-							change_trait_rank = {
-								trait = BureaucracyEmpire_lifestyle_bureaucrat
-								rank = 1
-								max = 2
-							}
-						}
-						else_if = {
-							limit = {
-								highest_held_title_tier = tier_duchy
-							}
-							change_trait_rank = {
-								trait = BureaucracyEmpire_lifestyle_bureaucrat
-								rank = 1
-								max = 4
-							}
-						}
-					}
-				}
-			}
-			every_councillor = { #内阁成员\朝廷官员
-				change_trait_rank = {
-					trait = BureaucracyEmpire_lifestyle_bureaucrat
-					rank = 1
-					max = 5
-				}	
-			}
-			every_heir = { 	#荫袭历练
-				change_trait_rank = {
-					trait = BureaucracyEmpire_lifestyle_bureaucrat
-					rank = 1
-					max = 2
-				}	
-			}
-		}
+#		title:e_celestia.holder = {
+#			every_vassal_or_below = {
+#				if = {
+#					limit = {
+#						OR = {
+#							culture = { has_cultural_pillar = heritage_chinese }
+#							culture = { has_cultural_pillar = heritage_goryeo }
+#						}
+#						OR = {
+#							has_realm_law = official_succession_law
+#							has_realm_law = admin_succession_law
+#						}
+#					}
+#					if = {
+#						limit = {
+#							NOT = { has_trait = BureaucracyEmpire_lifestyle_bureaucrat }
+#						}
+#						add_trait = BureaucracyEmpire_bureaucrat_1
+#						if = {
+#							limit = {
+#								highest_held_title_tier = tier_county
+#							}
+#							change_trait_rank = {
+#								trait = BureaucracyEmpire_lifestyle_bureaucrat
+#								rank = 1
+#								max = 2
+#							}
+#						}
+#						else_if = {
+#							limit = {
+#								highest_held_title_tier = tier_duchy
+#							}
+#							change_trait_rank = {
+#								trait = BureaucracyEmpire_lifestyle_bureaucrat
+#								rank = 1
+#								max = 4
+#							}
+#						}
+#					}
+#				}
+#			}
+#		}
 	}
 }
 #获得头衔时触发
@@ -119,38 +108,8 @@ BureaucracyEmpire_on_title_gain = {
 	}
 	on_actions = {
 		delay = { days = 30 }
-		BureaucracyEmpire_on_title_gain_trait #角色获得资历
 		BureaucracyEmpire_on_title_gain_inheritance #官僚制帝国MOD，角色继承头衔时触发
 		#BureaucracyEmpire_on_title_gain_granted #官僚制帝国MOD，角色被授予头衔时触发
-	}
-}
-
-#角色获得资历
-BureaucracyEmpire_on_title_gain_trait = {
-	trigger = {
-		top_liege = { is_oe_imperial_government_trigger = yes }
-		highest_held_title_tier > tier_barony
-		is_independent_ruler = no
-		NOT = { has_trait = peasant_leader }
-		is_adult = yes
-	}
-	effect = { 
-		if = {
-			limit = {
-				NOT = { has_trait = BureaucracyEmpire_lifestyle_bureaucrat }
-			}
-			add_trait = BureaucracyEmpire_bureaucrat_1
-		}
-		if = {
-			limit = {
-				has_trait = BureaucracyEmpire_lifestyle_bureaucrat
-			}
-			change_trait_rank = {
-				trait = BureaucracyEmpire_lifestyle_bureaucrat
-				rank = 1
-				max = 3
-			}
-		}
 	}
 }
 
@@ -382,11 +341,21 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 	effect = {
 		save_scope_as = character
 		if = {#年度官僚资历结算
-			limit = { 
+			limit = {
+				is_independent_ruler = no 
+				top_liege = {
+					is_oe_imperial_government_trigger = yes
+					has_government = imperial_government
+				}
 				#所有流官继承头衔
-				has_realm_law = official_succession_law
+				OR = {
+					has_government = imperial_government
+					has_government = bureau_government
+					has_realm_law = official_succession_law
+				}
 				#伯爵级以上
 				scope:title.tier >= tier_county
+				highest_held_title_tier < tier_kingdom
 			}
 			
 			if = {
@@ -409,23 +378,25 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 					is_courtier = yes
 					court_owner = { has_title = title:e_celestia }
 				}
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 5 }	
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 4 }	
 			}
 			#是头衔继承人的话，额外获得一点
-			if = {
-				limit = { any_heir_title = { count >= 1 } }
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 3 }	
-			}
-			#才学
+			#if = {
+				#limit = { any_heir_title = { count >= 1 } }
+				#change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = 1 }	
+			#}
+			#贤望
 			if = {
 				limit = { is_ruler = yes }
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = learning }
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = stewardship_lifestyle_perk_points }		
+				#change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = learning multiply = 0.1 }
+				#change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = stewardship_lifestyle_perk_points }
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = piety_level }	
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = prestige_level }
 			}
 			#家世
 			if = {
 				limit = { is_lowborn = no }
-				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = { value = dynasty_prestige_level multiply = 10 } }		
+				change_variable = { name = BureaucracyEmpire_bureaucrat_exp add = { value = dynasty_prestige_level } }		
 			}
 			#领地发展度上升了，提升资历等级
 			every_held_title = {
@@ -451,7 +422,6 @@ BureaucracyEmpire_yearly_everyone_pulse = {
 					}
 				}
 			}
-			
 			
 			#如果资历够了，就提升资历等级。五个等级分别需要的资历为7/21/42/70/105
 			if = {
@@ -507,18 +477,18 @@ BureaucracyEmpire_ask_for_position_pulse = {
 		#成年
 		#is_adult = yes
 		#性别正确
-		trigger_if = {
-			limit = { 
-				faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
-			}
-			is_male = yes
-		}
-		trigger_if = {
-			limit = { 
-				faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
-			}
-			is_female = yes
-		}
+		#trigger_if = {
+			#limit = { 
+				#faith = { has_doctrine = doctrine_gender_male_dominated }
+			#}
+			#scope:lucky = { is_male = yes }
+		#}
+		#trigger_if = {
+			#limit = { 
+				#faith = { has_doctrine = doctrine_gender_female_dominated }
+			#}
+			#scope:lucky = { is_female = yes }
+		#}
 	}
 	effect = {
 		#确定讨官的对象

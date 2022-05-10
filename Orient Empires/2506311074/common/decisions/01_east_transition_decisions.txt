@@ -165,7 +165,7 @@ convert_whole_realm_to_imperialism_decision = {
 	}
 
 	ai_will_do = {
-		base = 100
+		base = 10
 		modifier = { #Go for the more lenient decision if this is the case
 			add = 200
 			liege = { has_government = imperial_government } 
@@ -193,7 +193,7 @@ convert_to_legion_decision = {
 	
 	is_valid = {
 		vassal_contract_has_flag = imperial_contract_0
-		primary_title.tier > tier_county
+		primary_title.tier >= tier_county
 		OR = {
 			prestige_level >= high_prestige_level
 			dynasty = { dynasty_prestige_level >= 4 }
@@ -258,7 +258,7 @@ transfer_to_corps_decision = {
 	is_valid = {
 		vassal_contract_has_flag = imperial_contract_1
 		is_corps_government_trigger = no
-		primary_title.tier > tier_county
+		primary_title.tier >= tier_county
 		OR = {
 			prestige_level >= very_high_prestige_level
 			martial_lifestyle_perk_points >= 20
@@ -357,14 +357,100 @@ adopt_imperial_government_decision = {
 	}
 	
 	ai_potential = {
-		always = yes
+		NOT = { has_title = title:e_mongol_empire } #Stop the Mongols from slowing their conquest.
 	}
 
 	ai_will_do = {
 		base = 50
 		modifier = { #Go for the more lenient decision if this is the case
-			add = 100
+			add = 50
 			liege = { has_government = imperial_government } 
 		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = -30
+			any_vassal = { has_government = tribal_government }
+		}
+	}
+}
+
+#转二元政体
+convert_whole_realm_to_ulus_decision = { 
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_whole_realm_to_ulus_decision_desc
+
+	ai_check_interval = 50
+
+	is_shown = {
+		highest_held_title_tier >= tier_kingdom
+		has_government = tribal_government
+		is_independent_ruler = yes
+	}
+
+	is_valid = {
+		has_realm_law = tribal_authority_3
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 3
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+		any_vassal_or_below = {
+			OR = {
+				has_government = imperial_government
+				has_government = bureau_government
+				has_government = corps_government
+			}
+			culture = { has_cultural_pillar = heritage_chinese }
+		}
+		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
+			text = has_all_tribal_innovations
+			subject = root.culture
+			culture = {
+				calc_true_if = {
+					amount >= 9
+					has_innovation = innovation_motte
+					has_innovation = innovation_catapult
+					has_innovation = innovation_barracks
+					has_innovation = innovation_mustering_grounds
+					has_innovation = innovation_bannus
+					has_innovation = innovation_quilted_armor
+					has_innovation = innovation_gavelkind
+					has_innovation = innovation_crop_rotation
+					has_innovation = innovation_city_planning
+					has_innovation = innovation_casus_belli
+					has_innovation = innovation_plenary_assemblies
+					has_innovation = innovation_ledger
+					has_innovation = innovation_development_01
+					has_innovation = innovation_currency_01
+				}
+			}
+		}
+	}
+
+	cost = {
+		prestige = 700
+		piety = 500
+	}
+
+	effect = {
+		change_government = ulus_government
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		base = 50
 	}
 }
