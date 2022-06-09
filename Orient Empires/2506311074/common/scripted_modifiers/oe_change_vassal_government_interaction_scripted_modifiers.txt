@@ -86,6 +86,118 @@ change_vassal_bureau_and_official_ai_accpet_modifier = {
 		multiplier = 1
 		desc = AI_OPINION_REASON
 	}
+
+	modifier = {
+		scope:hook = yes
+		add = 40
+		desc = SCHEME_WEAK_HOOK_USED
+	}
+
+	opinion_modifier = { # Opinion Factor
+		who = scope:recipient
+		opinion_target = scope:actor
+		multiplier = 0.8
+		desc = AI_OPINION_REASON
+	}
+	
+	modifier = {
+		add = 20
+		scope:actor = {
+			has_realm_law_flag = vassal_refusal_is_treason
+		}
+		desc = AI_REFUSAL_IS_TREASON
+	}
+	modifier = {
+		exists = scope:actor.primary_title.title_capital_county
+		OR = {
+			scope:landed_title = scope:actor.primary_title.title_capital_county
+			scope:landed_title = scope:actor.primary_title.title_capital_county.de_jure_liege
+		}
+		add = 50
+		desc = AI_TITLE_IS_REALM_CAPITAL
+	}
+	modifier = {
+		add = 30
+		scope:actor = {
+			has_claim_on = scope:landed_title
+		}
+		desc = AI_LIEGE_HAS_CLAIM_ON_TITLE
+	}
+
+	ai_value_modifier = {
+		who = scope:recipient
+		ai_greed = {
+			if = {
+				limit = {
+					scope:recipient = { NOT = { ai_greed = 0 } }
+				}
+				value = -0.75
+			}
+		}
+		ai_honor  = {
+			if = {
+				limit = {
+					scope:recipient = { #If AI is honorable and the law compels to obey the liege, AI will be more likely to obey.
+						ai_honor > 0
+					}
+					scope:actor = {
+						has_realm_law_flag = vassal_refusal_is_treason
+					}
+				}
+				value = 0.5
+			}
+		}
+	}
+	modifier = { #I am a King!
+		desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+		trigger = {
+			scope:recipient = { highest_held_title_tier = tier_kingdom }
+		}
+		add = -20
+	}
+	modifier = { #Title is part of vassal's primary title de-jure.
+		add = -25
+		OR = {
+			scope:recipient.primary_title = {
+				is_de_jure_liege_or_above_target = scope:landed_title
+			}
+			scope:recipient.primary_title = scope:landed_title
+		}
+		desc = AI_REFUSAL_IS_DE_JURE_UNDER
+	}
+	modifier = {
+		add = intimidated_halved_reason_value
+		scope:recipient = {
+			has_dread_level_towards = {
+				target = scope:actor
+				level = 1
+			}
+		}
+		desc = INTIMIDATED_REASON
+	}
+	modifier = {
+		add = cowed_halved_reason_value
+		scope:recipient = {
+			has_dread_level_towards = {
+				target = scope:actor
+				level = 2
+			}
+		}
+		desc = COWED_REASON
+	}
+	modifier = { #Comparative military strength.
+		desc = offer_vassalization_interaction_aibehavior_power_tt
+			add = {
+			value = 1
+				subtract = {
+				value = scope:recipient.max_military_strength
+				divide = { value = scope:actor.max_military_strength min = 1 }
+				}
+			multiply = 50
+			max = 20
+		  }
+	}
+
 	modifier = {
 		add = 50
 		desc = VASSAL_FAITHFUL

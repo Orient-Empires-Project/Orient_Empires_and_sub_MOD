@@ -9,7 +9,9 @@ miaohao.1 = {
 	left_portrait = {
 		character = root
 	}
-	right_portrait = scope:heir
+	right_portrait = {
+		character = scope:death_man
+	}
 	trigger = {
 		scope:death_man = {
 			NOR = {
@@ -18,25 +20,25 @@ miaohao.1 = {
 				has_trait = miaohao_trait_shizu
 			}			
 			OR = {
-				has_title = title:e_celestia
-				has_title = title:e_tang
-				has_title = title:e_song
-				has_title = title:e_han
+				is_oe_imperial_government_trigger = yes
+				has_trait = shanghuang
+				has_trait = fahuang
 				AND = {
 					OR = {
-						has_culture_group = culture_group:chinese_group
-						has_culture = culture:khitan
-						has_culture = culture:shatuo
-						has_culture = culture:tuyuhun
-						has_culture = culture:min
-						has_culture = culture:jiaozhi
-						has_culture = culture:balhae
-						has_culture = culture:jurchen
-						has_culture_group = culture_group:goryeo_group
+						culture = { has_cultural_pillar = heritage_chinese }
+						culture = { has_cultural_pillar = heritage_yamato }
+						culture = { has_cultural_pillar = heritage_mongolic }
+						culture = { has_cultural_pillar = heritage_turkic }
+						culture = { has_cultural_pillar = heritage_iranian }
+						culture = { has_cultural_pillar = heritage_nanman }
+						culture = { has_cultural_pillar = heritage_tunguse }
+						culture = { has_cultural_pillar = heritage_goryeo }
+						culture = { has_cultural_pillar = heritage_yues }
 					}
 					highest_held_title_tier > tier_kingdom
 					has_government = imperial_government
 				}
+				has_government = ulus_government
 			}
 		}
 	}
@@ -51,7 +53,7 @@ miaohao.1 = {
 		trigger = {
 			scope:death_man = {
 			AND = {
-				root.house = {
+				root.dynasty = { #修改
 					NOT = {
 						has_variable = miaohao_variable_taizu
 					}
@@ -71,7 +73,7 @@ miaohao.1 = {
 		remove_trait = founding_monarch
 		}
 		ai_chance = {
-			base = 1000
+			base = 10000
 		}
 	}
 	option = {
@@ -85,7 +87,16 @@ miaohao.1 = {
 						has_variable = miaohao_variable_shizu
 					}
 				}
-				has_trait = restoration_monarch
+				OR = {
+					has_trait = restoration_monarch
+					AND = {
+						has_trait = founding_monarch
+						any_held_title = {
+							count = 2
+							tier = tier_empire
+						}
+					}
+				}				
 			}
 		}
 		}
@@ -1168,20 +1179,31 @@ miaohao.1 = {
 		#shaozong
 		name = death_miaohao.001.h1
 		trigger = {
-			scope:death_man = {
-			AND = {
-				root.house = {
-					NOT = {
-						has_variable = miaohao_variable_shaozong
+			OR = {
+				scope:death_man = {
+					AND = {
+						root.house = {
+							NOT = {
+								has_variable = miaohao_variable_shaozong
+							}
+						}
+						OR = {
+							has_trait = gallant
+							has_trait = temperate
+						}
 					}
 				}
-				OR = {
-					has_trait = gallant
-					has_trait = temperate
-					sub_realm_size <= 40
+				scope:heir = {
+					AND = {
+						root.house = {
+							NOT = {
+								has_variable = miaohao_variable_shaozong
+							}							
+						}
+						sub_realm_size < 40
+					}
 				}
 			}
-		}
 		}
 		scope:death_man = {
 		add_trait = miaohao_trait_shaozong
@@ -1300,20 +1322,18 @@ miaohao.1 = {
 		#sizong
 		name = death_miaohao.001.l1
 		trigger = {
-			scope:death_man = {
-			AND = {
-				root.house = {
-					NOT = {
-						has_variable = miaohao_variable_sizong
-					}
+			root.house = {
+				NOT = {
+					has_variable = miaohao_variable_sizong
 				}
-				AND = {
+			}				
+			AND = {
+				scope:death_man = {
 					has_trait = diligent
 					age <= 34
-					sub_realm_size <= 30
 				}
+				root = { sub_realm_size <= 30 }
 			}
-		}
 		}
 		scope:death_man = {
 		add_trait = miaohao_trait_sizong
@@ -1397,22 +1417,36 @@ miaohao.1 = {
 		#taizong
 		name = death_miaohao.001.o1
 		trigger = {
-			scope:death_man = {
-			AND = {
-				root.house = {
-					NOT = {
-						has_variable = miaohao_variable_taizong
+			root.house = {
+				NOT = {
+					has_variable = miaohao_variable_taizong
+				}
+			}
+			OR = {
+				scope:death_man = {
+					AND = {
+						has_trait = diligent
+						has_trait = just
+						has_trait = ambitious
+						has_trait = administrator
 					}
 				}
 				AND = {
-					has_trait = diligent
-					has_trait = just
-					has_trait = ambitious
-					has_trait = administrator
-					sub_realm_size >= 60
+					scope:death_man = {
+						OR = {
+							AND = {
+								has_father = yes
+								father = { has_trait = founding_monarch }
+							}
+							primary_title.previous_holder = { has_trait = founding_monarch }
+							this = character:217722
+						}
+					}
+					root = {
+						sub_realm_size >= 50
+					}
 				}
 			}
-		}
 		}
 		scope:death_man = {
 		add_trait = miaohao_trait_taizong
@@ -1425,7 +1459,7 @@ miaohao.1 = {
 		#give_self_nickname_effect = yes
 		}
 		ai_chance = {
-			base = 10
+			base = 100
 		}
 	}
 	option = {
@@ -1696,19 +1730,17 @@ miaohao.1 = {
 		#xianzong2
 		name = death_miaohao.001.x1
 		trigger = {
-			scope:death_man = {
-			AND = {
-				root.house = {
-					NOT = {
-						has_variable = miaohao_variable_xianzong2
-					}
-				}
-				AND = {
-					has_trait = craven
-					sub_realm_size <= 50
+			root.house = {
+				NOT = {
+					has_variable = miaohao_variable_xianzong2
 				}
 			}
-		}
+			AND = {
+				scope:death_man = {
+					has_trait = craven
+				}
+				root = { sub_realm_size < 50 }
+			}
 		}
 		scope:death_man = {
 		add_trait = miaohao_trait_xianzong2
@@ -2001,7 +2033,7 @@ miaohao.1 = {
 					}
 				}
 				OR = {
-					this = character:tang152372
+					this = character:longxi_li_1036
 					has_trait = lustful
 					has_trait = drunkard
 					has_trait = reveler_3
@@ -2023,7 +2055,7 @@ miaohao.1 = {
 			base = 10
 			modifier = {
 				add = 1000
-				this = character:tang152372
+				this = character:longxi_li_1036
 			}
 		}
 	}
@@ -2333,9 +2365,9 @@ miaohao.2 = {
 	type = character_event
 	title = death_miaohao.002.title
 	desc = death_miaohao.002.desc
-	scope:death_man = {
+
 	theme = death
-	scope:death_man = {
+
 	left_portrait = {
 		character = root
 	}
@@ -2359,7 +2391,7 @@ miaohao.2 = {
 		}
 		}
 		ai_chance = {
-			base = 10
+			base = 100
 		}
 	}
 	option = {
@@ -2379,7 +2411,7 @@ miaohao.2 = {
 		}
 		}
 		ai_chance = {
-			base = 10
+			base = 100
 		}
 	}
 	option = {
@@ -2399,7 +2431,7 @@ miaohao.2 = {
 		}
 		}
 		ai_chance = {
-			base = 10
+			base = 100
 		}
 	}
 }

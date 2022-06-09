@@ -1,0 +1,215 @@
+﻿namespace = revolt_independence_war
+#完全占领某个公爵领的分地事件，root为皇帝
+revolt_independence_war.01 = {
+	type = character_event
+	title = revolt_independence_war.01.t
+	desc = revolt_independence_war.01.desc
+	theme = war
+	left_portrait = root
+	trigger = { 
+		scope:county.duchy = { #检测该公爵领是否被完全占领
+			any_de_jure_county_holder = {
+				OR = {
+					this = root
+					is_vassal_or_below_of = root
+				}
+				count = all
+			}
+		}
+		scope:county.duchy = { #这个事件不会在整个公爵领已经被皇帝直辖时出现
+			any_de_jure_county_holder = { NOT = { this = root } count = all }
+		}
+	}
+	immediate = {
+		#如果该公爵领内有伯爵领正在被围攻，延后该事件30天再触发 - 暂未能实现
+		scope:county.duchy = { 
+			ordered_de_jure_county_holder = { #保存公爵领内领地最大的伯爵
+				order_by = highest_held_title_tier
+				limit = {
+					NOT = { this = root }
+					is_vassal_or_below_of = root
+					any_held_title = {
+						tier <= tier_county
+						duchy = scope:county.duchy
+						count = all
+					}
+				}
+				save_scope_as = max_county_holder 
+			}
+			random_claimant = { #保存领地里的宣称者
+				limit = {
+					OR = {
+						is_vassal_or_below_of = root
+						is_courtier_of = root
+					}
+				}
+				save_scope_as = duchy_claimant
+			}
+		}
+	}
+	#整个公爵领都将被分给皇帝，增加暴政和减少特定角色的好感
+	option = {
+		name = revolt_independence_war.01.a
+		scope:county.duchy = { #减少公爵领内所有伯爵的好感
+			every_de_jure_county_holder = {
+				limit = {
+					NOT = { this = root }
+					is_vassal_or_below_of = root
+					any_held_title = {
+						tier <= tier_county
+						duchy = scope:county.duchy
+						count = all
+					}
+				}
+				add_opinion = {
+					modifier = revoked_title
+					target = root
+				}
+			}
+		}
+		add_tyranny = 30 #增加暴政
+		create_title_and_vassal_change = {
+			type = conquest
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		every_sub_realm_county = {
+			limit = {
+				duchy = scope:county.duchy
+			}
+			change_title_holder = {
+				holder = root
+				change = scope:change
+			}
+		}
+		scope:county.duchy = {
+			if = {
+				limit = { exists = this }
+				change_title_holder = {
+					holder = root
+					change = scope:change
+				}
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
+	}
+	#整个公爵领都将被分给在公爵领内领地最大的伯爵
+	option = {
+		name = revolt_independence_war.01.b
+		scope:county.duchy = { #减少公爵领内其他伯爵的好感
+			every_de_jure_county_holder = {
+				limit = {
+					NOT = { this = scope:max_county_holder }
+					is_vassal_or_below_of = root
+					any_held_title = {
+						tier <= tier_county
+						duchy = scope:county.duchy
+						count = all
+					}
+				}
+				add_opinion = {
+					modifier = revoked_title
+					target = root
+				}
+			}
+		}
+		create_title_and_vassal_change = {
+			type = conquest
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		every_realm_county = {
+			limit = {
+				duchy = scope:county.duchy
+			}
+			change_title_holder = {
+				holder = scope:max_county_holder
+				change = scope:change
+			}
+			scope:max_county_holder = {
+				add_opinion = {
+					modifier = received_title_county
+					target = root
+				}
+			}
+		}
+		scope:county.duchy = {
+			if = {
+				limit = { exists = this }
+				change_title_holder = {
+					holder = scope:max_county_holder
+					change = scope:change
+				}
+				scope:max_county_holder = {
+					add_opinion = {
+						modifier = received_title_duchy
+						target = root
+					}
+				}
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
+	}
+	#整个公爵领都将被分给领地里的宣称者
+	option = {
+		name = revolt_independence_war.01.c
+		trigger = { exists = scope:duchy_claimant }
+		scope:county.duchy = { #减少公爵领内其他伯爵的好感
+			every_de_jure_county_holder = {
+				limit = {
+					NOT = { this = scope:duchy_claimant }
+					is_vassal_or_below_of = root
+					any_held_title = {
+						tier = tier_county
+						duchy = scope:county.duchy
+						count = all
+					}
+				}
+				add_opinion = {
+					modifier = revoked_title
+					target = root
+				}
+			}
+		}
+		create_title_and_vassal_change = {
+			type = conquest
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		every_realm_county = {
+			limit = {
+				duchy = scope:county.duchy
+			}
+			change_title_holder = {
+				holder = scope:duchy_claimant
+				change = scope:change
+			}
+			scope:duchy_claimant = {
+				add_opinion = {
+					modifier = received_title_county
+					target = root
+				}
+			}
+		}
+		scope:county.duchy = {
+			if = {
+				limit = { exists = this }
+				change_title_holder = {
+					holder = scope:duchy_claimant
+					change = scope:change
+				}
+				scope:duchy_claimant = {
+					add_opinion = {
+						modifier = received_title_duchy
+						target = root
+					}
+				}
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
+	}
+	#维持原样
+	option = {
+		name = revolt_independence_war.01.d
+	}
+}

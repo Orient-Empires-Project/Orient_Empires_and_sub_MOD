@@ -1,0 +1,389 @@
+﻿namespace = VassalWarContributionToReward
+VassalWarContributionToReward.01 = {
+	type = character_event
+	title = "VassalWarContributionToReward.01.title"
+	desc = "VassalWarContributionToReward.01.desc"
+	theme = realm
+	left_portrait = root
+	right_portrait = scope:vassaler
+	trigger = {
+		exists = scope:vassaler
+	}
+	widget = {
+		gui = "VassalWarContributionToReward_vassal_attend_war_list"
+		container = "custom_widgets_container"
+	}
+	immediate = {
+		scope:vassaler = {
+			every_character_war = {
+                limit = {
+                    root = { is_participant_in_war = prev }
+                }
+				scope:vassaler = {
+					add_to_variable_list = {
+						name = vassal_attend_war_list
+						target = prev
+					}
+				}
+			}
+		}
+	}
+	option = {
+		name = VassalWarContributionToReward.01.a
+	}
+	after = { 
+		scope:vassaler = { 
+			clear_variable_list = vassal_attend_war_list
+			remove_variable = vassal_attend_war_list
+		 }
+	} 
+}
+VassalWarContributionToReward.02 = {
+	type = character_event
+	title = "VassalWarContributionToReward.02.title"
+	desc = "VassalWarContributionToReward.02.desc"
+	theme = realm
+	left_portrait = root
+	right_portrait = scope:vassaler
+	trigger = {
+		always = yes
+	}
+	widget = {
+		gui = "VassalWarContributionToReward_vassal_war_contribution_lists_event_window_widget"
+		container = "custom_widgets_container"
+	}
+	immediate = {
+		scope:war = {
+			every_war_attacker = {
+				save_scope_as = temp_character
+				scope:temp_character = {
+					set_local_variable = {
+						name = temp_war_contribution_value
+						value = 0
+					}
+					while = { # 1000~1000*1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > { value = local_var:temp_war_contribution_value add = 1000 }
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1000
+						}
+					}
+					while = { # 1~1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > local_var:temp_war_contribution_value
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1
+						}
+					}
+					set_variable = {
+						name = war_contribution_value
+						value = local_var:temp_war_contribution_value
+					}
+				}
+			}
+			set_local_variable = {
+				name = war_total_contribution
+				value = 0
+			}
+			every_war_attacker = {
+				limit = { exists = var:war_contribution_value }
+				change_local_variable = {
+					name = war_total_contribution
+					add = this.var:war_contribution_value
+				}
+			}
+			every_war_attacker = {
+				limit = { exists = var:war_contribution_value }
+				set_variable = {
+					name = war_contribution_persent
+					value = {
+						value = this.var:war_contribution_value
+						divide = local_var:war_total_contribution
+					}
+				}
+			}
+			remove_variable = war_total_contribution
+		}
+		scope:war = {
+			every_war_defender = {
+				save_scope_as = temp_character
+				scope:temp_character = {
+					set_local_variable = {
+						name = temp_war_contribution_value
+						value = 0
+					}
+					while = { # 1000~1000*1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > { value = local_var:temp_war_contribution_value add = 1000 }
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1000
+						}
+					}
+					while = { # 1~1000
+						limit = {
+							scope:war = {
+								war_contribution = {
+									target = scope:temp_character
+									value > local_var:temp_war_contribution_value
+								}
+							}
+						}
+						change_local_variable = {
+							name = temp_war_contribution_value
+							add = 1
+						}
+					}
+					set_variable = {
+						name = war_contribution_value
+						value = local_var:temp_war_contribution_value
+					}
+				}
+			}
+			set_local_variable = {
+				name = war_total_contribution
+				value = 0
+			}
+			every_war_defender = {
+				limit = { exists = var:war_contribution_value }
+				change_local_variable = {
+					name = war_total_contribution
+					add = this.var:war_contribution_value
+				}
+			}
+			every_war_defender = {
+				limit = { exists = var:war_contribution_value }
+				set_variable = {
+					name = war_contribution_persent
+					value = {
+						value = this.var:war_contribution_value
+						divide = local_var:war_total_contribution
+					}
+				}
+			}
+			remove_variable = war_total_contribution
+		}
+		scope:vassaler = {
+            if = {
+                limit = {
+                    is_attacker_in_war = scope:war
+                }
+                scope:war = {
+                    ordered_war_attacker = {
+                        limit = {
+                            exists = var:war_contribution_value
+                        }
+                        order_by = var:war_contribution_value
+                        max = 99
+                        check_range_bounds = no
+                        add_to_list = temp_list
+                    }
+                }
+            }
+            else = {
+                scope:war = {
+                    ordered_war_defender = {
+                        limit = {
+                            exists = var:war_contribution_value
+                        }
+                        order_by = var:war_contribution_value
+                        max = 99
+                        check_range_bounds = no
+                        add_to_list = temp_list
+                    }
+                }
+            }
+            every_in_list = {
+                list = temp_list
+                scope:vassaler = {
+                    add_to_variable_list = {
+                        name = war_contribution_sort_list
+                        target = prev
+                    }
+                }
+            }
+		}
+	}
+	option = {
+		name = VassalWarContributionToReward.02.a
+	}
+	after = {
+		scope:war = {
+			every_war_participant = {
+				limit = {
+					exists = var:war_contribution_value
+				}
+				remove_variable = war_contribution_value
+			}
+			every_war_participant = {
+				limit = {
+					exists = var:war_contribution_persent
+				}
+				remove_variable = war_contribution_persent
+			}
+		}
+        scope:vassaler = {
+            clear_variable_list = temp_list
+            remove_variable = temp_list
+            clear_variable_list = war_contribution_sort_list
+            remove_variable = war_contribution_sort_list
+        }
+	}
+}
+VassalWarContributionToReward.03 = {
+    type = character_event
+	title = "VassalWarContributionToReward.03.title"
+	desc = "VassalWarContributionToReward.03.desc"
+	theme = realm
+	left_portrait = root
+    right_portrait = scope:war_contribution_one
+	trigger = {
+		exists = scope:war_contribution_one
+	}
+    immediate = {
+    }
+    option = {
+        name = VassalWarContributionToReward.03.send_gold
+		pay_short_term_income = {
+			target = scope:war_contribution_one
+			months = 6
+		}
+		scope:war_contribution_one = {
+			add_opinion = {
+				modifier = give_me_reward_for_war_contribution
+				target = root
+			}
+		}
+    }
+    option = {
+        name = VassalWarContributionToReward.03.givehook
+		scope:war_contribution_one = {
+			add_hook = {
+				type = war_contribution_hook
+				target = root
+			}
+		}
+		scope:war_contribution_one = {
+			add_opinion = {
+				modifier = give_me_reward_for_war_contribution
+				target = root
+			}
+		}
+    }
+    option = {
+        name = VassalWarContributionToReward.03.giveland
+		custom_tooltip = VassalWarContributionToReward.03.giveland.custom_tooltip
+		set_variable = {
+			name = temp_option
+			value = yes
+		}
+    }
+    option = {
+        name = VassalWarContributionToReward.03.givenothing
+    }
+    after = {
+		if = {
+			limit = { exists = var:temp_option }
+			remove_variable = temp_option
+			trigger_event = VassalWarContributionToReward.04
+		}
+		else = { trigger_event = { on_action = VassalWarContributionToReward_reward_vassal_action } }
+    }
+}
+VassalWarContributionToReward.04 = {
+	type = character_event
+	title = "VassalWarContributionToReward.04.title"
+	desc = "VassalWarContributionToReward.04.desc"
+	theme = realm
+	left_portrait = root
+	right_portrait = scope:war_contribution_one
+	trigger = {
+		always = yes
+	}
+	widget = {
+		gui = "VassalWarContributionToReward_reward_vassal_titles"
+		container = "custom_widgets_container"
+	}
+	immediate = {
+		root = {
+            every_held_title = {
+                limit = {
+                    NOT = { this = root.primary_title }
+					NOT = { this = root.capital_county }
+                    this.tier < root.primary_title.tier
+					this.tier > tier_barony
+                    is_landless_type_title = no
+                }
+                root = {
+                    add_to_variable_list = {
+                        name = held_titles
+                        target = prev
+                    }
+                }
+            }
+        }
+	}
+	option = {
+		name = VassalWarContributionToReward.04.a
+
+	}
+	after = {
+		if = {
+			limit = {
+				exists = var:temp_title
+			}
+			send_interface_message = {
+				type = event_generic_neutral
+				title = VassalWarContributionToReward.04.message_title
+				left_icon = scope:war_contribution_one
+				right_icon = var:temp_title
+				create_title_and_vassal_change = {
+					type = granted
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				var:temp_title = {
+					change_title_holder = {
+						holder = scope:war_contribution_one
+						change = scope:change
+					}
+				}
+				scope:war_contribution_one = {
+					add_opinion = {
+						modifier = give_me_reward_for_war_contribution
+						target = root
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+			}
+		}
+		else = {
+
+		}
+		remove_variable = temp_title
+		clear_variable_list = held_titles
+		remove_variable = held_titles
+		clear_saved_scope = war_contribution_one
+		trigger_event = { on_action = VassalWarContributionToReward_reward_vassal_action }
+	}
+}

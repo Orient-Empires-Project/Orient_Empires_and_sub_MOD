@@ -36,6 +36,8 @@ can_be_tongpingzhang_trigger = {
 			is_landed = yes
 			is_bureau_government_trigger = yes
 		}
+	}
+	OR = {
 		AND = {
 			is_female = yes
 			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = male_dominated_council } }
@@ -85,7 +87,7 @@ can_be_hanlin_trigger = {
 	NOT = { has_council_position = councillor_spouse }
 	NOT = { has_trait = eunuch }
 	is_landed = no
-	has_culture_group = culture_group:chinese_group
+	culture = { has_cultural_pillar = heritage_chinese }
 	OR = {
 		AND = {
 			is_female = yes
@@ -113,5 +115,34 @@ can_be_shangshu_trigger = {
 			is_male = yes
 			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = female_dominated_council } }
 		}
+	}
+}
+
+imperial_court_trigger = {
+	COURT_OWNER = { has_government = imperial_government }
+	is_corps_government_trigger = no
+}
+
+can_be_dowager_trigger = {
+	is_female = yes
+	save_temporary_scope_as = dowager
+	trigger_if = {
+		limit = {
+			$COURT_OWNER$ = { exists = father }
+			$COURT_OWNER$.father = { exists = primary_spouse }
+			$COURT_OWNER$.father.primary_spouse = { is_alive = yes }
+		}
+		$COURT_OWNER$.father.primary_spouse = scope:dowager
+	}
+	trigger_else_if = {
+		limit = {
+			$COURT_OWNER$ = { exists = mother }
+			$COURT_OWNER$.mother = { is_alive = yes }
+		}	
+		$COURT_OWNER$ = { mother = scope:dowager }
+	}	
+	trigger_else = {
+		root.liege_or_court_owner = { exists = primary_spouse }
+		root.liege_or_court_owner = { primary_spouse = scope:dowager }
 	}
 }

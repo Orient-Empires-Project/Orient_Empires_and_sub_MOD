@@ -4,11 +4,11 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 	if = {
 		limit = { 
 			#如果因为某些原因已经交接过了，不再继续交接
-			$TITLE$.holder = $TEMP_HOLDER$ 
+			#$TITLE$.holder = $TEMP_HOLDER$ 
 			#从属于帝国官僚制。
-			$TEMP_HOLDER$  = {
+			$TEMP_HOLDER$ = {
 				OR = {
-					#is_bureau_government_trigger = yes
+					has_government = bureau_government
 					has_realm_law = official_succession_law
 				}
 			}
@@ -16,6 +16,7 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 		
 		#选择合适的交接对象
 		$TEMP_HOLDER$ = {
+			save_temporary_scope_as = temp_holder
 			if = {
 				limit = {
 					is_independent_ruler = yes 
@@ -29,28 +30,70 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 			else = {
 				liege = { save_scope_as = liege }
 			}
+			
 		}
 		ordered_living_character = {
 			#限制
 			limit = {
 				#下级角色
-				highest_held_title_tier < $TITLE$.tier
+				OR = {
+					AND = {
+						highest_held_title_tier < root.primary_title.tier
+						is_ruler = yes
+						OR = {
+							has_realm_law = official_succession_law
+							has_government = bureau_government
+						}
+						NOT = {
+							has_global_variable = Bureaucracy_Manager_ruler
+						}
+					}
+					AND = {
+						NOT = { is_courtier_of = scope:liege }
+						is_ruler = no
+						NOT = {
+							has_global_variable = Bureaucracy_Manager_noruler
+						}
+					}
+					AND = {
+						is_courtier_of = scope:liege 
+						is_ruler = no
+						is_councillor = no
+					}
+				}	
 				#国内角色
-				#target_is_liege_or_above = scope:liege
+				AND = {
+					NOT = {
+						has_global_variable = Bureaucracy_Manager_onlyone
+					} 
+					NOT = {
+						any_heir_title = {
+							tier >= tier_county
+							count >= 1
+						}
+					}
+				}
+				target_is_liege_or_above = scope:liege
 				trigger_if = {
 					limit = { exists = top_liege }
-					top_liege = { has_title = title:e_celestia }
+					top_liege = { is_oe_imperial_government_trigger = yes }
 				}
 				trigger_else_if = {
 					limit = { exists = liege }
-					liege = { has_title = title:e_celestia }
+					liege = { is_oe_imperial_government_trigger = yes }
 				}
 				trigger_else = { always = no }
 				#从属于帝国官僚制。
+				is_independent_ruler = no
 				OR = {
-					is_bureau_government_trigger = yes
 					has_realm_law = official_succession_law
+					has_government = bureau_government
 				}
+				#非内阁成员
+				is_councillor = no
+				is_adult = yes
+				NOT = { is_child_of = scope:temp_holder }
+				NOT = { house = top_liege.house }
 				#性别正确
 				trigger_if = {
 					limit = { 
@@ -67,7 +110,164 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 			}
 			#顺序 
 			order_by = {
-				value = 0
+				value = age
+				#资历
+				if = {
+					limit = {
+						has_trait = BureaucracyEmpire_bureaucrat_1
+					}
+					add = 100
+				}
+				else_if = {
+					limit = {
+						is_courtier_of = scope:liege 
+						NOT = {
+							has_global_variable = Bureaucracy_Manager_court
+						}
+					}
+					add = 500
+				}
+				else_if = {
+					limit = {
+						is_councillor_of = scope:liege 
+					}
+					add = -2000
+				}
+				else_if = {
+					limit = {
+						has_trait = BureaucracyEmpire_bureaucrat_2
+					}
+					add = 200
+				}
+				else_if = {
+					limit = {
+						has_trait = BureaucracyEmpire_bureaucrat_3
+					}
+					add = 300
+				}
+				else_if = {
+					limit = {
+						has_trait = BureaucracyEmpire_bureaucrat_4
+					}
+					add = 400
+				}
+				else_if = {
+					limit = {
+						has_trait = BureaucracyEmpire_bureaucrat_5
+					}
+					add = 500
+				}
+			}
+			save_scope_as = lucky
+		}
+		#如果找到合适的人选的话……
+		if = {
+			limit = { 
+				exists = scope:lucky 
+				#scope:lucky = { is_male = yes }
+				
+				trigger_if = {
+					limit = { 
+						$TITLE$.holder.faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
+					}
+					scope:lucky = { is_male = yes }
+				}
+				trigger_if = {
+					limit = { 
+						$TITLE$.holder.faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+					}
+					scope:lucky = { is_female = yes }  #报错点
+				}				
+			}			
+			
+			$TEMP_HOLDER$ = {
+#				trigger_event = bureaucracy.0001
+				save_scope_as = bureaucrat
+				set_designated_heir = scope:lucky
+				if = {
+					limit = {
+						NOT = { has_character_flag = save_east_contract }
+						exists = scope:previous_holder
+						scope:previous_holder = {
+							NOT = { has_character_flag = save_east_contract }
+						}	
+					}
+					add_character_flag = { #标记角色已经存储过
+						flag = save_east_contract
+						months = 9
+					}
+					save_east_contract_effect = yes	
+				}
+			}
+		}
+	}
+}
+BureaucracyEmpire_bureaucracy_liege_effect= {
+	if = {
+		limit = { 
+			#如果因为某些原因已经交接过了，不再继续交接
+			#$TITLE$.holder = $TEMP_HOLDER$ 
+			#从属于帝国官僚制。
+			$TEMP_HOLDER$ = {
+				OR = {
+					has_government = bureau_government
+					has_realm_law = official_succession_law
+				}
+			}
+		}
+		
+		#选择合适的交接对象
+		$TEMP_HOLDER$ = {
+			save_temporary_scope_as = temp_holder
+			if = {
+				limit = {
+					is_independent_ruler = yes 
+				}
+				save_scope_as = liege
+			}
+			else_if = {
+				limit = { exists = top_liege }
+				top_liege = { save_scope_as = liege } 
+			}
+			else = {
+				liege = { save_scope_as = liege }
+			}
+			
+		}
+		ordered_living_character = {
+			#限制
+			limit = {
+				#下级角色
+				is_ruler = no	
+				#国内角色
+				target_is_liege_or_above = scope:liege
+				trigger_if = {
+					limit = { exists = top_liege }
+					top_liege = { is_oe_imperial_government_trigger = yes }
+				}
+				trigger_else_if = {
+					limit = { exists = liege }
+					liege = { is_oe_imperial_government_trigger = yes }
+				}
+				trigger_else = { always = no }
+				is_adult = yes
+				#性别正确
+				trigger_if = {
+					limit = { 
+						$TEMP_HOLDER$.faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = { 
+						$TEMP_HOLDER$.faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+					}
+					is_female = yes
+				}
+			}
+			#顺序 
+			order_by = {
+				value = age
 				#资历
 				if = {
 					limit = {
@@ -99,8 +299,6 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 					}
 					add = 500
 				}
-				#学识
-				add = learning
 			}
 			save_scope_as = lucky
 		}
@@ -108,8 +306,7 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 		if = {
 			limit = { 
 				exists = scope:lucky 
-				NOT = { scope:lucky = $TEMP_HOLDER$ } #如果刚好选中当前持有者本人的话，就不用再交接了
-				#再确认一下性别正确
+				
 				trigger_if = {
 					limit = { 
 						$TITLE$.holder.faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
@@ -123,209 +320,24 @@ BureaucracyEmpire_bureaucracy_success_effect = {
 					scope:lucky = { is_female = yes }
 				}
 			}
-			scope:lucky = {
-				add_character_flag = { #给交接的下级官僚上一个flag，这个flag将会让它交接掉自己原有的头衔
-					flag = new_bureaucracy_succesor
-					months = 2
-				}
-				every_vassal = { #标记旧的封臣
-					limit = { 
-						highest_held_title_tier >= tier_county #伯爵及以上
-					}
-					add_to_temporary_list = lucky_old_vassal
-				}
-			}
 			
-#			$TEMP_HOLDER$ = {
-#				trigger_event = bureaucracy.0001
-#			}
-			#开始交接
-			create_title_and_vassal_change = {
-				type = usurped
-				save_scope_as = change
-				add_claim_on_loss = yes
-			}
-			#获取领主
-			scope:lucky = {
-				if = {
-					limit = {
-						$TITLE$.holder = { is_independent_ruler = no }
-					}
-					change_liege = {
-						liege = $TITLE$.holder.liege
-						change = scope:change
-					}
-				}
-				
-				# 保持政体与前一致
-				if = {
-					limit = {
-						$TITLE$.holder = {
-							OR = {
-								is_corps_government_trigger = yes
-								has_government = feudal_government
-							}
-						}
-					}
-					change_government_legion_government_effect = yes
-				}
-				if = {
-					limit = {
-						$TITLE$.holder = {
-							OR = {
-								is_bureau_government_trigger = yes
-								AND = {
-									has_government = imperial_government
-									$TITLE$ = {
-										tier <= tier_county
-									}
-								}
-							}
-						}
-					}
-					change_government_bureau_government_effect = yes
-				}
-			}					
-			#获取封臣
-			$TITLE$.holder = {
-				every_vassal = {
-					limit = { 
-						highest_held_title_tier >= tier_county #伯爵及以上封臣
-						exists = capital_province #有首都，不是无地领主
-						capital_province.county = { #首都在交割的头衔的法理内
-							OR =  { target_is_de_jure_liege_or_above = $TITLE$ }
-						}
-					}
-					change_liege = {
-						liege = scope:lucky
-						change = scope:change
-					}
-				}
-			}
-			#获取头衔及封臣
-			$TITLE$ = {
-				change_title_holder_include_vassals = {
-					holder = scope:lucky
-					change = scope:change
-					take_baronies = no
-					government_base = $TITLE$.holder
-				}
-			}
-			scope:lucky = { 
-				every_vassal = { #幸运者的旧封臣如果存在，还给法理领主
-					limit = {
-						is_in_list = lucky_old_vassal
-						primary_title.de_jure_liege = {
-							exists = holder
-						}
-						primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
-					}
-					create_title_and_vassal_change = {
-						type = granted
-						save_scope_as = change
-						add_claim_on_loss = no
-					}
-					change_liege = {
-						liege = primary_title.de_jure_liege.holder
-						change = scope:change
-					}
-					resolve_title_and_vassal_change = scope:change
-					remove_from_list = lucky_old_vassal
-				}	
-				
-				# 保持政体与前一致
-				if = {
-					limit = {
-						$TITLE$.holder = {
-							OR = {
-								is_corps_government_trigger = yes
-								has_government = feudal_government
-							}
-						}
-					}
-					change_government_legion_government_effect = yes
-				}
-				if = {
-					limit = {
-						$TITLE$.holder = {
-							OR = {
-								is_bureau_government_trigger = yes
-								AND = {
-									has_government = imperial_government
-									$TITLE$ = {
-										tier <= tier_county
-									}
-								}
-							}
-						}
-					}
-					change_government_bureau_government_effect = yes
-				}
-			}
 			
-			resolve_title_and_vassal_change = scope:change
-			
-			#对于公国以上头衔，如果其首府在境内的话，一并拿走
-			if = {
-				limit = { 
-					$TITLE$.tier >= tier_duchy
-					OR = {
-						$TITLE$.title_capital_county.holder = scope:liege
-						$TITLE$.title_capital_county.holder.top_liege = scope:liege
-					}
-				}
-				create_title_and_vassal_change = {
-					type = usurped
-					save_scope_as = change2
-					add_claim_on_loss = yes
-				}
-				$TITLE$.title_capital_county = {
-					add_to_list = target_titles_2
-				}
-				setup_claim_cb = {
-					titles = target_titles_2
-					attacker = scope:lucky
-					defender = $TITLE$.title_capital_county.holder
-					claimant = scope:lucky
-					change = scope:change2
-				}	
-				resolve_title_and_vassal_change = scope:change2
-			}
-			
-			#如果顺利获得了新头衔的首府，迁移角色首府到该地。否则……留在原地办公吧
-			if = {
-				limit = {
-					$TITLE$.tier >= tier_duchy
-					scope:lucky = {
-						has_title = $TITLE$.title_capital_county
-					}
-				}
-				scope:lucky = {
-					set_realm_capital = $TITLE$.title_capital_county
-				}
-			}
-			
-			scope:lucky = { #最后，转属法理领主
+			$TEMP_HOLDER$ = {
+				save_scope_as = bureaucrat
 				if = {
 					limit = {
-						primary_title.de_jure_liege = {
-							exists = holder
-						}
-						primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
+						NOT = { has_character_flag = save_east_contract }
+						exists = scope:previous_holder
+						scope:previous_holder = {
+							NOT = { has_character_flag = save_east_contract }
+						}	
 					}
-					scope:lucky = {
-						create_title_and_vassal_change = {
-							type = granted
-							save_scope_as = change
-							add_claim_on_loss = no
-						}
-						change_liege = {
-							liege = primary_title.de_jure_liege.holder
-							change = scope:change
-						}
-						resolve_title_and_vassal_change = scope:change
+					add_character_flag = { #标记角色已经存储过
+						flag = save_east_contract
+						months = 9
 					}
-				}	
+					save_east_contract_effect = yes	
+				}
 			}
 		}
 	}

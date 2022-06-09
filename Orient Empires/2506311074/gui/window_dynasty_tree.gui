@@ -1,0 +1,642 @@
+types DynastyTreeView
+{
+	type dynasty_tree_item = container {
+		name = "dynasty_tree_item"
+		ignoreinvisible = yes
+
+		widget = {
+			name = "background"
+			visible = "[DynastyTreeItem.IsCadetBranchFounder]"
+			size = { 100% 100% }
+			alwaystransparent = yes
+
+			background = {
+				using = Background_Frame
+				margin = { -4 -4 }
+			}
+
+			background = {
+				texture = "gfx/interface/component_masks/mask_rough_edges.dds"
+				spriteType = CorneredTiled
+				spriteborder = { 5 5 }
+				alpha = 0.4
+
+				using = Color_Blue
+				tintcolor = { 0.45 0.3 0.4 1 }
+			}
+
+			background = {
+				texture = "gfx/interface/component_tiles/tile_window_background_popup.dds"
+				spriteType = CorneredTiled
+				spriteborder = { 20 20 }
+				texture_density = 2
+				alpha = 0.4
+
+				using = Color_Blue
+				tintcolor = { 0.35 0.2 0.3 1 }
+			}
+
+			background = {
+				texture = "gfx/interface/component_masks/mask_rough_edges.dds"
+				spriteType = CorneredTiled
+				spriteborder = { 5 5 }
+				alpha = 0.6
+
+				using = Color_Blue
+				mirror = vertical
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/patterns/mask_pattern_04.dds"
+					spriteType = Corneredtiled
+					blend_mode = alphamultiply
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_overlay/overlay_thin_frame.dds"
+					blend_mode = alphamultiply
+				}
+			}
+		}
+
+		flowcontainer = {
+			name = "dynasty_tree_item_line_area"
+			direction = vertical
+			ignoreinvisible = yes
+			margin = { 0 10 }
+
+			container = {
+				parentanchor = hcenter
+
+				widget = {
+					name = "top_pin"
+					parentanchor = hcenter
+					size = { 0 0 }
+					position = { 0 -10 }
+					# always returns true. Function call allows to connect the widget with the data in code
+					visible = "[DynastyTreeItem.SetupTopWidget( PdxGuiWidget.Self )]"
+				}
+
+				line = {
+					visible = "[DynastyTreeItem.HasParent]"
+					using = Line_DynastyTree
+					parentanchor = hcenter
+					from = { 0 -8 }
+					to = { 0 12 }
+				}
+
+				flowcontainer = {
+					name = "character_container"
+					direction = vertical
+					ignoreinvisible = yes
+
+					container = {
+						datacontext = "[DynastyTreeItem.GetCharacter]"
+						ignoreinvisible = yes
+						# always returns true. Function call allows to connect the widget with the data in code
+						visible = "[DynastyTreeItem.SetupCharacterWidget(PdxGuiWidget.Self)]"
+
+						flowcontainer = {
+							name = "tree_header"
+							datacontext = "[Character.GetHouse]"
+							datacontext = "[DynastyTreeView.GetDynasty]"
+							visible = "[And( Character.IsFounderOfDynasty, ObjectsEqual( Character.GetDynasty.Self, DynastyTreeView.GetDynasty.Self ))]"
+							ignoreinvisible = yes
+							direction = vertical
+							minimumsize = { 330 255 }
+							position = { 0 -250 }
+
+							background = {
+								using = Background_Area_With_Header_Dark
+							}
+
+							background = {
+								texture = "gfx/interface/component_masks/mask_rough_edges.dds"
+								spriteType = CorneredTiled
+								spriteborder = { 5 5 }
+								alpha = 0.6
+
+								using = Color_Orange
+								mirror = vertical
+
+								modify_texture = {
+									texture = "gfx/interface/component_masks/patterns/mask_pattern_05.dds"
+									spriteType = Corneredtiled
+									blend_mode = alphamultiply
+								}
+
+								modify_texture = {
+									texture = "gfx/interface/component_overlay/overlay_thin_frame.dds"
+									blend_mode = alphamultiply
+								}
+							}
+
+							text_single = {
+								parentanchor =  hcenter
+								autoresize = yes
+								text = "DYNASTY_VIEW_INFO_TITLE"
+							}
+
+							icon = {
+								parentanchor = hcenter
+								texture = "gfx/interface/component_tiles/tile_divider_01.dds"
+							}
+
+							widget = {
+								size = { 165 175 }
+								parentanchor =  hcenter
+
+								coa_dynasty_huge = {
+									parentanchor =  bottom|hcenter
+									datacontext = "[DynastyTreeView.GetDynasty]"
+								}
+							}
+
+							text_single = {
+								name = "dynasty_prestige"
+								parentanchor =  hcenter
+								autoresize = yes
+								text = "DYNASTY_VIEW_PRESTIGE"
+							}
+
+							text_single = {
+								name = "house_motto"
+								parentanchor =  hcenter
+								autoresize = yes
+								text = "HOUSE_VIEW_MOTTO"
+							}
+
+							icon = {
+								parentanchor = hcenter
+								texture = "gfx/interface/component_tiles/tile_divider_01.dds"
+							}
+						}
+
+						portrait_body = {
+							datacontext = "[DynastyTreeView.GetDynasty]"
+							visible = "[And( Character.IsFounderOfDynasty, ObjectsEqual( Character.GetDynasty.Self, DynastyTreeView.GetDynasty.Self ))]"
+							parentanchor = hcenter
+						}
+
+						widget = {
+							name = "background_dynasty_head"
+							visible = "[And( Character.IsDynastyHead, Not( Character.IsFounderOfDynasty ))]"
+							size = { 120 150 }
+
+							background = {
+								margin = { 10 5 }
+								margin_bottom = 42
+
+								texture = "gfx/interface/component_overlay/overlay_noise.dds"
+								using = Mask_Rough_Edges
+								using = Color_Blue
+								alpha = 0.8
+
+								modify_texture = {
+									name = "overlay"
+									texture = "gfx/interface/component_overlay/overlay_window.dds"
+									spriteType = Corneredstretched
+									spriteborder = { 0 0 }
+									blend_mode = overlay
+								}
+							}
+
+							background = {
+								margin = { 7 2 }
+								margin_bottom = 40
+								using = Background_Frame
+							}
+						}
+
+						widget = {
+							name = "background_house_head"
+							visible = "[And( Character.IsHouseHead, Not( Character.IsDynastyHead ))]"
+							size = { 120 150 }
+
+							background = {
+								margin = { 10 5 }
+								margin_bottom = 42
+
+								texture = "gfx/interface/component_overlay/overlay_noise.dds"
+								using = Mask_Rough_Edges
+								using = Color_Purple
+								alpha = 0.8
+
+								modify_texture = {
+									name = "overlay"
+									texture = "gfx/interface/component_overlay/overlay_window.dds"
+									spriteType = Corneredstretched
+									spriteborder = { 0 0 }
+									blend_mode = overlay
+								}
+							}
+
+							background = {
+								margin = { 10 5 }
+								margin_bottom = 42
+								using = Background_Area_Dark_Border
+								alpha = 0.2
+							}
+
+							background = {
+								margin = { 7 2 }
+								margin_bottom = 40
+								using = Background_Frame
+							}
+						}
+
+						portrait_shoulders = {
+							visible = "[Not(And( Character.IsFounderOfDynasty, ObjectsEqual( Character.GetDynasty.Self, DynastyTreeView.GetDynasty.Self )))]"
+							position = { 0 25 }
+
+							flowcontainer = {
+								direction = vertical
+								ignoreinvisible = yes
+								parentanchor = right
+
+								button_me = {
+									size = { 25 25 }
+									visible = "[Character.IsLocalPlayer]"
+									alwaystransparent = yes
+									tooltip = "CV_TT_YOU"
+								}
+
+								icon = {
+									size = { 25 25 }
+									framesize = { 40 40 }
+									frame = 4
+									visible = "[Character.IsBastard]"
+									texture = "gfx/interface/icons/portraits/relation.dds"
+									tooltip = "CV_TT_BASTARD"
+								}
+
+								icon = {
+									size = { 25 25 }
+									framesize = { 40 40 }
+									frame = 8
+									visible = "[Character.IsDynastyHead]"
+									texture = "gfx/interface/icons/portraits/relation.dds"
+									tooltip = "[Character.GetDynastyHeadTooltip]"
+								}
+
+								icon = {
+									size = { 25 25 }
+									framesize = { 40 40 }
+									frame = 1
+									visible = "[And( Character.IsHouseHead, Not( Character.IsDynastyHead ))]"
+									texture = "gfx/interface/icons/portraits/relation.dds"
+									tooltip = "[Character.GetDynastyHeadTooltip]"
+								}
+							}
+
+							blockoverride "opinion_box" {}
+							blockoverride "status_icons" {}
+						}
+
+						button = {
+							name = "show_hide_parent"
+							parentanchor = hcenter
+							position = { 7 12 }
+							visible = "[And(Not( DynastyTreeItem.IsTopParent ), Not(Character.IsDynastyHead))]"
+							size = { 25 25 }
+							framesize = { 60 60 }
+							texture = "gfx/interface/icons/symbols/plus_minus.dds"
+							frame = "[BoolTo2And1( DynastyTreeItem.IsTopDisplayed )]"
+							tooltip = "[SelectLocalization( DynastyTreeItem.IsTopDisplayed, 'DYNASTY_VIEW_EXPAND_ROOT', 'DYNASTY_VIEW_SET_ROOT' )]"
+							onclick = "[DynastyTreeItem.ToggleParentVisibility]"
+						}
+						
+						button = {
+							name = "show_hide_parent_player"
+							parentanchor = hcenter
+							position = { 0 12 }
+							visible = "[And(Not( DynastyTreeItem.IsTopParent ), Character.IsDynastyHead)]"
+							
+							size = { 25 25 }
+							framesize = { 60 60 }
+							texture = "gfx/interface/icons/symbols/plus_minus.dds"
+							frame = "[BoolTo2And1( DynastyTreeItem.IsTopDisplayed )]"
+							tooltip = "[SelectLocalization( DynastyTreeItem.IsTopDisplayed, 'DYNASTY_VIEW_EXPAND_ROOT', 'DYNASTY_VIEW_SET_ROOT' )]"
+							onclick = "[DynastyTreeItem.ToggleParentVisibility]"
+						}
+					}
+
+					text_single = {
+						name = "title"
+						size = { 140 30 }
+						parentanchor =  hcenter
+
+						# Must be autoresize no, since the text scales to nearest whole size increment, and therefore would push around other elements in the flowcontainer parent
+						autoresize = no
+						elide = right
+
+						align = center
+						#text = "[DynastyTreeItem.GetCharacter.GetShortUINameNotMeNoTooltip]"
+						text = "[DynastyTreeItem.GetCharacter.Custom('OE_GetUINameNotMeNoTooltip')]"
+						default_format = "#high"
+						fontsize = 20
+						fontsize_min = 10
+					}
+
+					coa_dynasty_small = {
+						parentanchor = hcenter
+						datacontext = "[DynastyTreeItem.GetCharacter.GetDynasty]"
+						visible = "[DynastyTreeItem.IsFromOtherDynasty]"
+
+						blockoverride "OnClickDefault" {
+							onclick = "[OpenDynastyTreeViewFromCharacter(DynastyTreeItem.GetCharacter.GetID)]"
+						}
+					}
+
+					coa_house_small = {
+						parentanchor = hcenter
+						visible = "[DynastyTreeItem.IsCadetBranchFounder]"
+						datacontext = "[DynastyTreeItem.GetCharacter.GetHouse]"
+					}
+
+					button = {
+						name = "show_hide"
+						visible = "[DataModelHasItems(DynastyTreeItem.GetChildren)]"
+						size = { 25 25 }
+						framesize = { 60 60 }
+						texture = "gfx/interface/icons/symbols/plus_minus.dds"
+						parentanchor = hcenter
+						tooltip = "[SelectLocalization(DynastyTreeItem.AreChildrenVisible, 'DYNASTY_VIEW_CHILDREN_HIDE', 'DYNASTY_VIEW_CHILDREN_SHOW')]"
+						frame = "[BoolTo1And2(DynastyTreeItem.AreChildrenVisible)]"
+						onclick = "[DynastyTreeItem.ToggleChildrenVisibility]"
+					}
+				}
+			}
+
+			widget = {
+				parentanchor = hcenter
+				visible = "[DynastyTreeItem.AreChildrenVisible]"
+
+				line = {
+					resizeparent = yes
+					visible = "[DynastyTreeItem.AreChildrenVisible]"
+					using = Line_DynastyTree
+					from = { 0 0 }
+					to = { 0 50 }
+				}
+			}
+
+			container = {
+				parentanchor = hcenter
+				visible = "[DynastyTreeItem.AreChildrenVisible]"
+
+				dynamicgridbox = {
+					datamodel = "[DynastyTreeItem.GetChildren]"
+					flipdirection = yes
+
+					item = {
+						recursive = yes
+						dynasty_tree_item = {}
+					}
+				}
+			}
+		}
+
+		widget = {
+			visible = "[DynastyTreeItem.AreChildrenVisible]"
+
+			line = {
+				resizeparent = yes
+				using = Line_DynastyTree
+				visible = "[DynastyTreeItem.AreChildrenVisible]"
+				from = "[DynastyTreeItem.GetLineStartPoint]"
+				to = "[DynastyTreeItem.GetLineEndPoint]"
+			}
+		}
+	}
+}
+
+
+### DYNASTY VIEW
+window = {
+	name = "dynasty_tree_view"
+	parentanchor = center
+	spriteType = Corneredtiled
+	spriteborder = { 20 20 }
+	movable = no
+	datacontext = "[DynastyTreeView.GetDynasty]"
+	size = { 102% 102% }
+	layer = middle
+
+	background = {
+		name = "paper_texture_flat"
+		texture = "gfx/interface/window_event/tile_letter_flat.dds"
+		spriteType = Corneredtiled
+		spriteborder = { 200 200 }
+		size = { 100% 100% }
+		color = { 0.3 0.285 0.25 1 }
+
+		state = {
+			name = _show
+			using = Animation_FadeIn_Standard
+		}
+
+		state = {
+			name = _hide
+			using = Animation_FadeOut_Standard
+		}
+
+		modify_texture = {
+			name = "paper_texture_overlay"
+			texture = "gfx/interface/window_event/overlay_letter_texture.dds"
+			spriteType = Corneredstretched
+			blend_mode = overlay
+		}
+	}
+
+	background = {
+		texture = "gfx/interface/illustrations/decisions/decision_dynasty_house.dds"
+		alpha = 0.15
+		color = { 0.65 0.65 0.65 1 }
+
+		fittype = centercrop
+	}
+
+	widget = {
+		size = { 100% 100% }
+
+		vbox = {
+			margin = { 10 10 }
+
+			zoomarea = {
+				name = "dynasty_zoom_area"
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				scissor = yes
+				zoom = 1
+				zoom_step = 0.2
+				zoom_min = 0.2
+				zoom_max = 1.0
+				pan_position = { 0 0 }
+				draggable_by = left|middle
+
+				state = {
+					name = "_zoom_changed"
+					duration = 0.1
+					# bezier = { 0.05 0.55 0.46 1.02 }
+				}
+
+				zoomwidget = {
+					widget = {
+						flowcontainer = {
+							alwaystransparent = no
+							direction = vertical
+							resizeparent = yes
+
+							dynamicgridbox = {
+								name = "dynasty_tree" # Do not change this name!
+								setitemsizefromcell = yes
+								datamodel = "[DynastyTreeView.GetDynastyTrees]"
+								item = {
+									recursive = yes
+									dynasty_tree_item = {}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	### TOP RIGHT INFO
+	widget = {
+		datacontext = "[DynastyTreeView.GetDynasty]"
+		size = { 520 155 }
+		parentanchor = top|right
+		widgetanchor = top|right
+		position = { -33 20 }
+
+		vbox = {
+			margin = { 10 5 }
+			margin_left = 20
+			margin_bottom = 15
+
+			background = {
+				using = Background_Area_Dark
+			}
+
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				spacing = 2
+
+				coa_dynasty_small = {
+					datacontext = "[DynastyTreeView.GetDynasty]"
+					blockoverride "OnClickDefault" {
+						onclick = "[DefaultOnDynastyCoatOfArmsClick(Dynasty.GetID)]"
+						onclick = "[DynastyTreeView.Close]"
+					}
+				}
+
+				vbox = {
+					layoutpolicy_vertical = expanding
+					margin_top = 7
+
+					text_single = {
+						layoutpolicy_horizontal = expanding
+						autoresize = yes
+						align = left
+						text = "DYNASTY_VIEW_INFO_TITLE"
+					}
+
+					text_single = {
+						layoutpolicy_horizontal = expanding
+						name = "dynasty_prestige"
+						autoresize = yes
+						align = left
+						text = "DYNASTY_VIEW_PRESTIGE"
+					}
+
+					expand = {}
+				}
+
+				expand = {}
+
+				vbox = {
+					layoutpolicy_vertical = expanding
+
+					hbox = {
+
+						text_single = {
+							name = "total_members"
+							text = "DYNASTY_VIEW_MEMBERS"
+							align = nobaseline
+						}
+
+						buttons_window_control = {
+							name = "close_button"
+
+							blockoverride "button_close" {
+								onclick = "[DynastyTreeView.Close]"
+
+							}
+						}
+					}
+
+					expand = {}
+
+				}
+			}
+
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				margin_bottom = 5
+				spacing = 15
+
+				progressbar_standard = {
+					name = "progress"
+					size = { 160 20 }
+					value = "[Dynasty.GetPrestigeLevelProgress]"
+					tooltip = "[Dynasty.GetPrestigeLevelProgressTooltip]"
+				}
+
+				vbox = {
+					margin_bottom = 5
+					text_single = {
+						name = "current_level"
+						text = "[Dynasty.GetPrestigeLevelName]"
+						align = nobaseline
+					}
+				}
+
+				expand = {}
+			}
+
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				spacing = 5
+
+				button_standard = {
+					text = "DYNASTY_VIEW_PAN_TO_DYNAST"
+					onclick = "[DynastyTreeView.PanToDynast]"
+				}
+
+				button_standard = {
+					text = "DYNASTY_VIEW_PAN_TO_ME"
+					visible = "[DynastyTreeView.IsShownPanToMe]"
+					onclick = "[DynastyTreeView.PanToMe]"
+					tooltip = "DYNASTY_VIEW_PAN_TO_ME_TT"
+					shortcut = dynasty_tree_pan_to_me
+				}
+
+				expand = {}
+			}
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				margin_top = 5
+				spacing = 5
+				text_single = {
+                    text = "DYNASTY_VIEW_CLICK_TO_PAN"
+					autoresize = yes
+					max_width = 470
+					fontsize_min = 13
+                }
+				expand = {}
+			}
+		}
+	}
+}

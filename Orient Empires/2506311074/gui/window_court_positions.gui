@@ -1,0 +1,1072 @@
+types CourtPositionTypes
+{
+	type vbox_court_positions = vbox {
+		margin_bottom = 15
+
+		state = {
+			name = _show
+			using = Expand_Court_Positions
+		}
+
+		hbox = {
+			datamodel = "[GetAllCourtPositionCategories]"
+			visible = "[CourtPositionsWindow.CanShowCategoryTabs]"
+
+			spacing = 5
+			margin = { 10 5 }
+
+			button_position_category = {
+				onclick = "[CourtPositionsWindow.ClearCategoryFilter]"
+				down ="[Not(CourtPositionsWindow.HasCategoryFilter)]"
+				size = { 110 33 }
+
+				hbox = {
+					text_single = {
+						layoutpolicy_horizontal = expanding
+						align = center|nobaseline
+						text = COURT_POSITIONS_WINDOW_FILTER_ALL
+						default_format = "#low"
+						margin_right = 30
+						max_width = 70
+					}
+				}
+
+				blockoverride "hire_available_text" {
+					text = COURT_POSITIONS_WINDOW_FILTER_TAB_ALL_NUM_HIRES
+					alpha = 0.6
+				}
+			}
+
+			item = {
+				button_position_category = {
+					visible = "[CourtPositionsWindow.CanShowCategoryTab(CourtPositionCategory.Self)]"
+					onclick = "[CourtPositionsWindow.SetCategoryFilter(CourtPositionCategory.Self)]"
+					down = "[CourtPositionsWindow.IsCategoryFiltering(CourtPositionCategory.Self)]"
+					size = { 98 33 }
+
+					hbox = {
+						text_single = {
+							layoutpolicy_horizontal = expanding
+							align = center|nobaseline
+							text = "[CourtPositionCategory.GetName]"
+							default_format = "#low"
+							margin_right = 30
+							max_width = 110
+						}
+					}
+
+					blockoverride "hire_available_text" {
+						text = COURT_POSITIONS_WINDOW_FILTER_TAB_CATEGORY_NUM_HIRES
+						alpha = 0.6
+					}
+				}
+			}
+		}
+
+		scrollbox = {
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+			
+			background = {
+				texture = "gfx/interface/skinned/illustrations/councilchamber_bg.dds"
+				margin = { -5 0 }
+				fittype = end
+				alpha = 0.15
+				framesize = { 1200 848 }
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/mask_fade_vertical.dds"
+					blend_mode = alphamultiply
+					mirror = vertical
+				}
+			}
+			
+			blockoverride "scrollbox_margins"
+			{
+				margin_top = 15
+				margin_bottom = 15
+				margin_right = 5
+			}
+
+			blockoverride "scrollbox_content"
+			{
+				vbox = {
+					name = "liege_court_positions"
+					visible = "[And(And(CourtPositionsWindow.CourtOwner.HasLiege, CourtPositionsWindow.CourtOwner.HoldsCourtPosition), Not(CourtPositionsWindow.HasCategoryFilter))]"
+					layoutpolicy_horizontal = expanding
+
+					using = Animation_Tab_Switch
+
+					hbox_court_positions_header_button = {
+						layoutpolicy_horizontal = expanding
+
+						blockoverride "onclick"
+						{
+							onclick = "[GetVariableSystem.Toggle( 'expand_held_court_positions' )]"
+						}
+
+						blockoverride "button_expand"
+						{
+							frame = "[Select_int32(GetVariableSystem.Exists( 'expand_held_court_positions'), '(int32)2', '(int32)1')]"
+						}
+
+						blockoverride "text"
+						{
+							text = "COURT_POSITIONS_your_positions_in_liege_court"
+						}
+					}
+
+					### Your titles
+					vbox = {
+						name = "your_court_positions"
+						visible = "[GetVariableSystem.Exists( 'expand_held_court_positions' )]"
+						layoutpolicy_horizontal = expanding
+
+						using = Animation_Tab_Switch
+
+						text_single = {
+							visible = "[IsDataModelEmpty( CourtPositionsWindow.HeldPositions )]"
+							text = "COURT_POSITIONS_no_positions_with_liege"
+							default_format = "#weak"
+							margin = { 0 10 }
+						}
+
+						vbox = {
+							name = "my_own_court_positions"
+							datamodel = "[CourtPositionsWindow.HeldPositions]"
+							visible = "[Not(IsDataModelEmpty( CourtPositionsWindow.HeldPositions ))]"
+							layoutpolicy_horizontal = expanding
+							margin_left = 10
+							margin_top = 5
+							margin_right = 10
+							margin_bottom = 10
+							spacing = 10
+
+							using = Animation_Tab_Switch
+
+							item = {
+								widget_your_court_position_item = {
+								}
+							}
+						}
+					}
+				}
+
+				vbox = {
+					name = "your_court_positions"
+					layoutpolicy_horizontal = expanding
+					visible = "[Not(IsDataModelEmpty( CourtPositionsWindow.EmployedPositions ))]"
+
+					hbox_court_positions_header_button = {
+						layoutpolicy_horizontal = expanding
+
+						blockoverride "onclick"
+						{
+							onclick = "[GetVariableSystem.Toggle( 'expand_active_court_positions' )]"
+						}
+
+						blockoverride "button_expand"
+						{
+							frame = "[Select_int32(GetVariableSystem.Exists( 'expand_active_court_positions'), '(int32)2', '(int32)1')]"
+						}
+
+						blockoverride "text"
+						{
+							text = "COURT_POSITIONS_COURT_VIEW_positions_in_your_court"
+						}
+					}
+
+					### Titles in your court
+					vbox = {
+						name = "active_positions_in_your_court"
+						visible = "[GetVariableSystem.Exists( 'expand_active_court_positions' )]"
+						layoutpolicy_horizontal = expanding
+
+						using = Animation_Tab_Switch
+
+						text_single = {
+							visible = "[IsDataModelEmpty( CourtPositionsWindow.EmployedPositions )]"
+							text = "COURT_POSITIONS_no_positions_in_your_court"
+							default_format = "#weak"
+							margin = { 0 10 }
+						}
+
+						vbox = {
+							name = "active_positions"
+							datamodel = "[CourtPositionsWindow.EmployedPositions]"
+							visible = "[Not(IsDataModelEmpty( CourtPositionsWindow.EmployedPositions ))]"
+							layoutpolicy_horizontal = expanding
+							margin_left = 10
+							margin_top = 5
+							margin_right = 10
+							margin_bottom = 10
+							spacing = 10
+
+							using = Animation_Tab_Switch
+
+							item = {
+								widget_hired_court_position_item = {
+								}
+							}
+						}
+					}
+				}
+
+				vbox = {
+					name = "your_empty_court_positions"
+					layoutpolicy_horizontal = expanding
+
+					hbox_court_positions_header_button = {
+						layoutpolicy_horizontal = expanding
+
+						blockoverride "onclick"
+						{
+							onclick = "[GetVariableSystem.Toggle( 'expand_empty_court_positions' )]"
+						}
+
+						blockoverride "button_expand"
+						{
+							frame = "[Select_int32(GetVariableSystem.Exists( 'expand_empty_court_positions'), '(int32)2', '(int32)1')]"
+						}
+
+						blockoverride "text"
+						{
+							text = "COURT_POSITIONS_WINDOW_EMPTY_POSITION_HEADER"
+						}
+					}
+
+					### Empty positions in your court
+					vbox = {
+						name = "empty_positions_in_your_court"
+						layoutpolicy_horizontal = expanding
+						visible = "[GetVariableSystem.Exists( 'expand_empty_court_positions' )]"
+
+						using = Animation_Tab_Switch
+
+						text_single = {
+							visible = "[IsDataModelEmpty( CourtPositionsWindow.EmptyPositions )]"
+							text = "COURT_POSITIONS_no_positions_in_your_court"
+							default_format = "#weak"
+							margin = { 0 10 }
+						}
+
+						vbox = {
+							name = "active_positions"
+							datamodel = "[CourtPositionsWindow.EmptyPositions]"
+							visible = "[Not(IsDataModelEmpty( CourtPositionsWindow.EmptyPositions ))]"
+							layoutpolicy_horizontal = expanding
+							margin_left = 10
+							margin_top = 5
+							margin_right = 10
+							margin_bottom = 10
+							spacing = 6
+
+							using = Animation_Tab_Switch
+
+							item = {
+								widget_empty_court_position_item = {
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		## Position finances
+		vbox = {
+			name = "salaries_tutorial_uses_this"
+			layoutpolicy_horizontal = expanding
+			margin_top = 20
+			margin_left = 5
+			spacing = 5
+			margin_right = 5
+
+			background = {
+				using = Background_Area
+				margin = { 0 -15 }
+				margin_bottom = 10
+				margin_left = -15
+				margin_right = -15
+			}
+
+			hbox = {
+				visible = "[CourtPositionsWindow.CourtOwner.HoldsCourtPosition]"
+				margin_left = -20
+				layoutpolicy_horizontal = expanding
+
+				expand = {
+					minimumsize = { 50 0 }
+				}
+
+				text_single = {
+					text = "COURT_POSITIONS_COURT_VIEW_salaries_gained"
+					layoutpolicy_horizontal = expanding
+				}
+
+				text_single = {
+					datacontext = "[CourtPositionsWindow.CourtPositionsIncomeBreakdown]"
+					text = "[CourtPositionsWindow.TotalEarnedSalaries]"
+					default_format = "#high"
+
+					tooltipwidget = {
+						widget_value_breakdown_tooltip = {}
+					}
+				}
+
+				expand = {
+					minimumsize = { 20 0 }
+				}
+			}
+
+			hbox = {
+				margin_left = -20
+				layoutpolicy_horizontal = expanding
+
+				expand = {
+					minimumsize = { 50 0 }
+				}
+
+				text_single = {
+					text = "COURT_POSITIONS_COURT_VIEW_salaries_paid"
+					layoutpolicy_horizontal = expanding
+				}
+
+				text_single = {
+					datacontext = "[CourtPositionsWindow.CourtPositionsExpenseBreakdown]"
+					text = "[CourtPositionsWindow.TotalPaidSalaries]"
+					default_format = "#high"
+
+					tooltipwidget = {
+						widget_value_breakdown_tooltip = {}
+					}
+				}
+
+				expand = {
+					minimumsize = { 20 0 }
+				}
+			}
+		}
+	}
+
+	type widget_your_court_position_item = widget
+	{
+		size = { 530 158 }
+
+		background = {
+			using = Background_Area_Light
+			margin_top = 2
+		}
+
+		background = {
+			using = Background_Frame
+			margin_top = 2
+			margin_bottom = 2
+			margin_right = -3
+		}
+
+		# Header, name, position, salary, buttons
+		widget = {
+			size = { 530 56 }
+
+			tooltipwidget = {
+				court_position_tooltip = { }
+			}
+
+			#### COMMON BACKGROUND ####
+			background = {
+				spriteType = Corneredtiled
+				using = Color_Blue
+				alpha = 0.3
+				texture = "gfx/interface/colors/white.dds"
+				visible = "[Not(CourtPosition.GetPositionType.CourtPositionRequiresRankOrHigher('kingdom'))]"
+
+				margin_bottom = -1
+				margin_top = 2
+				margin_left = -1
+
+				using = Mask_Rough_Edges
+
+				modify_texture = {
+					name = "mask"
+					texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+					spriteType = Corneredstretched
+					spriteborder = { 0 0 }
+					blend_mode = alphamultiply
+					mirror = horizontal
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/patterns/mask_pattern_02.dds"
+					spriteType = Corneredtiled
+					blend_mode = alphamultiply
+					alpha = 0.2
+				}
+			}
+
+			##### ROYAL BACKGROUND ####
+			background = {
+				visible = "[CourtPosition.GetPositionType.CourtPositionRequiresRankOrHigher('kingdom')]"
+
+				spriteType = Corneredtiled
+				using = Color_Purple
+				alpha = 0.3
+				texture = "gfx/interface/colors/white.dds"
+
+				margin_bottom = -1
+				margin_top = 2
+				margin_left = -1
+
+				using = Mask_Rough_Edges
+
+				modify_texture = {
+					name = "mask"
+					texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+					spriteType = Corneredstretched
+					spriteborder = { 0 0 }
+					blend_mode = alphamultiply
+					mirror = horizontal
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/patterns/mask_pattern_02.dds"
+					spriteType = Corneredtiled
+					blend_mode = alphamultiply
+					alpha = 0.3
+				}
+			}
+
+			###### POSITION ######
+			widget = {
+				size = { 520 40 }
+
+				text_single = {
+					layoutpolicy_horizontal = expanding
+					text = "[CourtPosition.GetNameNoTooltip]"
+					using = Font_Size_Medium
+					align = nobaseline
+					margin_left = 15
+					margin_top = 4
+				}
+
+				text_single = {
+					align = right
+					default_format = "#high"
+					text = "[CourtPosition.GetSalaryText]"
+					tooltip = "[CourtPosition.GetSalaryBreakdownTooltip]"
+					margin_right = 10
+					margin_top = 4
+					parentanchor = right
+				}
+			}
+
+			widget = {
+				size = { 530 255 }
+
+				portrait_head_small = {
+					datacontext = "[CourtPosition.GetEmployer]"
+					position = { 10 60 }
+				}
+
+				##### NAME ######
+				text_single = {
+					name = "name"
+					text = "[CourtPosition.GetEmployer.GetNameNoTooltip]"
+					align = left
+					position = { 15 25 }
+					default_format = "#high"
+				}
+
+				text_multi = {
+					min_width = 420
+					max_width = 420
+					autoresize = yes
+					align = left
+					position = { 105 56 }
+					text = "[CourtPosition.GetEmployeeBonuses]"
+				}
+			}
+		}
+	}
+
+	type widget_hired_court_position_item = widget
+	{
+		datacontext = "[EmployedPositionItem.GetPosition]"
+		datacontext = "[CourtPosition.GetEmployee]"
+		visible = "[EmployedPositionItem.CanShow]"
+
+		size = { 530 160 }
+
+		background = {
+			using = Background_Area_Light
+			margin_top = 2
+			alpha = 0.6
+		}
+
+		background = {
+			using = Background_Frame
+			margin_top = 2
+			margin_bottom = 2
+			margin_right = -3
+		}
+
+		# Header, name, position, salary, buttons
+		widget = {
+			size = { 530 56 }
+
+			tooltipwidget = {
+				court_position_tooltip = { }
+			}
+
+			#### COMMON BACKGROUND ####
+			background = {
+				spriteType = Corneredtiled
+				using = Color_Blue
+				alpha = 0.3
+				texture = "gfx/interface/colors/white.dds"
+				visible = "[Not(CourtPosition.GetPositionType.CourtPositionRequiresRankOrHigher('kingdom'))]"
+
+				margin_bottom = -1
+				margin_top = 2
+				margin_left = -1
+
+				using = Mask_Rough_Edges
+
+				modify_texture = {
+					name = "mask"
+					texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+					spriteType = Corneredstretched
+					spriteborder = { 0 0 }
+					blend_mode = alphamultiply
+					mirror = horizontal
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/patterns/mask_pattern_02.dds"
+					spriteType = Corneredtiled
+					blend_mode = alphamultiply
+					alpha = 0.2
+				}
+			}
+
+			##### ROYAL BACKGROUND ####
+			background = {
+				visible = "[CourtPosition.GetPositionType.CourtPositionRequiresRankOrHigher('kingdom')]"
+
+				spriteType = Corneredtiled
+				using = Color_Purple
+				alpha = 0.3
+				texture = "gfx/interface/colors/white.dds"
+
+				margin_bottom = -1
+				margin_top = 2
+				margin_left = -1
+
+				using = Mask_Rough_Edges
+
+				modify_texture = {
+					name = "mask"
+					texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+					spriteType = Corneredstretched
+					spriteborder = { 0 0 }
+					blend_mode = alphamultiply
+					mirror = horizontal
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/patterns/mask_pattern_02.dds"
+					spriteType = Corneredtiled
+					blend_mode = alphamultiply
+					alpha = 0.3
+				}
+			}
+
+			###### POSITION ######
+			widget = {
+				size = { 520 40 }
+
+				text_single = {
+					text = "[CourtPosition.GetNameNoTooltip]"
+					default_format = "#medium"
+					parentanchor = left
+					using = Font_Size_Medium
+					align = nobaseline
+					margin_left = 15
+					margin_top = 4
+				}
+
+				flowcontainer = {
+					parentanchor = right
+					margin_top = 4
+
+					button_change = {
+						onclick = "[EmployedPositionItem.Replace)]"
+						tooltip = "COURT_POSITION_REPLACE"
+					}
+
+					button_cancel = {
+						onclick = "[EmployedPositionItem.Revoke)]"
+						tooltip = "COURT_POSITION_REVOKE"
+					}
+
+					spacer = {
+						size = { 4 0 }
+					}
+
+					text_single = {
+						align = right
+						default_format = "#high"
+						text = "[CourtPosition.GetSalaryText]"
+						tooltip = "[CourtPosition.GetSalaryBreakdownTooltip]"
+						margin_top = 1
+						margin_right = 10
+					}
+				}
+			}
+		}
+
+		widget = {
+			size = { 520 255 }
+
+			###### NAME ######
+			text_single = {
+				text = "[CourtPosition.GetEmployee.GetNameNoTooltip]"
+				default_format = "#high"
+				align = left
+				position = { 16 25 }
+			}
+
+			###### YEARS OF SERVICE ######
+			text_single = {
+				default_format = "#weak"
+				text = "[CourtPosition.GetTimeOfService]"
+				align = right
+				parentanchor = right
+				position = { -14 27 }
+			}
+
+			portrait_head_small = {
+				position = { 10 60 }
+			}
+
+			vbox = {
+				name = "aptitude_and_effects"
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				margin_bottom = 5
+				margin_left = 80
+				margin_top = 56
+
+				text_single = {
+					name = "aptitude"
+					layoutpolicy_horizontal = expanding
+					text = "COURT_POSITION_aptitude_description_position"
+					min_width = 400
+					max_width = 400
+
+					tooltipwidget = {
+						court_position_aptitude_breakdown_tooltip = {
+							datacontext = "[CourtPosition.GetAptitudeTooltip]"
+
+							blockoverride "header_text" {
+								text = COURT_POSITION_aptitude_description_position
+							}
+
+							blockoverride "modifier_list" {
+								text = "[CourtPosition.GetEmployerBonuses]"
+							}
+						}
+					}
+				}
+
+				text_single = {
+					name = "opinion_bonus"
+					min_width = 400
+					max_width = 400
+					layoutpolicy_horizontal = expanding
+					text = "COURT_POSITION_OPINION_BONUS"
+				}
+
+#				text_multi = {
+#					min_width = 400
+#					max_width = 400
+#					autoresize = yes
+#					align = left
+#					text = "[CourtPosition.GetEmployerBonuses]"
+#				}
+
+				#### AI candidate score ####
+				text_single = {
+					name = "ai_score"
+					visible = "[InDebugMode]"
+					text = "[CourtPosition.GetAICandidateScore]"
+					default_format = "#D"
+					min_width = 400
+					max_width = 400
+				}
+
+				expand = {}
+			}
+		}
+	}
+
+	type widget_empty_court_position_item = widget
+	{
+		datacontext = "[EmptyCourtPosition.GetType]"
+		visible = "[EmptyCourtPosition.CanShow]"
+
+		size = { 530 130 }
+
+		background = {
+			visible = "[And(Not(EmptyCourtPosition.IsAppointing), EmptyCourtPosition.CanHirePosition)]"
+			using = Background_Area_Dark
+			using = Mask_Rough_Edges
+			alpha = 0.5
+			margin_top = 2
+		}
+
+		background = {
+			visible = "[Not(EmptyCourtPosition.CanHirePosition)]"
+			using = Background_Frame
+			alpha = 0.5
+			margin_right = -3
+		}
+
+		background = {
+			visible = "[EmptyCourtPosition.IsAppointing]"
+			texture = "gfx/interface/colors/white.dds"
+			spriteType = Corneredtiled
+			using = Color_Blue
+			alpha = 0.3
+
+			using = Mask_Rough_Edges
+
+			modify_texture = {
+				name = "mask"
+				texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+				spriteType = Corneredstretched
+				spriteborder = { 0 0 }
+				blend_mode = alphamultiply
+				mirror = horizontal
+			}
+		}
+
+		# Header  name, position, salary, buttons
+		widget = {
+			size = { 520 40 }
+
+			tooltipwidget = {
+				court_position_type_tooltip = { }
+			}
+
+			#### COMMON BACKGROUND ####
+			background = {
+				spriteType = Corneredtiled
+				using = Color_Blue
+				alpha = 0.3
+				texture = "gfx/interface/colors/white.dds"
+				visible = "[Not(And(CourtPositionType.CourtPositionRequiresRankOrHigher('kingdom'), Not(EmptyCourtPosition.IsAppointing)))]"
+
+				margin_left = -2
+
+				using = Mask_Rough_Edges
+
+				modify_texture = {
+					name = "mask"
+					texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+					spriteType = Corneredstretched
+					spriteborder = { 0 0 }
+					blend_mode = alphamultiply
+					mirror = horizontal
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/patterns/mask_pattern_02.dds"
+					spriteType = Corneredtiled
+					blend_mode = alphamultiply
+					alpha = 0.2
+				}
+			}
+
+			#### ROYAL BACKGROUND ####
+			background = {
+				visible = "[And(CourtPositionType.CourtPositionRequiresRankOrHigher('kingdom'), Not(EmptyCourtPosition.IsAppointing))]"
+
+				spriteType = Corneredtiled
+				using = Color_Purple
+				alpha = 0.3
+				texture = "gfx/interface/colors/white.dds"
+
+				margin_left = -2
+
+				using = Mask_Rough_Edges
+
+				modify_texture = {
+					name = "mask"
+					texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+					spriteType = Corneredstretched
+					spriteborder = { 0 0 }
+					blend_mode = alphamultiply
+					mirror = horizontal
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/patterns/mask_pattern_02.dds"
+					spriteType = Corneredtiled
+					blend_mode = alphamultiply
+					alpha = 0.3
+				}
+			}
+
+			#### POSITION ####
+			text_single = {
+				name = "character_name_available"
+				visible = "[EmptyCourtPosition.CanHirePosition]"
+				parentanchor = left
+				text = "[CourtPositionType.GetNameNoTooltip]"
+				default_format = "#high"
+				using = Font_Size_Medium
+				align = nobaseline
+				margin_top = 7
+				margin_left = 15
+			}
+
+			text_single = {
+				name = "character_name_not_available"
+				visible = "[Not(EmptyCourtPosition.CanHirePosition)]"
+				parentanchor = left
+				text = "[CourtPositionType.GetNameNoTooltip]"
+				default_format = "#weak"
+				using = Font_Size_Medium
+				align = nobaseline
+				margin_top = 7
+				margin_left = 15
+			}
+
+			text_single = {
+				name = "salary_available"
+				visible = "[EmptyCourtPosition.CanHirePosition]"
+				parentanchor = right
+				align = right
+				default_format = "#high"
+				text = "[CourtPositionType.GetSalaryTextFor(CourtPositionsWindow.CourtOwner)]"
+				tooltip = "[CourtPositionType.GetSalaryBreakdownFor(CourtPositionsWindow.CourtOwner)]"
+				margin_top = 5
+				margin_right = 15
+			}
+
+			text_single = {
+				name = "salary_not_available"
+				visible = "[Not(EmptyCourtPosition.CanHirePosition)]"
+				parentanchor = right
+				align = right
+				text = "[CourtPositionType.GetSalaryTextFor(CourtPositionsWindow.CourtOwner)]"
+				tooltip = "[CourtPositionType.GetSalaryBreakdownFor(CourtPositionsWindow.CourtOwner)]"
+				default_format = "#weak"
+				margin_top = 5
+				margin_right = 15
+			}
+		}
+
+		widget = {
+			size = { 520 255 }
+
+			widget_empty_court_position_portrait = {
+				position = { 10 45 }
+			}
+
+			vbox = {
+				margin_bottom = 5
+				margin_left = 80
+				margin_top = 42
+
+				#### REQUIREMENTS ####
+#				text_single = {
+#					visible = "[Not(EmptyCourtPosition.CanHirePosition)]"
+#					text = "COURT_POSITIONS_WINDOW_EMPTY_POSITION_YOU_DONT_MEET_REQUIREMENTS"
+#					tooltip = "COURT_POSITIONS_WINDOW_EMPTY_POSITION_YOU_DONT_MEET_REQUIREMENTS_TT"
+#					min_width = 400
+#					max_width = 400
+#				}
+#
+#				text_single = {
+#					visible = "[EqualTo_int32(EmptyCourtPosition.NumValidCourtiers, '(int32)0')]"
+#					text = "COURT_POSITIONS_WINDOW_EMPTY_POSITION_NO_ELIGIBLE_COURTIERS"
+#					tooltip = "COURT_POSITIONS_WINDOW_EMPTY_POSITION_NO_ELIGIBLE_COURTIERS_TT"
+#					min_width = 400
+#					max_width = 400
+#				}
+#
+#				#### APTITUDE AND EFFECTS ####
+#				text_single = {
+#					name = "aptitude"
+#					min_width = 400
+#					max_width = 400
+#					text = "COURT_POSITIONS_WINDOW_EMPTY_POSITION_EFFECTS_VARY"
+#				}
+#
+#				text_multi = {
+#					min_width = 400
+#					max_width = 400
+#					autoresize = yes
+#					align = left
+#					text = "[CourtPositionType.GetLiegeModifierDescription]"
+#				}
+
+				#### DEBUG AI SCORE ####
+				text_single = {
+					name = "ai_score"
+					visible = "[InDebugMode]"
+					text = "[EmptyCourtPosition.GetAiCandidateScore]"
+					default_format = "#D"
+					min_width = 400
+					max_width = 400
+				}
+
+				expand = {}
+			}
+		}
+	}
+
+	type widget_empty_court_position_portrait = widget {
+		size = { 85 90 }
+
+		background = {
+			using = Background_Area_Solid
+
+			modify_texture = {
+				texture = "gfx/interface/component_masks/mask_fade_vertical.dds"
+				blend_mode = alphamultiply
+				alpha = 0.2
+				mirror = vertical
+			}
+		}
+
+		widget = {
+			size = { 100% 100% }
+
+			background = {
+				texture = "gfx/portraits/portrait_frame.dds"
+				using = Color_Grey
+				margin = { -4 -4 }
+				alpha = 0.5
+			}
+		}
+
+		button = {
+			size = { 100% 100% }
+			enabled = "[And(EmptyCourtPosition.CanHirePosition, GreaterThan_int32(EmptyCourtPosition.NumValidCourtiers, '(int32)0') )]"
+			onclick = "[EmptyCourtPosition.Appoint]"
+			name = "position_portrait_tutorial_uses_this"
+
+			state = {
+				name = _mouse_hierarchy_enter
+				on_start = "[PdxGuiWidget.FindChild('highlight_frame').TriggerAnimation('show')]"
+
+			}
+
+			state = {
+				name = _mouse_hierarchy_leave
+				on_start = "[PdxGuiWidget.FindChild('highlight_frame').TriggerAnimation('hide')]"
+
+			}
+
+			highlight_icon = {
+				name = "portrait_unknown_head_small_glow"
+				parentanchor = center
+				position = { 3 -9 }
+				gfxtype = framedbuttongfx
+				effectname = "NoHighlight"
+				texture = "gfx/portraits/unknown_portraits/button_unknown_head.dds"
+				size = { 80 100 }
+				framesize = { 384 480 }
+				upframe = 1
+				overframe = 2
+			}
+
+			button_plus = {
+				visible = "[And(EmptyCourtPosition.CanHirePosition, GreaterThan_int32(EmptyCourtPosition.NumValidCourtiers, '(int32)0') )]"
+				parentanchor = center
+				position = { 0 0 }
+				onclick = "[EmptyCourtPosition.Appoint]"
+			}
+
+			widget = {
+				name = "highlight_frame"
+				size = { 100% 100% }
+				alwaystransparent = yes
+				alpha = 0
+
+				state = {
+					name = "show"
+					alpha = 1
+				}
+
+				state = {
+					name = "hide"
+					alpha = 0
+				}
+
+				background = {
+					size = { 100% 100% }
+					texture = "gfx/portraits/portrait_frame.dds"
+					using = Color_Grey
+					alpha = 0.7
+					margin = { -4 -4 }
+				}
+			}
+		}
+	}
+
+	type button_position_category = button_standard_clean {
+
+		text_single = {
+			parentanchor = vcenter|right
+			position = { -10 -2 }
+			default_format = "#low"
+			max_width = 50
+
+			block "hire_available_text" { }
+		}
+	}
+
+	type hbox_court_positions_header_button = hbox {
+		margin = { 10 5 }
+
+		background = {
+			using = Background_Area_Dark
+			alpha = 0.5
+		}
+
+		button_normal = {
+			layoutpolicy_horizontal = expanding
+			size = { 0 25 }
+
+			block "onclick" {}
+
+			hbox = {
+				ignoreinvisible = yes
+				spacing = 5
+
+				button_expand = {
+					block "button_expand" {}
+					block "onclick" {}
+				}
+
+				text_single = {
+					layoutpolicy_horizontal = expanding
+					align = nobaseline
+					alwaystransparent = yes
+
+					block "text" {}
+				}
+			}
+		}
+	}
+}
+
+template Expand_Court_Positions {
+	on_start = "[GetVariableSystem.Set( 'expand_held_court_positions', 'true' )]"
+	on_start = "[GetVariableSystem.Set( 'expand_active_court_positions', 'true' )]"
+	on_start = "[GetVariableSystem.Set( 'expand_empty_court_positions', 'true' )]"
+}

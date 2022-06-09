@@ -1,19 +1,25 @@
-﻿revolt_independence_war = {
+﻿revolt_independence_war = { #凝辅国
 	group = independence
 
 	allowed_for_character = {
 		scope:attacker = {
-			is_ai = no
 			OR = {
 				has_trait = adventurer
 				has_trait = peasant_leader
+				has_faith = faith:taiping
+				has_faith = faith:maitreya
 			}
 		}
 	}
 
 	allowed_against_character = {
 		scope:attacker = {
-			top_liege = scope:defender
+			OR = {
+				top_liege = scope:defender
+				AND = {
+					is_at_war_with = top_liege 
+				}
+			}
 		}
 	}
 	
@@ -218,7 +224,7 @@
 			}
 			desc = independence_war_victory_desc_local_player_attacker_alone # Desc for a third party involved
 		}
-		
+		desc = revolt_independence_war_victory_desc
 	}
 
 	on_victory = {
@@ -234,6 +240,10 @@
 		scope:attacker = {
 			becomes_independent = {
 				change = scope:change
+			}
+			add_character_modifier = {
+				modifier = revolt_independence_war_defender_won_opinion_buff
+				years = 10
 			}
 			hidden_effect = {
 				set_variable = {
@@ -251,53 +261,44 @@
 		custom_tooltip = fp1_varangian_adventurer_conquest.summaries.control_rebate
 		scope:attacker = { trigger_event = fp1_varangian_adventures.0001 }
 		resolve_title_and_vassal_change = scope:change
-	
-	}
 
-	on_white_peace_desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = { scope:defender = { is_local_player = yes } }
-				desc = player_independence_war_white_peace_defender_desc
+		scope:defender = {  #王朝崩溃
+			add_prestige = massive_prestige_loss
+			add_prestige_level = -5
+			add_character_modifier = {
+				modifier = revolt_independence_war_defender_defeat_income_debuff
+				years = 10
 			}
-			triggered_desc = {
-				trigger = {
-					scope:attacker = {
-						is_local_player = yes
+			add_character_modifier = {
+				modifier = revolt_independence_war_defender_defeat_levy_debuff
+				years = 10
+			}
+			add_character_modifier = {
+				modifier = revolt_independence_war_defender_defeat_opinion_debuff
+				years = 10
+			}
+			stress_impact = {
+ 				arrogant = massive_stress_impact_gain
+				greedy = massive_stress_impact_gain
+ 			}
+			every_vassal = {
+				limit = {
+					OR = {
+						highest_held_title_tier >= tier_duchy
+						NOT = { culture = scope:defender.culture }
 					}
 				}
-				desc = player_independence_war_white_peace_attacker_desc
-			}
-			desc = player_independence_war_white_peace_desc
-		}
-		
-	}
-
-	on_white_peace = {
-		scope:attacker = {
-			show_pow_release_message_effect = yes
-			stress_impact = {
- 				ambitious = medium_stress_impact_gain
- 				arrogant = medium_stress_impact_gain
- 			}
-		}
-		hidden_effect = {
-			scope:attacker = {
-				add_truce_both_ways = {
-					character = scope:defender
-					days = 1825
-					war = root.war
-					result = white_peace
+				create_title_and_vassal_change = {
+					type = independency
+					save_scope_as = change2
 				}
+				change_liege_or_become_independent = {
+					CHANGE = scope:change2
+					VASSAL = this
+				}
+				resolve_title_and_vassal_change = scope:change2
 			}
-		}
-
-		scope:defender = {
-			add_prestige = minor_prestige_value
-			stress_impact = {
- 				arrogant = medium_stress_impact_gain
- 			}
-		}
+		}	
 	}
 
 	on_defeat_desc = {
@@ -316,54 +317,83 @@
 			}
 			desc = player_independence_war_defeat_desc
 		}
-		
+		desc = revolt_independence_war_defeat_desc
 	}
 
 	on_defeat = {
 		scope:attacker = { show_pow_release_message_effect = yes }
-		scope:defender = {
-			add_dread = medium_dread_gain
+		scope:attacker = {
 			# Prestige for Defender
-			add_prestige = medium_prestige_value
+			add_prestige = massive_prestige_loss
+			add_prestige_level = -1
+			stress_impact = {
+ 				arrogant = massive_stress_impact_gain
+ 			}
 		}
-		
+		custom_tooltip = revolt_independence_on_war_defeat_custom_tooltip
 		scope:attacker = {
 			hard_imprison_character_effect = {
 				TARGET = this
 				IMPRISONER = scope:defender
 			}
-			create_title_and_vassal_change = {
-				type = conquest
-				save_scope_as = change
-				add_claim_on_loss = yes
-			}
-			setup_invasion_cb = {
-				titles = scope:attacker.primary_title
-				attacker = scope:defender
-				defender = scope:attacker
-				change = scope:change
-				take_occupied = yes
-			}		
-			every_held_title = {
-				change_title_holder = {
-					holder = scope:defender
-					change = scope:change
+			hidden_effect = {
+				every_courtier = {
+					hard_imprison_character_effect = {
+						TARGET = this
+						IMPRISONER = scope:defender
+					}
+					scope:defender = {
+						add_opinion = {
+							target = prev
+							modifier = aganist_me_in_revolt_war
+						}
+					}
 				}
+				create_title_and_vassal_change = {
+					type = conquest
+					save_scope_as = change
+					add_claim_on_loss = yes
+				}
+				every_vassal = {
+					limit = { highest_held_title_tier >= tier_county }
+					change_liege = {
+						liege = scope:defender
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
 			}
-			resolve_title_and_vassal_change = scope:change
 			scope:defender = {
 				add_opinion = {
 					target = prev
 					modifier = vassal_lost_faction_revolt_war
 				}
 			}
+			destroy_title = scope:attacker.primary_title
+			#destroy_title = title:e_huang_qi
+			#destroy_title = title:FACTION_chinese_peasant_title_NAME
+		}
+		scope:defender = {
+			trigger_event = revolt_war_end.01
+			add_character_modifier = {
+				modifier = revolt_independence_war_defender_won_opinion_debuff
+				years = 10
+			}
+			add_character_modifier = {
+				modifier = revolt_independence_war_defender_won_county_control_factor_buff
+				years = 10
+			}
 		}
 	}
 
+
+	white_peace_possible = no
+
 	on_invalidated_desc = msg_invalidate_war_title
-
+	
+	check_attacker_inheritance_validity = no
 	check_defender_inheritance_validity = no
-
+	
 	on_primary_attacker_death = inherit
 	on_primary_defender_death = inherit
 	
@@ -378,9 +408,18 @@
 	interface_priority = 120
 
 	attacker_wargoal_percentage = 0.8
-
-	max_attacker_score_from_battles = 100
-	max_defender_score_from_battles = 50
-
+	defender_ticking_warscore = 0 #WLTDJFIX往来天地间修正
+	max_attacker_score_from_battles = 200
+	max_defender_score_from_battles = 200
+	attacker_score_from_occupation_scale = 0 #WLTDJFIX往来天地间修正
+	defender_score_from_occupation_scale = 0 #WLTDJFIX往来天地间修正
+	attacker_score_from_battles_scale = 60
+	defender_score_from_battles_scale = 50  #微调2022.1.21
 	max_ai_diplo_distance_to_title = 500
+	defender_ticking_warscore_delay = { months = 360 }
+	full_occupation_by_defender_gives_victory = no 		# Full occupation by the defender won't automatically give 100% warscore
+	landless_attacker_needs_armies = yes 
+
+	battle_participation_mult = 3.0
+	siege_participation_mult = 3.0	
 }

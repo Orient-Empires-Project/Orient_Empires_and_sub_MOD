@@ -33,104 +33,394 @@ east_title.0001 = {
 	# Join
 	option = {
 		name = east_title.0001.a
-		scope:china_vassal = {
-			add_opinion = {
-				modifier = friendliness_opinion
-				target = scope:new_ruler
-				opinion = 30
-			}
-		}
 		scope:new_ruler = {
-			add_opinion = {
-				modifier = friendliness_opinion
-				target = scope:china_vassal
-				opinion = 30
-			}
+			trigger_event = east_title.0005
 		}
 
 		ai_chance = {
-			base = 10
+			base = 20
 
-			modifier = {
-				add = 10
-				opinion = {
-					target = scope:new_ruler
-					value >= 10
+			modifier = { #Comparative military strength.
+				desc = offer_vassalization_interaction_aibehavior_power_tt
+				add = {
+					value = scope:new_ruler.max_military_strength
+					divide = { value = scope:china_vassal.max_military_strength min = 1 }
+					subtract = 1
+					multiply = 100
+					max = 30
 				}
 			}
 
-			modifier = {
-				add = 10
-				opinion = {
-					target = scope:new_ruler
-					value >= 20
+			modifier = { #Comparative military strength.
+				desc = offer_vassalization_interaction_aibehavior_power_tt
+				add = {
+					value = scope:new_ruler.sub_realm_size
+					divide = { value = scope:china_vassal.sub_realm_size min = 1 }
+					subtract = 1
+					multiply = 100
+					max = 30
 				}
 			}
-
-			modifier = {
-				add = 20
-				opinion = {
-					target = scope:new_ruler
-					value >= 30
+			#招降加成
+			modifier = { #Different faith, no pluralism.
+				desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+				trigger = {
+					scope:china_vassal = {
+						NOR = { #Of two different faiths AND the potential vassal's faith is not pluralistic.
+							faith = scope:new_ruler.faith
+							faith = { has_doctrine = doctrine_pluralism_pluralistic }
+						}
+					}
 				}
-			}
-
-			modifier = {
-				add = -100
-				opinion = {
-					target = scope:new_ruler
-					value <= -30
-				}
-			}
-
-			modifier = {
-				add = -100
-				opinion = {
-					target = scope:new_ruler
-					value <= -50
-				}
-			}
-
-			modifier = {
-				add = -200
-				opinion = {
-					target = scope:new_ruler
-					value <= -75
-				}
-			}
-
-
-			modifier = {
-				factor = 0
-				AND = {
-					NOT = {
-						any_in_list = {
-							list = target_titles
-							any_in_de_jure_hierarchy = {
-								tier = tier_county
-								holder = {
-									target_is_same_character_or_above = ROOT
+				add = {
+					value = -200
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_hostile_level
 								}
 							}
 						}
+						add = -200
 					}
-					has_relation_rival = scope:new_ruler
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_evil_level
+								}
+							}
+						}
+						add = -200
+					}
 				}
 			}
-			
+
+			modifier = { #Different faith, pluralism.
+				desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+				trigger = {
+					scope:china_vassal = {
+						NOT = {
+							faith = scope:new_ruler.faith
+						}
+						NOT = {
+							scope:new_ruler.faith = { has_doctrine = doctrine_pluralism_pluralistic }
+						}
+						faith = { has_doctrine = doctrine_pluralism_pluralistic }
+					}
+				}
+				add = {
+					value = -100
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_hostile_level
+								}
+							}
+						}
+						add = -100
+					}
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_evil_level
+								}
+							}
+						}
+						add = -100
+					}
+				}
+			}
+
+			modifier = { #Different faith, both have pluralism.
+				desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+				trigger = {
+					scope:china_vassal = {
+						NOT = {
+							faith = scope:new_ruler.faith
+						}
+						scope:new_ruler.faith = { has_doctrine = doctrine_pluralism_pluralistic }
+						faith = { has_doctrine = doctrine_pluralism_pluralistic }
+					}
+				}
+				add = {
+					value = -100
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_hostile_level
+								}
+							}
+						}
+						add = -100
+					}
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_evil_level
+								}
+							}
+						}
+						add = -100
+					}
+				}
+			}
+			modifier = { #I am a King!
+				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+				trigger = {
+					scope:china_vassal = { highest_held_title_tier >= tier_kingdom }
+				}
+				add = -50
+			}
+			modifier = { #We just fought against each other.
+				desc = offer_vassalization_interaction_aibehavior_recent_war_tt
+				trigger = {
+					scope:china_vassal = {
+						any_truce_holder = {
+							this = scope:new_ruler
+						}
+					}
+				}
+				add = -2000
+			}
+			modifier = { #I fought an independence war against you.
+				desc = offer_vassalization_interaction_aibehavior_independence_war_tt
+				trigger = {
+					scope:china_vassal = {
+						exists = var:independence_war_former_liege
+						var:independence_war_former_liege = scope:new_ruler
+					}
+				}
+				add = -100
+			}
+			modifier = { #Wide difference in rank
+				desc = offer_vassalization_interaction_aibehavior_widetitletier_tt
+				trigger = {
+					scope:new_ruler = {
+						tier_difference = {
+							target = scope:china_vassal
+							value > 1
+						}
+					}
+				}
+				add = 5
+			}
+			modifier = { # Is the Rightful Liege of recipient
+				desc = offer_vassalization_interaction_aibehavior_rightfulliegetitleholder_tt
+				trigger = {
+					is_rightful_liege_of_trigger = {
+						VASSAL = scope:china_vassal
+						LIEGE = scope:new_ruler
+					}
+				}
+				add = 10
+			}
+			modifier = { #Is not the Rightful Liege of recipient
+				desc = offer_vassalization_interaction_aibehavior_not_rightfulliegetitleholder_tt
+				trigger = {
+					NOT = {
+						is_rightful_liege_of_trigger = {
+							VASSAL = scope:china_vassal
+							LIEGE = scope:new_ruler
+						}
+					}
+				}
+				add = -20
+			}
+			modifier = { #Distant Realm.
+				desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
+				trigger = {
+					scope:new_ruler = {
+						character_is_realm_neighbor = scope:china_vassal
+						NOT = {
+							character_is_land_realm_neighbor = scope:china_vassal
+						}
+					}
+				}
+				add = -100
+			}
+			modifier = { #Remote Realm.
+				desc = offer_vassalization_interaction_aibehavior_remoterealm_tt
+				trigger = {
+					scope:new_ruler = {
+						NOT = {
+							character_is_realm_neighbor = scope:china_vassal
+						}
+					}
+					scope:china_vassal.capital_province = { squared_distance = { target = scope:new_ruler.capital_province value >= 200000 } }
+				}
+				add = -500
+			}
+			modifier = {
+			desc = offer_vassalization_interaction_aibehavior_power_tt
+	  	  		add = {
+					value = 1
+						subtract = {
+						value = scope:china_vassal.max_military_strength
+						divide = { value = scope:new_ruler.max_military_strength min = 1 }
+						}
+					multiply = 20
+					ceiling = yes
+	  			}
+			}
+
+			# MINOR
+			modifier = { #Friend modifier.
+				desc = offer_vassalization_interaction_aibehavior_friend_tt
+				trigger = {
+					scope:china_vassal = {
+						has_relation_friend = scope:new_ruler
+						NOT = { has_relation_best_friend = scope:new_ruler }
+					}
+				}
+				add = 10
+			}
+			modifier = { #Best Friend modifier.
+				desc = offer_vassalization_interaction_aibehavior_best_friend_tt
+				trigger = {
+					scope:china_vassal = {
+						has_relation_best_friend = scope:new_ruler
+					}
+				}
+				add = 20
+			}
+			modifier = { #Rivalry modifier.
+				desc = offer_vassalization_interaction_aibehavior_rival_tt
+				trigger = {
+					scope:china_vassal = {
+						has_relation_rival = scope:new_ruler
+						NOT = { has_relation_nemesis = scope:new_ruler }
+					}
+				}
+				add = -10
+			}
+			modifier = { #Nemesis modifier.
+				desc = offer_vassalization_interaction_aibehavior_nemesis_tt
+				trigger = {
+					scope:china_vassal = {
+						has_relation_nemesis = scope:new_ruler
+					}
+				}
+				add = -1000
+			}
+			modifier = { #Same Dynasty modifier.
+				desc = offer_vassalization_interaction_aibehavior_dynasty_tt
+				trigger = {
+					scope:china_vassal = {
+						dynasty = scope:new_ruler.dynasty
+					}
+				}
+				add = 5
+			}
+			modifier = { #Cultural modifiers.
+				add = -10
+				desc = offer_vassalization_interaction_aibehavior_culture_tt
+				trigger = {
+					scope:new_ruler = {
+						culture = { has_same_culture_heritage = scope:china_vassal.culture }
+						NOT = { culture = { has_same_culture_heritage = scope:china_vassal.culture } }
+					}
+				}
+			}
+
+			modifier = { #Cultural Group modifiers.
+				add = -50
+				desc = offer_vassalization_interaction_aibehavior_culture_group_tt
+				trigger = {
+					scope:new_ruler = {
+						NOT = { culture = { has_same_culture_heritage = scope:china_vassal.culture } }
+					}
+				}
+			}
+			modifier = { #Ageism modifier vs kids.
+				desc = offer_vassalization_interaction_aibehavior_child_tt
+				trigger = {
+					scope:new_ruler = {
+						age < 12
+					}
+					scope:china_vassal = {
+						age > 16
+					}
+				}
+				add = -5
+			}
+			modifier = { #Illegitimacy modifier.
+				desc = offer_vassalization_interaction_aibehavior_illegitimate_tt
+				trigger = {
+					OR = {
+						AND = {
+							scope:new_ruler = {
+								has_trait = bastard
+							}
+							scope:china_vassal = {
+								faith = { NOT = { has_doctrine = doctrine_bastardry_none } }
+							}
+						}
+						has_trait = denounced
+						has_trait = disinherited
+					}
+				}
+				add = -10
+			}
+
+			modifier = { #Claimant modifier.
+				desc = offer_vassalization_interaction_aibehavior_claimant_tt
+				trigger = {
+					scope:new_ruler.primary_title = {
+						scope:china_vassal = {
+							has_claim_on = prev
+						}
+					}
+				}
+				add = -15
+			}
+
+			# OPINION INFLUENCE
+			modifier = {
+				add = intimidated_external_reason_value
+				scope:china_vassal = {
+					has_dread_level_towards = {
+						target = scope:new_ruler
+						level = 1
+					}
+				}
+				desc = INTIMIDATED_REASON
+			}
+			modifier = {
+				add = cowed_external_reason_value
+				scope:china_vassal = {
+					has_dread_level_towards = {
+						target = scope:new_ruler
+						level = 2
+					}
+				}
+				desc = COWED_REASON
+			}
+			opinion_modifier = { #Compare Opinion modifier.
+				who = scope:china_vassal
+				opinion_target = scope:new_ruler
+				multiplier = 0.35
+			}
 		}
 	}
 
 	# Don't join
 	option = {
 		name = east_title.0001.b
+
 		scope:new_ruler = {
-			add_opinion = {
-				modifier = hate_opinion
-				target = scope:china_vassal
-				opinion = -50
-			}
-			add_claim = scope:china_vassal.primary_title
+			trigger_event = east_title.0006
 		}
 		scope:china_vassal = {
 			add_opinion = {
@@ -138,22 +428,103 @@ east_title.0001 = {
 				target = scope:new_ruler
 				opinion = -50
 			}
-			create_title_and_vassal_change = {
-				type = independency
-				save_scope_as = change
+#			create_title_and_vassal_change = {
+#				type = independency
+#				save_scope_as = change
+#			}
+#			change_liege_or_become_independent = {
+#				CHANGE = scope:change
+#				VASSAL = this
+#			}
+#			resolve_title_and_vassal_change = scope:change
+			if = {
+				limit = {
+					highest_held_title_tier < scope:new_ruler.highest_held_title_tier
+				}
+				add_pressed_claim = scope:new_ruler.primary_title #WLTDJFIX往来天地间修正
 			}
-			change_liege_or_become_independent = {
-				CHANGE = scope:change
-				VASSAL = this
-			}
-			resolve_title_and_vassal_change = scope:change
-			add_claim = scope:new_ruler.primary_title
 		
 			
 		}
 	
 		ai_chance = {
-			base = 30
+			base = 0
+			modifier = { #I am a King!
+				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+				trigger = {
+					scope:china_vassal = { highest_held_title_tier > tier_kingdom }
+				}
+				add = 20
+			}
+			modifier = { #Different faith, both have pluralism.
+				desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+				trigger = {
+					scope:china_vassal = {
+						NOT = {
+							faith = scope:new_ruler.faith
+						}
+					}
+				}
+				add = {
+					value = 150
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_hostile_level
+								}
+							}
+						}
+						add = 50
+					}
+					if = {
+						limit = {
+							scope:china_vassal.faith = {
+								faith_hostility_level = {
+									target = scope:new_ruler.faith
+									value >= faith_evil_level
+								}
+							}
+						}
+						add = 50
+					}
+				}
+			}
+			modifier = { 
+				desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+				trigger = {
+					scope:china_vassal = {
+						NOT = { culture = scope:new_ruler.culture }
+					}
+				}
+				add = {
+					value = 500
+				}
+			}
+			modifier = { #Distant Realm.
+				desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
+				trigger = {
+					scope:new_ruler = {
+						character_is_realm_neighbor = scope:china_vassal
+						NOT = {
+							character_is_realm_neighbor = scope:china_vassal
+						}
+					}
+				}
+				add = 100
+			}
+			modifier = { #We just fought against each other.
+				desc = offer_vassalization_interaction_aibehavior_recent_war_tt
+				trigger = {
+					scope:china_vassal = {
+						any_truce_holder = {
+							this = scope:new_ruler
+						}
+					}
+				}
+				add = 2000
+			}
 		}
 	}
 }
@@ -676,15 +1047,14 @@ east_title.0003 = {
 		   has_title = title:e_han
 		   AND = {
 			OR = {
-				has_culture_group = culture_group:chinese_group
-				has_culture = culture:khitan
-				has_culture = culture:shatuo
-				has_culture = culture:tuyuhun
-				has_culture = culture:min
-				has_culture = culture:jiaozhi
-				has_culture = culture:balhae
-				has_culture = culture:jurchen
-				has_culture_group = culture_group:goryeo_group
+				culture = { has_cultural_pillar = heritage_chinese }
+				culture = { has_cultural_pillar = heritage_yamato }
+				culture = { has_cultural_pillar = heritage_mongolic }
+				culture = { has_cultural_pillar = heritage_turkic }
+				culture = { has_cultural_pillar = heritage_nanman }
+				culture = { has_cultural_pillar = heritage_tunguse }
+				culture = { has_cultural_pillar = heritage_goryeo }
+				culture = { has_cultural_pillar = heritage_yues }
 			}
 				highest_held_title_tier > tier_kingdom
 				has_government = imperial_government
@@ -719,7 +1089,7 @@ east_title.0003 = {
 				set_variable = { name = china_offical_salary value = 100 }
 			}
 		}
-		china_offical_salary_effect = yes
+		#china_offical_salary_effect = yes
 		
 		every_councillor = {
 			limit = {
@@ -789,8 +1159,8 @@ east_title.0004 = {
 			add_house_modifier = e_song #宋皇族
 		}
 		title:e_celestia = { set_title_name = e_song }
-		title:e_celestia = { set_coa = e_song }
-		title:e_celestia = { set_color_from_title = title:e_song }
+		title:e_celestia = { set_coa = d_biansong }
+		title:e_celestia = { set_color_from_title = title:d_biansong }
 	}
 	option = {
 		name = east_title.0004.c # 辽帝国
@@ -866,13 +1236,22 @@ east_title.0004 = {
 		title:e_celestia = { set_color_from_title = title:k_qin }
 	}
 	option = {
-		name = east_title.0004.l # 羌帝国
+		name = east_title.0004.l # 凉帝国
 		house = {
-			add_house_modifier = e_qiang #大羌皇族
+			add_house_modifier = e_qiang #大凉皇族
 		}
-		title:e_celestia = { set_title_name = e_qiang }
+		title:e_celestia = { set_title_name = k_xia }
 		title:e_celestia = { set_coa = k_xia }
 		title:e_celestia = { set_color_from_title = title:k_xia }
+	}
+	option = {
+		name = east_title.0004.l1 # 梁帝国
+		house = {
+			add_house_modifier = e_liang #大梁皇族
+		}
+		title:e_celestia = { set_title_name = k_liang }
+		title:e_celestia = { set_coa = k_liang }
+		title:e_celestia = { set_color_from_title = title:k_liang }
 	}
 	option = {
 		name = east_title.0004.m # 汉帝国
@@ -908,7 +1287,7 @@ east_title.0004 = {
 		}
 		title:e_celestia = { set_title_name = k_chu }
 		title:e_celestia = { set_coa = k_chu }
-		title:e_celestia = { set_color_from_title = title:title:k_chu }
+		title:e_celestia = { set_color_from_title = title:k_chu }
 	}
 	
 	option = {
@@ -931,9 +1310,9 @@ east_title.0004 = {
 	}
 	
 	option = {
-		name = east_title.0004.s # 许帝国
+		name = east_title.0004.s # 徐帝国
 		house = {
-			add_house_modifier = e_xuu #许皇族
+			add_house_modifier = e_xuu #徐皇族
 		}
 		title:e_celestia = { set_title_name = e_xuu }
 		title:e_celestia = { set_coa = d_xusi }
@@ -994,12 +1373,118 @@ east_title.0004 = {
 		title:e_celestia = { set_color_from_title = title:k_nanyue }
 	}
 	option = {
-		name = east_title.0004.z # 濮帝国
+		name = east_title.0004.z # 雒帝国
 		house = {
-			add_house_modifier = cn_pu #大濮皇族
+			add_house_modifier = cn_pu #雒皇族
 		}
 		title:e_celestia = { set_title_name = cn_pu }
 		title:e_celestia = { set_coa = k_nanyue }
 		title:e_celestia = { set_color_from_title = title:k_nanyue }
+	}
+}
+
+east_title.0005 = {
+	type = letter_event
+	opening = east_title.0005.opening
+	desc = east_title.0005.desc
+	sender = scope:china_vassal
+	immediate = {
+		
+	}
+	option = {
+		name = east_title.0005.a
+		scope:china_vassal = {
+			add_opinion = {
+				modifier = friendliness_opinion
+				target = scope:new_ruler
+				opinion = 30
+			}
+		}
+		scope:new_ruler = {
+			add_opinion = {
+				modifier = friendliness_opinion
+				target = scope:china_vassal
+				opinion = 30
+			}
+		}
+
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			save_scope_as = change
+		}
+		scope:china_vassal = {
+			change_liege = {
+				liege = scope:new_ruler
+				change = scope:change
+			}
+			every_held_title = {
+				limit = { tier > tier_kingdom }
+				add_to_list = titles_to_destroy
+			}
+		}
+		every_in_list = {
+			list = titles_to_destroy
+			scope:new_ruler = {
+				destroy_title = prev
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
+
+		scope:china_vassal = {
+			every_held_title = {
+				limit = { tier = tier_kingdom }
+				add_to_list = titles_to_destroy
+			}
+		}
+		every_in_list = {
+			list = titles_to_destroy
+			scope:new_ruler = {
+				destroy_title = prev
+			}
+		}
+		scope:china_vassal = {
+			add_realm_law_skip_effects = official_succession_law
+		}
+
+		ai_chance = 100
+	}
+	option = {
+		name = east_title.0005.b
+		scope:china_vassal = {
+			add_opinion = {
+				modifier = hate_opinion
+				target = scope:new_ruler
+				opinion = -30
+			}
+		}
+		ai_chance = 10
+	}
+}
+
+east_title.0006 = {
+	type = letter_event
+	opening = east_title.0006.opening
+	desc = east_title.0006.desc
+	sender = scope:china_vassal
+	immediate = {
+
+	}
+	option = {
+		name = east_title.0006.a
+
+		scope:new_ruler = {
+			add_opinion = {
+				modifier = hate_opinion
+				target = scope:china_vassal
+				opinion = -50
+			}
+			if = {
+				limit = {
+					highest_held_title_tier > scope:china_vassal.highest_held_title_tier
+				}
+				add_pressed_claim = scope:china_vassal.primary_title #WLTDJFIX往来天地间修正
+			}
+		}
+		ai_chance = 100
 	}
 }

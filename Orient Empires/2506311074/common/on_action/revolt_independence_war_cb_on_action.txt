@@ -42,58 +42,228 @@ revolt_independence_war_county_occupied_on_action = {
 	}
 }
 revolt_independence_war_county_change_on_action = {
-	effect = {
-		if = {
-			limit = {
-				scope:war = {
-					OR = {
-						primary_attacker = {
-							any_sub_realm_county = { this = scope:county }
-						}
-						primary_defender = {
-							any_sub_realm_county = { this = scope:county }
-						}
-					}
-					NOR = {
-						primary_attacker = {
-							OR = {
-								AND = {
-									any_held_title = { 
-										tier = tier_county
-										count = 1
-									}
-								}
-								sub_realm_size <= 1
-							}
-						}
-						primary_defender = {
-							OR = {
-								AND = {
-									any_held_title = { 
-										tier = tier_county
-										count = 1
-									}
-								}
-								sub_realm_size <= 1
-							}
-						}
-						attacker_war_score >= 100
-						defender_war_score >= 100
+	trigger = {
+		NOR = { #某方只剩一个伯爵领且该伯爵领为首都时不会进行动态转移
+			AND = { 
+				scope:county = scope:war.primary_attacker.capital_county
+				scope:war.primary_attacker = {
+					any_held_title = {
+						count = 1
+						tier = tier_county
 					}
 				}
 			}
-			create_title_and_vassal_change = {
-				type = conquest
-				save_scope_as = change
-				add_claim_on_loss = no
+			AND = {
+				scope:county = scope:war.primary_defender.capital_county
+				scope:war.primary_defender = {
+					any_held_title = {
+						count = 1
+						tier = tier_county
+					}
+				}
 			}
-			scope:county = {
-				change_title_holder = {
-					holder = root
+		}
+		OR = { #动态转移的伯爵领只会是在进攻或防御方的领袖的领地内的
+			scope:war.primary_attacker = {
+				any_realm_county = {
+					this = scope:county
+				}
+			}
+			scope:war.primary_defender = {
+				any_realm_county = {
+					this = scope:county
+				}
+			}
+		}
+	}
+	effect = {
+		if = { #1.持有上级公爵领的角色
+			limit = {
+				exists = scope:county.duchy.holder
+				scope:county.duchy.holder = { is_vassal_or_below_of = root }
+			}
+			scope:county.duchy.holder = { save_scope_as = target_holder }
+		}
+		else_if = { #2.领地完全在上级公爵领内的且相邻该占领伯爵领的其他伯爵随机之一
+			limit = {
+				scope:county.duchy = {
+					any_de_jure_county_holder = {
+						is_vassal_or_below_of = root
+						any_held_title = {
+							tier <= tier_county
+							duchy = scope:county.duchy
+							count = all
+						}
+						any_held_title = { any_neighboring_county = { this = scope:county } } 
+					}
+				}
+			}
+			scope:county.duchy = {
+				random_de_jure_county_holder = {
+					limit = {
+						is_vassal_or_below_of = root
+						any_held_title = {
+							tier <= tier_county
+							duchy = scope:county.duchy
+							count = all
+						}
+						any_held_title = { any_neighboring_county = { this = scope:county } } 
+					}
+					save_scope_as = target_holder
+				}
+			}
+			scope:target_holder = { add_character_flag = { flag = connected_man years = 1 } }
+		}
+		else_if = { #3.占领该地时存在的皇帝封臣军队将领的直辖领主
+			limit = {
+				root = {
+					any_war_ally = {
+						any_army = {
+							exists = army_commander
+							army_commander = {
+								NOT = { this = root }
+								is_vassal_or_below_of = root
+								location = scope:county.title_province
+							}
+						}
+					}
+				}
+			}
+			root = {
+				random_war_ally = {
+					random_army = {
+						limit = {
+							exists = army_commander
+							army_commander = {
+								NOT = { this = root }
+								is_vassal_or_below_of = root
+								location = scope:county.title_province
+							}
+						}
+						army_commander = { save_scope_as = target_holder }
+					}
+				}
+			}
+		}
+		else_if = { #4.占领该地时存在的皇帝军队的将领随机之一
+			limit = {
+				root = {
+					any_army = {
+						exists = army_commander
+						army_commander = { 
+							NOT = { this = root }
+							OR = { 
+								is_vassal_or_below_of = root
+								is_courtier_of = root
+							}
+							location = scope:county.title_province
+						}
+					}
+				}
+			}
+			root = {
+				random_army = {
+					limit = {
+						exists = army_commander
+						army_commander = { 
+							NOT = { this = root }
+							OR = { 
+								is_vassal_or_below_of = root
+								is_courtier_of = root
+							}
+							location = scope:county.title_province
+						}
+					}
+					army_commander = { save_scope_as = target_holder }
+				}
+			}
+		}
+		else_if = { #5.从当地男爵领或角色池中选择出一个同信仰文化的角色
+			limit = {
+				any_pool_character = {
+					province = scope:county.title_province
+					is_landed = no
+					faith = root.faith
+					culture = root.culture
+				}
+			}
+			random_pool_character = {
+				province = scope:county.title_province
+				limit = {
+					is_landed = no
+					faith = root.faith
+					culture = root.culture
+				}
+				save_scope_as = target_holder
+			}
+			scope:target_holder = { add_character_flag = { flag = pool_man years = 1 } }
+		}
+		else_if = { #6.皇帝拥有多的直辖地的位置时
+			limit = {
+				root = {
+					domain_limit_available > 0 
+				}
+			}
+			root = { save_scope_as = target_holder }
+		}
+		else = { #7.生成一个火星人去持有
+			create_character = {
+				culture = root.culture
+				faith = root.faith
+				location = scope:county.title_province
+				dynasty = generate
+				age = { 16 30 }
+				gender_female_chance = 0
+				diplomacy = { 5 10 }
+				martial = { 5 10 }
+				stewardship = { 5 10 }
+				intrigue = { 5 10 }
+				learning = { 5 10}
+				prowess = { 5 10 }
+				random_traits = yes
+				save_scope_as = target_holder
+			}
+			scope:target_holder = { add_character_flag = { flag = huoxing_man years = 1 } }
+		}
+		create_title_and_vassal_change = {
+			type = conquest
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		scope:county = {
+			change_title_holder = {
+				holder = scope:target_holder
+				change = scope:change
+			}
+		}
+		if = {
+			limit = { 
+				NOR = { 
+					scope:target_holder = root
+					scope:target_holder = { is_vassal_or_below_of = root }
+				}
+			}
+			scope:target_holder = {
+				change_liege = {
+					liege = root
 					change = scope:change
 				}
 			}
-			resolve_title_and_vassal_change = scope:change
+		}
+		resolve_title_and_vassal_change = scope:change
+		#完全占领某个公爵领将弹出分地事件，分地事件会将整个公爵领的领地重新分配
+		if = {
+			limit = {
+				scope:county.duchy = {
+					any_de_jure_county_holder = {
+						OR = {
+							this = root
+							is_vassal_or_below_of = root
+						}
+					}
+				}
+			}
+			trigger_event = revolt_independence_war.01
 		}
 	}
 }
@@ -128,6 +298,26 @@ chinese_revolt_events_on_action = {
 		10 = chinese_revolt.22
 		10 = chinese_revolt.31
 		1 = chinese_revolt.11
+	}
+}
+on_death = {
+	on_actions = {
+		HuangChaoDeath
+	}
+}
+HuangChaoDeath = {
+	effect = {
+		if = {
+			limit = {
+				root = character:1403799
+				exists = scope:killer
+				scope:killer = {
+					NOT = { has_character_flag = fired_from_event }
+				}
+			}
+			root = { save_scope_as = attacker }
+			scope:killer = { trigger_event = revolt_war_end.02 }
+		}
 	}
 }
 

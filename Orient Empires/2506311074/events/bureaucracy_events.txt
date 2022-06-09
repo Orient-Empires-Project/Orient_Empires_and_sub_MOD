@@ -1,5 +1,4 @@
-﻿
-# 官僚交接弹窗
+﻿# 官僚交接弹窗
 namespace = bureaucracy
 bureaucracy.0001 = {
 
@@ -50,22 +49,22 @@ bureaucracy.0001 = {
 	option = {
 		name = bureaucracy.0001.a
 		
-		revoke_title_interaction_effect = yes
+#		revoke_title_interaction_effect = yes #WLTDJFIX往来天地间修正，启用这句的话会出bug
 		save_scope_value_as = {
 			name = revoke_title_interaction
 			value = yes
 		}
 		
-		effect = { 
+#		effect = { #WLTDJFIX往来天地间修正
 			#不是继承，而是选择一个新的官员继任 
-			BureaucracyEmpire_bureaucracy_success_effect = {
-				TITLE = scope:bureaucrat.primary_title #TITLE是被继任的头衔
-				TEMP_HOLDER = scope:bureaucrat #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
-			}	
-		}
+		BureaucracyEmpire_bureaucracy_success_effect = {
+			TITLE = scope:bureaucrat.primary_title #TITLE是被继任的头衔
+			TEMP_HOLDER = scope:bureaucrat #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+		}	
+#		} #WLTDJFIX往来天地间修正
 
 		scope:bureaucrat = {
-			revoke_title_interaction_effect = yes
+#			revoke_title_interaction_effect = yes #WLTDJFIX往来天地间修正，启用这句的话会出bug
 			add_opinion = {
 				target = scope:liege
 				modifier = revoked_title
@@ -79,7 +78,7 @@ bureaucracy.0001 = {
 				target = scope:bureaucrat
 				opinion = 70
 			}
-			title_revocation_stress_effect = yes
+#			title_revocation_stress_effect = yes #WLTDJFIX往来天地间修正，启用这句的话会出bug
 		}
 
 
@@ -173,7 +172,7 @@ bureaucracy.0001 = {
 				modifier = revoked_title
 				target = scope:liege
 			}
-			effect = {
+#			effect = { #WLTDJFIX往来天地间修正
 				vassal_contract_set_obligation_level = {
 					type = special_imperial_contract
 					level = 1
@@ -182,11 +181,439 @@ bureaucracy.0001 = {
 					type = special_imperial_corps
 					level = 2
 				} 
-			}							
+#			} #WLTDJFIX往来天地间修正
 		}			
 		
 		ai_chance = {
 			base = 100
 		}
+	}
+}
+bureaucracy.0002 = {
+	type = character_event
+	hidden = yes
+	trigger = {
+		is_independent_ruler = no
+		is_ai = yes
+		exists = player_heir
+		exists = liege #改动
+		OR = {
+			any_held_title = {
+				
+				NOT = { target_is_de_jure_liege_or_above = root.primary_title }
+				is_landless_type_title = no
+					#tier = tier_county
+				NOT = { this = root.primary_title }
+			}
+			any_vassal = {
+				any_held_title = {
+					NOT = { target_is_de_jure_liege_or_above = root.primary_title }
+					#tier = tier_county
+					is_landless_type_title = no
+					#NOT = { this = root.primary_title }
+				}	
+			}
+		}
+	}
+	immediate = {
+		save_scope_as = recipient
+		scope:liege = {
+			save_scope_as = actor
+		}
+		player_heir = { save_scope_as = lucky }
+		##kings
+		if = { 
+			limit = { 
+				primary_title = {
+					is_titular = no
+				}
+				any_held_title = {
+					NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+					tier = tier_county
+					is_landless_type_title = no
+					NOT = { this = scope:recipient.primary_title }			
+				}
+			}
+			while = {
+				limit = { 
+					primary_title = {
+						is_titular = no  #荣誉头衔交接封臣
+					}
+					any_held_title = {
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						tier = tier_county
+						is_landless_type_title = no
+						NOT = { this = scope:recipient.primary_title }
+					}
+				}
+				BureaucracyEmpire_bureaucracy_liege_effect = {
+					TITLE = scope:recipient.primary_title#TITLE是被继任的头衔
+					TEMP_HOLDER = scope:recipient #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+				}
+				create_title_and_vassal_change = {
+					type = granted
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				random_held_title = {
+					limit = {
+						tier = tier_county
+						is_landless_type_title = no
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						NOT = { this = scope:recipient.primary_title }
+					}
+					save_scope_as = change_held_title
+					change_title_holder = {
+						holder = scope:lucky  #报错点
+						change = scope:change
+					}
+				}
+				scope:lucky = { #报错点
+					change_liege = {
+						liege = scope:actor
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+				remove_claim = scope:change_held_title #剥夺宣称
+				scope:lucky = { #报错点
+					if = {
+						limit = {
+							scope:lucky.primary_title.de_jure_liege  = {  #报错点
+								exists = holder
+							}
+							scope:lucky.primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
+						}
+						trigger_event = {
+							id = bureaucracy.0003
+						}
+					}
+				}
+			}	
+		}
+		
+		if = {
+			limit = { 
+				any_vassal = {
+					any_held_title = {
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						tier = tier_county
+						is_landless_type_title = no
+					}
+					
+				}
+			}
+			while = {
+				limit = {
+					any_vassal = {
+						any_held_title = {
+							target_is_de_jure_liege_or_above = scope:recipient.primary_title
+							tier = tier_county
+							is_landless_type_title = no
+						}
+						any_held_title = {
+							NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+							tier = tier_county
+							is_landless_type_title = no
+						}
+					}	
+				}
+				BureaucracyEmpire_bureaucracy_liege_effect = {
+					TITLE = scope:recipient.primary_title#TITLE是被继任的头衔
+					TEMP_HOLDER = scope:recipient #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+				}
+				random_vassal = {
+					limit = {
+						any_held_title = {
+							NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+							tier = tier_county
+							is_landless_type_title = no
+						}
+						any_held_title = {
+							target_is_de_jure_liege_or_above = scope:recipient.primary_title
+							tier = tier_county
+							is_landless_type_title = no
+						}
+					}
+					create_title_and_vassal_change = {
+						type = granted
+						save_scope_as = change
+						add_claim_on_loss = no
+					}
+					random_held_title = {
+						limit = {
+							NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+							tier = tier_county
+							is_landless_type_title = no
+						}
+						change_title_holder = {
+							holder = scope:lucky
+							change = scope:change
+						}
+					}
+					scope:lucky = { 
+						change_liege = {
+							liege = scope:actor
+							change = scope:change
+						}
+					}
+					resolve_title_and_vassal_change = scope:change
+					scope:lucky = {
+						if = {
+							limit = {
+								scope:lucky.primary_title.de_jure_liege = {
+									exists = holder
+								}
+								scope:lucky.primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
+							}
+							trigger_event = {
+								id = bureaucracy.0003
+							}
+						}
+					}
+				}	
+			}
+		}
+		if = {
+			limit = { 
+				highest_held_title_tier = tier_kingdom
+				any_held_title = {
+					tier = tier_kingdom
+					is_landless_type_title = no
+					NOT = { this = scope:recipient.primary_title }
+				}
+			}
+			while = {
+				limit = {
+					any_held_title = {
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						tier = tier_kingdom
+						is_landless_type_title = no
+						NOT = { this = scope:recipient.primary_title }
+					}
+				}
+				create_title_and_vassal_change = {
+					type = granted
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				random_held_title = {
+					limit = {
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						tier = tier_kingdom
+						is_landless_type_title = no
+						NOT = { this = scope:recipient.primary_title }
+					}
+					save_scope_as = change_held_title
+				}
+				random_vassal = {
+					limit = {
+						primary_title = { 
+							target_is_de_jure_liege_or_above = scope:change_held_title
+						}	
+					}
+					save_scope_as = lucky
+				}
+				scope:change_held_title = {
+					change_title_holder = {
+						holder = scope:lucky
+						change = scope:change
+					}
+				}
+				scope:lucky = { 
+					change_liege = {
+						liege = scope:actor
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+				scope:lucky = {
+					if = {
+						limit = {
+							scope:lucky.primary_title.de_jure_liege  = {
+								exists = holder
+							}
+							scope:lucky.primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
+						}
+						trigger_event = {
+							id = bureaucracy.0003
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = { 
+				#highest_held_title_tier = tier_kingdom
+				any_held_title = {
+					NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+					tier = tier_duchy
+					is_landless_type_title = no
+					NOT = { this = scope:recipient.primary_title }
+				}
+			}
+			while = {
+				limit = {
+					any_held_title = {
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						tier = tier_duchy
+						is_landless_type_title = no
+						NOT = { this = scope:recipient.primary_title }
+					}
+				}
+				create_title_and_vassal_change = {
+					type = granted
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				random_held_title = {
+					limit = {
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						tier = tier_duchy
+						is_landless_type_title = no
+						NOT = { this = scope:recipient.primary_title }
+					}
+					save_scope_as = change_held_title
+				}
+				random_vassal = {
+					limit = {
+						primary_title = { 
+							target_is_de_jure_liege_or_above = scope:change_held_title
+						}	
+					}
+					save_scope_as = lucky
+				}
+				scope:change_held_title = {
+					change_title_holder = {
+						holder = scope:lucky
+						change = scope:change
+					}
+				}
+				scope:lucky = { 
+					change_liege = {
+						liege = scope:actor
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+				scope:lucky = {
+					if = {
+						limit = {
+							scope:lucky.primary_title.de_jure_liege  = {
+								exists = holder
+							}
+							scope:lucky.primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
+						}
+						trigger_event = {
+							id = bureaucracy.0003
+						}
+					}
+				}
+			}
+		}
+		
+		if = {
+			limit = { 
+				any_vassal = {
+					any_held_title = {
+						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+						tier = tier_county
+						is_landless_type_title = no
+					}
+				}
+			}
+			while = {
+				limit = {
+					any_vassal = {
+						any_held_title = {
+							NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+							tier = tier_county
+							is_landless_type_title = no
+						}
+					}	
+				}
+				create_title_and_vassal_change = {
+					type = granted
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				random_vassal = {
+					limit = {
+						any_held_title = {
+							NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
+							tier = tier_county
+							is_landless_type_title = no
+						}
+					}
+					save_scope_as = lucky
+				}
+				scope:lucky = { 
+					change_liege = {
+						liege = scope:actor
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+				scope:lucky = {
+					if = {
+						limit = {
+							scope:lucky.primary_title.de_jure_liege = {
+								exists = holder
+							}
+							scope:lucky.primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
+						}
+						trigger_event = {
+							id = bureaucracy.0003
+						}
+					}
+				}
+			}
+		}	
+	}
+}
+bureaucracy.0003 = {
+	type = character_event
+	hidden = yes
+	immediate = {
+		change_government_bureau_government_effect = yes
+						if = { #文官流官制
+								limit = {
+									top_liege = { is_oe_imperial_government_trigger = yes }					
+									is_bureau_government_trigger = yes
+									highest_held_title_tier <= tier_duchy
+									culture = { has_cultural_pillar = heritage_chinese }
+									is_independent_ruler = no
+									is_ai = yes
+									#NOT = { vassal_contract_has_flag = imperial_bureau_3 }
+								}
+								if = { 
+									limit = { NOT = { has_realm_law = official_succession_law } }
+									add_realm_law_skip_effects = official_succession_law
+								}
+								if = { 
+									limit = { NOT = { has_realm_law = male_only_law } }
+									add_realm_law_skip_effects = male_only_law
+								}
+						}
+		
+		if = {
+			limit = {
+				primary_title.de_jure_liege = {
+					exists = holder
+				}
+				primary_title.de_jure_liege.holder.top_liege = scope:lucky.top_liege
+			}
+			create_title_and_vassal_change = {
+				type = granted
+				save_scope_as = change
+				add_claim_on_loss = no
+			}
+			change_liege = {
+				liege = primary_title.de_jure_liege.holder
+				change = scope:change
+			}
+			resolve_title_and_vassal_change = scope:change
+		}	
+		
 	}
 }

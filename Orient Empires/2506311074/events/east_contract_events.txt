@@ -1,4 +1,4 @@
-namespace = east_contract
+﻿namespace = east_contract
 east_contract.0001 = { #授予文官
 	type = letter_event
 	opening = {
@@ -19,10 +19,12 @@ east_contract.0001 = { #授予文官
 			flag = imperial_contract_0
 			days = 10000
 		}
-		vassal_contract_set_obligation_level = {
-			type = special_imperial_contract
-			level = 0
-		}
+		scope:recipient = {
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_contract
+				level = 0
+			}
+		}	
 	}
 	option = { #普通文官
 		name = east_contract.0001.a
@@ -74,6 +76,10 @@ east_contract.0001 = { #授予文官
 			}
 			vassal_contract_set_obligation_level = {
 				type = title_revocation_rights
+				level = 1
+			}
+			vassal_contract_set_obligation_level = {
+				type = fortification_rights
 				level = 1
 			}
 		}	
@@ -148,6 +154,10 @@ east_contract.0002 = { #授予军镇
 			vassal_contract_set_obligation_level = {
 				type = special_imperial_corps
 				level = 2
+			}
+			vassal_contract_set_obligation_level = {
+				type = war_declaration_rights
+				level = 1
 			}
 			vassal_contract_set_obligation_level = {
 				type = title_revocation_rights
@@ -229,7 +239,7 @@ east_contract.0002 = { #授予军镇
 			scope:recipient = {
 				OR = {
 					has_primary_title = title:k_goryeo
-					has_primary_title = title:k_mogolia
+					has_primary_title = title:k_mongolia
 					has_primary_title = title:k_jubu
 					has_primary_title = title:k_annan
 					has_primary_title = title:k_nanzhong
@@ -240,5 +250,186 @@ east_contract.0002 = { #授予军镇
 				}
 			}
 		}	
+	}
+}
+
+east_contract.0003 = { #授予军镇
+	type = character_event
+	theme = crown
+	title = bureaucracy.0001.t
+	desc = bureaucracy.0001.desc
+	trigger = {
+		top_liege = { is_oe_imperial_government_trigger = yes }
+		NOT = { has_character_flag = other_inter_east_contract }
+	}
+	immediate = {
+		save_scope_as = lucky
+		add_character_flag = { #标记角色已经存储过
+			flag = other_inter_east_contract
+			years = 5
+		}
+#WLTDJFIX往来天地间修正(开始)	
+#				inter_east_contract_effect = yes #继承契约
+		if = {
+			limit = { is_landed = yes }
+			inter_east_contract_effect = yes
+		}
+#WLTDJFIX往来天地间修正（结束）
+	}
+	option = {
+		name = bureaucracy.0001.a
+	}	
+}
+
+east_contract.0004 = { #决定契约类型
+	type = letter_event
+	opening = {
+		desc = east_contract.0004.opening
+	}
+	desc = east_contract.0004.desc
+		
+	sender = scope:recipient
+	trigger = {
+		NOR = { 
+			has_variable = oe_contract_title_choce
+		}
+		scope:recipient = {	
+			NOR = { 
+				has_variable = oe_contract_title_set
+			}
+		}	
+	}
+	immediate = {
+		scope:recipient = {
+			set_variable = {
+				name = oe_contract_title_set
+				years = 10
+			}
+		}	
+	}
+	option = { #文官
+		name = east_contract.0004.a
+		trigger = {
+			scope:recipient = {
+				NOT = { vassal_contract_has_flag = imperial_contract_1 }
+			}
+		}
+		trigger_event = {
+			id = east_contract.0001
+		}	
+	}
+	option = { #军镇
+		name = east_contract.0004.b
+		trigger_event = {
+			id = east_contract.0002
+		}	
+	}
+	option = { #皇室契约
+		name = east_contract.0004.c
+		trigger = {
+			scope:recipient = {
+				NOT = { vassal_contract_has_flag = imperial_contract_1 }
+			}
+		}	
+		trigger_event = {
+			id = east_contract.0005
+		}
+	}
+	option = { #不要叨扰我
+		name = east_contract.0004.d
+		set_variable = {
+			name = oe_contract_title_choce
+			years = 10
+		}
+	}	
+}
+
+east_contract.0005 = { #授予皇室契约
+	type = letter_event
+	opening = {
+		desc = east_contract.0005.opening
+	}
+	desc = east_contract.0005.desc
+		
+	sender = scope:recipient
+	trigger = {
+		NAND = { 
+			scope:recipient = {
+				has_character_flag = imperial_contract_2
+				primary_title.tier = tier_kingdom
+			} 
+		}
+	}
+	immediate = {
+		add_character_flag = {
+			flag = imperial_contract_2
+			days = 10000
+		}
+		scope:recipient = {
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_contract
+				level = 2
+			}
+		}
+	}
+	option = { #宫廷属地
+		name = east_contract.0005.c
+		scope:recipient = {
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_royal
+				level = 0
+			}
+		}
+		trigger = {
+			scope:recipient = {
+				primary_title.tier < tier_kingdom
+			}
+		}
+	}
+	option = { #行省
+		name = east_contract.0005.d
+		scope:recipient = {
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_royal
+				level = 0
+			}
+		}
+		trigger = {
+			scope:actor = {
+				culture = { has_innovation = innovation_court_officials }
+			}
+			scope:recipient = {
+				primary_title.tier = tier_kingdom
+			}
+		}
+	}
+	option = { #藩王
+		name = east_contract.0005.b
+		scope:recipient = {
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_royal
+				level = 1
+			}
+		}
+		trigger = {
+			scope:recipient = {
+				primary_title.tier >= tier_county
+				scope:recipient.house = scope:actor.house
+			}
+		}	
+	}
+	option = { #林苑
+		name = east_contract.0005.a
+		scope:recipient = {
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_royal
+				level = 2
+			}
+		}
+		trigger = {
+			scope:recipient = {
+				primary_title.tier < tier_kingdom
+			}
+		}		
 	}
 }

@@ -192,6 +192,7 @@ succession_order_laws = {
 				historical_succession_access_single_heir_succession_law_trigger = yes
 				AND = {
 					is_ai = no
+					is_independent_ruler = yes
 					OR = {
 						has_government = imperial_government
 						is_bureau_government_trigger = yes
@@ -318,8 +319,7 @@ succession_order_laws = {
 					primary_title.tier > tier_county
 					OR = {
 						#West Slavic
-						has_culture = culture:czech
-						has_culture = culture:slovien
+						culture = { has_cultural_pillar = heritage_west_slavic }
 					}
 				}
 				value = 2
@@ -337,31 +337,11 @@ succession_order_laws = {
 			can_have_tradition_succession_law_trigger = yes
 		}
 		can_pass = {
-			OR = {
-				AND = {
-					has_culture_group = culture_group:chinese_group
-					highest_held_title_tier >= tier_kingdom
-					has_government = imperial_government
-					NOT = {
-						is_bureau_government_trigger = yes
-					}
-				}
-				AND = {
-					has_culture_group = culture_group:chinese_group
-					is_ai = no
-					has_government = imperial_government
-					highest_held_title_tier >= tier_county
-					is_corps_government_trigger = yes
-				}
-			}
+			can_pass_tradition_succession_law_trigger = yes
 		}
 		should_start_with = {
 			can_have_tradition_succession_law_trigger = yes
 
-			NOR = {
-				historical_succession_access_single_heir_dynasty_house_trigger = yes
-
-			}
 		}
 		succession = {
 			order_of_succession = inheritance
@@ -371,7 +351,7 @@ succession_order_laws = {
 		}
 		modifier = {
 			player_heir_opinion = 25
-			eligible_child_except_player_heir_opinion = -5
+			eligible_child_except_player_heir_opinion = -25
 		}
 		flag = can_designate_heirs 
 
@@ -383,28 +363,74 @@ succession_order_laws = {
 		}
 	}
 
+	#科举流官制
+	official_succession_law = {
+		can_keep = {
+			can_have_official_succession_law_trigger = yes
+		}
+		can_have = {
+			can_have_official_succession_law_trigger = yes
+		}
+		should_start_with = {
+			highest_held_title_tier <= tier_duchy
+			NOT = { has_trait = peasant_leader }
+			is_at_war_with_liege = no
+			is_ai = yes	
+			is_independent_ruler = no		
+			historical_corps_succession_law_trigger = no
+			OR = {
+				has_government = imperial_government
+				top_liege = { is_oe_imperial_government_trigger = yes }
+				is_corps_government_trigger = yes
+				is_bureau_government_trigger = yes
+			}
+		}
+		can_pass = {
+			can_pass_official_succession_law_trigger = yes
+		}
+		succession = {
+			order_of_succession = inheritance
+			traversal_order = children
+			rank = oldest
+			title_division = partition
+		}
+	}
+
+	#科举制
+	admin_succession_law = {
+		can_keep = {
+			can_have_admin_succession_law_trigger = yes
+		}
+		can_have = {
+			can_have_admin_succession_law_trigger = yes
+		}
+		should_start_with = {
+			has_government = bureau_government
+		}
+		succession = {
+			order_of_succession = generate
+			pool_character_config = pool_bureaucracy_succession  
+		}
+	}
 
 	#留后册命制（藩镇继承法）
 	corps_succession_law = {
 		can_keep = {
-			highest_held_title_tier >= tier_duchy
-			is_corps_government_trigger = yes
+			can_keep_corps_succession_law_trigger = yes
 		}
 		can_have = {
-			highest_held_title_tier >= tier_duchy
-			is_corps_government_trigger = yes
+			can_have_corps_succession_law_trigger = yes
 		}
 		can_pass = {
-			highest_held_title_tier >= tier_duchy
-			is_corps_government_trigger = yes
+			can_pass_corps_succession_law_trigger = yes
 		}
 		should_start_with = {
-			highest_held_title_tier <= tier_duchy
-			is_corps_government_trigger = yes
-
+			OR = {
+				has_government = corps_government
+				historical_corps_succession_law_trigger = yes
+			}
 			NOR = {
 				historical_succession_access_single_heir_dynasty_house_trigger = yes
-
 			}
 		}
 		succession = {
@@ -424,54 +450,6 @@ succession_order_laws = {
 		}
 		pass_cost = {
 			prestige = change_title_succession_law_prestige_cost
-		}
-	}
-
-	#科举流官制
-	official_succession_law = {
-		can_keep = {
-			can_have_official_succession_law_trigger = yes
-			highest_held_title_tier <= tier_duchy
-		}
-		can_have = {
-			can_have_official_succession_law_trigger = yes
-		}
-		should_start_with = {
-			highest_held_title_tier <= tier_duchy
-			is_ai = yes			
-			OR = {
-				is_bureau_government_trigger = yes
-				has_government = imperial_government
-				is_corps_government_trigger = yes
-			}
-			NOR = {
-				historical_succession_access_single_heir_succession_law_trigger = yes
-				historical_succession_access_single_heir_succession_law_youngest_trigger = yes
-				historical_succession_access_single_heir_dynasty_house_trigger = yes
-				special_succession_witengamot_trigger = yes
-				special_succession_thing_trigger = yes
-				special_succession_tanistry_trigger = yes
-				has_title = title:d_chengde
-				has_title = title:d_youzhou
-				has_title = title:d_lulong
-				has_title = title:d_weibo
-			}
-		}
-		can_pass = {
-			can_change_title_law_trigger = yes
-			highest_held_title_tier <= tier_duchy
-			custom_description = {
-				OR = {
-					has_culture_group = culture_group:chinese_group
-					has_culture_group = culture_group:goryeo_group
-					has_culture_group = culture_group:tunguse_group
-					has_culture = culture:khitan
-				}
-			}
-		}
-		succession = {
-			order_of_succession = generate
-			pool_character_config = pool_bureaucracy_succession
 		}
 	}
 
@@ -548,14 +526,20 @@ succession_gender_laws = {
 	
 	male_only_law = {
 		can_title_have = {
-			can_title_have_law_general_trigger = yes
+			can_title_have_law_general_trigger = yes	
 		}
 		should_show_for_title = { # Never show this in the UI, just apply it through script
 			always = no
 		}
 		can_keep = {
-			faith = {
-				has_doctrine = doctrine_gender_male_dominated
+			custom_tooltip = {
+				text = culture_not_female_only_tt
+				OR = {
+					faith = { has_doctrine = doctrine_gender_male_dominated }
+					NOT = {
+						culture = { has_cultural_parameter = female_only_inheritance }
+					}
+				}
 			}
 		}
 		can_pass = {
@@ -596,11 +580,23 @@ succession_gender_laws = {
 					NOT = { has_doctrine = doctrine_gender_female_dominated }
 				}
 			}
+			custom_tooltip = {
+				text = culture_not_female_only_tt
+				OR = {
+					faith = { has_doctrine = doctrine_gender_male_dominated }
+					NOT = {
+						culture = { has_cultural_parameter = female_only_inheritance }
+					}
+				}
+			}
 		}
 		can_pass = {
 			can_change_succession_law_trigger = yes
 		}
 		should_start_with = {
+			NOT = {
+				culture = { has_cultural_parameter = female_preference_inheritance }
+			}
 			OR = {
 				faith = {
 					NOT = {
@@ -634,38 +630,32 @@ succession_gender_laws = {
 			always = no
 		}
 		can_keep = {
-			trigger_if = {
-				limit = {
-					OR = {
-						culture = culture:occitan
-						culture = culture:basque
-						culture = culture:aragonese
-						culture = culture:catalan
+			custom_tooltip = {
+				text = equal_law_culture_faith_or_innovation_trigger
+				OR = {
+					culture = { has_cultural_parameter = gender_equal_inheritance }
+					#culture = { has_innovation = innovation_visigothic_codes }
+					faith = { has_doctrine = doctrine_gender_equal }
+					AND = { #Culture is female dominated but religion is male dominated
+						faith = { has_doctrine = doctrine_gender_male_dominated }
+						culture = { has_cultural_parameter = female_only_inheritance }
 					}
-					NOT = {
-						faith = { has_doctrine = doctrine_gender_equal }
+					AND = { #Culture is male dominated but faith is female dominated
+						faith = { has_doctrine = doctrine_gender_female_dominated }
+						NOT = { culture = { has_cultural_parameter = female_only_inheritance } }
 					}
-				}
-				culture = { has_innovation = innovation_visigothic_codes }
-			}
-			trigger_else = {
-				limit = {
-					NOT = {
-						OR = {
-							culture = culture:hausa
-							culture = culture:sumpa
-						}
-					}
-				}
-				faith = {
-					has_doctrine = doctrine_gender_equal
 				}
 			}
 		}
 		can_pass = {
-			can_change_to_equal_succession_law_trigger = yes
+			#can_change_to_equal_succession_law_trigger = yes
+			can_change_succession_law_trigger = yes
 		}
 		should_start_with = {
+			NOR = {
+				culture = { has_cultural_parameter = female_preference_inheritance }
+				culture = { has_cultural_tradition = tradition_nubian_warrior_queens }
+			}
 			faith = {
 				has_doctrine = doctrine_gender_equal
 			}
@@ -690,7 +680,11 @@ succession_gender_laws = {
 			if = {
 				limit = {
 					primary_title.tier > tier_county
-					has_culture = culture:basque
+					faith = {
+						NOT = {
+							has_dominant_ruling_gender = prev
+						}
+					}
 				}
 				value = 2
 			}
@@ -705,15 +699,19 @@ succession_gender_laws = {
 			always = no
 		}
 		can_keep = {
-			custom_description = {
-				text = change_law_female_preference_faith_requirement
-				faith = {
-					NOT = { has_doctrine = doctrine_gender_male_dominated }
+			custom_tooltip = {
+				text = female_preference_law_faith_or_culture_trigger
+				OR = {
+					faith = {
+						NOT = { has_doctrine = doctrine_gender_male_dominated }
+					}
+					culture = { has_cultural_parameter = female_preference_inheritance }
 				}
 			}
 		}
 		should_start_with = {
 			OR = {
+				culture = { has_cultural_parameter = female_preference_inheritance }
 				faith = {
 					has_doctrine = doctrine_gender_female_dominated
 				}
@@ -739,14 +737,18 @@ succession_gender_laws = {
 	
 	female_only_law = {
 		can_title_have = {
-			can_title_have_law_general_trigger = yes
+			can_title_have_law_general_trigger = yes	
 		}
 		should_show_for_title = { # Never show this in the UI, just apply it through script
 			always = no
 		}
 		can_keep = {
-			faith = {
-				has_doctrine = doctrine_gender_female_dominated
+			custom_tooltip = {
+				text = female_only_law_faith_or_culture_trigger
+				OR = {
+					faith = { has_doctrine = doctrine_gender_female_dominated }
+					culture = { has_cultural_parameter = female_only_inheritance }
+				}
 			}
 		}
 		can_pass = {
@@ -763,6 +765,29 @@ succession_gender_laws = {
 		}
 		revoke_cost = {
 			prestige = change_succession_law_prestige_cost
+		}
+
+		should_start_with = {
+			OR = {
+				culture = { has_cultural_parameter = female_only_inheritance }
+			}
+		}
+	}
+}
+
+succession_faith = {
+	same_faith_only_law = {
+		can_keep = {
+			should_have_same_faith_succession_trigger = yes
+		}
+		can_pass = {
+			should_have_same_faith_succession_trigger = yes
+		}
+		should_start_with = {
+			should_have_same_faith_succession_trigger = yes
+		}
+		succession = {
+			faith = same_faith
 		}
 	}
 }
@@ -794,4 +819,3 @@ succession_rel_head = {
 		}
 	}
 }
-
