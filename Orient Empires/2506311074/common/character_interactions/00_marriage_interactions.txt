@@ -222,6 +222,47 @@ arrange_marriage_interaction = {
 
 	interface_priority = 60
 
+	cost = {
+		prestige = {
+			value = 0
+			if = {
+				limit = {
+					exists = scope:actor
+					exists = scope:recipient
+					exists = scope:secondary_recipient
+					exists = scope:secondary_actor
+					scope:secondary_actor = { is_close_family_of = scope:actor }
+					scope:recipient = {
+						OR = {
+							AND = {
+								vassal_contract_has_flag = vassal_contract_marriage_favor
+								is_allied_to = scope:actor
+							}
+							NOT = { vassal_contract_has_flag = vassal_contract_marriage_favor}
+						}
+					}
+				}
+				add = {
+					scope:actor = {
+						every_vassal = {
+							limit = {
+								vassal_contract_has_flag = vassal_contract_marriage_favor
+								NOT = { is_allied_to = scope:actor }
+								NOR = {
+									this = scope:recipient
+									this = scope:secondary_recipient
+								}
+							}
+							add = medium_prestige_value
+						}
+					}
+					desc = VASSAL_WITH_MARRIAGE_FAVOR
+				}
+			}
+
+		}
+	}
+
 	# actor, recipient ... characters arranging the marriage
 	# secondary_actor, secondary_recipient ... characters that should marry
 
@@ -504,7 +545,6 @@ arrange_marriage_interaction = {
 			}
 		}
 	}
-
 	
 	auto_accept = {
 		marriage_interaction_auto_accept_trigger = yes #Strong hook conditions
@@ -515,7 +555,6 @@ arrange_marriage_interaction = {
 
 		marriage_ai_accept_modifier = yes
 	}
-
 	
 	send_option = {
 		flag = matrilineal
@@ -596,8 +635,7 @@ arrange_marriage_interaction = {
 				}
 			}
 		}
-	}
-	
+	}	
 
 	send_option = {
 		is_shown = {
@@ -615,6 +653,7 @@ arrange_marriage_interaction = {
 		flag = marriage_hook
 		localization = MARRIAGE_HOOK
 	}
+
 	should_use_extra_icon = {
 		scope:actor = { has_usable_hook = scope:recipient }
 	}
@@ -817,6 +856,45 @@ marry_off_interaction = {
 					add_to_list = characters
 				}
 			}
+		}
+	}
+
+	cost = {
+		prestige = {
+			value = 0
+			if = {
+				limit = {
+					exists = scope:actor
+					exists = scope:recipient
+					exists = scope:secondary_recipient
+					scope:recipient = {
+						OR = {
+							AND = {
+								vassal_contract_has_flag = vassal_contract_marriage_favor
+								is_allied_to = scope:actor
+							}
+							NOT = { vassal_contract_has_flag = vassal_contract_marriage_favor}
+						}
+					}
+				}
+				add = {
+					scope:actor = {
+						every_vassal = {
+							limit = {
+								vassal_contract_has_flag = vassal_contract_marriage_favor
+								NOT = { is_allied_to = scope:actor }
+								NOR = {
+									this = scope:recipient
+									this = scope:secondary_recipient
+								}
+							}
+							add = medium_prestige_value
+						}
+					}
+					desc = VASSAL_WITH_MARRIAGE_FAVOR
+				}
+			}
+
 		}
 	}
 

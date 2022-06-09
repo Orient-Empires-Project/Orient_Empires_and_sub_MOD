@@ -1347,6 +1347,15 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			add = true_ruler_value
 		}
 
+		# EVENTS - temporary bonuses gained by events
+		modifier = {
+			desc = event_bonus_to_vassal_accept_tt
+			trigger = {
+				scope:actor = { has_character_modifier = event_bonus_to_vassal_accept }
+			}
+			add = 20
+		}
+
 		# MAIN
 		modifier = { #Different faith, no pluralism.
 			desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
@@ -1524,18 +1533,34 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			}
 			add = -25
 		}
-		modifier = { #Distant Realm.
+		modifier = { #Distant Realm — Overseas Connection
 			desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
 			trigger = {
 				scope:actor = {
 					character_is_realm_neighbor = scope:recipient
-					NOT = {
+					NOT = { #Ibiza should want to be a vassal of Mallorca, etc.
 						character_is_land_realm_neighbor = scope:recipient
+						is_rightful_liege_of_trigger = {
+							VASSAL = scope:recipient
+							LIEGE = scope:actor
+						}
 					}
 				}
 			}
 			add = -100
 		}
+		modifier = { #Distant Realm — No Connection
+		desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
+		trigger = {
+			scope:actor = {
+				NOT = {
+					character_is_realm_neighbor = scope:recipient
+				}
+			}
+			scope:recipient.capital_province = { squared_distance = { target = scope:actor.capital_province value < 200000 } }
+		}
+		add = -250
+	}
 		modifier = { #Remote Realm.
 			desc = offer_vassalization_interaction_aibehavior_remoterealm_tt
 			trigger = {
@@ -1609,26 +1634,30 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			}
 			add = 5
 		}
-		modifier = { #Cultural modifiers.
-			add = -10
-			desc = offer_vassalization_interaction_aibehavior_culture_tt
+		
+		modifier = { # Cultural Acceptance
+			add = offer_vassalage_acceptance_value
+			desc = cultural_acceptance_interaction_reason
 			trigger = {
 				scope:actor = {
-					culture = { has_same_culture_heritage = scope:recipient.culture }
-					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+					NOT = { has_same_culture_as = scope:recipient }
+					culture = {
+						cultural_acceptance = { target = scope:recipient.culture value <= 90 }
+					}
 				}
 			}
 		}
 		
-		modifier = { #Cultural Group modifiers.
-			add = -30
-			desc = offer_vassalization_interaction_aibehavior_culture_group_tt
+		modifier = { # Same language
+			add = 5
+			desc = speaks_same_language_interaction_reason
 			trigger = {
 				scope:actor = {
-					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+					knows_language_of_culture = scope:recipient.culture
 				}
 			}
 		}
+
 		modifier = { #Ageism modifier vs kids.
 			desc = offer_vassalization_interaction_aibehavior_child_tt
 			trigger = {
@@ -1699,6 +1728,32 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			multiplier = 0.35
 		}
 
+		# DIPLOMATIC COURT GRANDEUR BONUS
+		modifier = {
+			trigger = {
+				scope:actor = {
+					has_royal_court = yes
+					has_court_type = court_diplomatic
+					court_grandeur_current_level >= 1
+				}
+			}
+			add = {
+				value = scope:actor.court_grandeur_current
+				if = {
+					limit = { # Reduce the bonus if you are below your expected level
+						scope:actor = {
+							court_grandeur_current_level < court_grandeur_minimum_expected_level
+						}
+					}
+					multiply = 0.25
+				}
+				else = {
+					multiply = 0.5
+				}
+			}
+			desc = DIPLOMATIC_COURT_ACCEPTANCE_INCREASE_REASON
+		}
+
 		# CONTRACT OPTIONS
 		modifier = {
 			add = 60
@@ -1747,6 +1802,78 @@ offer_vassalization_interaction = { #要求臣服互动重写
 		
 	}
 
+	
+	# Low starting obligations
+	send_option = {
+		is_shown = {
+			scope:recipient = {
+				has_government = feudal_government
+			}
+		}
+		flag = low_obligations
+		localization = low_obligations	
+	}
+
+	# Medium starting obligations
+	send_option = {										
+		is_shown = {
+			scope:recipient = {
+				has_government = feudal_government
+			}
+		}
+		flag = normal_obligations								# If selected then scope:flag_name will be set to yes
+		localization = normal_obligations				# Loc_key for option label
+		starts_enabled = { always = yes	}				# Trigger for whether this should be on when the window opens. If not defined, defaults to off
+
+	}
+
+	# High starting obligations
+	send_option = {
+		is_shown = {
+			scope:recipient = {
+				has_government = feudal_government
+			}
+		}
+		flag = high_obligations								# If selected then scope:flag_name will be set to yes
+		localization = high_obligations					# Loc_key for option label
+	}
+
+	# Low starting obligations + religious exemption
+	send_option = {
+		is_shown = {
+			scope:recipient = {
+				has_government = feudal_government
+			}
+		}
+		is_valid = {
+			NOT = { scope:recipient.faith = scope:actor.faith }
+		}
+		flag = religious_exemption
+		localization = religious_exemption
+	}
+
+	send_options_exclusive = yes
+
+	on_accept = {
+		offer_vassalization_interaction_effect = yes
+		scope:actor = {
+			trigger_event = char_interaction.0001
+			## Remove bonus, it's been used
+			if = {
+				limit = {
+					has_character_modifier = event_bonus_to_vassal_accept
+				}
+				remove_character_modifier = event_bonus_to_vassal_accept
+			}
+		}
+	}
+
+	on_decline = {
+		scope:actor = {
+			trigger_event = char_interaction.0002
+		}
+	}
+
 	ai_potential = {
 		is_adult = yes
 		is_independent_ruler = yes
@@ -1793,7 +1920,6 @@ offer_vassalization_interaction = { #要求臣服互动重写
 	}
 }
 
-
 #宣誓效忠后成为羁縻
 offer_fealty_interaction = {
 	category = interaction_category_vassal
@@ -1823,7 +1949,7 @@ offer_fealty_interaction = {
 				text = "offer_fealty_neighboring_condition"
 				subject = scope:recipient
 				OR = {
-					any_neighboring_top_liege_realm_owner = { this = scope:actor }
+					any_neighboring_and_across_water_top_liege_realm_owner = { this = scope:actor }
 					any_held_title = {
 						is_de_jure_liege_or_above_target = scope:actor.capital_barony
 					}
@@ -1976,23 +2102,26 @@ offer_fealty_interaction = {
 			}
 			add = 10
 		}
-		modifier = { #Cultural modifiers.
+		
+		modifier = { # Cultural Acceptance
 			add = -5
-			desc = offer_vassalization_interaction_aibehavior_culture_tt
+			desc = cultural_acceptance_interaction_reason
 			trigger = {
 				scope:actor = {
-					culture = { has_same_culture_heritage = scope:recipient.culture }
-					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+					NOT = { has_same_culture_as = scope:recipient }
+					culture = {
+						cultural_acceptance = { target = scope:recipient.culture value < 50 }
+					}
 				}
 			}
 		}
 		
-		modifier = { #Cultural Group modifiers.
-			add = -10
-			desc = offer_vassalization_interaction_aibehavior_culture_tt
+		modifier = { # Same language
+			add = 5
+			desc = speaks_same_language_interaction_reason
 			trigger = {
 				scope:actor = {
-					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+					knows_language_of_culture = scope:recipient.culture
 				}
 			}
 		}
@@ -2053,7 +2182,7 @@ offer_fealty_interaction = {
 		}
 	}
 
-	# High starting obligations
+	# Low starting obligations
 	send_option = {
 		is_shown = {
 			scope:actor = {
@@ -2061,6 +2190,16 @@ offer_fealty_interaction = {
 					has_government = feudal_government
 					has_government = imperial_government
 				}
+			}
+		}
+		flag = low_obligations
+		localization = low_obligations	
+	}
+	# High starting obligations
+	send_option = {
+		is_shown = {
+			scope:actor = {
+				has_government = imperial_government
 			}
 		}
 		flag = high_obligations	

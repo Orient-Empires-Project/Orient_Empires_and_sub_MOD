@@ -1,6 +1,4 @@
-﻿#往来天地间修改于20211120
-#游牧君更新20220212
-test_value = 5
+﻿test_value = 5
 test_bool = yes
 
 #Gold stuff
@@ -187,6 +185,7 @@ sum_of_all_skills_threshold_excellent = {
 
 
 #Piety ratings
+low_negative_piety_level = -1
 low_piety_level = 1
 medium_piety_level = 2
 high_piety_level = 3
@@ -1089,92 +1088,84 @@ send_gift_opinion = {
 }
 
 gift_artifact_opinion = {
-	value = scope:target.artifact_wealth_quality_average_value
-	if = {
-		limit = {
-			scope:target.artifact_wealth_quality_average_value <= 25
+	value = 0
+	scope:target = {
+		# Per level of Rarity
+		if = {
+			limit = { rarity = common }
+			add = 10
 		}
-		divide = 2
-	}
-	if = {
-		limit = {
-			scope:target.artifact_wealth_quality_average_value <= 50
-			scope:target.artifact_wealth_quality_average_value > 25
+		else_if = {
+			limit = { rarity = masterwork }
+			add = 25
 		}
-		divide = 1.5
-	}
-	if = {
-		limit = {
-			scope:target.artifact_wealth_quality_average_value >= 75
+		else_if = {
+			limit = { rarity = famed }
+			add = 50
 		}
-		multiply = 1.25
-	}
-	if = {
-		limit = {
-			scope:recipient.liege = scope:actor
+		else = { add = 75 }
+		if = {
+			limit = { artifact_durability <= define:NInventory|ARTIFACT_LOW_DURABILITY }
+			divide = 3 # 1/3 for damaged artifacts
 		}
-		divide = 1.5
-	}
-	if = {
-		limit = {
-			scope:recipient = scope:actor.faith.religious_head
+		if = {
+			limit = { artifact_durability <= define:NInventory|ARTIFACT_VERY_LOW_DURABILITY }
+			divide = 3 # 1/3 for very damaged artifacts
 		}
-		divide = 2
-	}
-	if = {
-		limit = {
-			NOT = {
-				scope:recipient = {
-					can_equip_artifact = scope:target
+		if = {
+			limit = { can_be_claimed_by = scope:recipient }
+			multiply = 1.5 # 3/2 for claimed artifacts
+		}
+		if = {
+			limit = { scope:recipient.liege = scope:actor }
+			divide = 1.33 # 3/4 for vassals
+		}
+		floor = yes
+		if = {
+			limit = { scope:recipient = scope:actor.faith.religious_head }
+			divide = 2 # 1/2 for religious heads
+		}
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						has_variable = banner_house
+						NOT = { var:banner_house = scope:recipient.house }
+					}
+					AND = {
+						has_variable = banner_dynasty
+						NOT = { var:banner_dynasty = scope:recipient.dynasty }
+					}
 				}
 			}
+			subtract = 100 # 1/10 for useless banners
+			min = 0
 		}
-		divide = 5
-	}
-	if = {
-		limit = {
-			scope:recipient = {
-				can_equip_artifact = scope:target
-				can_benefit_from_artifact = scope:target
+		else_if = {
+			limit = {
+				scope:recipient = {
+					NOR = {
+						can_equip_artifact = scope:target
+						can_benefit_from_artifact = scope:target
+					}
+				}
 			}
+			divide = 10 # 1/10 for useless artifacts
 		}
-		multiply = 2
-	}
-	else_if = {
-		limit = {
-			scope:recipient = {
-				can_equip_artifact = scope:target
-				NOT = { can_benefit_from_artifact = scope:target }
+		else_if = {
+			limit = {
+				scope:recipient = {
+					OR = {
+						NOT = { can_equip_artifact = scope:target }
+						NOT = { can_benefit_from_artifact = scope:target }
+					}
+				}
 			}
+			divide = 5 # 1/5 for unfit artifacts
 		}
-		divide = 2
+		else = { min = 5 }
 	}
-	if = {
-		limit = {
-			scope:target = {
-				can_be_claimed_by = scope:recipient
-			}
-		}
-		multiply = 2
-	}
-	if = {
-		limit = {
-			scope:target = {
-				artifact_durability <= define:NInventory|ARTIFACT_LOW_DURABILITY
-			}
-		}
-		divide = 3
-	}
-	if = {
-		limit = {
-			scope:target = {
-				artifact_durability <= define:NInventory|ARTIFACT_VERY_LOW_DURABILITY
-			}
-		}
-		divide = 3
-	}
-	max = 200
-	min = 5
+	max = 150
 }
 
 
@@ -1293,43 +1284,26 @@ count_obligation_improvements_for_vassal = {
 	value = 0
 	# Levies and taxes are a linear scale, moving up adds and moving down subtracts
 	if = {
-		limit = {
-			local_var:feudal_government_taxes != vassal_contract_obligation_level:feudal_government_taxes
+		limit = { has_government = feudal_government }
+		if = {
+			limit = {
+				local_var:feudal_government_taxes != vassal_contract_obligation_level:feudal_government_taxes
+			}
+			add = {
+				value = vassal_contract_obligation_level:feudal_government_taxes
+				subtract = local_var:feudal_government_taxes
+			}
 		}
-		add = {
-			value = vassal_contract_obligation_level:feudal_government_taxes
-			subtract = local_var:feudal_government_taxes
-		}
-	}
-	if = {
-		limit = {
-			local_var:feudal_government_levies != vassal_contract_obligation_level:feudal_government_levies
-		}
-		add = {
-			value = vassal_contract_obligation_level:feudal_government_levies
-			subtract = local_var:feudal_government_levies
-		}
-	}
-##############往来天地间（开始）  游牧君修改0422
-	if = {
-		limit = {
-			local_var:imperial_government_taxes != vassal_contract_obligation_level:imperial_government_taxes
-		}
-		add = {
-			value = vassal_contract_obligation_level:imperial_government_taxes
-			subtract = local_var:imperial_government_taxes
+		if = {
+			limit = {
+				local_var:feudal_government_levies != vassal_contract_obligation_level:feudal_government_levies
+			}
+			add = {
+				value = vassal_contract_obligation_level:feudal_government_levies
+				subtract = local_var:feudal_government_levies
+			}
 		}
 	}
-	if = {
-		limit = {
-			local_var:imperial_government_levies != vassal_contract_obligation_level:imperial_government_levies
-		}
-		add = {
-			value = vassal_contract_obligation_level:imperial_government_levies
-			subtract = local_var:imperial_government_levies
-		}
-	}
-##############往来天地间（结束） 游牧君修改0422
 	# Any non-default fine print contract takes subtracts one
 	# special_contract intentionally has no effect
 	if = {
@@ -1338,42 +1312,6 @@ count_obligation_improvements_for_vassal = {
 		}
 		if = {
 			limit = { local_var:religious_rights != 0 }
-			add = 1
-		}
-		else = {
-			subtract = 1
-		}
-	}
-	if = {
-		limit = {
-			local_var:fortification_rights != vassal_contract_obligation_level:fortification_rights
-		}
-		if = {
-			limit = { local_var:fortification_rights != 0 }
-			add = 1
-		}
-		else = {
-			subtract = 1
-		}
-	}
-	if = {
-		limit = {
-			local_var:coinage_rights != vassal_contract_obligation_level:coinage_rights
-		}
-		if = {
-			limit = { local_var:coinage_rights != 0 }
-			add = 1
-		}
-		else = {
-			subtract = 1
-		}
-	}
-	if = {
-		limit = {
-			local_var:succession_rights != vassal_contract_obligation_level:succession_rights
-		}
-		if = {
-			limit = { local_var:succession_rights = 0 }
 			add = 1
 		}
 		else = {
@@ -1416,83 +1354,377 @@ count_obligation_improvements_for_vassal = {
 			subtract = 1
 		}
 	}
-	##############往来天地间（开始）  #律令契约修改有利值
 	if = {
 		limit = {
-			local_var:special_imperial_contract != vassal_contract_obligation_level:special_imperial_contract
+			local_var:jizya_special_rights != vassal_contract_obligation_level:jizya_special_rights
 		}
-		subtract = 4
+		if = {
+			limit = { local_var:jizya_special_rights != 0 }
+			add = 1
+		}
+		else = {
+			subtract = 1
+		}
 	}
 	if = {
-		limit = {
-			local_var:special_imperial_corps != vassal_contract_obligation_level:special_imperial_corps
+		limit = { has_government = feudal_government }
+		if = {
+			limit = {
+				local_var:fortification_rights != vassal_contract_obligation_level:fortification_rights
+			}
+			if = {
+				limit = { local_var:fortification_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
 		}
-		add = 1
+		if = {
+			limit = {
+				local_var:coinage_rights != vassal_contract_obligation_level:coinage_rights
+			}
+			if = {
+				limit = { local_var:coinage_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:succession_rights != vassal_contract_obligation_level:succession_rights
+			}
+			if = {
+				limit = { local_var:succession_rights = 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
 	}
+##############律令契约修改有利值
 	if = {
-		limit = {
-			local_var:special_imperial_bureau != vassal_contract_obligation_level:special_imperial_bureau
+		limit = { has_government = imperial_government }
+		if = {
+			limit = {
+				local_var:imperial_government_taxes != vassal_contract_obligation_level:imperial_government_taxes
+			}
+			add = {
+				value = vassal_contract_obligation_level:imperial_government_taxes
+				subtract = local_var:imperial_government_taxes
+			}
 		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:special_imperial_royal != vassal_contract_obligation_level:special_imperial_royal
+		if = {
+			limit = {
+				local_var:imperial_government_levies != vassal_contract_obligation_level:imperial_government_levies
+			}
+			add = {
+				value = vassal_contract_obligation_level:imperial_government_levies
+				subtract = local_var:imperial_government_levies
+			}
 		}
-		add = 1
+		if = {
+			limit = {
+				local_var:special_imperial_contract != vassal_contract_obligation_level:special_imperial_contract
+			}
+			subtract = 4
+		}
+		if = {
+			limit = {
+				local_var:special_imperial_corps != vassal_contract_obligation_level:special_imperial_corps
+			}
+			if = {
+				limit = { local_var:special_imperial_corps != 2 } #藩镇对领主大不利
+				subtract = 3
+			}
+			else = {
+				add = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:special_imperial_bureau != vassal_contract_obligation_level:special_imperial_bureau
+			}
+			if = {
+				limit = { NOT = { local_var:special_imperial_bureau != 0 } } #减税自治州对领主不利
+				subtract = 1
+			}
+			else = {
+				add = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:special_imperial_royal != vassal_contract_obligation_level:special_imperial_royal
+			}
+			if = {
+				limit = { local_var:special_imperial_royal != 1 } #藩王对领主不利
+				subtract = 2
+			}
+			else = {
+				add = 2
+			}
+		}
+		if = {
+			limit = {
+				local_var:fortification_rights != vassal_contract_obligation_level:fortification_rights
+			}
+			if = {
+				limit = { local_var:fortification_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:coinage_rights != vassal_contract_obligation_level:coinage_rights
+			}
+			if = {
+				limit = { local_var:coinage_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:succession_rights != vassal_contract_obligation_level:succession_rights
+			}
+			if = {
+				limit = { local_var:succession_rights = 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:marriage_favor_rights != vassal_contract_obligation_level:marriage_favor_rights
+			}
+			if = {
+				limit = { local_var:marriage_favor_rights != 0 } #婚姻权
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
 	}
-	##############往来天地间（结束）
+	##############（军镇制）
+	else_if = {
+		limit = { has_government = corps_government }
+		if = {
+			limit = {
+				local_var:fortification_rights != vassal_contract_obligation_level:fortification_rights
+			}
+			if = {
+				limit = { local_var:fortification_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:coinage_rights != vassal_contract_obligation_level:coinage_rights
+			}
+			if = {
+				limit = { local_var:coinage_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:succession_rights != vassal_contract_obligation_level:succession_rights
+			}
+			if = {
+				limit = { local_var:succession_rights = 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:iqta_special_rights != vassal_contract_obligation_level:iqta_special_rights
+			}
+			if = {
+				limit = { local_var:iqta_special_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:ghazi_special_rights != vassal_contract_obligation_level:ghazi_special_rights
+			}
+			if = {
+				limit = { local_var:ghazi_special_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:marriage_favor_rights != vassal_contract_obligation_level:marriage_favor_rights
+			}
+			if = {
+				limit = { local_var:marriage_favor_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+	}
+	else_if = {
+		limit = { has_government = clan_government }
+		if = {
+			limit = {
+				local_var:iqta_special_rights != vassal_contract_obligation_level:iqta_special_rights
+			}
+			if = {
+				limit = { local_var:iqta_special_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:ghazi_special_rights != vassal_contract_obligation_level:ghazi_special_rights
+			}
+			if = {
+				limit = { local_var:ghazi_special_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+		if = {
+			limit = {
+				local_var:marriage_favor_rights != vassal_contract_obligation_level:marriage_favor_rights
+			}
+			if = {
+				limit = { local_var:marriage_favor_rights != 0 }
+				add = 1
+			}
+			else = {
+				subtract = 1
+			}
+		}
+	}
 }
 
 count_total_obligation_changes = {
 	value = 0
 	if = {
-		limit = {
-			local_var:feudal_government_taxes != vassal_contract_obligation_level:feudal_government_taxes
+		limit = { has_government = feudal_government }
+		if = {
+			limit = {
+				local_var:feudal_government_taxes != vassal_contract_obligation_level:feudal_government_taxes
+			}
+			add = 1
 		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:feudal_government_levies != vassal_contract_obligation_level:feudal_government_levies
+		if = {
+			limit = {
+				local_var:feudal_government_levies != vassal_contract_obligation_level:feudal_government_levies
+			}
+			add = 1
 		}
-		add = 1
 	}
-##############往来天地间（开始）
-	if = {
+##############律令制
+	else_if = {
 		limit = {
-			local_var:imperial_government_taxes != vassal_contract_obligation_level:imperial_government_taxes
+			OR = {
+				has_government = imperial_government
+				has_governmtn = corps_government
+			}			
+		}		
+		if = {
+			limit = {
+				local_var:imperial_government_taxes != vassal_contract_obligation_level:imperial_government_taxes
+			}
+			add = 1
 		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:imperial_government_levies != vassal_contract_obligation_level:imperial_government_levies
+		if = {
+			limit = {
+				local_var:imperial_government_levies != vassal_contract_obligation_level:imperial_government_levies
+			}
+			add = 1
 		}
-		add = 1
+		if = {
+			limit = {
+				local_var:special_imperial_contract != vassal_contract_obligation_level:special_imperial_contract
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:special_imperial_corps != vassal_contract_obligation_level:special_imperial_corps
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:special_imperial_bureau != vassal_contract_obligation_level:special_imperial_bureau
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:special_imperial_royal != vassal_contract_obligation_level:special_imperial_royal
+			}
+			add = 1
+		}
+
+		if = {
+			limit = {
+				local_var:fortification_rights != vassal_contract_obligation_level:fortification_rights
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:coinage_rights != vassal_contract_obligation_level:coinage_rights
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:succession_rights != vassal_contract_obligation_level:succession_rights
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:marriage_favor_rights != vassal_contract_obligation_level:marriage_favor_rights
+			}
+			add = 1
+		}
 	}
-##############往来天地间（结束）
+##############
 	if = {
 		limit = {
 			local_var:religious_rights != vassal_contract_obligation_level:religious_rights
-		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:fortification_rights != vassal_contract_obligation_level:fortification_rights
-		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:coinage_rights != vassal_contract_obligation_level:coinage_rights
-		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:succession_rights != vassal_contract_obligation_level:succession_rights
 		}
 		add = 1
 	}
@@ -1520,32 +1752,54 @@ count_total_obligation_changes = {
 		}
 		add = 1
 	}
-	##############往来天地间（开始）
 	if = {
 		limit = {
-			local_var:special_imperial_corps != vassal_contract_obligation_level:special_imperial_corps
+			local_var:jizya_special_rights != vassal_contract_obligation_level:jizya_special_rights
 		}
 		add = 1
 	}
 	if = {
-		limit = {
-			local_var:special_imperial_bureau != vassal_contract_obligation_level:special_imperial_bureau
+		limit = { has_government = feudal_government }
+		if = {
+			limit = {
+				local_var:fortification_rights != vassal_contract_obligation_level:fortification_rights
+			}
+			add = 1
 		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:special_imperial_royal != vassal_contract_obligation_level:special_imperial_royal
+		if = {
+			limit = {
+				local_var:coinage_rights != vassal_contract_obligation_level:coinage_rights
+			}
+			add = 1
 		}
-		add = 1
-	}
-	if = {
-		limit = {
-			local_var:special_imperial_contract != vassal_contract_obligation_level:special_imperial_contract
+		if = {
+			limit = {
+				local_var:succession_rights != vassal_contract_obligation_level:succession_rights
+			}
+			add = 1
 		}
-		add = 1
 	}
-	##############往来天地间（结束）
+	else_if = {
+		limit = { has_government = clan_government}
+		if = {
+			limit = {
+				local_var:iqta_special_rights != vassal_contract_obligation_level:iqta_special_rights
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:ghazi_special_rights != vassal_contract_obligation_level:ghazi_special_rights
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				local_var:marriage_favor_rights != vassal_contract_obligation_level:marriage_favor_rights
+			}
+			add = 1
+		}
+	}
 }
 
 # Requires local_var:<obligation_type> to be set for feudal obligations

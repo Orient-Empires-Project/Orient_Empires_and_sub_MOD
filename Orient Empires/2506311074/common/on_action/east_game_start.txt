@@ -320,7 +320,7 @@ east_on_after_lobby_effects = {
 						has_primary_title = title:d_zhenhai
 						has_primary_title = title:c_lianzhou
 						has_primary_title = title:c_shaoguan_guang
-						#has_primary_title = title:c_kongmeng
+						#has_primary_title = title:d_confucius
 					}
 				}
 				change_government = imperial_government
@@ -330,7 +330,7 @@ east_on_after_lobby_effects = {
 				}
 				vassal_contract_set_obligation_level = {
 					type = special_imperial_royal
-					level = 2
+					level = 0
 				} 
 				if = { 
 					limit = { NOT = { has_realm_law = official_succession_law } }
@@ -341,18 +341,21 @@ east_on_after_lobby_effects = {
 					add_realm_law_skip_effects = male_only_law
 				}
 			}
-			if = { #北宋羁縻州
-				limit = { 
-					is_independent_ruler = no
-					current_date > 960.1.1
-					current_date < 1125.1.1
-					OR = { 
-						has_primary_title = title:d_wuxi
-						has_primary_title = title:d_qianzhong
-					}
-				}
-				change_government = feudal_government
-			}
+#			if = { #北宋羁縻州
+#				limit = { 
+#					is_independent_ruler = no
+#					liege = { has_title = title:e_celestia }
+#					current_date > 960.1.1
+#					current_date < 1125.1.1
+#					OR = { 
+#						has_primary_title = title:d_wuxi
+#						has_primary_title = title:d_qianzhong
+#						has_primary_title = title:d_ordos
+#						has_primary_title = title:d_bozhou_qian
+#					}
+#				}
+#				change_government = feudal_government
+#			}
 		}
 	}
 }	
@@ -438,7 +441,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			vassal_contract_set_obligation_level = {
 				type = special_imperial_royal
-				level = 2
+				level = 0
 			}
 			if = { 
 				limit = { NOT = { has_realm_law = official_succession_law } culture = { has_cultural_pillar = heritage_chinese } }
@@ -452,10 +455,25 @@ east_on_title_gain_effects = { #by 糜三小姐
 				OR = {
 					has_government = corps_government
 					has_government = bureau_government
-				}
+				}			
 				highest_held_title_tier >= tier_kingdom
 				scope:title.tier >= tier_kingdom
 				NOT = { culture = { has_cultural_pillar = heritage_yamato } }
+				NAND = {
+					top_liege = { culture = { has_innovation = innovation_court_officials }	}
+					OR = {
+						is_royal_government_trigger = yes
+						is_bureau_government_trigger = yes
+					}
+				}
+				OR = {
+					scope:transfer_type = flag:created
+					scope:transfer_type = flag:usurped
+					scope:transfer_type = flag:granted
+					scope:transfer_type = flag:inheritance
+					scope:transfer_type = flag:abdication
+					scope:transfer_type = flag:faction_demand
+				}
 			}
 			change_government = imperial_government
 		}
@@ -463,41 +481,34 @@ east_on_title_gain_effects = { #by 糜三小姐
 		if = { # 文官独立
 			limit = {
 				is_independent_ruler = yes
-				is_bureau_government_trigger = yes
-				has_government = imperial_government
+				OR = {
+					has_government = bureau_government
+					has_realm_law = official_succession_law
+				}
 			}
 			OR = {
 				scope:transfer_type = flag:independency
 			}
 			change_government = feudal_government
-#			if = { 
-#				limit = { NOT = { has_realm_law = tradition_succession_law } }
-#				add_realm_law_skip_effects = tradition_succession_law
-#			}
-			set_designated_heir = scope:preferred_heir
 		}
 		if = { # 军府独立
 			limit = {
 				is_independent_ruler = yes
 				is_legion_government_trigger = yes
-				has_government = imperial_government
-				#OR = {
-					#scope:transfer_type = flag:independency
-				#}
-			}
-			if = { 
-				limit = { NOT = { has_realm_law = tradition_succession_law } }
-				add_realm_law_skip_effects = tradition_succession_law
+				OR = {
+					scope:transfer_type = flag:independency
+				}
 			}
 			change_government = corps_government
-			set_designated_heir = scope:preferred_heir
+			if = { 
+				limit = { NOT = { has_realm_law = corps_succession_law } }
+				add_realm_law_skip_effects = corps_succession_law
+			}
 		}
 		if = { #获得王爵改继承人
 			limit = {
 				highest_held_title_tier > tier_duchy
 				scope:title.tier > tier_duchy
-				exists = designated_heir
-				designated_heir = { NOT = { dynasty = root.dynasty } }
 #				OR = {
 #					scope:transfer_type = flag:created
 #					scope:transfer_type = flag:usurped
@@ -506,34 +517,39 @@ east_on_title_gain_effects = { #by 糜三小姐
 #					scope:transfer_type = flag:abdication
 #					scope:transfer_type = flag:faction_demand
 #				}
+				NOR = {
+					has_realm_law = official_succession_law
+					culture = { has_innovation = innovation_court_officials }
+					is_royal_government_trigger = yes
+				}
 			}
-			set_designated_heir = scope:preferred_heir
+			if = {
+				limit = {
+					exists = designated_heir
+					designated_heir = { NOT = { dynasty = root.dynasty } }
+				}
+				set_designated_heir = scope:preferred_heir
+			}
 		}
 		if = { # 前军镇转藩镇
 			limit = {
 				is_independent_ruler = no
-				is_bureau_government_trigger = yes
 				has_government = corps_government
+				liege = { has_government = imperial_government }
 			}
 			change_government_corps_government_effect = yes
-			if = { 
-				limit = { NOT = { has_realm_law = official_succession_law } }
-				add_realm_law_skip_effects = official_succession_law
-			}
-			set_designated_heir = scope:preferred_heir
+			#if = { 
+				#limit = { NOT = { has_realm_law = official_succession_law } }
+				#add_realm_law_skip_effects = official_succession_law
+			#}
+			#if = {
+				#limit = {
+					#exists = designated_heir
+					#designated_heir = { NOT = { dynasty = root.dynasty } }
+				#}
+				#set_designated_heir = scope:preferred_heir
+			#}
 		}
-#		if = { #继承人在国外
-#			limit = {
-#				is_independent_ruler = no
-#				has_realm_law = official_succession_law
-#				highest_held_title_tier <= tier_duchy
-#				scope:title.tier <= tier_duchy
-#				exists = designated_heir
-#				NOT = { designated_heir.dynasty = root.dynasty }
-#				NOT = { designated_heir.top_liege = root.top_liege }
-#			}
-#			set_designated_heir = scope:preferred_heir
-#		}
 		if = { #
 			limit = {
 				is_independent_ruler = yes
@@ -571,6 +587,19 @@ east_on_title_gain_effects = { #by 糜三小姐
 			if = { 
 				limit = { NOT = { has_realm_law = male_only_law } }
 				add_realm_law_skip_effects = male_only_law
+			}
+
+			scope:new_ruler = {
+				add_tyranny = {
+					value = -20
+					scope:previous_holder = {
+						every_held_title = {
+							tier >= tier_county
+							subtract = 20
+						}
+						every_vassal = { subtract = 5 }
+					}
+				}
 			}
 
 			create_title_and_vassal_change = {

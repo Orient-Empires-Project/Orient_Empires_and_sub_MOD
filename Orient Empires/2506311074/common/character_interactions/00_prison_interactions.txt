@@ -917,6 +917,37 @@
 			exists = scope:recipient.primary_title
 			add = scope:recipient.primary_title.tier
 		}
+
+		# Agenda impact
+		modifier = {
+			any_character_struggle = {
+				involvement = involved
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_imprison_important
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = 200
+				}
+				else_if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_imprison_important
+							}
+						}
+					}
+					add = -100
+				}
+			}
+		}
 	}	
 }
 
@@ -954,16 +985,16 @@ move_to_dungeon_interaction = {
 			trigger_event = prison_notification.1001
 			custom_tooltip = MOVE_PRISONER_TO_DUNGEON
 			scope:recipient = {
-					every_close_or_extended_family_member = {
-						custom = all_family_members
-						limit = {
-							NOT = { scope:actor = this }
-						}
-						add_opinion = {
-							modifier = family_moved_to_dungeon_opinion
-							target = scope:actor
-						}
+				every_close_or_extended_family_member = {
+					custom = all_family_members
+					limit = {
+						NOT = { scope:actor = this }
 					}
+					add_opinion = {
+						modifier = family_moved_to_dungeon_opinion
+						target = scope:actor
+					}
+				}
 			}
 		}
 		scope:actor = {
@@ -1048,16 +1079,16 @@ move_to_house_arrest_interaction = {
 			}
 			custom_tooltip = MOVE_PRISONER_TO_HOUSE_ARREST
 			scope:recipient = {
-					every_close_or_extended_family_member = {
-						custom = all_family_members
-						limit = {
-							NOT = { scope:actor = this }
-						}
-						add_opinion = {
-							modifier = moved_to_house_arrest_opinion
-							target = scope:actor
-						}
+				every_close_or_extended_family_member = {
+					custom = all_family_members
+					limit = {
+						NOT = { scope:actor = this }
 					}
+					add_opinion = {
+						modifier = moved_to_house_arrest_opinion
+						target = scope:actor
+					}
+				}
 			}
 		}
 		scope:actor = {
@@ -1184,15 +1215,51 @@ ransom_interaction = {
 						NOT = { scope:portrait_first = scope:prisoner }
 					}
 					scope:prisoner = { save_scope_as = portrait_second}
+					# Must come after we save the payment value, or the payer won't know how much they need to pay.
+					send_interface_message = {
+						type = event_prison_good
+						title = msg_ransom_prisoner
+						right_icon = scope:portrait_first
+						left_icon = scope:portrait_second
+						ransom_interaction_effect = yes
+					}
+				}
+				else = {
+					# Must come after we save the payment value, or the payer won't know how much they need to pay.
+					send_interface_message = {
+						type = event_prison_good
+						title = msg_ransom_prisoner
+						right_icon = scope:portrait_first
+						ransom_interaction_effect = yes
+					}
 				}
 
-				# Must come after we save the payment value, or the payer won't know how much they need to pay.
-				send_interface_message = {
-					type = event_prison_good
-					title = msg_ransom_prisoner
-					right_icon = scope:portrait_first
-					left_icon = scope:portrait_second
-					ransom_interaction_effect = yes
+
+
+				# Struggle Catalyst
+				if = {
+					limit = {
+						any_character_struggle = {
+							involvement = involved
+							activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+								CATALYST = catalyst_ransom_important
+								CHAR = scope:secondary_recipient
+							}
+						}
+					}
+					every_character_struggle = {
+						involvement = involved
+						limit = {
+							activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+								CATALYST = catalyst_ransom_important
+								CHAR = scope:secondary_recipient
+							}
+						}
+						activate_struggle_catalyst = {
+							catalyst = catalyst_ransom_important
+							character = scope:actor
+						}
+					}
 				}
 			}
 		}
@@ -1541,6 +1608,44 @@ ransom_interaction = {
 				}
 			}
 		}
+
+		# Struggle Agenda
+		modifier = {
+			scope:secondary_recipient = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			scope:actor = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_ransom_important
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = -100
+				}
+				else_if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_ransom_important
+							}
+						}
+					}
+					add = 200
+				}
+			}
+		}
 		
 		modifier = {
 			factor = 0
@@ -1655,6 +1760,32 @@ pay_ransom_interaction = {
 					right_icon = scope:prisoner
 					left_icon = scope:imprisoner
 					ransom_interaction_effect = yes
+				}
+
+				# Struggle Catalyst
+				if = {
+					limit = {
+						any_character_struggle = {
+							involvement = involved
+							activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+								CATALYST = catalyst_ransom_important
+								CHAR = scope:prisoner
+							}
+						}
+					}
+					every_character_struggle = {
+						involvement = involved
+						limit = {
+							activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+								CATALYST = catalyst_ransom_important
+								CHAR = scope:prisoner
+							}
+						}
+						activate_struggle_catalyst = {
+							catalyst = catalyst_ransom_important
+							character = scope:imprisoner
+						}
+					}
 				}
 			}
 			if = {
@@ -2046,6 +2177,44 @@ pay_ransom_interaction = {
 				is_primary_heir_of = scope:actor
 			}
 		}
+
+		# Struggle Agenda
+		modifier = {
+			scope:secondary_recipient = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			scope:actor = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_ransom_important
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = -100
+				}
+				else_if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_ransom_important
+							}
+						}
+					}
+					add = 200
+				}
+			}
+		}
 		
 		modifier = { # Only ransom people you care about... unless you're very compassionate
 			factor = 0
@@ -2160,6 +2329,32 @@ ransom_me_interaction = {
 					right_icon = scope:prisoner
 					left_icon = scope:imprisoner
 					ransom_interaction_effect = yes
+				}
+
+				# Struggle Catalyst
+				if = {
+					limit = {
+						any_character_struggle = {
+							involvement = involved
+							activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+								CATALYST = catalyst_ransom_important
+								CHAR = scope:prisoner
+							}
+						}
+					}
+					every_character_struggle = {
+						involvement = involved
+						limit = {
+							activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+								CATALYST = catalyst_ransom_important
+								CHAR = scope:prisoner
+							}
+						}
+						activate_struggle_catalyst = {
+							catalyst = catalyst_ransom_important
+							character = scope:imprisoner
+						}
+					}
 				}
 			}
 			if = {
@@ -2499,6 +2694,44 @@ ransom_me_interaction = {
 			}
 		}
 
+		# Struggle Agenda
+		modifier = {
+			scope:recipient = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			scope:actor = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_ransom_important
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = -100
+				}
+				else_if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_ransom_important
+							}
+						}
+					}
+					add = 200
+				}
+			}
+		}
+
 		modifier = { # Don't give away prisoners for free
 			factor = 0
 			NOR = {
@@ -2572,6 +2805,7 @@ release_from_prison_interaction = {
 		}
 		if = {
 			limit = { scope:recipient = { is_imprisoned_by = scope:actor } }
+
 			scope:recipient = {
 				# Demand Conversion
 				if = {
@@ -2582,6 +2816,36 @@ release_from_prison_interaction = {
 					add_opinion = {
 						modifier = demanded_my_conversion_opinion
 						target = scope:actor
+					}
+
+					# Struggle Catalyst
+					if = {
+						limit = {
+							scope:actor = {
+								any_character_struggle = {
+									involvement = involved
+									activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+										CATALYST = catalyst_demanding_important_conversion
+										CHAR = scope:recipient
+									}
+								}
+							}
+						}
+						scope:actor = {
+							every_character_struggle = {
+								involvement = involved
+								limit = {
+									activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+										CATALYST = catalyst_demanding_important_conversion
+										CHAR = scope:recipient
+									}
+								}
+								activate_struggle_catalyst = {
+									catalyst = catalyst_demanding_important_conversion
+									character = scope:actor
+								}
+							}
+						}
 					}
 				}
 				
@@ -2719,11 +2983,11 @@ release_from_prison_interaction = {
 						}
 					}
 					else = {
-					add_opinion = {
-						modifier = demanded_recruitment
-						target = scope:actor
+						add_opinion = {
+							modifier = demanded_recruitment
+							target = scope:actor
+						}
 					}
-				}
 					scope:actor = {
 						add_courtier = scope:recipient
 					}
@@ -2786,7 +3050,7 @@ release_from_prison_interaction = {
 					}
 					send_child_to_clergy_effect = yes
 				}
-
+				
 				# Take Vows
 				if = {
 					limit = {
@@ -2794,7 +3058,7 @@ release_from_prison_interaction = {
 					}
 					release_as_executioner_effect = yes
 				}
-					
+				
 				# No Demands Added
 				if = {
 					limit = {
@@ -2823,6 +3087,56 @@ release_from_prison_interaction = {
 							stress_impact = {
 								sadistic = medium_stress_impact_gain
 								callous = minor_stress_impact_gain
+							}
+						}
+						# Struggle impact
+						if = {
+							limit = {
+								any_character_struggle = {
+									involvement = involved
+									is_struggle_type = iberian_struggle
+									OR = {
+										has_struggle_phase_parameter = release_prisoner_diff_culture_gives_prestige
+										has_struggle_phase_parameter = release_prisoner_diff_faith_gives_prestige
+									}
+								}
+								is_diff_faith_or_culture_trigger = {
+									CHAR = scope:recipient
+									STATUS = involved
+									STRUGGLE_TYPE = iberian_struggle
+								}
+							}
+							add_prestige = medium_prestige_gain
+						}
+
+						# Struggle Catalyst
+						if = {
+							limit = {
+								scope:recipient = {
+									NOT = {
+										has_character_flag = catalyst_release_important_blocker
+									}
+								}
+								any_character_struggle = {
+									involvement = involved
+									activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+										CATALYST = catalyst_release_important
+										CHAR = scope:recipient
+									}
+								}
+							}
+							every_character_struggle = {
+								involvement = involved
+								limit = {
+									activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+										CATALYST = catalyst_release_important
+										CHAR = scope:recipient
+									}
+								}
+								activate_struggle_catalyst = {
+									catalyst = catalyst_release_important
+									character = scope:actor
+								}
 							}
 						}
 					}
@@ -3173,8 +3487,8 @@ release_from_prison_interaction = {
 			}
 		}
 	}
-
-		
+	
+	
 	send_option = {
 		flag = become_executioner
 		localization = "RELEASE_AS_EXECUTIONER"
@@ -3406,6 +3720,51 @@ release_from_prison_interaction = {
 			}
 			desc = "RECRUITMET_NEGATIVE_REASON"
 		}
+		# Struggle
+		modifier = {
+			trigger = {
+				scope:demand_conversion = no
+				scope:renounce_claims = no
+				scope:banish = no
+				scope:gain_hook = no
+				scope:take_vows = no
+				scope:recruit = no
+			}
+			scope:recipient = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			scope:actor = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:recipient = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_release_important
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = -100
+				}
+				else_if = {
+					limit = {
+						scope:recipient = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_release_important
+							}
+						}
+					}
+					add = 200
+				}
+			}
+		}
 	}
 	
 	# AI
@@ -3560,6 +3919,64 @@ release_from_prison_interaction = {
 				is_child_of = scope:actor
 			}
 		}
+
+		# Struggle
+		modifier = {
+			trigger = {
+				scope:demand_conversion = no
+				scope:renounce_claims = no
+				scope:banish = no
+				scope:gain_hook = no
+				scope:take_vows = no
+				scope:recruit = no
+			}
+			scope:recipient = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			scope:actor = {
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_release_important
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = -100
+				}
+				else_if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_release_important
+							}
+							NOT = {
+								ai_greed >= 25
+							}
+							OR = {
+								ai_compassion > 50
+								AND  = {
+									ai_compassion > 0
+									scope:recipient = {
+										time_in_prison = { years > 1 }
+									}
+								}
+							}
+						}
+					}
+					add = 200
+				}
+			}
+		}
 	}
 }
 
@@ -3705,6 +4122,37 @@ execute_prisoner_interaction = {
 				}
 			}
 		}
+
+		# Agenda impact
+		modifier = {
+			any_character_struggle = {
+				involvement = involved
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_execute_important
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = 200
+				}
+				else_if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_execute_important
+							}
+						}
+					}
+					add = -100
+				}
+			}
+		}
 	}
 	
 	is_shown = {
@@ -3722,8 +4170,25 @@ execute_prisoner_interaction = {
 				NOT = { has_character_flag = is_being_tortured }
 			}
 		}
+
+		# Blocked by current struggle phase
+		custom_tooltip = {
+			text = struggle_parameter_struggle_cannot_execute_involved_prisoners
+			NOT = {
+				scope:actor = {
+					any_character_struggle = {
+						involvement = involved
+						is_struggle_type = iberian_struggle
+						has_struggle_phase_parameter = struggle_cannot_execute_involved_prisoners
+						is_secondary_character_involvement_involved_trigger = {
+							CHAR = scope:recipient
+						}
+					}
+				}
+			}
+		}
 	}
-	
+
 	on_accept = {
 		if = {
 			limit = { scope:recipient = { is_imprisoned_by = scope:actor } }
@@ -3872,6 +4337,33 @@ execute_prisoner_interaction = {
 
 			scope:actor = {
 				hidden_effect = {
+					# Struggle Catalysts
+					if = {
+						limit = {
+							scope:recipient = { is_important_or_vip_struggle_character = yes }
+							any_character_struggle = {
+								involvement = involved
+								activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+									CATALYST = catalyst_execute_important
+									CHAR = scope:recipient
+								}
+							}
+						}
+						every_character_struggle = {
+							involvement = involved
+							limit = {
+								activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+									CATALYST = catalyst_execute_important
+									CHAR = scope:recipient
+								}
+							}
+							activate_struggle_catalyst = {
+								catalyst = catalyst_execute_important
+								character = scope:actor
+							}
+						}
+					}
+
 					send_interface_message = {
 						type = event_generic_neutral
 						title = msg_execute_prisoner
@@ -3929,7 +4421,7 @@ execute_prisoner_interaction = {
 		flag = execution_sacrifice
 		localization = "EXECUTION_SACRIFICE"
 	}
-	
+
 	send_option = {
 		is_shown = {
 			scope:actor = {
@@ -4299,7 +4791,7 @@ blind_interaction = {
 				release_from_prison = yes
 			}
 		}
-		
+
 		# Merciful Blindings
 		scope:actor = {
 			if = {

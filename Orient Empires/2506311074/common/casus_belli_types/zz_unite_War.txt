@@ -351,7 +351,7 @@ steppe_war = {
 			capital_province = { geographical_region = world_steppe_tartaria }
 		}
 		is_independent_ruler = yes
-		highest_held_title_tier >= tier_kingdom 
+		#highest_held_title_tier >= tier_kingdom 
 	}
 	allowed_against_character = {
 		exists = capital_province
@@ -361,12 +361,6 @@ steppe_war = {
 				geographical_region = world_asia	
 			} 
 		}
-
-		highest_held_title_tier <= tier_kingdom 
-#		NOR = {
-#			has_primary_title = title:k_xia
-#			has_primary_title = title:e_celestia
-#		}
 	}
 	target_titles = neighbor_land
 	target_title_tier = kingdom  #changed
@@ -429,7 +423,7 @@ steppe_war = {
 		}
 		if = {
 			limit = {
-				scope:defender.primary_title.tier < scope:attacker.primary_title.tier
+				scope:defender.highest_held_title_tier < scope:attacker.highest_held_title_tier
 			}
 			scope:defender = {
 				change_liege = {
@@ -438,15 +432,16 @@ steppe_war = {
 				}
 			}
 		}
-		else = {
+		else_if = {
+			limit = {
+				scope:defender.highest_held_title_tier >= scope:attacker.highest_held_title_tier
+				scope:defender.highest_held_title_tier <= tier_kingdom
+			}
 			scope:defender = {
 				every_held_title = {
 					if = {
 						limit = {
-							OR = {
-								tier = scope:defender.primary_title.tier
-								tier >= tier_kingdom
-							}
+							tier <= tier_kingdom						
 						}
 						change_title_holder = {
 							holder = scope:attacker
@@ -463,9 +458,6 @@ steppe_war = {
 						save_temporary_scope_as = secondary_title
 					}
 				}
-			}
-			
-			scope:defender = {
 				if = {
 					limit = {
 						exists = scope:secondary_title
@@ -484,13 +476,29 @@ steppe_war = {
 					}
 				}
 			}
-			
+					
 			scope:defender = {			
 				change_liege = {
 					liege = scope:attacker
 					change = scope:change
 				}
 			}
+		}
+
+		else_if = {
+			limit = {
+				OR = {
+					scope:defender.highest_held_title_tier >= scope:attacker.primary_title.tier
+					scope:defender.highest_held_title_tier > tier_kingdom
+				}
+			}
+			setup_invasion_cb = {
+				titles = target_titles
+				attacker = scope:attacker
+				defender = scope:defender
+				change = scope:change
+				take_occupied = yes
+			}		
 		}
 		
 		resolve_title_and_vassal_change = scope:change
@@ -663,7 +671,7 @@ steppe_war = {
 	transfer_behavior = transfer
 	attacker_ticking_warscore = 0.01
 	defender_ticking_warscore = 0.05	
-	truce_days = 1000
+	truce_days = 60
 	ignore_effect = change_title_holder
 	war_name = "STEPPE_WAR_OF_REUNIFICATION_NAME"
 	cb_name_no_target = "STEPPE_WAR_OF_REUNIFICATION"
