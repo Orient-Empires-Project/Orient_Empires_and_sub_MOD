@@ -256,9 +256,9 @@ transfer_to_corps_decision = {
 	}
 	
 	is_valid = {
-		vassal_contract_has_flag = imperial_contract_1
+		#vassal_contract_has_flag = imperial_contract_1
 		is_corps_government_trigger = no
-		primary_title.tier >= tier_county
+		primary_title.tier > tier_county
 		OR = {
 			prestige_level >= very_high_prestige_level
 			martial_lifestyle_perk_points >= 20
@@ -460,5 +460,100 @@ convert_whole_realm_to_ulus_decision = {
 
 	ai_will_do = {
 		base = 1000
+	}
+}
+
+
+#A decision to feudalize the entire realm (wow!)
+convert_whole_realm_to_feudalism_decision = { #by Linnéa Thimrén
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	major = yes
+	desc = convert_whole_realm_to_feudalism_decision_desc
+
+	ai_check_interval = 36
+
+	is_shown = {
+		has_government = tribal_government
+		OR = {
+			is_independent_ruler = yes
+			AND = {
+				is_independent_ruler = no
+				liege = {
+					NOR = {
+						has_government = feudal_government
+						has_government = clan_government
+					}
+				}
+			}
+		}
+	}
+
+	is_valid = {
+		has_realm_law = tribal_authority_3
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 2
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+		NOR = {
+			culture = { has_cultural_parameter = can_recruit_open_specialist }
+		}
+		NOR = {
+			capital_province = { geographical_region = world_steppe_tartaria }
+			capital_province = { geographical_region = world_steppe }
+		}
+		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
+			text = has_all_tribal_innovations
+			subject = root.culture
+			culture = {
+				calc_true_if = {
+					amount >= 9
+					has_innovation = innovation_motte
+					has_innovation = innovation_catapult
+					has_innovation = innovation_barracks
+					has_innovation = innovation_mustering_grounds
+					has_innovation = innovation_bannus
+					has_innovation = innovation_quilted_armor
+					has_innovation = innovation_gavelkind
+					has_innovation = innovation_crop_rotation
+					has_innovation = innovation_city_planning
+					has_innovation = innovation_casus_belli
+					has_innovation = innovation_plenary_assemblies
+					has_innovation = innovation_ledger
+					has_innovation = innovation_development_01
+					has_innovation = innovation_currency_01
+				}
+			}
+		}
+	}
+
+	cost = {
+		prestige = 200
+	}
+
+	effect = {
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		convert_whole_realm_to_feudalism_effect = yes
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	ai_potential = {
+		NOR = { has_title = title:e_mongol_empire has_title = title:e_cathay } #Stop the Mongols from slowing their conquest.
+	}
+
+	ai_will_do = {
+		base = 100
 	}
 }
