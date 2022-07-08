@@ -1,9 +1,9 @@
 ﻿on_game_start = { #by 糜三小姐
-	events = {
-		historical_artifacts.2333  #东方宝物
-	}
 	on_actions = {
 		east_on_game_start_effects
+	}
+	events = {
+		historical_artifacts.2333  #东方宝物
 	}
 }	
 east_on_game_start_effects = {	
@@ -499,33 +499,48 @@ east_on_title_gain_effects = { #by 糜三小姐
 
 		if = { # 文官独立
 			limit = {
-				is_independent_ruler = yes
 				OR = {
-					has_government = bureau_government
+					is_bureau_government_trigger = yes
 					has_realm_law = official_succession_law
 				}
-			}
-			OR = {
 				scope:transfer_type = flag:independency
 			}
 			change_government = feudal_government
+			if = {
+				limit = {
+					is_independent_ruler = yes
+					exists = designated_heir
+					designated_heir = { NOT = { dynasty = root.dynasty } }
+				}
+				set_designated_heir = scope:preferred_heir
+			}
 		}
 		if = { # 军府独立
 			limit = {
-				is_independent_ruler = yes
 				is_legion_government_trigger = yes
-				OR = {
-					scope:transfer_type = flag:independency
-				}
+				scope:transfer_type = flag:independency
 			}
 			change_government = corps_government
 			if = { 
 				limit = { NOT = { has_realm_law = corps_succession_law } }
 				add_realm_law_skip_effects = corps_succession_law
 			}
+			if = {
+				limit = {
+					is_independent_ruler = yes
+					exists = designated_heir
+					designated_heir = { NOT = { dynasty = root.dynasty } }
+				}
+				set_designated_heir = scope:preferred_heir
+			}
 		}
 		if = { #获得王爵改继承人
 			limit = {
+				OR = {
+					has_government = imperial_government
+					has_government = corps_government
+					has_government = bureau_government
+				}
 				highest_held_title_tier > tier_duchy
 				scope:title.tier > tier_duchy
 				OR = {
@@ -534,9 +549,9 @@ east_on_title_gain_effects = { #by 糜三小姐
 					scope:transfer_type = flag:granted
 					scope:transfer_type = flag:inheritance
 					scope:transfer_type = flag:abdication
-					scope:transfer_type = flag:faction_demand
+					#scope:transfer_type = flag:faction_demand
 				}
-				NOR = {
+				NAND = {
 					has_realm_law = official_succession_law
 					culture = { has_innovation = innovation_court_officials }
 					is_royal_government_trigger = yes
@@ -557,27 +572,6 @@ east_on_title_gain_effects = { #by 糜三小姐
 				liege = { has_government = imperial_government }
 			}
 			change_government_corps_government_effect = yes
-			#if = { 
-				#limit = { NOT = { has_realm_law = official_succession_law } }
-				#add_realm_law_skip_effects = official_succession_law
-			#}
-			#if = {
-				#limit = {
-					#exists = designated_heir
-					#designated_heir = { NOT = { dynasty = root.dynasty } }
-				#}
-				#set_designated_heir = scope:preferred_heir
-			#}
-		}
-		if = { #
-			limit = {
-				is_independent_ruler = yes
-				NOT = { has_realm_law = official_succession_law }
-				exists = designated_heir
-				NOT = { designated_heir.dynasty = root.dynasty }
-				NOT = { designated_heir.top_liege = root.top_liege }
-			}
-			set_designated_heir = scope:preferred_heir
 		}
 
 		if = { #改朝换代
@@ -591,8 +585,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					scope:transfer_type = flag:created
 					scope:transfer_type = flag:inheritance
 					scope:transfer_type = flag:abdication
-				}
-				NOT = { has_trait = founding_monarch }
+				}				
 			}
 			save_scope_as = new_ruler
 			if = {
@@ -618,6 +611,12 @@ east_on_title_gain_effects = { #by 糜三小姐
 						}
 						every_vassal = { subtract = 5 }
 					}
+				}
+				if = {
+					limit = {
+						NOT = { has_trait = founding_monarch }
+					}
+					add_trait = founding_monarch
 				}
 			}
 

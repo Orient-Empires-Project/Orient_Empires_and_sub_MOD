@@ -1,0 +1,680 @@
+﻿##############
+# WAR VALUES #
+##############
+
+# Truce Durations
+## Since we want these to work out to nice, even numbers, we calc them manually rather than use multipliers.
+standard_truce_duration_days = {
+	value = 1825
+	# Deductions.
+	## Flexible truces perk.
+	if = {
+		limit = {
+			scope:attacker = { has_perk = flexible_truces_perk }
+		}
+		add = -450
+	}
+	## Certain struggle phases.
+	if = {
+		limit = {
+			scope:attacker = {
+				any_character_struggle = {
+					is_struggle_parameter_active_secondary_character_involvement_either_trigger = {
+						PARAMETER = truces_by_involved_or_interlopers_within_region_shorter
+						CHAR = scope:defender
+					}
+				}
+			}
+		}
+		add = -900
+	}
+	if = {
+		limit = {
+			scope:attacker = {
+				any_character_struggle = {
+					is_struggle_parameter_active_secondary_character_involvement_either_trigger = {
+						PARAMETER = truces_by_involved_or_interlopers_within_region_longer
+						CHAR = scope:defender
+					}
+				}
+			}
+		}
+		add = 900
+	}
+	# A truce should at least give a 2-year breather.
+	min = 730
+	if = {
+		limit = {
+			scope:attacker = {
+				any_character_war = {
+					primary_attacker = scope:attacker
+					primary_defender = scope:defender
+					using_cb = fp2_border_raid
+				}
+			}
+		}
+		multiply = 2
+	}
+}
+
+#Victory Prestige Experience Gain
+mongol_invasion_cb_prestige_experience_gain = 10
+
+#Ally contribution prestige gain
+mongol_invasion_cb_ally_prestige = 100
+
+#Prestige gain
+mongol_invasion_cb_prestige_gain = 250
+
+#White peace prestige values
+mongol_invasion_cb_prestige_white_peace = -100
+
+# Determined Independence Cultural Tradition
+determined_independence_defensive_advantage_value = 15
+
+#############
+# Raid
+#############
+
+# Practiced Pirates Cultural Tradition
+not_tribal_raid_prestige_multiplier = 1.5
+
+raid_gold_value = {	#How much cash does this settlement generate in a raid?
+	value = monthly_income
+	multiply = 10
+
+	#Sensible max-mins.
+	min = 30
+	max = 100
+
+	#Give a whole number.
+	ceiling = yes
+}
+
+viking_conquest_ai_score_value = {
+	value = 1
+	scope:attacker = {
+		if = {
+			limit = { can_use_viking_invasion_cbs_trigger = yes }
+			if = {
+				limit = { NOT = { culture = scope:defender.culture } }
+				add = 0.5
+				if = {
+					limit = {
+						NOT = { culture = { has_same_culture_heritage = scope:defender.culture } }
+					}
+					add = 0.5
+				}
+			}
+			if = {
+				limit = { NOT = { faith = scope:defender.faith } }
+				add = 0.5
+				if = {
+					limit = { NOT = { faith.religion = scope:defender.faith.religion } }
+					add = 0.5
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:defender.faith = {
+					has_doctrine_parameter = unreformed
+				}
+			}
+			multiply = 0.2
+		}
+		if = {
+			limit = {
+				scope:defender.faith = scope:attacker.faith
+			}
+			multiply = 0.2
+		}
+		if = { # Russian Vikings stay home
+			limit = {
+				scope:attacker = {
+					capital_province = {
+						geographical_region = world_europe_east
+					}
+					NOT = {
+						character_is_realm_neighbor = scope:defender
+					}
+				}
+			}
+			multiply = 0.1
+		}
+		if = { # Norsemen should prefer their historical targets
+			limit = {
+				scope:attacker = {
+					OR = {
+						capital_province = {
+							geographical_region = world_europe_north
+						}
+						capital_province = {
+							geographical_region = world_europe_west
+						}
+						capital_province = {
+							geographical_region = world_europe_west_francia
+						}
+						capital_province = {
+							geographical_region = world_europe_west_germania
+						}
+					}
+				}
+				scope:defender = {
+					OR = {
+						capital_province = {
+							geographical_region = world_europe_west
+						}
+						capital_province = {
+							geographical_region = world_europe_west_francia
+						}
+						capital_province = {
+							geographical_region = world_europe_west_germania
+						}
+					}
+				}
+			}
+			multiply = 10
+		}
+		if = { # Norsemen should not rush the Pope...
+			limit = {
+				scope:attacker.faith.religion = faith:norse_pagan.religion
+				scope:defender = {
+					has_title = title:k_papal_state
+				}
+			}
+			multiply = 0.01
+		}
+		# Haesteinn needs to stop merc'ing East Francia when the resulting kingdom simply will not last.
+		if = {
+			limit = { this = character:6878 }
+			# Assuming the player hasn't opted into batshit Vikings.
+			if = {
+				limit = {
+					NOT = { has_game_rule = fp1_scandi_adventurers_apocalyptic }
+				}
+				# Tell him to calm it down a bit and pick a damned duchy realm or something.
+				if = {
+					limit = {
+						scope:defender = {
+							OR = {
+								realm_size >= massive_realm_size
+								highest_held_title_tier >= tier_kingdom
+							}
+						}
+					}
+					multiply = 0
+				}
+				# ... and a bit of bonus score if said-realm is an NPC Mercia to get him to behave a bit more historically.
+				if = {
+					limit = {
+						scope:defender = {
+							primary_title = title:d_hereford
+							is_independent_ruler = yes
+							is_ai = yes
+						}
+					}
+					multiply = 100
+				}
+			}
+			# ... in which case, go extra wild.
+			else_if = {
+				limit = { has_game_rule = fp1_scandi_adventurers_apocalyptic }
+				# Nothing but a shiny new kingdom will satisfy apocalypse-Haesteinn.
+				if = {
+					limit = {
+						scope:defender = { highest_held_title_tier <= tier_duchy }
+					}
+					multiply = 0
+				}
+			}
+		}
+	}
+}
+
+struggle_conquest_ai_score_value = {
+	value = 1
+	scope:attacker = {
+		# Are they a different faith than me?
+		if = {
+			limit = {
+				NOT = { faith = scope:defender.faith }
+			}
+			add = 1
+		}
+		# Are they a different culture than me?
+		if = {
+			limit = {
+				NOT = { culture = scope:defender.culture }
+			}
+			add = 1
+		}
+		# Do I have a negative relationship with them?
+		if = {
+			limit = { has_relation_nemesis = scope:defender }
+			add = 2
+		}
+		else_if = {
+			limit = {
+				has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = 1
+		}
+		# Do I have a positive relationship with them?
+		if = {
+			limit = {
+				OR = {
+					has_relation_soulmate = scope:defender
+					has_relation_best_friend = scope:defender
+				}
+			}
+			add = -5
+		}
+		else_if = {
+			limit = {
+				has_any_good_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = -1
+		}
+		# Multiply this up or down per the phase.
+		## Some phases make people hunger for violence...
+		if = {
+			limit = {
+				OR = {
+					any_character_struggle = { is_struggle_type = iberian_struggle is_struggle_phase = struggle_iberia_phase_hostility }
+					any_character_struggle = { is_struggle_type = tartaria_struggle is_struggle_phase = struggle_tartaria_phase_hostility }
+				}
+				# Unless you're just not that sort of person.
+				NOR = {
+					has_trait = content
+					has_trait = compassionate
+				}
+			}
+			multiply = 2
+		}
+		## ... but in others, it seems abhorrent.
+		if = {
+			limit = {
+				OR = {
+					any_character_struggle = {
+						is_struggle_type = iberian_struggle
+						OR = {
+							is_struggle_phase = struggle_iberia_phase_compromise
+							is_struggle_phase = struggle_iberia_phase_conciliation
+						}
+					}
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						OR = {
+							is_struggle_phase = struggle_tartaria_phase_compromise
+							is_struggle_phase = struggle_tartaria_phase_conciliation
+						}
+					}
+				}
+				NOR = {
+					has_trait = ambitious
+					has_trait = callous
+					has_trait = sadistic
+				}
+			}
+			multiply = 0.5
+		}
+	}
+}
+
+# Raid for captives
+raid_for_captives_ai_score_value = {
+	value = 10
+	scope:attacker = {
+		if = {
+			limit = {
+				piety < 0
+			}
+			add = 15
+		}
+		if = {
+			limit = {
+				ai_zeal >= medium_positive_ai_value
+				piety < 500
+			}
+			add = 5
+		}
+		if = {
+			limit = {
+				ai_zeal >= very_high_positive_ai_value
+			}
+			add = ai_zeal
+		}
+		if = {
+			limit = {
+				piety > 500
+			}
+			multiply = 0.5
+		}
+		if = {
+			limit = {
+				ai_zeal < 0
+				NOT = {
+					piety < -100
+				}
+			}
+			multiply = 0
+		}
+	}
+}
+
+# Artifact wars
+
+relic_artifact_war_ai_score_value = {
+	value = 10
+	scope:attacker = {
+		if = {
+			limit = {
+				ai_greed > 0
+			}
+			add = {
+				value = ai_greed
+				divide = 2
+			}
+		}
+		if = {
+			limit = {
+				ai_zeal > 0
+			}
+			add = ai_zeal
+		}
+	}
+}
+
+artifact_war_ai_score_value = {
+	value = 10
+	scope:attacker = {
+		if = {
+			limit = {
+				ai_greed > 0
+			}
+			add = {
+				value = ai_greed
+				divide = 2
+			}
+		}
+		if = {
+			limit = {
+				ai_vengefulness > 0
+			}
+			add = ai_vengefulness
+		}
+	}
+}
+
+# Vassalization CB
+
+vassalize_default_size = 3
+
+vassalize_growth_per_innovation = 2
+
+vassalization_size_limit = {
+	value = vassalize_default_size
+	scope:attacker = {
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_casus_belli
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_chronicle_writing
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_divine_right
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_rightful_ownership
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+	}
+}
+
+#############
+# Vassalization CB
+#############
+
+vassalize_default_size = 3
+
+vassalize_growth_per_innovation = 2
+
+vassalization_size_limit = {
+	value = vassalize_default_size
+	scope:attacker = {
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_casus_belli
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_chronicle_writing
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_divine_right
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+		if = {
+			limit = {
+				culture = {
+					has_innovation = innovation_rightful_ownership
+				}
+			}
+			add = vassalize_growth_per_innovation
+		}
+	}
+}
+
+#############
+# GHWs
+#############
+third_of_defenders_strength = {
+	value = ghw_defenders_strength
+	multiply = 0.33
+}
+
+#############
+# Siege
+#############
+
+siege_base_capture_chance = {
+	value = 35
+
+	# Dynasty Perk: Practiced Kidnappers
+	if = {
+		limit = {
+			scope:occupant = {
+				exists = dynasty
+				dynasty = { has_dynasty_perk = fp1_pillage_legacy_3 }
+			}
+		}
+		add = 20
+	}
+	# Cultural Parameter: State Ransoms
+	if = {
+		limit = {
+			OR = {
+				# Either you're involved in large groups of the holding surrendering...
+				scope:barony.culture = { has_cultural_parameter = knights_die_less_but_are_captured_more }
+				# ... or you know your liege will pay your ransom.
+				scope:barony.holder.culture = { has_cultural_parameter = knights_die_less_but_are_captured_more }
+			}
+			# Ransoms or no, the primary participants & their heirs know better than to surrender.
+			character_is_potential_important_hostage = no
+			# And independent characters likewise have no incentive.
+			is_independent_ruler = no
+		}
+		add = 50
+	}
+}
+raid_base_capture_chance = {
+	value = 20
+
+	# Trait: Viking
+	if = {
+		limit = { has_trait = viking }
+		add = 5
+	}
+	# Dynasty Perk: Practiced Kidnappers
+	if = {
+		limit = {
+			exists = dynasty
+			dynasty = { has_dynasty_perk = fp1_pillage_legacy_3 }
+		}
+		add = 20
+	}
+}
+
+county_control_loss_value = {
+	value = -40
+
+	# Dynasty Perk: No Quarter
+	if = {
+		limit = {
+			root = {
+				exists = dynasty
+				dynasty = { has_dynasty_perk = fp1_pillage_legacy_5 }
+			}
+		}
+		add = -40
+	}
+}
+
+raid_county_control_loss_value = {
+	value = -10
+
+	# Dynasty Perk: No Quarter
+	if = {
+		limit = {
+			scope:raider = {
+				exists = dynasty
+				dynasty = { has_dynasty_perk = fp1_pillage_legacy_5 }
+			}
+		}
+		add = -20
+	}
+}
+
+#############
+# CB Costs
+#############
+
+
+scale_10_war_defender_win = {
+	value = 10
+
+	if = {
+		limit= {
+			scope:defender.culture = {
+				has_cultural_parameter = more_fame_for_successful_defensive_wars
+			}
+		}
+		multiply = 2
+	}
+}
+
+######################
+# AI Decision Making #
+######################
+# The two effects below are to be used in combination as "root_military_strength_higher_than_value > target_military_strength_root_value" to check player vs enemy strength
+root_military_strength_higher_than_value = { # Once again joe saves the day or erm, script.
+	value = 0
+	add = max_military_strength # Add num of troops
+	if = {
+		limit = {
+			any_ally = {
+				NOT = { has_truce = scope:target_military } 
+			}
+		}
+		every_ally = {
+			limit = {
+				NOT = { has_truce = scope:target_military }
+			}
+			add = max_military_strength
+		}
+	}
+	if = {
+		limit = { exists = var:ai_strength_multiplier }
+		multiply = var:ai_strength_multiplier  # 1.25 == 25% stronger than, remember to potty train your script and have it remove the variable after usage!!
+	}
+}
+
+target_military_strength_root_value = { # One above calcs player strength (plus multiplier), this one is enemy strenth
+	value = 0
+	add = scope:target_military.max_military_strength # this should be a character, probably a top liege
+	if = {
+		limit = {
+			any_ally = {
+				NOT = { has_truce = root } 
+			}
+		}
+		every_ally = {
+			limit =	{
+				NOT = { has_truce = root }
+			}
+			add = max_military_strength
+		}
+	}
+}
+
+war_attacker_total_strength_value = {
+	value = 0
+	every_war_attacker = { add = max_military_strength }
+}
+
+war_defender_total_strength_value = {
+	value = 0
+	every_war_defender = { add = max_military_strength }
+}
+
+war_attacker_total_strength_halved_value = {
+	value = war_attacker_total_strength_value
+	divide = 2
+}
+
+war_defender_total_strength_halved_value = {
+	value = war_defender_total_strength_value
+	divide = 2
+}
+
+war_attacker_total_strength_divided_value = {
+	value = war_attacker_total_strength_value
+	divide = 10
+}
+
+war_defender_total_strength_divided_value = {
+	value = war_defender_total_strength_value
+	divide = 10
+}

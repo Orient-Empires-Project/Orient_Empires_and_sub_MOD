@@ -1,33 +1,267 @@
-﻿# root: is involved (or interloper) character
-# Scope:struggle is the currently pulsing struggle.
-yearly_struggle_playable_pulse = {}
-
-# root: is involved (or interloper) character
-# Scope:struggle is the currently pulsing struggle.
-#five_year_struggle_playable_pulse = {
-#	random_events = {
-#		chance_to_happen = 95
-#		1 = 0
-#
-#		80 = fp2_struggle.1000
-#		50 = fp2_struggle.1001
-#		50 = fp2_struggle.1010
-#		45 = fp2_struggle.1020
-#		70 = fp2_struggle.2001
-#		80 = fp2_struggle.2003
-#		25 = fp2_struggle.2004 # The weights inside this event are a bit high, but since the event is struggle-exclusive it will probably not be an issue
-#		70 = fp2_struggle.2006
-#		70 = fp2_struggle.2007
-#		5 = fp2_struggle.2009
-#		90 = fp2_struggle.3001 # Not particularly struggle related, but making it only appear during the struggle makes it more unique and special
-#		50 = fp2_struggle.3011
-#		25 = fp2_struggle.3021 # Usually the lower chance is because the effects are too great, in this case it is to ensure people don't think every other iberian had discovered han powder.
-#	}
-#}
-
-tartaria_struggle_starting_events = {
+﻿tartaria_struggle_starting_events = {
 	events = {
 		oe_struggle.0003
 		neutral_struggle.0001
+	}
+}
+
+on_title_gain = {
+	on_actions = {
+		oe_struggle_on_title_gain_effects
+	}
+}	
+
+
+oe_struggle_on_title_gain_effects = {
+	effect = {
+		#Struggle Catalyst
+		if = {
+			limit = {
+				# We are only interested in the title within the Struggle Region
+				title:e_celestia = {
+					any_in_de_jure_hierarchy = {
+						this = scope:title
+					}
+				}
+				# Only for usurpation
+				scope:transfer_type = flag:usurped
+
+				root = {
+					any_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_usurp_title_tartaria
+							CHAR = root
+						}
+					}
+				}
+			}
+			root = {
+				every_character_struggle = {
+					involvement = involved
+					limit = {
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_usurp_title_tartaria
+							CHAR = root
+						}
+					}
+					activate_struggle_catalyst = {
+						catalyst = catalyst_usurp_title_tartaria
+						character = root
+					}
+				}
+			}
+		}
+		# 藩镇因子
+		if = {
+			limit = {
+				# We are only interested in the title within the Struggle Region_
+				is_corps_government_trigger = yes
+				root = {
+					any_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_fanzhen
+							CHAR = root
+						}
+					}
+				}
+			}
+			root = {
+				every_character_struggle = {
+					involvement = involved
+					limit = {
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_fanzhen
+							CHAR = root
+						}
+					}
+					activate_struggle_catalyst = {
+						catalyst = catalyst_fanzhen
+						character = root
+					}
+				}
+			}
+		}
+		# 羁縻因子
+		if = {
+			limit = {
+				# We are only interested in the title within the Struggle Region_
+				is_independent_ruler = yes
+				top_liege = { has_government = imperial_government }
+				NOT = { has_government = imperial_government }
+				root = {
+					any_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_jimi
+							CHAR = root
+						}
+					}
+				}
+			}
+			root = {
+				every_character_struggle = {
+					involvement = involved
+					limit = {
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_jimi
+							CHAR = root
+						}
+					}
+					activate_struggle_catalyst = {
+						catalyst = catalyst_jimi
+						character = root
+					}
+				}
+			}
+		}
+	}
+}
+
+on_explicit_claim_gain = {
+	effect = {
+		# Struggle Catalyst
+		if = {
+			limit = {
+				NOT = { scope:transfer_type = flag:inheritance }
+
+				title:e_celestia = {
+					any_in_de_jure_hierarchy = {
+						this = 	scope:title
+					}
+				}
+				root = {
+					any_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_gain_claim_on_title_tartaria
+							CHAR = root
+						}
+					}
+				}
+			}
+			root = {
+				every_character_struggle = {
+					involvement = involved
+					limit = {
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_gain_claim_on_title_tartaria
+							CHAR = root
+						}
+					}
+					activate_struggle_catalyst = {
+						catalyst = catalyst_gain_claim_on_title_tartaria
+						character = root
+					}
+				}
+			}
+		}
+	}
+}
+
+on_alliance_added = {
+	effect = {
+		# Struggle parameter
+		scope:first = {
+			if = {
+				limit = {
+					any_character_struggle = {
+						involvement = involved
+						#is_struggle_type = iberian_struggle
+						has_struggle_phase_parameter = piety_from_new_alliance
+						is_secondary_character_involvement_involved_trigger = {
+							CHAR = scope:second
+						}
+					}
+				}
+				add_piety = medium_piety_gain
+			}
+		}
+		scope:second = {
+			if = {
+				limit = {
+					any_character_struggle = {
+						involvement = involved
+						#is_struggle_type = iberian_struggle
+						has_struggle_phase_parameter = piety_from_new_alliance
+						is_secondary_character_involvement_involved_trigger = {
+							CHAR = scope:first
+						}
+					}
+				}
+				add_piety = medium_piety_gain
+			}
+		}
+
+		# Struggle Catalysts.
+		if = {
+			limit = {
+				scope:first = {
+					NOT = { faith = scope:second.faith }
+					any_character_struggle = {
+						involvement = involved
+						#is_struggle_type = iberian_struggle
+						has_struggle_phase_parameter = interfaith_marriages_available_between_involved_characters
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_formed_interreligious_alliance_with_important_character
+							CHAR = scope:second
+						}
+					}
+				}
+				scope:second = {
+					any_character_struggle = {
+						involvement = involved
+						#is_struggle_type = iberian_struggle
+						has_struggle_phase_parameter = interfaith_marriages_available_between_involved_characters
+					}
+				}
+			}
+			scope:first = {
+				every_character_struggle = {
+					involvement = involved
+					limit = {
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_formed_interreligious_alliance_with_important_character
+							CHAR = scope:second
+						}
+					}
+					activate_struggle_catalyst = {
+						catalyst = catalyst_formed_interreligious_alliance_with_important_character
+						character = scope:first
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:second = { realm_size >= catalyst_forming_alliance_with_major_uninvolved_power_power_realm_size_value }
+				scope:first = {
+					is_important_or_vip_struggle_character = yes
+					any_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst_secondary_character_involvement_neither_trigger = {
+							CATALYST = catalyst_forming_alliance_with_major_uninvolved_power
+							CHAR = scope:second
+						}
+					}
+				}
+			}
+			scope:first = {
+				every_character_struggle = {
+					involvement = involved
+					limit = {
+						activate_struggle_catalyst_secondary_character_involvement_neither_trigger = {
+							CATALYST = catalyst_forming_alliance_with_major_uninvolved_power
+							CHAR = scope:second
+						}
+					}
+					activate_struggle_catalyst = {
+						catalyst = catalyst_forming_alliance_with_major_uninvolved_power
+						character = scope:first
+					}
+				}
+			}
+		}
 	}
 }
