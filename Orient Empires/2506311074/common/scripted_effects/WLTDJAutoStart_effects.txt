@@ -2,7 +2,7 @@
 # by 往来天地间 WangLaiTianDiJian
 # WLTDJAutoStart
 
-#WLTDJ20220514
+#WLTDJ20220730
 
 WLTDJAutoStart_fill_duchy_ruler_function_effect = {
 	if = {
@@ -224,29 +224,46 @@ WLTDJAutoStart_create_ruler_function_effect = {#某些报错是因为某些实�
 
 
 
-WLTDJAutoStart_create_ruler_B_function_effect = {
+WLTDJAutoStart_create_ruler_B_function_effect = {#B会转移公爵头衔本身，伯爵成为公爵封臣；C则不会处理公爵头衔，而是相关公国内每个要处理的伯爵领生成人物
 	save_temporary_scope_as = temp_title
 	if = {
 		limit = { scope:temp_title.title_capital_county.holder = title:$LIEGE_TITLE$.holder }
-		create_character = {
-			location = scope:temp_title.title_capital_county.title_province #注意
-			template = WLTDJAutoStart_ruler_template
-			faith = scope:temp_title.title_capital_county.faith
-			culture = scope:temp_title.title_capital_county.culture
-			gender_female_chance = {
-				if = {
-					limit = { scope:temp_title.title_capital_county.faith = { has_doctrine = doctrine_gender_male_dominated } }
-					add = 0
-				}
-				else_if = {
-					limit = { scope:temp_title.title_capital_county.faith = { has_doctrine = doctrine_gender_female_dominated } }
-					add = 100
-				}
-				else = {
-					add = 50
+		if = {
+			limit = {
+				OR = {
+					NOT = { exists = holder }
+					holder = title:$LIEGE_TITLE$.holder
 				}
 			}
-			save_temporary_scope_as = temp_ruler
+			create_character = {
+				location = scope:temp_title.title_capital_county.title_province #注意
+				template = WLTDJAutoStart_ruler_template
+				faith = scope:temp_title.title_capital_county.faith
+				culture = scope:temp_title.title_capital_county.culture
+				gender_female_chance = {
+					if = {
+						limit = { scope:temp_title.title_capital_county.faith = { has_doctrine = doctrine_gender_male_dominated } }
+						add = 0
+					}
+					else_if = {
+						limit = { scope:temp_title.title_capital_county.faith = { has_doctrine = doctrine_gender_female_dominated } }
+						add = 100
+					}
+					else = {
+						add = 50
+					}
+				}
+				save_temporary_scope_as = temp_ruler
+			}
+
+		}
+		else_if = {
+			limit = {
+				exists = holder
+				NOT = { holder = title:$LIEGE_TITLE$.holder }
+				holder = { any_liege_or_above = { this = title:$LIEGE_TITLE$.holder } }
+			}
+			holder = { save_temporary_scope_as = temp_ruler }
 		}
 		scope:temp_title.title_capital_county = {
 			create_title_and_vassal_change = {
@@ -456,8 +473,3 @@ WLTDJAutoStart_copy_government_function_effect = {
 		change_government = holy_order_government
 	}
 }
-
-
-
-
-

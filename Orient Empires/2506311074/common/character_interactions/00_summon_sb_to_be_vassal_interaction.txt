@@ -1096,7 +1096,6 @@ revolt_liege_to_be_enemy_vassal_interaction = { #反叛互动
 offer_vassalization_interaction = { #要求臣服互动重写
 	category = interaction_category_vassal
 
-
 	desc = offer_vassalization_interaction_desc
 	
 	ai_targets = {
@@ -1142,7 +1141,10 @@ offer_vassalization_interaction = { #要求臣服互动重写
 	send_option = {
 		is_shown = {
 			scope:recipient = {
-				has_government = feudal_government
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
 			}
 		}
 		is_valid = {
@@ -1158,7 +1160,10 @@ offer_vassalization_interaction = { #要求臣服互动重写
 	send_option = {										
 		is_shown = {
 			scope:recipient = {
-				has_government = feudal_government
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
 			}
 		}
 		is_valid = {
@@ -1176,7 +1181,10 @@ offer_vassalization_interaction = { #要求臣服互动重写
 	send_option = {
 		is_shown = {
 			scope:recipient = {
-				has_government = feudal_government
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
 			}
 		}
 		is_valid = {
@@ -1192,7 +1200,10 @@ offer_vassalization_interaction = { #要求臣服互动重写
 	send_option = {
 		is_shown = {
 			scope:recipient = {
-				has_government = feudal_government
+				OR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
 			}
 		}
 		is_valid = {
@@ -1204,9 +1215,10 @@ offer_vassalization_interaction = { #要求臣服互动重写
 	send_option = { # Needed so that the AI can use the interaction
         is_shown = {
             scope:recipient = {
-                NOT = {
-                    has_government = feudal_government
-                }
+				NOR = {
+					has_government = feudal_government
+					has_government = imperial_government
+				}
             }
             scope:actor = {
                 is_ai = yes
@@ -1221,9 +1233,13 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			scope:actor = {
 				has_government = imperial_government
 			}
-			NOT = { scope:recipient = { has_government = imperial_government } }
-			NOT = { scope:recipient = { has_government = corps_government } }
-			NOT = { scope:recipient = { has_government = bureau_government } }
+			scope:recipient = { 
+				NOR = {
+					has_government = imperial_government
+					has_government = corps_government
+					has_government = bureau_government
+				}
+			}
 		}
 		is_valid = {
 			scope:recipient = {
@@ -1511,6 +1527,23 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			}
 			add = 5
 		}
+		modifier = { #Wide difference in rank 律令制等级差
+			desc = offer_vassalization_interaction_aibehavior_widetitletier_tt
+			trigger = {
+				scope:actor = {
+					OR = {
+						has_government = imperial_government
+						has_government = tribal_government
+						has_government = ulus_government
+					}
+					tier_difference = {
+						target = scope:recipient
+						value > 1
+					}
+				}
+			}
+			add = 15
+		}
 		modifier = { # Is the Rightful Liege of recipient
 			desc = offer_vassalization_interaction_aibehavior_rightfulliegetitleholder_tt
 			trigger = {
@@ -1550,17 +1583,18 @@ offer_vassalization_interaction = { #要求臣服互动重写
 			add = -100
 		}
 		modifier = { #Distant Realm — No Connection
-		desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
-		trigger = {
-			scope:actor = {
-				NOT = {
-					character_is_realm_neighbor = scope:recipient
+			desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
+			trigger = {
+				scope:actor = {
+					NOT = {
+						character_is_realm_neighbor = scope:recipient
+					}
 				}
+				exists = scope:recipient.capital_province
+				scope:recipient.capital_province = { squared_distance = { target = scope:actor.capital_province value < 200000 } }
 			}
-			scope:recipient.capital_province = { squared_distance = { target = scope:actor.capital_province value < 200000 } }
+			add = -250
 		}
-		add = -250
-	}
 		modifier = { #Remote Realm.
 			desc = offer_vassalization_interaction_aibehavior_remoterealm_tt
 			trigger = {
@@ -1569,12 +1603,13 @@ offer_vassalization_interaction = { #要求臣服互动重写
 						character_is_realm_neighbor = scope:recipient
 					}
 				}
+				exists = scope:recipient.capital_province
 				scope:recipient.capital_province = { squared_distance = { target = scope:actor.capital_province value >= 200000 } }
 			}
 			add = -500
 		}
 		modifier = {
-		desc = offer_vassalization_interaction_aibehavior_power_tt
+			desc = offer_vassalization_interaction_aibehavior_power_tt
 	  	  	add = {
 				value = 1
 					subtract = {
@@ -1583,6 +1618,68 @@ offer_vassalization_interaction = { #要求臣服互动重写
 					}
 				multiply = 20
 				ceiling = yes
+	  		}
+		}
+		modifier = { #律令制军力差
+			desc = offer_vassalization_interaction_aibehavior_power_tt
+			trigger = {				
+				scope:actor = {
+					is_ai = yes
+					has_government = imperial_government
+					capital_county = {
+						title_province = { geographical_region = world_asia_china }
+					}
+				}
+				exists = scope:recipient.capital_county
+				scope:recipient = {
+					has_government = imperial_government
+					capital_county = {
+						title_province = { geographical_region = world_asia_china }
+					}
+				}
+			}
+	  	  	add = {
+				value = 1
+					subtract = {
+					value = scope:recipient.max_military_strength
+					divide = { value = scope:actor.max_military_strength min = 1 }
+					}
+				multiply = 100
+	  		}
+		}
+		modifier = { #部落制军力差
+			desc = offer_vassalization_interaction_aibehavior_power_tt
+			trigger = {				
+				scope:actor = {
+					OR = {
+						has_government = ulus_government
+						has_government = tribal_government
+					}
+					capital_county = {
+						OR = {
+							title_province = { geographical_region = world_steppe }
+							title_province = { geographical_region = world_steppe_cathay }
+						}
+					}
+				}
+				exists = scope:recipient.capital_county
+				scope:recipient = {
+					has_government = tribal_government
+					capital_county = {
+						OR = {
+							title_province = { geographical_region = world_steppe }
+							title_province = { geographical_region = world_steppe_cathay }
+						}
+					}
+				}
+			}
+	  	  	add = {
+				value = 1
+					subtract = {
+					value = scope:recipient.max_military_strength
+					divide = { value = scope:actor.max_military_strength min = 1 }
+					}
+				multiply = 100
 	  		}
 		}
 
@@ -1917,6 +2014,37 @@ offer_vassalization_interaction = { #要求臣服互动重写
 				is_ai = no
 			}
 		}
+
+		modifier = { # 律令制
+			add = 20
+			scope:actor = {
+				has_government = imperial_government
+				capital_county = {
+					title_province = { geographical_region = world_asia_china }
+				}
+			}
+			scope:recipient = {
+				has_government = imperial_government
+				capital_county = {
+					title_province = { geographical_region = world_asia_china }
+				}
+			}
+		}
+		modifier = { # 中华文化
+			add = 50
+			scope:actor = {
+				culture = { has_cultural_pillar = heritage_chinese }
+				capital_county = {
+					title_province = { geographical_region = world_asia_china }
+				}
+			}
+			scope:recipient = {
+				culture = { has_cultural_pillar = heritage_chinese }
+				capital_county = {
+					title_province = { geographical_region = world_asia_china }
+				}
+			}
+		}
 	}
 }
 
@@ -2195,16 +2323,6 @@ offer_fealty_interaction = {
 		flag = low_obligations
 		localization = low_obligations	
 	}
-	# High starting obligations
-	send_option = {
-		is_shown = {
-			scope:actor = {
-				has_government = imperial_government
-			}
-		}
-		flag = high_obligations	
-		localization = high_obligations	
-	}
 
 	# Medium starting obligations
 	send_option = {										
@@ -2222,7 +2340,7 @@ offer_fealty_interaction = {
 
 	}
 
-	# Low starting obligations
+	# High starting obligations
 	send_option = {
 		is_shown = {
 			scope:actor = {
@@ -2232,8 +2350,8 @@ offer_fealty_interaction = {
 				}
 			}
 		}
-		flag = low_obligations
-		localization = low_obligations	
+		flag = high_obligations	
+		localization = high_obligations	
 	}
 
 	# Medium-high starting obligations + religious protection
