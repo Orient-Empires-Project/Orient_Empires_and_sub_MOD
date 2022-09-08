@@ -224,18 +224,18 @@ east_on_after_lobby_effects = {
 				every_realm_county = {
 					limit = { 
 						OR = {
-							culture = { has_cultural_pillar = heritage_chinese }
+							culture = culture:han
 						}					
 					}
 					#土地兼并
 					add_county_modifier = county_corruption_inefficient_census_modifier
 					add_county_modifier = county_corruption_inefficient_tax_collection_modifier
-					#change_county_control = -30
+					#change_county_control = -10
 				}
 				every_realm_county = {
 					limit = { 
 						OR = {
-							county_control <= 75
+							county_control <= 80
 						}
 					} #兵士逃亡
 					add_county_modifier = county_corruption_deserting_levies_modifier
@@ -245,7 +245,7 @@ east_on_after_lobby_effects = {
 				every_realm_county = {
 					limit = { 
 						OR = {
-							county_control <= 55
+							county_control <= 60
 						}
 					} #盐帮、洪泛			
 					add_county_modifier = {
@@ -509,8 +509,8 @@ east_on_title_gain_effects = { #by 糜三小姐
 			if = {
 				limit = {
 					is_independent_ruler = yes
-					exists = designated_heir
-					designated_heir = { NOT = { dynasty = root.dynasty } }
+					exists = primary_heir
+					primary_heir = { NOT = { dynasty = root.dynasty } }
 				}
 				set_designated_heir = scope:preferred_heir
 			}
@@ -528,10 +528,33 @@ east_on_title_gain_effects = { #by 糜三小姐
 			if = {
 				limit = {
 					is_independent_ruler = yes
-					exists = designated_heir
-					designated_heir = { NOT = { dynasty = root.dynasty } }
+					exists = primary_heir
+					primary_heir = { NOT = { dynasty = root.dynasty } }
 				}
 				set_designated_heir = scope:preferred_heir
+			}
+		}
+		if = { # 契丹崛起
+			limit = {
+				AND = {
+					has_primary_title = title:k_khitan
+					any_held_title = {
+						tier >= tier_kingdom
+						count > 1
+					}
+					culture = { has_cultural_pillar = heritage_mongolic }
+				}
+				NOR = {
+					has_realm_law = high_partition_succession_law
+					has_realm_law = single_heir_succession_law
+				}
+			}
+			add_realm_law_skip_effects = high_partition_succession_law
+			if = {
+				limit = {
+					primary_title = { has_title_law = steppe_elective_succession_law }
+				}
+				primary_title = { remove_title_law = steppe_elective_succession_law }
 			}
 		}
 		if = { #获得王爵改继承人
@@ -559,8 +582,8 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			if = {
 				limit = {
-					exists = designated_heir
-					designated_heir = { NOT = { dynasty = root.dynasty } }
+					exists = primary_heir
+					primary_heir = { NOT = { dynasty = root.dynasty } }
 				}
 				set_designated_heir = scope:preferred_heir
 			}
@@ -592,7 +615,13 @@ east_on_title_gain_effects = { #by 糜三小姐
 				limit = { NOT = { has_realm_law = male_only_law } }
 				add_realm_law_skip_effects = male_only_law
 			}
-
+			if = {
+				limit = {
+					exists = primary_heir
+					primary_heir = { NOT = { dynasty = root.dynasty } }
+				}
+				set_designated_heir = scope:preferred_heir
+			}
 			scope:new_ruler = {
 				add_tyranny = {
 					value = -20
@@ -685,24 +714,22 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 
 			#表态效忠			
-#			every_vassal = {
-#				limit = {
-#					primary_title.tier > tier_county
-#					NOT = { top_liege = scope:new_ruler }
-#					NOT = { this = scope:new_ruler }
-#				}
-#				trigger_event = {
-#					id = east_title.0001
-#					days = 5
-#				}
-#			}
+			#every_dejure_vassal_title_holder = {
+				#limit = {
+					#primary_title.tier > tier_county
+					#NOT = { top_liege = scope:new_ruler }
+					#NOT = { this = scope:new_ruler }
+				#}
+				#trigger_event = {
+					#id = east_title.0001
+					#days = 5
+				#}
+			#}
 			title:e_celestia = {
 				every_dejure_vassal_title_holder = {
 					limit = {
-						primary_title.tier >= tier_county
-						scope:title.tier > tier_county
 						is_independent_ruler = yes
-						character_is_land_realm_neighbor = scope:new_ruler
+						#character_is_land_realm_neighbor = scope:new_ruler
 						NOT = { top_liege = scope:new_ruler }
 						NOT = { this = scope:new_ruler }
 					}

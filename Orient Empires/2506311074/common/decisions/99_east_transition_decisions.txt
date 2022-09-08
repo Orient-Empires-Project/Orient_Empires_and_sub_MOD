@@ -315,6 +315,7 @@ adopt_imperial_government_decision = {
 			has_government = clan_government
 			has_government = corps_government
 			has_government = bureau_government
+			has_government = ulus_government
 		}
 		OR = {
 			is_independent_ruler = yes
@@ -327,18 +328,33 @@ adopt_imperial_government_decision = {
 			OR = {
 				culture = { has_cultural_pillar = heritage_chinese }
 				top_liege = { has_title = title:e_celestia }
-				any_neighboring_top_liege_realm_owner = { 
-					AND = {
-						culture = { has_cultural_pillar = heritage_chinese }
-						has_title = title:e_celestia
+				AND = {
+					highest_held_title_tier <= tier_kingdom
+					any_neighboring_top_liege_realm_owner = { 
+						AND = {
+							culture = { has_cultural_pillar = heritage_chinese }
+							has_title = title:e_celestia
+						}
 					}
 				}
-				capital_province.county = {  #首都接受汉文化
-					culture = {
-						cultural_acceptance = {
-							target = culture:han
-							value >= 75
-						}
+				culture = {
+					cultural_acceptance = {
+						target = culture:han
+						value >= 75
+					}
+				}
+				AND = {
+					has_government = ulus_government
+					capital_province = {
+						geographical_region = world_asia_china
+					}
+				}
+				AND = {
+					any_neighboring_top_liege_realm_owner = { 
+						is_oe_imperial_official_trigger = yes
+					}
+					capital_province = {
+						geographical_region = world_asia_china
 					}
 				}
 			}
@@ -352,7 +368,7 @@ adopt_imperial_government_decision = {
 	}
 
 	cost = {
-		prestige = 750
+		prestige = 500
 	}
 
 	effect = {
@@ -365,7 +381,7 @@ adopt_imperial_government_decision = {
 	}
 
 	ai_will_do = {
-		base = 50
+		base = 100
 	}
 }
 
@@ -559,7 +575,7 @@ convert_whole_realm_to_feudalism_decision = { #by Linnéa Thimrén
 	}
 }
 
-
+#守护神
 select_personal_deity_hinduism_decision = {
 	picture = "gfx/interface/illustrations/decisions/decision_personal_religious.dds"
 
@@ -618,6 +634,7 @@ select_personal_deity_hinduism_decision = {
 	}
 }
 
+#觐见
 pay_homage_decision = {
 	ai_check_interval = 45
 	picture = "gfx/interface/illustrations/decisions/decision_knight_kneeling.dds"
@@ -640,10 +657,11 @@ pay_homage_decision = {
 	is_shown = {
 		is_landed = yes
 		is_independent_ruler = no
-		#OR = {
-			#has_government = feudal_government
-			#has_government = clan_government
-		#}
+		OR = {
+			has_government = feudal_government
+			has_government = clan_government
+			has_government = imperial_government
+		}
 		liege = { has_royal_court = yes }
 	}
 
@@ -782,7 +800,58 @@ pay_homage_decision = {
 					}
 					add = 90
 				}
-				
+				if = { # Certain AI's really do not want increased obligations
+					limit = {
+						OR = {
+							has_trait = ambitious
+							has_trait = arrogant
+							ai_greed >= 50
+						}
+					}
+					add = -50
+				}
+			}
+		}
+
+		item = { # Contract
+			value = pay_homage_contract
+			is_shown = { has_government = imperial_government }
+			is_valid = {
+				custom_tooltip = { # Contract can be changed
+					text = pay_homage_contract_modifiable_tt
+					vassal_contract_has_modifiable_obligations = yes
+				}
+				custom_tooltip = { # Contract not at highest
+					text = pay_homage_contract_increasable_tt
+					OR = {
+						vassal_contract_obligation_level_can_be_increased = imperial_government_taxes
+						vassal_contract_obligation_level_can_be_increased = imperial_government_levies
+					}
+				}
+			}
+			current_description = pay_homage_contract_desc
+			localization = pay_homage_decision_option_contract
+			icon = "gfx/interface/icons/message_feed/a_catch_all_councillor_icon.dds"
+			ai_chance = { # More likely if contract is already lenient
+				value = 10
+				if = {
+					limit = {
+						OR = {
+							vassal_contract_obligation_level:imperial_government_levies = imperial_levies_low_level
+							vassal_contract_obligation_level:imperial_government_taxes = imperial_tax_low_level
+						}
+					}
+					add = 40
+				}
+				else_if = {
+					limit = {
+						OR = {
+							vassal_contract_obligation_level:imperial_government_levies = imperial_levies_exempt_level
+							vassal_contract_obligation_level:imperial_government_taxes = imperial_tax_exempt_level
+						}
+					}
+					add = 90
+				}
 				if = { # Certain AI's really do not want increased obligations
 					limit = {
 						OR = {
@@ -881,7 +950,7 @@ pay_homage_decision = {
 					custom_tooltip = pay_homage_decision_effects_contract_gold
 				}
 				else = { custom_tooltip = pay_homage_decision_effects_contract_gold }
-			}
+			}			
 			hidden_effect = { set_vassal_contract_modification_blocked = yes }
 		}
 		stress_impact = {

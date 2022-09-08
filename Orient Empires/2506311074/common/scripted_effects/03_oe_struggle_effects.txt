@@ -353,3 +353,159 @@ oe_struggle_conciliation_cultural_acceptance_effect = {
 		}
 	}
 }
+
+pay_homage_vassal_reward_effect = {
+	scope:homage_vassal = {
+		if = { # No gift
+			limit = { var:homage_type = flag:homage_submission }
+			dynasty = { add_dynasty_prestige = miniscule_dynasty_prestige_gain }
+			if = { # Not embarrassed
+				limit = {
+					NOR = {
+						exists = scope:homage_faux_pas_language
+						exists = scope:homage_faux_pas_clumsy
+						exists = scope:homage_faux_pas_infatuation
+						exists = scope:homage_faux_pas_delivery
+					}
+				}
+				if = {
+					limit = {
+						scope:homage_liege = { is_ai = yes }
+					}
+					reverse_add_opinion = {
+						target = scope:homage_liege
+						modifier = respect_opinion
+						opinion = 10
+					}
+				}
+				add_prestige = miniscule_prestige_gain
+			}
+			else = { # Embarrassed
+				# Mocked
+				if = { 
+					limit = { exists = scope:homage_faux_pas_mocked }
+					add_prestige = medium_prestige_loss
+					if = {
+						limit = {
+							scope:homage_liege = { is_ai = yes }
+						}
+						reverse_add_opinion = {
+							target = scope:homage_liege
+							modifier = disappointed_opinion
+							opinion = -10
+						}
+					}
+				}
+				# Brushed off
+				else = { 
+					add_prestige = minor_prestige_loss
+					if = {
+						limit = {
+							scope:homage_liege = { is_ai = yes }
+						}
+						reverse_add_opinion = {
+							target = scope:homage_liege
+							modifier = respect_opinion
+							opinion = 10
+						}
+					}
+				}
+			}
+		}
+		else_if = { # Gift
+			limit = { exists = dynasty }
+			dynasty = { add_dynasty_prestige = minor_dynasty_prestige_gain }
+			if = { # Not embarrassed
+				limit = {
+					NOR = {
+						exists = scope:homage_faux_pas_language
+						exists = scope:homage_faux_pas_clumsy
+						exists = scope:homage_faux_pas_infatuation
+						exists = scope:homage_faux_pas_delivery
+					}
+				}
+				if = {
+					limit = {
+						scope:homage_liege = { is_ai = yes }
+					}
+					reverse_add_opinion = {
+						target = scope:homage_liege
+						modifier = respect_opinion
+						opinion = 20
+					}
+				}
+				add_prestige = medium_prestige_gain
+			}
+			else = { # Embarrassed
+				if = { # Mocked
+					limit = { exists = scope:homage_faux_pas_mocked }
+					add_prestige = medium_prestige_loss
+					if = {
+						limit = {
+							scope:homage_liege = { is_ai = yes }
+						}
+						reverse_add_opinion = {
+							target = scope:homage_liege
+							modifier = contempt_opinion
+							opinion = -10
+						}
+					}
+					progress_towards_rival_effect = {
+						CHARACTER = scope:homage_liege
+						OPINION = no
+					}
+				}
+				else = { # Brushed off
+					add_prestige = minor_prestige_loss
+					if = {
+						limit = {
+							scope:homage_liege = { is_ai = yes }
+						}
+						reverse_add_opinion = {
+							target = scope:homage_liege
+							modifier = respect_opinion
+							opinion = 20
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Add revoke reason on all faction-members if they white peace a revolt-war
+on_white_peace_faction_revolt_war = {
+	if = {
+		limit = { exists = scope:attacker.joined_faction  }
+		scope:attacker.joined_faction = {
+			save_scope_as = current_faction
+			every_faction_member = {
+				if = {
+					limit = {
+						exists = scope:current_faction # Can get destroyed as we loop through
+					}
+					leave_faction_with_cooldown_effect = {
+						FACTION = scope:current_faction
+						YEARS = faction_war_white_peace_cooldown
+					}
+				}
+				else = {
+					add_faction_cooldown_effect = { YEARS = faction_war_white_peace_cooldown }
+				}
+				scope:defender = {
+					add_opinion = {
+						target = prev
+						modifier = vassal_wp_faction_revolt_war
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					exists = this
+				}
+				add_faction_discontent = -200
+			}
+		}
+	}
+}
