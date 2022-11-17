@@ -4,6 +4,7 @@ grant_vassal_interaction = {
 	category = interaction_category_vassal
 	common_interaction = yes
 	interface = transfer_vassal
+	icon = icon_vassal
 
 	special_interaction = grant_vassal_interaction
 
@@ -52,13 +53,13 @@ grant_vassal_interaction = {
 	}
 
 	is_valid_showing_failures_only = {
-		scope:recipient = { is_diplomatically_available = yes }
+		scope:recipient = { is_busy_in_events_localised = yes }
 		scope:recipient = { is_landed = yes }
 		NOT = { scope:actor = { is_at_war_with = scope:recipient } }
 		trigger_if = {
 			limit = { exists = scope:secondary_actor }
 			NOT = { scope:secondary_actor = { is_at_war_with = scope:recipient } }
-			scope:secondary_actor = { is_diplomatically_available = yes }
+			scope:secondary_actor = { is_busy_in_events_localised = yes }
 			scope:recipient.primary_title.tier > scope:secondary_actor.primary_title.tier
 		}
 		trigger_if = {
@@ -207,6 +208,7 @@ retract_vassal_interaction = {
 	ai_max_reply_days = 9
 	popup_on_receive = yes
 	pause_on_receive = yes
+	icon = icon_liege
 
 	desc = retract_vassal_interaction_desc
 
@@ -265,10 +267,10 @@ retract_vassal_interaction = {
 				}
 			}
 		}
-		scope:recipient = { is_diplomatically_available = yes }
+		scope:recipient = { is_busy_in_events_localised = yes }
 		trigger_if = {
 			limit = { exists = scope:secondary_recipient }
-			scope:secondary_recipient = { is_diplomatically_available = yes }
+			scope:secondary_recipient = { is_busy_in_events_localised = yes }
 		}
 		scope:recipient = { NOT = { has_strong_hook = scope:actor } }
 	}
@@ -407,6 +409,31 @@ retract_vassal_interaction = {
 			desc = AI_REFUSAL_IS_TREASON
 		}
 
+		modifier = {
+			add = 20
+			scope:recipient = {
+				has_trait = trusting
+			}
+			desc = TAKE_THE_VOWS_TRUSTING
+		}
+		
+		modifier = {
+			add = 20
+			scope:recipient = {
+				has_trait = content
+			}
+			desc = INTERACTION_CONTENT
+		}
+		
+		modifier = {
+			add = 20
+			scope:actor.current_military_strength > scope:recipient.current_military_strength
+			scope:recipient = {
+				has_trait = craven
+			}
+			desc = INTERACTION_CRAVEN
+		}
+
 		ai_value_modifier = {
 			who = scope:recipient
 			ai_greed = {
@@ -445,6 +472,26 @@ retract_vassal_interaction = {
 			}
 			add = 50
 			desc = AI_VASSAL_HOLDS_REALM_CAPITAL
+		}
+
+		modifier = {
+			exists = scope:actor.primary_title.title_capital_county
+			scope:secondary_recipient = {
+				NOR = {
+					any_sub_realm_county = {
+						this = scope:actor.primary_title.title_capital_county
+					}
+					any_sub_realm_duchy = {
+						this = scope:actor.primary_title.title_capital_county.de_jure_liege
+					}
+				}
+				primary_title.tier = tier_county
+				any_sub_realm_county = {
+					de_jure_liege = scope:actor.primary_title.title_capital_county.de_jure_liege
+				}
+			}
+			add = 30
+			desc = AI_VASSAL_IS_IN_CAPITAL_DUCHY
 		}
 		
 		modifier = { #Sub-Vassal is NOT De jure of current Vassal.
@@ -492,8 +539,8 @@ retract_vassal_interaction = {
 			add = {
 				value = 1
 					subtract = {
-					value = scope:recipient.max_military_strength
-					divide = { value = scope:actor.max_military_strength min = 1 }
+					value = scope:recipient.current_military_strength
+					divide = { value = scope:actor.current_military_strength min = 1 }
 					}
 				multiply = 100
 			}
@@ -534,6 +581,19 @@ retract_vassal_interaction = {
 					add = -25
 				}
 			}
+		}
+		modifier = { # AI Mongols, tyranny wars just delay the inevitable fun!
+			scope:actor = {
+				is_ai = yes
+				OR = {
+					has_trait = greatest_of_khans
+					has_character_modifier = the_great_khan_modifier
+				}
+			}
+			scope:recipient = {
+				is_ai = yes
+			}
+			add = 500
 		}
 	}
 
@@ -592,6 +652,21 @@ retract_vassal_interaction = {
 		}
 		# Always retract preferred capital if you hold the duchy, or the duchy is uncreated
 		modifier = {
+			years_from_game_start >= 3
+			OR = {
+				scope:actor = {
+					is_at_war = no
+					gold > 0
+				}
+				scope:recipient = {
+					is_imprisoned_by = scope:actor
+				}
+			}
+			scope:actor = { # The HRE doesn't need endless civil wars
+				NOT = {
+					primary_title = title:e_hre
+				}
+			}
 			exists = scope:actor.primary_title.title_capital_county
 			OR = {
 				scope:actor = {
@@ -616,7 +691,116 @@ retract_vassal_interaction = {
 					NOT = { has_revoke_title_reason = scope:recipient }
 				}
 			}
-			add = 1000
+			add = 1100
+		}
+		# If below domain limit, try to revoke counties in your capital duchy despite tyranny, sometimes
+		modifier = {
+			years_from_game_start >= 3
+			scope:actor = { is_at_war = no }
+			scope:actor = { # The HRE doesn't need endless civil wars
+				NOT = {
+					primary_title = title:e_hre
+				}
+			}
+			scope:actor.domain_size < scope:actor.domain_limit
+			scope:actor.primary_title.tier >= tier_kingdom
+			trigger_if = {
+				limit = {
+					scope:actor = {
+						domain_size > 3
+					}
+				}
+				scope:actor = {
+					NOR = {
+						has_trait = generous
+						has_trait = just
+					}
+				}
+			}
+			exists = scope:actor.primary_title.title_capital_county
+			OR = {
+				scope:actor.primary_title.title_capital_county.holder = scope:actor # You have your de jure capital already
+				NOT = {
+					scope:actor.primary_title.title_capital_county.holder.top_liege = scope:actor.top_liege # Or your De Jure capital isn't in your realm
+				}
+			}
+			scope:secondary_recipient = {
+				primary_title.tier = tier_county
+				any_sub_realm_county = {
+					de_jure_liege = scope:actor.primary_title.title_capital_county.de_jure_liege # Under the same Duchy as your capital
+				}
+			}
+			OR = { # And the capital duchy, if it exists at all
+				AND = {
+					exists = scope:actor.primary_title.title_capital_county.de_jure_liege.holder
+					scope:actor.primary_title.title_capital_county.de_jure_liege.holder = scope:actor
+				}
+				AND = {
+					exists = scope:actor.primary_title.title_capital_county.de_jure_liege.holder
+					NOT = {
+						scope:actor.primary_title.title_capital_county.de_jure_liege.holder.top_liege = scope:actor.top_liege
+					}
+				}
+				scope:actor.primary_title.title_capital_county.de_jure_liege = {
+					is_title_created = no
+				}
+			}
+			
+			scope:recipient = { # Not from players
+				is_ai = yes
+			}
+			
+			OR = { # Tyranny tolernance is based on rationality
+				AND = {
+					scope:actor.ai_rationality < 0
+					scope:actor.tyranny <= 15 # Don't go crazy with tyranny, just a bit is fine
+				}
+				AND = {
+					scope:actor.ai_rationality >= 0
+					scope:actor.ai_rationality < 50
+					scope:actor.tyranny <= 5 # Don't go crazy with tyranny, just a bit is fine
+				}
+				AND = {
+					scope:actor.ai_rationality >= 50
+					scope:actor.tyranny <= 0 # Don't go crazy with tyranny, just a bit is fine
+				}
+				AND = {
+					scope:actor.ai_rationality >= 0
+					scope:recipient = {
+						is_imprisoned_by = scope:actor
+					}
+					scope:actor = { has_revoke_title_reason = scope:recipient }
+				}
+				AND = {
+					scope:actor.ai_rationality < 0
+					scope:recipient = {
+						is_imprisoned_by = scope:actor
+					}
+				}
+			}
+			# To do this, the target must be weak or willing in some way
+			OR = {
+				scope:actor.current_military_strength > scope:recipient.current_military_strength # Must be stronger
+				scope:recipient = {
+					is_imprisoned_by = scope:actor
+				}
+			}
+			scope:recipient = {
+				OR = {
+					has_trait = craven
+					has_trait = content
+					has_trait = trusting
+					has_dread_level_towards = {
+						target = scope:actor
+						level >= 1
+					}
+					opinion = { target = scope:actor value >= 40 }
+					is_imprisoned_by = scope:actor
+					scope:actor = { has_revoke_title_reason = scope:recipient }
+				}
+			}
+			
+			add = 1100
 		}
 		# Always retract preferred capital duchy
 		modifier = {
@@ -684,7 +868,7 @@ retract_vassal_interaction = {
 				OR = {
 					gold < minimum_ai_gold_value_for_tyranny_wars
 					AND = {
-						scope:actor.max_military_strength < scope:recipient.max_military_strength
+						scope:actor.current_military_strength < scope:recipient.current_military_strength
 						gold < comfortable_ai_gold_value_for_tyranny_wars
 					}
 				}
@@ -1564,6 +1748,7 @@ stop_defender_vassal_war_interaction = {
 
 ask_for_pardon_interaction = {
 	category = interaction_category_vassal
+	icon = scroll_scales
 
 
 	desc = ask_for_pardon_interaction_desc
@@ -1577,7 +1762,7 @@ ask_for_pardon_interaction = {
 	
 
 	is_valid_showing_failures_only = {
-		scope:recipient = { is_diplomatically_available = yes }
+		scope:recipient = { is_busy_in_events_localised = yes }
 		scope:actor = {
 			NOT = { is_at_war_with = scope:recipient }
 			NOT = { is_imprisoned_by = scope:recipient }#Then you use the regular ransom interactions
@@ -1708,6 +1893,7 @@ ask_for_pardon_interaction = {
 
 pardon_interaction = {
 	category = interaction_category_friendly
+	icon = scroll_scales
 
 	desc = pardon_interaction_desc
 	
@@ -2067,7 +2253,7 @@ vassal_claim_liege_title_interaction = {
 					limit = {
 						scope:actor = {
 							any_character_struggle = {
-								phase_has_catalyst = catalyst_gain_claim_on_title
+								phase_has_catalyst = catalyst_gain_claim_on_title_tartaria
 							}
 							has_character_flag = agenda_towards_escalation
 						}
@@ -2078,7 +2264,7 @@ vassal_claim_liege_title_interaction = {
 					limit = {
 						scope:actor = {
 							any_character_struggle = {
-								phase_has_catalyst = catalyst_gain_claim_on_title
+								phase_has_catalyst = catalyst_gain_claim_on_title_tartaria
 							}
 						}
 					}

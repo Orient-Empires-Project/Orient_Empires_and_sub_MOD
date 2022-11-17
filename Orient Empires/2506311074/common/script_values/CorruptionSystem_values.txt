@@ -87,8 +87,7 @@ CorruptionSystem_realm_size_value = {
 		limit = { sub_realm_size >= 10 }
 		add = {
 			value = sub_realm_size
-			subtract = domain_size
-			multiply = 10
+			divide = domain_size
 		}
 	}
 	desc = CorruptionSystem_realm_size_value_desc
@@ -96,7 +95,12 @@ CorruptionSystem_realm_size_value = {
 
 CorruptionSystem_consort_value = {
 	if = {
-		limit = { any_consort = { count >= 2 is_alive = yes } }
+		limit = {
+			any_consort = {
+				count >= 2
+				is_available_non_primary_consort = yes
+			}
+		}
 		every_consort = { add = 10 }
 		#subtract = 10
 	}
@@ -107,7 +111,7 @@ CorruptionSystem_stewardship_value = {
 	add = {
 		value = stewardship
 		subtract = liege.stewardship
-		multiply = 3
+		multiply = 5
 	}
 	desc = CorruptionSystem_stewardship_value_desc
 }
@@ -125,7 +129,7 @@ CorruptionSystem_dynasty_value = {
 CorruptionSystem_imperial_contract_0_value = {
 	if = {
 		limit = { vassal_contract_has_flag = imperial_contract_0 }
-		add = 50
+		add = 10
 	}
 	desc = CorruptionSystem_imperial_contract_0_value_desc
 }
@@ -133,7 +137,7 @@ CorruptionSystem_imperial_contract_0_value = {
 CorruptionSystem_imperial_contract_1_value = {
 	if = {
 		limit = { vassal_contract_has_flag = imperial_contract_1 }
-		add = 80
+		add = 40
 	}
 	desc = CorruptionSystem_imperial_contract_1_value_desc
 }
@@ -141,7 +145,7 @@ CorruptionSystem_imperial_contract_1_value = {
 CorruptionSystem_imperial_contract_2_value = {
 	if = {
 		limit = { vassal_contract_has_flag = imperial_contract_2 }
-		add = 100
+		add = 80
 	}
 	desc = CorruptionSystem_imperial_contract_2_value_desc
 }
@@ -590,10 +594,10 @@ CorruptionSystem_tax_level_value = {#契约等级修正
 
 
 #税收义务，受腐败度影响 #游牧君修改
-CorruptionSystem_corruption_tax_multiplier = -0.02
+CorruptionSystem_corruption_tax_multiplier = -0.01
 CorruptionSystem_corruption_tax_multiplier_display = { value = CorruptionSystem_corruption_tax_multiplier multiply = 100 }
-CorruptionSystem_corruption_tax_max = 0.5
-CorruptionSystem_corruption_tax_min = -0.5
+CorruptionSystem_corruption_tax_max = 0.1
+CorruptionSystem_corruption_tax_min = -0.1
 CorruptionSystem_corruption_tax_value = {#腐败度修正
 	value = CorruptionSystem_corruption_excluding_contract_value
 	multiply = CorruptionSystem_corruption_tax_multiplier
@@ -612,8 +616,8 @@ CorruptionSystem_corruption_tax_value_static = {#腐败度修正
 
 
 #税收义务，受封臣领地位于领主主头衔法理外的比例影响
-CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_player_multiplier = -0.25
-CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_ai_multiplier = -0.1
+CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_player_multiplier = -0.2
+CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_ai_multiplier = -0.05
 CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_impact = {
 	value = CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege
 	if = {
@@ -634,8 +638,8 @@ CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_impact_s
 }
 
 #税收义务，受封臣领地与领主文化不同的比例影响
-CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_player_multiplier = -0.25
-CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_ai_multiplier = -0.1
+CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_player_multiplier = -0.2
+CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_ai_multiplier = -0.05
 CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_impact = {
 	value = CorruptionSystem_proportion_of_realm_with_different_culture_of_liege
 	if = {
@@ -656,8 +660,8 @@ CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_impact_
 }
 
 #税收义务，受封臣领地与领主信仰不同的比例影响
-CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_player_multiplier = -0.25
-CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_ai_multiplier = -0.1
+CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_player_multiplier = -0.2
+CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_ai_multiplier = -0.05
 CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_impact = {
 	value = CorruptionSystem_proportion_of_realm_with_different_faith_of_liege
 	if = {
@@ -725,6 +729,25 @@ CorruptionSystem_tax_value_static = {#最终比例（后续仍受特殊契约类
 		value = CorruptionSystem_base_tax_rate_value
 		multiply = CorruptionSystem_tax_level_value
 	}
+}
+
+# 显示用截留税款
+CorruptionSystem_tax_value_tooltip = {#
+	value = 1
+	subtract = {
+		value = CorruptionSystem_tax_before_obligation_level_value
+		divide = CorruptionSystem_base_tax_rate_value	
+	}
+	multiply = 100
+	if = {
+		limit = { 
+			NOT = {
+				has_government = imperial_government
+			}
+		}
+		multiply = 0
+	}
+	min = 0
 }
 
 
@@ -873,10 +896,10 @@ CorruptionSystem_levies_level_value = {#契约等级修正
 
 #征召兵义务，受腐败度影响
 
-CorruptionSystem_corruption_levies_multiplier = -0.002
+CorruptionSystem_corruption_levies_multiplier = -0.001
 CorruptionSystem_corruption_levies_multiplier_display = { value = CorruptionSystem_corruption_levies_multiplier multiply = 100 }
 CorruptionSystem_corruption_levies_max = 0.1
-CorruptionSystem_corruption_levies_min = -0.5
+CorruptionSystem_corruption_levies_min = -0.1
 CorruptionSystem_corruption_levies_value = {#腐败度修正
 	value = CorruptionSystem_corruption_excluding_contract_value
 	multiply = CorruptionSystem_corruption_levies_multiplier

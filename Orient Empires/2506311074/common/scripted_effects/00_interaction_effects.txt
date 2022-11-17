@@ -1638,6 +1638,50 @@ educate_child_interaction_effect = {
 	guardian_add_opinion_effect = { GUARDIAN = scope:guardian WARD_LIEGE = scope:ward_liege WARD = scope:ward }
 }
 
+educate_child_event_effect = {
+	scope:ward = {
+		#Set relation and move character
+		set_relation_guardian = scope:guardian
+
+		if = {
+			limit = {
+				scope:guardian = { is_landed = yes }
+				scope:ward = { is_landed = no }
+				NOT = {
+					scope:guardian = scope:ward.host
+				}
+			}
+			visit_court_of = scope:guardian
+		}
+		else_if = {
+			limit = {
+				scope:guardian = { is_landed = no }
+				scope:ward = { is_landed = yes }
+				NOT = {
+					scope:ward = scope:guardian.host
+				}
+			}
+			scope:guardian = {
+				visit_court_of = scope:ward
+			}
+		}
+		else_if = {
+			limit = {
+				scope:guardian = { is_landed = no }
+				scope:ward = { is_landed = no }
+				exists = scope:guardian.host
+				NOT = {
+					scope:guardian.host = scope:ward.host
+				}
+			}
+			visit_court_of = scope:guardian.host
+		}
+	}
+
+	#Opinions
+	guardian_add_opinion_effect = { GUARDIAN = scope:guardian WARD_LIEGE = scope:ward_liege WARD = scope:ward }
+}
+
 offer_ward_interaction_effect = {
 	scope:ward = {
 		#Set relation and move character
@@ -1898,6 +1942,8 @@ offer_guardianship_interaction = {
 			limit = {
 				scope:guardian = { is_landed = no }
 				scope:ward = { is_landed = no }
+				exists = scope:guardian.host
+				exists = scope:ward.host
 				NOT = {
 					scope:guardian.host = scope:ward.host
 				}
@@ -2113,6 +2159,11 @@ offer_vassalization_interaction_effect = {
 			liege = scope:actor
 			change = scope:change
 		}
+		add_opinion = {
+			modifier = became_vassal
+			target = scope:actor
+			opinion = 10
+		}
 	}
 	resolve_title_and_vassal_change = scope:change
 
@@ -2183,6 +2234,19 @@ offer_vassalization_interaction_effect = {
 					vassal_contract_set_obligation_level = { type = special_imperial_corps level = 2 }
 				}		
 			}
+		}
+		else_if = {
+			limit = {
+				has_government = clan_government
+				scope:religious_exemption_clan = yes
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+				}		
+			}
+			custom_tooltip = religious_protection_tt
 		}
 	}
 }
@@ -2272,6 +2336,19 @@ offer_fealty_interaction_effect = {
 					vassal_contract_set_obligation_level = { type = special_imperial_corps level = 2 }
 				}		
 			}
+		}
+		else_if = {
+			limit = {
+				has_government = clan_government
+				scope:religious_exemption_clan = yes
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+				}		
+			}
+			custom_tooltip = religious_protection_tt
 		}
 	}
 }
@@ -2691,11 +2768,15 @@ revoke_title_interaction_effect = {
 				}
 				remove_relation_potential_rival = scope:actor
 			}
-			set_relation_rival = scope:actor
+			set_relation_rival = {
+				target = scope:actor
+				reason = rival_revoked_title_reversed
+			}
 		}
 		else = {
 			progress_towards_rival_effect = {
 				CHARACTER = scope:actor
+				REASON = rival_revoked_title_progress
 				OPINION = no
 			}
 		}
@@ -3151,7 +3232,7 @@ title_revocation_stress_effect = {
 	}
 	else = {
 		stress_impact = {
-			generous = medium_stress_impact_gain
+			generous = minor_stress_impact_gain
 			forgiving = minor_stress_impact_gain
 		}
 	}

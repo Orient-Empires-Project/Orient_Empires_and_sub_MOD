@@ -12,6 +12,7 @@ east_title.0001 = {
 
 	trigger = {
 		is_at_war_with_liege = no
+		capital_province = { geographical_region = world_asia_china }
 	}
 	immediate = {
 		save_scope_as = china_vassal
@@ -180,9 +181,16 @@ east_title.0001 = {
 			modifier = { #I am a King!
 				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
 				trigger = {
+					scope:china_vassal = { is_oe_imperial_government_trigger = yes }
+				}
+				add = -100
+			}
+			modifier = { #I am a King!
+				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+				trigger = {
 					scope:china_vassal = { highest_held_title_tier >= tier_kingdom }
 				}
-				add = -50
+				add = -100
 			}
 			modifier = { #We just fought against each other.
 				desc = offer_vassalization_interaction_aibehavior_recent_war_tt
@@ -194,6 +202,15 @@ east_title.0001 = {
 					}
 				}
 				add = -2000
+			}
+			modifier = { #We just fought against each other.
+				desc = offer_vassalization_interaction_aibehavior_recent_war_tt
+				trigger = {
+					scope:china_vassal = {
+						is_at_war_with = scope:new_ruler
+					}
+				}
+				add = -500
 			}
 			modifier = { #I fought an independence war against you.
 				desc = offer_vassalization_interaction_aibehavior_independence_war_tt
@@ -268,11 +285,11 @@ east_title.0001 = {
 	  	  		add = {
 					value = 1
 						subtract = {
-						value = scope:china_vassal.max_military_strength
-						divide = { value = scope:new_ruler.max_military_strength min = 1 }
+						value = scope:china_vassal.current_military_strength
+						divide = { value = scope:new_ruler.current_military_strength min = 1 }
 						}
-					multiply = 20
-					ceiling = yes
+					multiply = 100
+					#ceiling = yes
 	  			}
 			}
 
@@ -322,7 +339,7 @@ east_title.0001 = {
 						dynasty = scope:new_ruler.dynasty
 					}
 				}
-				add = 5
+				add = 15
 			}
 			modifier = { #Cultural modifiers.
 				add = -10
@@ -1414,38 +1431,28 @@ east_title.0005 = {
 			save_scope_as = change
 		}
 		scope:china_vassal = {
+			every_held_title = {
+				limit = { tier >= scope:new_ruler.primary_title.tier }
+				add_to_list = titles_to_destroy
+			}
+		}
+		every_in_list = {
+			list = titles_to_destroy
+			scope:new_ruler = {
+				destroy_title = prev
+			}
+		}
+		scope:china_vassal = {
 			change_liege = {
 				liege = scope:new_ruler
 				change = scope:change
 			}
-			every_held_title = {
-				limit = { tier > tier_kingdom }
-				add_to_list = titles_to_destroy
-			}
-		}
-		every_in_list = {
-			list = titles_to_destroy
-			scope:new_ruler = {
-				destroy_title = prev
-			}
 		}
 		resolve_title_and_vassal_change = scope:change
 
-		scope:china_vassal = {
-			every_held_title = {
-				limit = { tier = tier_kingdom }
-				add_to_list = titles_to_destroy
-			}
-		}
-		every_in_list = {
-			list = titles_to_destroy
-			scope:new_ruler = {
-				destroy_title = prev
-			}
-		}
-		scope:china_vassal = {
-			add_realm_law_skip_effects = official_succession_law
-		}
+		#scope:china_vassal = {
+			#add_realm_law_skip_effects = official_succession_law
+		#}
 
 		ai_chance = 100
 	}

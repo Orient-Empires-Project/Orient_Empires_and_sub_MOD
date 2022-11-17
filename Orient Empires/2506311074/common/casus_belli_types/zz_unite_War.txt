@@ -8,20 +8,24 @@
 	allowed_for_character = {
 		scope:attacker = {
 			exists = capital_province
-			is_independent_ruler = yes
 			OR = {
 				capital_province = { geographical_region = world_asia_china }
 				culture = { has_cultural_pillar = heritage_chinese }
 			}
+			NOT = { is_bureau_government_trigger = yes }
 		}
 	}
 	allowed_against_character = {
-		scope:defender = {
-			exists = capital_province
-			is_independent_ruler = yes
-			OR = {
-				capital_province = { geographical_region = world_asia_china }
-				#culture = { has_cultural_pillar = heritage_chinese }
+		exists = capital_province
+		OR = {
+			capital_province = { geographical_region = world_asia_china }
+			#culture = { has_cultural_pillar = heritage_chinese }
+		}
+		NOT = { liege = scope:attacker.liege }
+		scope:attacker = {
+			NAND = {
+				is_independent_ruler = no
+				highest_held_title_tier <= scope:defender.highest_held_title_tier 
 			}
 		}
 	}
@@ -39,15 +43,18 @@
 					is_oe_imperial_official_trigger = yes
 					is_ai = yes
 				}
+				scope:defender = {
+					is_ai = yes
+					is_oe_imperial_official_trigger = no
+				}
 			}
 			scope:defender = {
-				is_ai = yes
 				trigger_event = {
 					id = east_title.0001
 					days = 3
 				}
 			}
-		}
+		}		
 	}
 	
 	cost = {
@@ -156,6 +163,7 @@
 						character_is_realm_neighbor = scope:attacker
 						NOT = { this = scope:defender }
 						NOT = { this = scope:attacker }
+						NOT = { has_truce = title:e_celestia.holder }
 					}
 					trigger_event = {
 						id = east_title.0001
@@ -360,7 +368,6 @@ steppe_war = {
 			culture = { has_cultural_parameter = can_recruit_open_specialist }
 			capital_province = { geographical_region = world_steppe_cathay }
 		}
-		is_independent_ruler = yes
 		highest_held_title_tier >= tier_duchy 
 	}
 	allowed_against_character = {

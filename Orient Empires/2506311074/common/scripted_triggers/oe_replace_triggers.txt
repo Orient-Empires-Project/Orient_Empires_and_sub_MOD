@@ -1,0 +1,376 @@
+﻿######################################################################
+# Government
+######################################################################
+
+building_requirement_tribal_holding_in_county = {
+	scope:holder = {
+		has_government = tribal_government
+	}
+	county = {
+		any_county_province = {
+			has_holding_type = tribal_holding
+		}
+	}
+}
+
+building_requirement_tribal_ulus = {
+	scope:holder = {
+		OR = {
+			has_government = tribal_government
+			has_government = ulus_government
+		}
+	}
+}
+
+######################################################################
+# interaction
+######################################################################
+
+title_revocation_is_tyrannical_trigger = {
+	NOR = {
+		has_revoke_title_reason = scope:recipient
+		has_claim_on = scope:landed_title
+		AND = {
+			has_government = imperial_government
+			has_primary_title = title:e_celestia
+			scope:recipient = {
+				is_bureau_government_trigger = yes
+			}
+		}
+		faith = {
+			scope:recipient = {
+				NOT = { vassal_contract_has_flag = religiously_protected}
+			}
+			OR = {
+				AND = {								
+					has_doctrine_parameter = pluralism_righteous_revocation_tyranny_reduced
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value = faith_evil_level
+					}
+				}
+				AND = {								
+					has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value >= faith_hostile_level
+					}
+				}
+			}
+		}
+	}
+}
+
+vassal_revocation_is_tyrannical_trigger = {
+	NOR = {
+		has_revoke_title_reason = scope:recipient
+		faith = {
+			OR = {
+				AND = {								
+					has_doctrine_parameter = pluralism_righteous_revocation_tyranny_reduced
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value = faith_evil_level
+					}
+				}
+				AND = {								
+					has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value >= faith_hostile_level
+					}
+				}
+			}
+		}
+		AND = {
+			has_government = imperial_government
+			has_primary_title = title:e_celestia
+			scope:recipient = {
+				is_bureau_government_trigger = yes
+			}
+		}
+	}
+}
+
+# Marriage
+could_marry_character_trigger = {
+	save_temporary_scope_as = can_marry_check
+	can_marry_common_trigger = yes
+	$CHARACTER$ = { can_marry_common_trigger = yes }
+	#Opposite genders if you don't have accepted same-sex marriage game rule enabled and your faith supports it
+	trigger_if = {
+		limit = { #If you're someone's courtier, your liege can marry you anyway
+			NOT = { is_courtier_of = $CHARACTER$ }
+			allowed_to_marry_same_sex_trigger = no
+		}
+		sex_opposite_of = $CHARACTER$
+	}
+	trigger_if = {
+		limit = { #If you're someone's courtier, your liege can marry you anyway
+			$CHARACTER$ = { NOT = { is_courtier_of = scope:can_marry_check } }
+			$CHARACTER$ = { allowed_to_marry_same_sex_trigger = no }
+		}
+		sex_opposite_of = $CHARACTER$
+	}
+	trigger_if = {
+		limit = {
+			is_courtier_of = $CHARACTER$
+			$CHARACTER$ = { allowed_to_marry_same_sex_trigger = no }
+		}
+		sex_opposite_of = $CHARACTER$
+	}
+	trigger_if = {
+		limit = {
+			$CHARACTER$ = { is_courtier_of = scope:can_marry_check }
+			allowed_to_marry_same_sex_trigger = no
+		}
+		sex_opposite_of = $CHARACTER$
+	}
+	#Have you recently divorced this character?
+	NOT = {
+		has_opinion_modifier = {
+			modifier = divorced_me_opinion
+			target = $CHARACTER$
+		}
+	}
+	#Faith hostility & consanguinity
+	trigger_if = {
+		limit = { NOT = { is_courtier_of = $CHARACTER$ } } #If you're someone's courtier, your liege can marry you anyway
+		faith = {
+			faith_allows_marriage_consanguinity_trigger = {
+				CHARACTER_1 = scope:can_marry_check
+				CHARACTER_2 = $CHARACTER$
+			}
+			#faith_hostility_level = {
+			#	target = $CHARACTER$.faith
+			#	value < faith_hostility_prevents_marriage_level
+			#}
+		}
+	}
+	trigger_if = {
+		limit = { $CHARACTER$ = { NOT = { is_courtier_of = scope:can_marry_check } } } #If you're someone's courtier, your liege can marry you anyway
+		$CHARACTER$.faith = {
+			faith_allows_marriage_consanguinity_trigger = {
+				CHARACTER_1 = scope:can_marry_check
+				CHARACTER_2 = $CHARACTER$
+			}
+			#faith_hostility_level = {
+			#	target = scope:can_marry_check.faith
+			#	value < faith_hostility_prevents_marriage_level
+			#}
+		}
+	}
+	NOT = {
+		scope:can_marry_check = { is_spouse_of = $CHARACTER$ }
+	}
+	NOT = {
+		scope:can_marry_check = { is_parent_of = $CHARACTER$ }
+	}
+}
+
+######################################################################
+# dynasty_legacies
+######################################################################
+
+#eligible_for_fp2_dynasty_legacies_trigger = {
+#	has_fp2_dlc_trigger = yes
+#	dynasty = {
+#		OR = {
+#			dynast = {
+#				OR = {
+#					any_character_struggle = {
+#						involvement = involved
+#						#is_struggle_type = iberian_struggle
+#					}
+#					culture = {
+#						has_cultural_pillar = heritage_iberian
+#					}
+#					AND = {
+#						exists = capital_province
+#						capital_province = {
+#							geographical_region = world_europe_west_iberia
+#						}
+#					}
+#				}
+#			}
+#		}
+#	}
+#}
+
+### Legal trigger list
+
+can_change_single_heir_dynasty_house_succession_law_trigger = {
+	trigger_if = {
+		limit = {
+			culture = { has_cultural_pillar = heritage_west_slavic }
+			NOT = {
+				has_realm_law_flag = can_change_succession_laws
+			}
+		}
+		culture = {
+			has_innovation = innovation_table_of_princes
+		}
+	}
+	trigger_else_if = {
+		limit = { realm_law_use_tribal_authority = yes }
+		custom_description = {
+			text = "has_tribal_law_allowing_succession_law_change"
+			has_realm_law_flag = can_change_succession_laws
+		}
+	}
+	trigger_else_if = {
+		limit = { culture = { has_cultural_pillar = heritage_tunguse } }
+		culture = {
+			OR = {
+				has_innovation = innovation_world_cathay
+				has_cultural_parameter = unlock_maa_asia_tunguse_ss
+			}
+		}
+	}
+	trigger_else = {
+		custom_description = {
+			text = "has_crown_law_allowing_succession_law_change"
+			has_realm_law_flag = can_change_succession_laws
+		}
+	}
+	custom_description = {
+		text = "no_powerful_vassal_with_negative_opinion"
+		NOT = {
+			any_vassal = {
+				is_powerful_vassal = yes
+				opposes_succession_law_change_trigger = yes
+			}
+		}
+	}
+}
+
+######################################################################
+# contract_obligation
+######################################################################
+
+# Requires local_var:<obligation_type> to be set for feudal obligations
+# WHO = Who's contract levels are being checked
+has_changed_contract_obligation_trigger = {
+	$WHO$ = { save_temporary_scope_as = obligation_check }
+	trigger_if = {
+		limit = { $WHO$ = { has_government = feudal_government } }
+		custom_description = {
+			text = "modify_vassal_contract_select_different_obligation_level"
+			OR = {
+				local_var:feudal_government_taxes != scope:obligation_check.vassal_contract_obligation_level:feudal_government_taxes
+				local_var:feudal_government_levies != scope:obligation_check.vassal_contract_obligation_level:feudal_government_levies
+				local_var:special_contract != scope:obligation_check.vassal_contract_obligation_level:special_contract
+				local_var:religious_rights != scope:obligation_check.vassal_contract_obligation_level:religious_rights
+				local_var:fortification_rights != scope:obligation_check.vassal_contract_obligation_level:fortification_rights
+				local_var:coinage_rights != scope:obligation_check.vassal_contract_obligation_level:coinage_rights
+				local_var:succession_rights != scope:obligation_check.vassal_contract_obligation_level:succession_rights
+				local_var:war_declaration_rights != scope:obligation_check.vassal_contract_obligation_level:war_declaration_rights
+				local_var:council_rights != scope:obligation_check.vassal_contract_obligation_level:council_rights
+				local_var:title_revocation_rights != scope:obligation_check.vassal_contract_obligation_level:title_revocation_rights
+				local_var:jizya_special_rights != scope:obligation_check.vassal_contract_obligation_level:jizya_special_rights
+			}
+		}
+	}
+	trigger_else_if = {
+		limit = { $WHO$ = { has_government = imperial_government } }
+		custom_description = {
+			text = "modify_vassal_contract_select_different_obligation_level"
+			OR = {
+				local_var:imperial_government_taxes != scope:obligation_check.vassal_contract_obligation_level:imperial_government_taxes
+				local_var:imperial_government_levies != scope:obligation_check.vassal_contract_obligation_level:imperial_government_levies
+				local_var:special_imperial_contract != scope:obligation_check.vassal_contract_obligation_level:special_imperial_contract
+				local_var:special_imperial_corps != scope:obligation_check.vassal_contract_obligation_level:special_imperial_corps
+				local_var:special_imperial_bureau != scope:obligation_check.vassal_contract_obligation_level:special_imperial_bureau
+				local_var:special_imperial_royal != scope:obligation_check.vassal_contract_obligation_level:special_imperial_royal
+				
+				local_var:religious_rights != scope:obligation_check.vassal_contract_obligation_level:religious_rights
+				local_var:fortification_rights != scope:obligation_check.vassal_contract_obligation_level:fortification_rights
+				local_var:coinage_rights != scope:obligation_check.vassal_contract_obligation_level:coinage_rights
+				local_var:succession_rights != scope:obligation_check.vassal_contract_obligation_level:succession_rights
+				local_var:war_declaration_rights != scope:obligation_check.vassal_contract_obligation_level:war_declaration_rights
+				local_var:council_rights != scope:obligation_check.vassal_contract_obligation_level:council_rights
+				local_var:title_revocation_rights != scope:obligation_check.vassal_contract_obligation_level:title_revocation_rights
+				local_var:jizya_special_rights != scope:obligation_check.vassal_contract_obligation_level:jizya_special_rights
+
+				local_var:marriage_favor_rights != scope:obligation_check.vassal_contract_obligation_level:marriage_favor_rights
+			}
+		}
+	}
+	trigger_else_if = {
+		limit = { $WHO$ = { has_government = corps_government } }
+		custom_description = {
+			text = "modify_vassal_contract_select_different_obligation_level"
+			OR = {		
+				local_var:special_contract != scope:obligation_check.vassal_contract_obligation_level:special_contract
+				local_var:religious_rights != scope:obligation_check.vassal_contract_obligation_level:religious_rights
+				local_var:fortification_rights != scope:obligation_check.vassal_contract_obligation_level:fortification_rights
+				local_var:coinage_rights != scope:obligation_check.vassal_contract_obligation_level:coinage_rights
+				local_var:succession_rights != scope:obligation_check.vassal_contract_obligation_level:succession_rights
+				local_var:war_declaration_rights != scope:obligation_check.vassal_contract_obligation_level:war_declaration_rights
+				local_var:council_rights != scope:obligation_check.vassal_contract_obligation_level:council_rights
+				local_var:title_revocation_rights != scope:obligation_check.vassal_contract_obligation_level:title_revocation_rights
+				local_var:jizya_special_rights != scope:obligation_check.vassal_contract_obligation_level:jizya_special_rights
+				local_var:iqta_special_rights != scope:obligation_check.vassal_contract_obligation_level:iqta_special_rights
+				local_var:ghazi_special_rights != scope:obligation_check.vassal_contract_obligation_level:ghazi_special_rights
+				local_var:marriage_favor_rights != scope:obligation_check.vassal_contract_obligation_level:marriage_favor_rights
+			}
+		}
+	}
+	trigger_else = {
+		custom_description = {
+			text = "modify_non_feudal_vassal_contract_select_different_obligation_level"
+			OR = {
+				local_var:special_contract != scope:obligation_check.vassal_contract_obligation_level:special_contract
+				local_var:religious_rights != scope:obligation_check.vassal_contract_obligation_level:religious_rights
+				local_var:war_declaration_rights != scope:obligation_check.vassal_contract_obligation_level:war_declaration_rights
+				local_var:council_rights != scope:obligation_check.vassal_contract_obligation_level:council_rights
+				local_var:title_revocation_rights != scope:obligation_check.vassal_contract_obligation_level:title_revocation_rights
+				local_var:jizya_special_rights != scope:obligation_check.vassal_contract_obligation_level:jizya_special_rights
+				local_var:iqta_special_rights != scope:obligation_check.vassal_contract_obligation_level:iqta_special_rights
+				local_var:ghazi_special_rights != scope:obligation_check.vassal_contract_obligation_level:ghazi_special_rights
+				local_var:marriage_favor_rights != scope:obligation_check.vassal_contract_obligation_level:marriage_favor_rights
+			}
+		}
+	}
+}
+
+#has_bp1_dlc_trigger = {
+#	always = yes
+#}
+
+
+artifact_low_rarity_trigger = {
+	trigger_if = {
+		limit = { exists = scope:artifact }
+		scope:artifact = {
+			OR = {
+				rarity = masterwork
+				rarity = common
+			}
+		}
+	}
+}
+
+artifact_medium_rarity_trigger = {
+	trigger_if = {
+		limit = { exists = scope:artifact }
+		scope:artifact = {
+			OR = {
+				rarity = masterwork
+				rarity = famed
+			}
+		}
+	}
+}
+
+artifact_high_rarity_trigger = {
+	trigger_if = {
+		limit = { exists = scope:artifact }
+		scope:artifact = {
+			OR = {
+				rarity = famed
+				rarity = illustrious
+			}
+		}
+	}
+}

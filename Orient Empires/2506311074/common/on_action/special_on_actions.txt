@@ -137,21 +137,21 @@ on_shihao_effect = {
 				}
 			}		
 		}
-		if = {
-			limit = {
-				scope:death_man = { exists = primary_spouse }
-				scope:death_man.primary_spouse = { is_alive = yes }
-				exists = primary_heir
-			}
-#			scope:death_man.primary_spouse = {
-#				set_employer = root.primary_heir
-#				assign_councillor_type = {
-#					type = empress_dowager
-#					target = root.primary_heir
-#					fire_on_actions = no
-#				}
-#			}
-		}
+		#if = {
+			#limit = {
+				#scope:death_man = { exists = primary_spouse }
+				#scope:death_man.primary_spouse = { is_alive = yes }
+				#exists = primary_heir
+			#}
+			#scope:death_man.primary_spouse = {
+				#set_employer = root.primary_heir
+				#assign_councillor_type = {
+					#type = empress_dowager
+					#target = root.primary_heir
+					#fire_on_actions = no
+				#}
+			#}
+		#}
 		
 	}
 }
@@ -160,6 +160,7 @@ on_title_gain = {
 	on_actions = {
 		guohao_effects
 		yamato_on_title_gain_effects
+		zunhao_effects
 	}
 }
 
@@ -169,13 +170,15 @@ guohao_effects = {
 			limit = {
 				scope:title = title:e_celestia
 				exists = capital_province
-				exists = scope:previous_holder
-				NOT = {
-					root.house = scope:previous_holder.house
-				}
-				NOR = {
+				OR = {
+					AND = {
+						exists = scope:previous_holder
+						NOR = {					
+							scope:transfer_type = flag:inheritance
+							root.house = scope:previous_holder.house
+						}
+					}
 					scope:transfer_type = flag:created
-					scope:transfer_type = flag:inheritance
 				}
 				is_ai = yes
 			}
@@ -193,13 +196,6 @@ guohao_effects = {
 				}
 				add_trait = founding_monarch
 			}
-
-			else_if = {
-				limit = {
-					royal_members_trigger = yes ##前皇族
-				}
-				add_trait = restoration_monarch
-			}
 			if = {
 				limit = {
 					OR = {
@@ -216,6 +212,7 @@ guohao_effects = {
 				}
 				title:e_celestia = { set_title_name = e_tang }
 				title:e_celestia = { set_coa = e_tang }
+				title:e_celestia = { set_color_from_title = title:e_tang }
 			}
 			if = {
 				limit = {
@@ -325,6 +322,7 @@ guohao_effects = {
 				}
 				title:e_celestia = { set_title_name = e_han }
 				title:e_celestia = { set_coa = e_han }
+				title:e_celestia = { set_color_from_title = title:e_han }
 			}
 			else_if = {
 				limit = {
@@ -580,6 +578,10 @@ guohao_effects = {
 				limit = {
 					root.capital_province.kingdom = title:k_jin
 					has_title = title:k_jin
+					NOR = {
+						dynasty = dynasty:1000049851
+						dynasty = dynasty:1000049852
+					}
 				}
 				if = {
 					limit = { royal_members_trigger = no } ##非皇族
@@ -1818,6 +1820,16 @@ yamato_on_title_gain_effects = {
 				dynasty = dynasty:1000048861
 			}
 		}
+		#高丽新罗
+		#if = {
+			#limit = {
+				#has_title = title:k_silla
+				#culture = culture:senhan
+				#scope:title = title:k_goryeo
+				#is_ai = yes
+			#}
+			#destroy_title = title:k_goryeo
+		#}
 		#消除新政体
 		if = {
 			limit = {
@@ -1859,5 +1871,23 @@ on_title_destroyed = {
 		scope:landed_title = {
 			set_title_name = e_tang
 		}
+	}
+}
+
+
+zunhao_effects = {
+	trigger = {
+		scope:title = primary_title
+		exists = scope:secondary_title
+		primary_title.tier > scope:secondary_title.tier
+		highest_held_title_tier >= tier_county
+		is_ai = no
+		OR = {
+			has_government = tribal_government
+			has_government = ulus_government
+		}
+	}
+	effect = {
+		trigger_event = nianhao.2
 	}
 }

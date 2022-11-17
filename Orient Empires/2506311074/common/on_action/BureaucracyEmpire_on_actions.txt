@@ -37,16 +37,14 @@ BureaucracyEmpire_on_title_gain = {
 		has_realm_law = official_succession_law
 		#伯爵级以上
 		AND = {
-			#highest_held_title_tier >= tier_county
-			highest_held_title_tier < tier_kingdom
+			highest_held_title_tier >= tier_county
+			highest_held_title_tier <= tier_kingdom
 			NOT = { has_trait = peasant_leader }
 			is_independent_ruler = no
 		}
-		#非内阁成员
-		is_councillor = no
 	}
 	on_actions = {
-		delay = { days = 30 }
+		delay = { days = 10 }
 		BureaucracyEmpire_on_title_gain_inheritance #官僚制帝国MOD，角色继承头衔时触发
 		#BureaucracyEmpire_on_title_gain_granted #官僚制帝国MOD，角色被授予头衔时触发
 	}
@@ -61,6 +59,7 @@ BureaucracyEmpire_on_title_gain_inheritance = {
 			scope:transfer_type = flag:granted #被授予头衔
 			scope:transfer_type = flag:usurped #篡夺头衔
 		}
+		is_independent_ruler = no
 		#liege = { NOT = { is_corps_government_trigger = yes } }
 	}
 	effect = { 
@@ -73,8 +72,12 @@ BureaucracyEmpire_on_title_gain_inheritance = {
 						AND = {
 							exists = scope:temp_holder.primary_title
 							highest_held_title_tier < scope:temp_holder.primary_title.tier
+							is_available_adult = yes
+						}
+						AND = {
+							courtier_allowed_to_leave_trigger = yes
+							is_ruler = no
 						}					
-						is_ruler = no
 					}	
 				}
 			}
@@ -131,12 +134,10 @@ BureaucracyEmpire_on_death_inter = {
 		#伯爵级以上
 		AND = {
 			highest_held_title_tier >= tier_county
-			highest_held_title_tier < tier_kingdom
+			highest_held_title_tier <= tier_kingdom
 			NOT = { has_trait = peasant_leader }
 			is_independent_ruler = no
 		}
-		#非内阁成员
-		#is_councillor = no
 	}
 	effect = { 
 		#不是继承，而是选择一个新的官员继任 
@@ -145,14 +146,17 @@ BureaucracyEmpire_on_death_inter = {
 				exists = var:oe_heir
 				exists = scope:temp_holder			
 				var:oe_heir = {
-					top_liege = scope:temp_holder.top_liege #国内角色
-					is_councillor = no
+					target_is_liege_or_above = scope:temp_holder.top_liege #国内角色				
 					OR = {
 						AND = {
 							exists = scope:temp_holder.primary_title
 							highest_held_title_tier < scope:temp_holder.primary_title.tier
+							is_available_adult = yes
 						}
-						is_ruler = no
+						AND = {
+							courtier_allowed_to_leave_trigger = yes
+							is_ruler = no
+						}	
 					}	
 				}
 			}
@@ -172,10 +176,14 @@ BureaucracyEmpire_on_death_inter = {
 				exists = scope:lucky
 				scope:lucky = { 
 					is_ruler = yes #修改写法
-				}
+					is_ai = yes
+				}				
 			}
 			scope:lucky = {
 				depose = yes
+			}
+			top_liege = {
+				recruit_courtier = scope:lucky
 			}
 		}		
 	}
@@ -190,7 +198,7 @@ BureaucracyEmpire_on_title_lost = {
 		#伯爵级以上
 		AND = {
 			highest_held_title_tier >= tier_county
-			highest_held_title_tier < tier_kingdom
+			highest_held_title_tier <= tier_kingdom
 			NOT = { has_trait = peasant_leader }
 			is_independent_ruler = no
 		}
@@ -202,21 +210,23 @@ BureaucracyEmpire_on_title_lost = {
 		#has_primary_title = scope:title #修改
 		has_realm_law = official_succession_law
 		scope:transfer_type = flag:abdication
-		#非内阁成员
-		is_councillor = no
 	}
 	effect = { 
 		if = {
 			limit = {
 				exists = var:oe_heir
 				var:oe_heir = {
-					#top_liege = scope:temp_holder.top_liege #国内角色
+					target_is_liege_or_above = scope:temp_holder.top_liege #国内角色					
 					OR = {
 						AND = {
 							exists = scope:temp_holder.primary_title
-							highest_held_title_tier < scope:temp_holder.primary_title.tier
-						}						
-						is_ruler = no
+							highest_held_title_tier < scope:temp_holder.primary_title.tier						
+							is_available_adult = yes
+						}
+						AND = {
+							courtier_allowed_to_leave_trigger = yes
+							is_ruler = no
+						}
 					}	
 				}
 			}
@@ -224,28 +234,52 @@ BureaucracyEmpire_on_title_lost = {
 				save_scope_as = lucky
 			}
 			set_designated_heir = scope:lucky
+			
+			if = {
+				limit = {
+					exists = scope:lucky
+					scope:lucky = { 
+						is_ruler = yes
+						is_ai = yes
+					}
+				}
+				scope:lucky = {
+					depose = yes
+				}
+				top_liege = {
+					recruit_courtier = scope:lucky
+				}
+			}
 		}
 		else = {
 			BureaucracyEmpire_bureaucracy_success_effect = {
-				TITLE = root.primary_title#TITLE是被继任的头衔
+				TITLE = root.primary_title #TITLE是被继任的头衔
 				TEMP_HOLDER = root #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
 			}
-		}	
-		scope:lucky = { 
-			if = { 
-				limit = { 
-					is_ruler = yes
-				}
-				depose = yes
-			}
 		}
+		#旧写法	
+		#scope:lucky = { 
+			#if = { 
+				#limit = { 
+					#is_ruler = yes
+				#}
+				#depose = yes
+				## 辞任官员成为皇帝廷臣
+				#top_liege = {
+					#recruit_courtier = scope:lucky
+				#}
+				##set_employer = scope:lucky.top_liege
+			#}
+		#}
 	}
 }
 three_year_playable_pulse = {
 	on_actions = {
 		BureaucracyEmpire_on_yearly_playable_pulse
+		BureaucracyEmpire_clear_on_yearly_playable_pulse
 	}
 }
+
 BureaucracyEmpire_on_yearly_playable_pulse = {
 	trigger = {
 		#在天朝体制下
@@ -256,14 +290,12 @@ BureaucracyEmpire_on_yearly_playable_pulse = {
 		#伯爵级以上
 		AND = {
 			highest_held_title_tier >= tier_county
-			highest_held_title_tier < tier_kingdom
+			highest_held_title_tier <= tier_kingdom
 			NOT = { has_trait = peasant_leader }
 			NOT = { is_at_war_with = top_liege }
 			is_independent_ruler = no
 		}
-		#非内阁成员
-		is_councillor = no
-		exists = primary_title
+		exists = primary_title		
 	}
 	effect = { 
 		#不是继承，而是选择一个新的官员继任 
@@ -271,13 +303,17 @@ BureaucracyEmpire_on_yearly_playable_pulse = {
 			limit = {
 				exists = var:oe_heir
 				var:oe_heir = {
-					#top_liege = scope:temp_holder.top_liege
+					target_is_liege_or_above = scope:temp_holder.top_liege #国内角色					
 					OR = {
 						AND = {
 							exists = scope:temp_holder.primary_title
 							highest_held_title_tier < scope:temp_holder.primary_title.tier
+							is_available_adult = yes
 						}
-						is_ruler = no
+						AND = {							
+							courtier_allowed_to_leave_trigger = yes
+							is_ruler = no
+						}
 					}	
 				}
 			}
@@ -314,5 +350,39 @@ BureaucracyEmpire_on_yearly_playable_pulse = {
 				}
 			}	
 		}		
+	}
+}
+
+BureaucracyEmpire_clear_on_yearly_playable_pulse = {
+	trigger = {
+		is_independent_ruler = yes
+		has_government = imperial_government
+		has_realm_law = tradition_succession_law
+		highest_held_title_tier <= tier_duchy
+		NOR = {
+			primary_title = { has_title_law = steppe_elective_succession_law }
+		}
+		exists = primary_heir
+		primary_heir = { NOT = { dynasty = root.dynasty } }	
+	}
+	effect = {
+		if = {
+			limit = {
+				any_child = {
+					count >= 1
+					is_adult = yes
+					NOT = { has_trait = bastard }
+					character_gender_can_inherit_from_trigger = { CHARACTER = root }
+				}
+			}
+			random_child = {
+				limit = {
+					NOT = { has_trait = bastard }
+					character_gender_can_inherit_from_trigger = { CHARACTER = root }
+				}
+				save_scope_as = preferred_heir
+			}
+			set_designated_heir = scope:preferred_heir	
+		}
 	}
 }
