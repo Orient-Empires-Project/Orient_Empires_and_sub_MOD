@@ -82,6 +82,12 @@
 	can_be_picked_title = {
 		scope:target = {
 			is_leased_out = no
+			
+			custom_tooltip = {
+				is_head_of_faith = no
+				text = GRANT_TITLES_ITEM_CANT_HEAD_OF_FAITH
+			}
+
 			trigger_if = {
 				limit = {
 					scope:recipient = scope:actor.player_heir
@@ -98,6 +104,8 @@
 				NOT = { scope:target = title:k_fashion }
 			}
 		}
+
+
 
 		custom_description = {
 			text = grant_titles_interaction_children_not_allowed_temple 
@@ -178,7 +186,7 @@
 					progress_towards_friend_effect = {
 						REASON = friend_granted_title
 						CHARACTER = scope:actor
-						OPINION = no
+						OPINION = 0
 					}
 				}
 			}
@@ -317,6 +325,10 @@
 				}
 			}
 		}
+		
+		# Iterate over all given titles
+		#  - Add opinion modifiers
+		#  - Collect titles that discontent reduction can later be derived from
 		every_in_list = {
 			list = target_titles
 			save_temporary_scope_as = this_title
@@ -338,15 +350,6 @@
 						}
 
 						scope:this_title = { add_to_temporary_list = titles_to_grant }
-
-						hidden_effect = {
-							if = {
-								limit = {
-									is_a_faction_member = yes
-								}
-								add_joined_faction_discontent = -5
-							}
-						}
 					}
 
 					else_if = {
@@ -362,15 +365,6 @@
 						}
 
 						scope:this_title = { add_to_temporary_list = titles_to_grant }
-
-						hidden_effect = {
-							if = {
-								limit = {
-									is_a_faction_member = yes
-								}
-								add_joined_faction_discontent = -10
-							}
-						}
 					}
 
 					else_if = {
@@ -386,15 +380,6 @@
 						}
 
 						scope:this_title = { add_to_temporary_list = titles_to_grant }
-
-						hidden_effect = {
-							if = {
-								limit = {
-									is_a_faction_member = yes
-								}
-								add_joined_faction_discontent = -20
-							}
-						}
 					}
 
 					else_if = {
@@ -410,15 +395,6 @@
 						}
 
 						scope:this_title = { add_to_temporary_list = titles_to_grant }
-
-						hidden_effect = {
-							if = {
-								limit = {
-									is_a_faction_member = yes
-								}
-								add_joined_faction_discontent = -40
-							}
-						}
 					}
 
 					else_if = {
@@ -427,15 +403,6 @@
 						add_opinion = {
 							target = scope:actor
 							modifier = received_title_empire
-						}
-
-						hidden_effect = {
-							if = {
-								limit = {
-									is_a_faction_member = yes
-								}
-								add_joined_faction_discontent = -60
-							}
 						}
 
 						scope:this_title = { add_to_temporary_list = titles_to_grant }
@@ -473,6 +440,17 @@
 					}
 				}
 				custom_tooltip = grant_title_to_bastard_dynasty_warning
+			}
+		} # every_in_list
+
+
+		# The accumulated discontent reduction of the recipient
+		scope:recipient = {
+			if = {
+				limit = {
+					is_a_faction_member = yes
+				}
+				add_joined_faction_discontent = grant_title_opinion_sum_discontent_calc
 			}
 		}
 		
@@ -520,12 +498,6 @@
 				}
 			}
 			custom_tooltip = grant_title_modifier_stack_baronies
-		}
-		if = {
-			limit = {
-				scope:recipient = { is_a_faction_member = yes }
-			}
-			custom_tooltip = grant_title_modifier_stack_discontent
 		}
 
 		# Jealousy check

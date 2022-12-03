@@ -2737,7 +2737,10 @@ revoke_title_interaction_effect = {
 
 	scope:actor = {
 		if = {
-			limit = { scope:hook = yes }
+			limit = {
+				scope:hook = yes
+				scope:recipient = { is_alive = yes }
+			}
 			use_hook = scope:recipient
 		}
 	}
@@ -2777,7 +2780,7 @@ revoke_title_interaction_effect = {
 			progress_towards_rival_effect = {
 				CHARACTER = scope:actor
 				REASON = rival_revoked_title_progress
-				OPINION = no
+				OPINION = 0
 			}
 		}
 	}
@@ -3241,7 +3244,7 @@ title_revocation_stress_effect = {
 revoke_holy_order_lease_effect = {
 	if = {
 		limit = {
-			$CHARACTER$.faith = {
+			$TARGET$.faith = {
 				any_faith_holy_order = {
 					num_leased_titles = 1
 					title = $BARONY$.lessee_title
@@ -3249,51 +3252,6 @@ revoke_holy_order_lease_effect = {
 			}
 		}
 		custom_tooltip = destroy_holy_order_warning
-	}
-
-	$CHARACTER$= {
-		send_interface_message = {
-			type = event_generic_neutral
-			title = revoke_leased_title_interaction_notification
-			right_icon = $TARGET$
-			$BARONY$ = {
-				revoke_lease = yes
-			}
-			# Zealous costs stress if same-faith.
-			if = {
-				limit = { $CHARACTER$.faith = $TARGET$.faith }
-				stress_impact = {
-					zealous = massive_stress_impact_gain
-					generous = medium_stress_impact_gain
-				}
-			}
-			else_if = {
-				# Bit less but still some if you view the other faith as astray.
-				limit = {
-					$CHARACTER$.faith = {
-						faith_hostility_level = {
-							target = $TARGET$.faith
-							value <= faith_astray_level
-						}
-					}
-				}
-				stress_impact = {
-					zealous = major_stress_impact_gain
-					generous = medium_stress_impact_gain
-				}
-			}
-			else = {
-				# Otherwise, only generous is stressed.
-				stress_impact = {
-					generous = medium_stress_impact_gain
-				}
-			}
-
-			add_piety = {
-				value = 0
-				subtract = cancel_holy_order_piety_cost
-			}
-		}
 	}
 
 	$TARGET$ = {
@@ -3347,5 +3305,96 @@ revoke_holy_order_lease_effect = {
 				}
 			}
 		}
+	}
+	
+	$CHARACTER$ = {
+		send_interface_message = {
+			type = holy_order_cancled_message
+			title = revoke_leased_title_interaction_notification
+			right_icon = $TARGET$
+
+			# Zealous costs stress if same-faith.
+			if = {
+				limit = { $CHARACTER$.faith = $TARGET$.faith }
+				stress_impact = {
+					zealous = massive_stress_impact_gain
+					generous = medium_stress_impact_gain
+					order_member = minor_stress_impact_gain
+				}
+
+				add_piety = {
+					value = 0
+					subtract = cancel_holy_order_piety_cost
+				}
+			}
+			else_if = {
+				# Bit less but still some if you view the other faith as astray.
+				limit = {
+					$CHARACTER$.faith = {
+						faith_hostility_level = {
+							target = $TARGET$.faith
+							value <= faith_astray_level
+						}
+					}
+				}
+				stress_impact = {
+					zealous = major_stress_impact_gain
+					generous = medium_stress_impact_gain
+				}
+
+				add_piety = {
+					value = -100
+				}
+			}
+			else = {
+
+				if = {
+					limit = { exists =  $CHARACTER$.faith.religious_head  }
+					$CHARACTER$.faith.religious_head = {
+						add_opinion = {
+							modifier = pleased_opinion
+							target = $CHARACTER$
+							opinion = 20
+						}
+					}
+				}
+
+				add_piety = {
+					value = 250
+				}
+
+				$TARGET$.faith = {
+					# Fervor impact: big as it's rare
+					change_fervor = {
+						value = 10
+						desc = fervor_gain_holy_order_expelled_by_force
+					}
+				}
+
+				# If the county has the same faith than the HO, locals are unhappy
+				$BARONY$ = {
+					if = {
+						limit = { title_province.county.faith = $TARGET$.faith }
+						title_province.county = {
+							add_county_modifier = {
+								modifier = lost_holy_order_modifier
+								years = 10
+							}
+						}
+					}
+				}
+			}
+
+			$BARONY$ = {
+				revoke_lease = yes
+			}
+		}
+	}
+}
+
+revoke_holy_order_duel_victor_apply_effects_effect = {
+	scope:sc_victor = { 
+		add_stress = major_stress_loss
+		add_prestige = major_prestige_gain
 	}
 }
