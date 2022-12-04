@@ -1,13 +1,29 @@
 ﻿independence_faction_modifiers = {
-	modifier = { # Electors are less likely to join independence factions, if they're the same faith
-		add = -150
+	modifier = { # Electors are less likely to join independence factions, if their faith is astray or below
+		add = {
+			value = -150
+			if = {
+				limit = {
+					exists = title:e_hre
+					$FACTION_TARGET$ = {
+						has_primary_title = title:e_hre
+					}
+				}
+				add = -150
+			}
+		}
 		$FACTION_TARGET$.primary_title = {
 			has_order_of_succession = election
 			any_elector = {
 				this = root	
 			}
 		}
-		$FACTION_TARGET$.faith = root.faith
+		faith = {
+			faith_hostility_level = {
+				target = $FACTION_TARGET$.faith
+				value <= faith_astray_level
+			}
+		}
 	}
 
 	# Liege is not my Rightful Liege or a consequent par of my Realm is outside of their De Jure
@@ -206,7 +222,16 @@
 			}
 		}
 	}
+		
+	modifier = { # New vassals do not want to join independence factions
+		add = -1000
+		has_opinion_modifier = {
+			modifier = became_vassal
+			target = $FACTION_TARGET$
+		}
+	}
 }
+
 nation_fracturing_faction_modifiers = {
 
 	# Short reign increase the change of NF

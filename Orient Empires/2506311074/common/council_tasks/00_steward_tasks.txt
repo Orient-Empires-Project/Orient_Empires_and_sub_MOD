@@ -1,0 +1,1868 @@
+﻿task_collect_taxes = {
+	default_task = yes
+	position = councillor_steward
+
+	task_type = task_type_general
+	task_progress = task_progress_infinite
+
+	effect_desc = {
+		desc = task_collect_taxes_effect_desc
+		triggered_desc = {
+			trigger = { liege = { has_perk = tax_man_perk } }
+			desc = task_collect_taxes_tax_man_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			desc = task_collect_taxes_erudition_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_collect_taxes_family_business_bonus_desc
+		}
+		desc = {
+			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					stewardship > mediocre_skill_rating
+				}
+				desc = task_collect_taxes_extra_taxes
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+					liege = {
+						any_sub_realm_county = {
+							steward_task_county_corruption_county_trigger = yes
+						}
+					}	
+				}
+				desc = task_collect_taxes_county_corruption
+			}
+		}
+	}
+
+	council_owner_modifier = {
+		name = task_collect_taxes_modifier
+		domain_tax_mult = 1
+		scale = steward_collect_taxes_total_scale
+	}
+
+	monthly_on_action = task_collect_taxes_side_effects
+
+	ai_will_do = {
+		value = 1 # Always a good backup
+		
+		if = { # Very greedy rulers prefer this over increasing Acceptance, in most cases
+			limit = {
+				scope:councillor_liege.ai_greed > 0
+			}
+			add = {
+				value = scope:councillor_liege.ai_greed
+				divide = 5
+			}
+		}
+		
+		if = {
+			# Wealth Focused characters like this
+			limit = {
+				scope:councillor_liege = {
+					has_focus = stewardship_wealth_focus
+				}
+			}
+			add = 15
+		}
+		
+		if = {
+			# And those with the Tax Man perk
+			limit = {
+				scope:councillor_liege = {
+					has_perk = tax_man_perk
+				}
+			}
+			add = 15
+		}
+		if = {
+			limit = {
+				scope:councillor_liege.primary_title.tier >= tier_duchy
+				scope:councillor_liege.gold < 100
+			}
+			add = 500
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege.gold < 10
+			}
+			add = 500
+		}
+	}
+}
+
+task_develop_county = {
+	position = councillor_steward
+
+	task_type = task_type_county
+	county_target = realm
+	ai_county_target = domain
+	task_progress = task_progress_value
+	task_current_value = scope:councillor_liege.steward_develop_county_current_progress
+	task_max_value = 100
+	highlight_own_realm = yes
+
+	effect_desc = {
+		desc = task_develop_county_complete_effect_desc
+		desc = task_develop_county_effect_desc
+		desc = {
+			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					stewardship > mediocre_skill_rating
+					trigger_if = {
+						limit = {
+							exists = scope:county
+						}
+						scope:county = {
+							NOT = { has_county_modifier = steward_task_efficient_taxation_modifier }
+						}
+					}
+				}
+				desc = task_develop_county_efficient_taxation
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship > mediocre_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							county_control < full_county_control
+						}
+					}
+				}
+				desc = task_develop_county_increased_control
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_settler_resistance_modifier }
+						}
+					}
+				}
+				desc = task_develop_county_increased_control
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_construction_slowdown_modifier }
+						}
+					}
+				}
+				desc = task_develop_county_slow_construction
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_population_mismanaged_modifier }
+						}
+					}
+				}
+				desc = task_develop_county_loss_of_opinion
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							county_control > low_county_control
+						}
+					}
+				}
+				desc = task_develop_county_loss_of_control
+			}
+		}
+	}
+
+	# TOTAL PROGRESS MUST MATCH THE TOTAL OF THE COUNTY MODIFIERS BELOW
+		# Add all new progress values to the script value steward_develop_county_total
+		# Note that for Develop County, the County Modifiers apply the actual values, while progress is for player info only
+	progress = {
+		value = 0
+		add = {
+			value = steward_develop_county_base
+			desc = STEWARD_PROGRESS_BASE
+		}
+		add = {
+			value = scope:councillor.steward_develop_county_monthly_increase
+			desc = SCALED_COUNCILLOR_STEWARDSHIP_VALUE
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = { has_perk = planned_cultivation_perk }
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_perk_bonus_monthly_increase
+				desc = DEVELOP_COUNTY_PERK_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_erudition_bonus_monthly_increase
+				desc = ERUDITION_DYNASTY_PERK_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_family_business_monthly_increase
+				desc = FAMILY_BUSINESS_BONUS_VALUE
+			}
+		}
+
+		# Relation Bonuses/Penalties
+		if = { # Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_friend = scope:councillor
+					NOT = { has_relation_best_friend = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_monthly_increase_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_FRIEND
+			}
+		}
+		if = { # Best Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_best_friend = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_monthly_increase_best_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_BEST_FRIEND
+			}
+		}
+		if = { # Rival
+			limit = {
+				scope:councillor_liege = {
+					has_relation_rival = scope:councillor
+					NOT = { has_relation_nemesis = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_monthly_increase_rival_bonus
+				desc = COUNCILLOR_IS_YOUR_RIVAL
+			}
+		}
+		if = { # Nemesis
+			limit = {
+				scope:councillor_liege = {
+					has_relation_nemesis = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_monthly_increase_nemesis_bonus
+				desc = COUNCILLOR_IS_YOUR_NEMESIS
+			}
+		}
+		if = { #Tribal penalty
+			limit = {
+				scope:councillor_liege = {
+					should_apply_tribal_development_penalty_trigger = yes	
+				}
+			}
+			add = {
+				value = scope:councillor.steward_develop_county_tribal_penalty
+				desc = DEVELOP_COUNTY_TRIBAL_PENALTY_VALUE
+			}
+		}	
+		if = { # Development reduces the speed.
+			limit = {
+				exists = scope:county
+				scope:county = {
+					development_level > 0
+				}
+			}
+			add = {
+				value = scope:county.current_development_penalty
+				desc = STEWARD_CURRENT_DEVELOPMENT_PENALTY
+			}
+		}
+		
+		if = {
+			limit = { exists = scope:county }
+			multiply = {
+				value = scope:county.development_rate_modifier
+				desc = STEWARD_COUNTY_SPEED_MODIFIERS
+			}
+		}
+	}
+	full_progress = steward_develop_county_full_progress
+	custom_other_loc = STEWARD_COUNTY_SPEED_OTHER
+
+	potential_county = {
+		scope:county = {
+			development_level < max_development_level
+			trigger_if = {
+				limit = {
+					scope:councillor_liege = {
+						is_ai = yes
+						exists = capital_county
+					}
+				}
+				OR = {
+					this = scope:councillor_liege.capital_county
+					AND = {
+						holder = scope:councillor_liege
+						title_province = {
+							OR = {
+								terrain = oasis
+								terrain = farmlands
+								terrain = floodplains
+							}
+						}
+					}
+				}
+				OR = {
+					culture = scope:councillor_liege.culture
+					culture = {
+						cultural_acceptance = { target = scope:councillor_liege.culture value >= 50 }
+					}
+					scope:councillor_liege = {
+						primary_title.tier < tier_duchy
+					}
+					AND = {
+						scope:councillor_liege = {
+							has_character_flag = agenda_towards_deescalation
+						}
+						NOT = {
+							culture = scope:councillor_liege.culture
+						}
+					}
+				}
+			}
+		}
+	}
+
+	county_modifier = {
+		name = steward_develop_county_modifier
+		development_growth = 100
+		holding_build_speed = -7
+		#holding_build_gold_cost = -1
+		build_speed = -7
+		#build_gold_cost = -1
+		scale = { value = steward_develop_county_total divide = 100 }
+	}
+
+	county_modifier = {
+		name = steward_develop_county_current_development_modifier
+		development_growth = 100
+		scale = { value = scope:councillor.current_development_penalty divide = 100 }
+	}
+
+	county_modifier = {
+		name = steward_develop_county_tribal_penalty_modifier
+		development_growth = 100
+		scale = {
+			value = 0
+			if = {
+				limit = {
+					scope:councillor_liege = {
+						should_apply_tribal_development_penalty_trigger = yes
+					}
+				}
+				value = scope:councillor.steward_develop_county_tribal_penalty
+				divide = 100
+			}
+		}
+	}
+
+	on_start_task_county = {
+		# save current development_level for catalyst purpose
+		if = {
+			limit = { exists = scope:county }
+			scope:county = {
+				set_variable = {
+					name = current_development_level
+					value = development_level
+				}
+			}
+		}
+	}
+
+	on_finish_task_county = {
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						exists = scope:county
+						scope:county = {
+							development_level = max_development_level
+						}
+					}
+					scope:councillor_liege = {
+						is_ai = yes
+					}
+				}
+			}
+			start_default_task = yes
+		}
+	}
+
+	monthly_on_action = task_develop_county_side_effects
+
+	on_monthly_county = {
+		scope:councillor_liege = {
+			# Check development level progress
+			if = {
+				limit = {
+					exists = scope:county
+					exists = scope:county.var:current_development_level
+					scope:county = {
+						floored_development_value > floored_current_development_value
+					}
+				}
+				scope:county = {
+					set_variable = {
+						name = current_development_level
+						value = development_level
+					}
+				}
+				
+				scope:councillor_liege = {
+					if = { # Try to make relevant AI's focus on Acceptance
+						limit = {
+							exists = primary_title
+							primary_title.tier >= tier_kingdom
+							any_sub_realm_county = {
+								culture = {
+									cultural_acceptance = { target = scope:councillor_liege.culture value < 52 }
+								}
+							}
+							NOT = {
+								has_focus = stewardship_domain_focus
+							}
+						}
+						add_character_flag = {
+							flag = no_ai_increase_development
+							years = 30
+						}
+					}
+					else = {
+						add_character_flag = {
+							flag = no_ai_increase_development
+							years = 10
+						}
+					}
+				}
+				
+				# Struggle Catalyst
+				if = {
+					limit = {
+						exists = scope:county
+						# target someone from diff faith or culture
+						scope:county = {
+							NAND = {
+								faith = scope:councillor_liege.faith
+								culture = scope:councillor_liege.culture
+							}
+						}
+
+						any_character_struggle = {
+							involvement = involved
+							phase_has_catalyst = catalyst_improve_development_vassal_diff_faith_culture
+						}
+					}
+					scope:councillor_liege = {
+						every_character_struggle = {
+							involvement = involved
+							activate_struggle_catalyst = {
+								catalyst = catalyst_improve_development_vassal_diff_faith_culture
+								character = scope:councillor_liege
+							}
+						}
+					}
+					# Struggle Parameter
+					if = {
+						limit = {
+							NOT = { scope:county.culture  = scope:councillor_liege.culture }
+							any_character_struggle = {
+								involvement = involved
+								has_struggle_phase_parameter = gain_acceptance_when_developing_other_culture_county
+							}
+						}
+						scope:county.culture = {
+							save_scope_as = current_culture
+							change_cultural_acceptance = {
+								target = scope:councillor_liege.culture
+								value =	miniscule_cultural_acceptance_value
+								desc = cultural_acceptance_gain_from_phase_effects
+							}
+						}
+					}
+
+				}
+			}
+			else_if = { # fallback for previous save: the effect would trigger a month later
+				limit = {
+					exists = scope:county
+				}
+				scope:county = {
+					set_variable = {
+						name = current_development_level
+						value = development_level
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+		if = {
+			limit = {
+				scope:councillor = {
+					is_performing_council_task = task_develop_county
+				}
+			}
+			add = 10000 # Always keep going if this is already chosen
+		}
+		if = {
+			# Don't do this too often
+			limit = {
+				scope:councillor_liege = { has_character_flag = no_ai_increase_development }
+			}
+			multiply = 0
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege.gold >= steward_increase_development_value
+			}
+			add = 300
+		}
+		if = {
+			limit = {
+				scope:councillor_liege.gold < 10
+			}
+			multiply = 0
+		}
+	}
+}
+
+task_promote_culture = {
+	position = councillor_steward
+
+	task_type = task_type_county
+	county_target = realm
+	ai_county_target = realm
+	task_progress = task_progress_percentage
+	restart_on_finish = yes
+	highlight_own_realm = yes
+	
+	effect_desc = {
+		desc = {
+			desc = task_promote_culture_effect_desc
+			triggered_desc = {
+				trigger = {
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { culture = scope:councillor_liege.culture }
+						}
+						NOT = {
+							scope:councillor_liege.culture = {
+								is_hybrid_culture = yes
+								any_parent_culture = {
+									this = scope:county.culture
+								}
+							}
+						}
+					}
+					trigger_else = { always = no }
+				}
+				desc = task_promote_culture_acceptance_effect_desc
+			}
+		}
+		desc = {
+			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					stewardship > mediocre_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_task_efficient_taxation_modifier }
+						}
+					}
+				}
+				desc = task_promote_culture_improve_county_opinion
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship > mediocre_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_task_efficient_taxation_modifier }
+						}
+					}
+				}
+				desc = task_promote_culture_increased_taxes
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship > mediocre_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_task_efficient_taxation_modifier }
+						}
+					}
+				}
+				desc = task_promote_culture_increased_levies
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_settler_resistance_modifier }
+						}
+					}
+				}
+				desc = task_promote_culture_resistance_to_settlers
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+					trigger_if = {
+						limit = { exists = scope:county }
+						scope:county = {
+							NOT = { has_county_modifier = steward_settler_resistance_modifier }
+						}
+					}
+				}
+				desc = task_promote_culture_resistance_to_administration
+			}
+		}
+	}
+
+	progress = {
+		value = 0
+		add = {
+			value = steward_promote_culture_base
+			desc = STEWARD_PROGRESS_BASE
+		}
+		add = {
+			value = scope:councillor.steward_promote_culture_monthly_increase
+			desc = SCALED_COUNCILLOR_STEWARDSHIP_VALUE
+		}
+
+		add = steward_promote_culture_contextual_bonuses
+		
+		if = { # Development reduces the speed. Should be the last non-multiply modifier applied to avoid negative values
+			limit = {
+				exists = scope:county
+				scope:county = {
+					development_level > 0
+				}
+			}
+			add = {
+				value = scope:county.promote_culture_development_penalty
+				desc = STEWARD_PROMOTE_CULTURE_DEVELOPMENT_PENALTY
+			}
+		}
+		
+		# Conversion speed game rules
+		if = {
+			limit = {
+				has_game_rule = slower_culture_conversion_speed
+			}
+			multiply = {
+				value = slower_game_rule_value
+				desc = GAME_RULE_SLOWER_REASON
+			}
+		}
+		if = {
+			limit = {
+				has_game_rule = significantly_slower_culture_conversion_speed
+			}
+			multiply = {
+				value = significantly_slower_game_rule_value
+				desc = GAME_RULE_SIGNIFICANTLY_SLOWER_REASON
+			}
+		}
+		if = {
+			limit = {
+				has_game_rule = significantly_faster_culture_conversion_speed
+			}
+			multiply = {
+				value = significantly_faster_game_rule_value
+				desc = GAME_RULE_SIGNIFICANTLY_FASTER_REASON
+			}
+		}
+		if = {
+			limit = {
+				has_game_rule = faster_culture_conversion_speed
+			}
+			multiply = {
+				value = faster_game_rule_value
+				desc = GAME_RULE_FASTER_REASON
+			}
+		}
+		# Faster conversion for FP2 Hostility ending, if county is in Iberia and culture was involved
+		if = {
+			limit = {
+				any_in_global_list = {
+					variable = fp2_struggle_ending_culture_list
+					this = scope:county.culture
+				}
+				scope:county.title_province = { geographical_region = world_europe_west_iberia }
+				scope:councillor.liege.house = {
+					OR = {
+						has_house_modifier = fp2_struggle_hostility_house_culture_modifier
+						has_house_modifier = fp2_struggle_hostility_house_combined_modifier
+					}
+				}
+			}
+			multiply = {
+				value = fp2_struggle_hostility_conversion_value
+				desc = fp2_struggle_hostility_culture_conversion_task_desc
+			}
+		}
+	}
+
+	potential_county = {
+		scope:county = {
+			NOT = { culture = scope:councillor_liege.culture }
+			trigger_if = {
+				limit = {
+					scope:councillor_liege = { has_variable = hold_court_8130_culture_block }
+				}
+				custom_tooltip = {
+					text = hold_court_8130_conversion_tt
+					NOT = { culture = scope:councillor_liege.var:hold_court_8130_culture_block }
+				}
+			}
+		}
+		trigger_if = {
+			limit = {
+				scope:councillor_liege = { is_ai = yes }
+			}
+			NAND = { # Princes in the HRE tend to not convert each other's cultures
+				exists = title:e_hre.holder
+				scope:councillor_liege.top_liege = title:e_hre.holder
+				OR = {
+					scope:councillor_liege.culture = culture:czech
+					scope:councillor_liege.culture = { has_cultural_pillar = heritage_central_germanic }
+				}
+				OR = {
+					scope:county.culture = culture:czech
+					scope:county.culture = { has_cultural_pillar = heritage_central_germanic }
+				}
+			}
+			OR = {
+				NOT = {
+					scope:county.culture = {
+						cultural_acceptance = { target = scope:councillor_liege.culture value >= 50 }
+					}
+				}
+				scope:councillor_liege.culture = { # All AI's are motivated to spread new Hybrid/Divergent cultures
+					OR = {
+						is_hybrid_culture = yes
+						is_divergent_culture = yes
+					}
+					NOT = { # Leave the Welsh alone!
+						this = culture:anglo_saxon
+					}
+					any_parent_culture = {
+						this = scope:county.culture
+					}
+				}
+				AND = {
+					# Scottish rulers should convert counties of 'old' cultures to the new one.
+					scope:councillor_liege.culture = culture:scottish
+					OR = {
+						scope:county.culture = culture:anglo_saxon
+						scope:county.culture = culture:gaelic
+						scope:county.culture = culture:cumbrian
+						scope:county.culture = culture:pictish
+					}
+				}
+				AND = {
+					# English rulers should convert counties of 'old' cultures to the new one.
+					scope:councillor_liege.culture = culture:english
+					OR = {
+						scope:county.culture = culture:anglo_saxon
+						scope:county.culture = culture:norman
+					}
+				}
+			}
+			OR = {
+				is_independent_ruler = yes
+				scope:councillor_liege.primary_title.tier > tier_county
+				scope:councillor_liege.culture = { # All AI's are motivated to spread new Hybrid/Divergent cultures
+					OR = {
+						is_hybrid_culture = yes
+						is_divergent_culture = yes
+					}
+					any_parent_culture = {
+						this = scope:county.culture
+					}
+				}
+				AND = {
+					# Scottish rulers should convert counties of 'old' cultures to the new one.
+					scope:councillor_liege.culture = culture:scottish
+					OR = {
+						scope:county.culture = culture:anglo_saxon
+						scope:county.culture = culture:gaelic
+						scope:county.culture = culture:cumbrian
+						scope:county.culture = culture:pictish
+					}
+				}
+				AND = {
+					# English rulers should convert counties of 'old' cultures to the new one.
+					scope:councillor_liege.culture = culture:english
+					OR = {
+						scope:county.culture = culture:anglo_saxon
+						scope:county.culture = culture:norman
+					}
+				}
+			}
+			OR = {
+				scope:county = {
+					any_neighboring_county = {
+						culture = scope:councillor_liege.culture # The AI only wants to convert counties bordering their own culture
+					}
+				}
+				
+				AND = {
+					NOT = {
+						scope:county = {
+							any_neighboring_county = {
+								culture = scope:councillor_liege.culture # The AI only wants to convert counties bordering their own culture
+							}
+						}
+					}
+					OR = {
+						#scope:councillor_liege.culture = { # All AI's are motivated to spread new Hybrid cultures
+						#	is_hybrid_culture = yes
+						#	any_parent_culture = {
+						#		this = scope:county.culture
+						#	}
+						#}
+						# Unless they're a nomadic culture converting in the steppe or Asia Minor...
+						#AND = { # Deprecated as of the Culture Update, nomadic cultures now try to hybridize aggressively
+						#	OR = {
+						#		scope:councillor_liege.culture = { has_cultural_pillar = heritage_mongolic }
+						#		scope:councillor_liege.culture = { has_cultural_pillar = heritage_turkic }
+						#	}
+						#	scope:county.title_province = {
+						#		OR = {
+						#			geographical_region = world_asia_minor
+						#			geographical_region = world_steppe
+						#		}
+						#	}
+						#}
+						AND = { # The English want to convert the Anglo Saxons and Cumbrians
+							scope:councillor_liege.culture = culture:english
+							OR = {
+								scope:county.culture = culture:anglo_saxon
+								scope:county.culture = culture:cumbrian
+							}
+						}
+						AND = { # The Scots want to convert the Anglo Saxons, Cumbrians and Gaelic
+							scope:councillor_liege.culture = culture:scottish
+							OR = {
+								scope:county.culture = culture:anglo_saxon
+								scope:county.culture = culture:gaelic
+								scope:county.culture = culture:cumbrian
+								scope:county.culture = culture:pictish
+							}
+						}
+						AND = { # The Gaels want to convert the Picts and Cumbrians
+							scope:councillor_liege.culture = culture:gaelic
+							OR = {
+								scope:county.culture = culture:cumbrian
+								scope:county.culture = culture:pictish
+							}
+						}
+						AND = { # The modern scandinavians want to convert the Norse
+							OR = {
+								scope:councillor_liege.culture = culture:swedish
+								scope:councillor_liege.culture = culture:danish
+								scope:councillor_liege.culture = culture:norwegian
+							}
+							scope:county.culture = culture:norse
+						}
+						#AND = { # The vikings want to culture convert the Brits, OBSOLETE as of the Hybrid Culture update - they want to create hybrids instead!
+						#	OR = {
+						#		scope:councillor_liege.culture = culture:norse
+						#		scope:councillor_liege.culture = culture:norwegian
+						#	}
+						#	scope:county = {
+						#		any_county_province = {
+						#			is_coastal = yes
+						#		}
+						#	}
+						#	OR = {
+						#		scope:county.culture = { has_cultural_pillar = heritage_west_germanic }
+						#		scope:county.culture = { has_cultural_pillar = heritage_goidelic }
+						#		scope:county.culture = { has_cultural_pillar = heritage_brythonic }
+						#	}
+						#}
+						AND = { # The Portuguese should want to convert Suebi
+							scope:councillor_liege.culture = culture:portuguese
+							scope:county.culture = culture:suebi
+						}
+						AND = { # The Iberians want to convert Visigothic
+							scope:councillor_liege.culture = { has_cultural_pillar = heritage_iberian }
+							NOT = { scope:councillor_liege.culture = culture:portuguese }
+							scope:county.culture = culture:visigothic
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_finish_task_county = {
+		scope:councillor_liege = {
+			if = {
+				limit = {	
+					NOT = {
+						culture = {
+							is_hybrid_culture = yes
+							any_parent_culture = {
+								this = scope:county.culture
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						is_independent_ruler = no
+					}
+					add_character_flag = {
+						flag = no_ai_culture_convert
+						years = 60
+					}
+				}
+				else = {
+					add_character_flag = {
+						flag = no_ai_culture_convert
+						years = 30
+					}
+				}
+			}
+		}
+		scope:county = {
+			if = {
+				limit = {
+					NOT = {
+						scope:councillor_liege.culture = {
+							is_hybrid_culture = yes
+							any_parent_culture = {
+								this = scope:county.culture
+							}
+						}
+					}
+				}
+				culture = {
+					change_cultural_acceptance = {
+						target = scope:councillor_liege.culture
+						value = culture_conversion_acceptance_impact
+						desc = cultural_acceptance_loss_promote_culture
+					}
+				}
+			}
+			set_county_culture = scope:councillor_liege.culture
+		}
+		scope:councillor = {
+			start_default_task = yes
+		}
+	}
+
+	monthly_on_action = task_promote_culture_side_effects
+
+	ai_will_do = {
+		value = 0
+		if = {
+			limit = {
+				scope:councillor = {
+					is_performing_council_task = task_promote_culture
+				}
+			}
+			add = 10000 # Always keep going if this is already chosen
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege.culture = {
+					has_innovation = innovation_desert_tactics #Best way to check if the culture is Outremer
+				}
+				scope:councillor_liege = {
+					gold >= steward_convert_culture_value
+				}
+			}
+			add = 500
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege = {
+					OR = {
+						gold >= steward_convert_culture_value
+						AND = {
+							gold > 0
+							culture = {
+								OR = {
+									is_hybrid_culture = yes
+									is_divergent_culture = yes
+								}
+							}
+							any_realm_county = {
+								culture = {
+									save_temporary_scope_as = culture_check
+									scope:councillor_liege.culture = {
+										any_parent_culture = {
+											this = scope:culture_check
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			add = 200
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					culture = {
+						OR = {
+							is_hybrid_culture = yes
+							is_divergent_culture = yes
+						}
+					}
+					any_sub_realm_county = {
+						culture = {
+							save_temporary_scope_as = culture_check
+							scope:councillor_liege.culture = {
+								any_parent_culture = {
+									this = scope:culture_check
+								}
+							}
+						}
+					}
+				}
+			}
+			add = 200
+		}
+		# Motivate the AI with an escalation agenda to take this task
+		if = {
+			limit = {
+				has_character_flag = agenda_towards_escalation
+			}
+			add = 500
+		}
+		else_if = {
+			limit = {
+				has_character_flag = agenda_towards_deescalation
+			}
+			add = -250
+		}
+		if = {
+			# Don't do this too often
+			limit = {
+				scope:councillor_liege = {
+					has_character_flag = no_ai_culture_convert
+					NAND = { # ignore it if in Hostility with escalation
+						has_character_flag = agenda_towards_escalation
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = iberian_struggle
+							is_struggle_phase = struggle_iberia_phase_hostility
+						}
+					}
+				}
+			}
+			multiply = 0
+		}
+		if = {
+			# Don't do this too often
+			limit = {
+				scope:councillor_liege = {
+					has_character_flag = no_ai_culture_convert
+					NAND = { # ignore it if in Hostility with escalation
+						has_character_flag = agenda_towards_escalation
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = tartaria_struggle
+							is_struggle_phase = struggle_tartaria_phase_hostility
+						}
+					}
+				}
+			}
+			multiply = 0
+		}
+		if = {
+			# Interrupt this task if you're bankrupt
+			limit = {
+				scope:councillor_liege = {
+					gold < -50
+				}
+			}
+			multiply = 0
+		}
+	}
+}
+
+# This task is referenced from code so as to hook into the culture acceptance gain
+# Its progress rate will be applied between the owner's culture and the culture of the county
+task_accept_culture = {
+	position = councillor_steward
+
+	task_type = task_type_county
+	county_target = realm
+	ai_county_target = realm
+	highlight_own_realm = yes
+	task_progress = task_progress_infinite
+
+	effect_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { exists = scope:province }
+				desc = task_accept_culture_desc
+			}
+			desc = task_accept_culture_base_desc
+		}
+		desc = task_accept_culture_base_value_desc
+		triggered_desc = {
+			trigger = {
+				scope:councillor_liege = {
+					is_independent_ruler = yes
+				}
+			}
+			desc = task_accept_culture_independent_desc
+		}
+		triggered_desc = {
+			trigger = {
+				scope:councillor_liege = {
+					has_royal_court = yes
+					has_court_type = court_administrative
+					court_grandeur_current_level >= 4
+				}
+			}
+			desc = task_accept_culture_court_type_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_customs_legacy_perk = yes
+			}
+			desc = task_accept_culture_customs_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			desc = task_accept_culture_erudition_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_accept_culture_family_business_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				exists = scope:county
+				culture = scope:county.culture
+			}
+			desc = task_accept_culture_same_culture_desc
+		}
+		desc = task_accept_culture_other_desc
+		desc = council_task_possible_side_effects
+		triggered_desc = {
+			trigger = {
+				stewardship > mediocre_skill_rating
+
+			}
+			desc = task_accept_culture_loss_of_control
+		}
+		triggered_desc = {
+			trigger = {
+				stewardship > mediocre_skill_rating
+				trigger_if = {
+					limit = {
+						exists = scope:county
+					}
+					scope:county = {
+						NOT = { has_county_modifier = steward_accept_culture_reduced_taxes_modifier }
+					}
+				}
+			}
+			desc = task_accept_culture_reduced_tax_income
+		}
+		triggered_desc = {
+			trigger = {
+				stewardship < high_skill_rating
+				trigger_if = {
+					limit = { exists = scope:county }
+					scope:county = {
+						NOR = {
+							has_county_modifier = steward_accept_culture_reduced_development_spread_modifier
+							has_county_modifier = steward_accept_culture_increased_development_spread_modifier
+						}
+					}
+				}
+			}
+			desc = task_accept_culture_reduced_development_growth
+		}
+		triggered_desc = {
+			trigger = {
+				stewardship > average_skill_rating
+				trigger_if = {
+					limit = { exists = scope:county }
+					scope:county = {
+						NOR = {
+							has_county_modifier = steward_accept_culture_reduced_development_spread_modifier
+							has_county_modifier = steward_accept_culture_increased_development_spread_modifier
+						}
+					}
+				}
+			}
+			desc = task_accept_culture_increased_development_growth
+		}
+		triggered_desc = {
+			trigger = {
+				stewardship > average_skill_rating
+				trigger_if = {
+					limit = { exists = scope:county }
+					scope:county = {
+						NOT = { has_county_modifier = steward_accept_culture_increased_opinion_modifier }
+					}
+				}
+			}
+			desc = task_accept_culture_increased_opinion
+		}
+		triggered_desc = {
+			trigger = {
+				stewardship > average_skill_rating
+			}
+			desc = task_accept_culture_acceptance_boost
+		}
+	}
+	
+	is_valid_showing_failures_only = {
+		scope:councillor_liege = {
+			highest_held_title_tier >= tier_duchy
+		}
+	}
+
+	progress = {
+		value = 0
+		add = {
+			value = task_accept_culture_base_progress
+			desc = STEWARD_PROGRESS_BASE
+		}
+		add = {
+			value = scope:councillor.steward_accept_culture_yearly_increase
+			desc = SCALED_COUNCILLOR_STEWARDSHIP_VALUE
+		}
+		
+		if = {
+			limit = {
+				scope:councillor.culture = scope:county.culture
+			}
+			add = {
+				value = scope:councillor.steward_accept_culture_yearly_increase_same_culture_bonus
+				desc = COUNCILLOR_SAME_CULTURE_AS_TARGET
+			}
+		}
+		
+		if = {
+			limit = {
+				councillor_liege_has_customs_legacy_perk = yes
+			}
+			add = {
+				value = scope:councillor.steward_accept_culture_customs_bonus_yearly_increase
+				desc = CUSTOMS_DYNASTY_PERK_BONUS_VALUE
+			}
+		}
+		
+		if = {
+			limit = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			add = {
+				value = scope:councillor.steward_accept_culture_erudition_bonus_yearly_increase
+				desc = ERUDITION_DYNASTY_PERK_BONUS_VALUE
+			}
+		}
+
+		if = {
+			limit = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			add = {
+				value = scope:councillor.steward_promote_culture_family_business_bonus
+				desc = FAMILY_BUSINESS_BONUS_VALUE
+			}
+		}
+
+		# Relation Bonuses/Penalties
+		if = { # Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_friend = scope:councillor
+					NOT = { has_relation_best_friend = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.steward_accept_culture_yearly_increase_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_FRIEND
+			}
+		}
+		if = { # Best Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_best_friend = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.steward_accept_culture_yearly_increase_best_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_BEST_FRIEND
+			}
+		}
+		if = { # Rival
+			limit = {
+				scope:councillor_liege = {
+					has_relation_rival = scope:councillor
+					NOT = { has_relation_nemesis = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.steward_accept_culture_yearly_increase_rival_bonus
+				desc = COUNCILLOR_IS_YOUR_RIVAL
+			}
+		}
+		if = { # Nemesis
+			limit = {
+				scope:councillor_liege = {
+					has_relation_nemesis = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.steward_accept_culture_yearly_increase_nemesis_bonus
+				desc = COUNCILLOR_IS_YOUR_NEMESIS
+			}
+		}
+		if = { # Independent Ruler
+			limit = {
+				scope:councillor_liege = {
+					is_independent_ruler = yes
+				}
+			}
+			add = {
+				value = steward_accept_culture_yearly_increase_independent_bonus
+				desc = COUNCILLOR_LIEGE_IS_INDEPENDENT
+			}
+		}
+		
+		if = { # Court Type bonus
+			limit = {
+				scope:councillor_liege = {
+					has_royal_court = yes
+					has_court_type = court_administrative
+					court_grandeur_current_level >= 4
+				}
+			}
+			add = {
+				value = steward_accept_culture_court_type_bonus
+				desc = COUNCILLOR_LIEGE_HAS_COURT_TYPE_BONUS
+			}
+		}
+	}
+	
+	potential_county = {
+		scope:county = {
+			NOT = { culture = scope:councillor_liege.culture }
+			NOT = {
+				culture = {
+					cultural_acceptance = { target = scope:councillor_liege.culture value >= 100 }
+				}
+			}
+			trigger_if = {
+				limit = {
+					scope:councillor_liege = { is_ai = yes }
+				}
+				OR = {
+					this = scope:councillor_liege.capital_county
+					scope:councillor_liege.capital_county = {
+						OR = {
+							culture = scope:councillor_liege.culture
+							culture = {
+								cultural_acceptance = { target = scope:councillor_liege.culture value >= 50 }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	monthly_on_action = task_accept_culture_side_effects
+	
+	ai_will_do = {
+		value = 1
+		
+		if = {
+			# Prefer this over Collecting Taxes if you have some money
+			limit = {
+				scope:councillor_liege.gold >= steward_increase_development_value
+			}
+			add = 1
+		}
+		
+		if = {
+			# Compassionate rulers like doing this
+			limit = {
+				scope:councillor_liege.ai_compassion > 0
+			}
+			add = {
+				value = scope:councillor_liege.ai_compassion
+				divide = 5
+			}
+		}
+		
+		if = {
+			# And those with the Open Minded perk
+			limit = {
+				scope:councillor_liege = {
+					has_perk = open_minded_perk
+				}
+			}
+			add = 15
+		}
+		
+		if = {
+			# And the norse!
+			limit = {
+				scope:councillor_liege = {
+					culture = culture:norse
+				}
+			}
+			add = 15
+		}
+		
+		if = {
+			# Rulers with a capital culture that isn't particularly accepted like this if they have some more counties in their realm of the culture
+			limit = {
+				scope:councillor_liege = {
+					exists = capital_county
+					capital_county = {
+						save_temporary_scope_as = county_check
+						NOR = {
+							culture = scope:councillor_liege.culture
+							scope:councillor_liege.culture = {
+								OR = {
+									is_hybrid_culture = yes
+									is_divergent_culture = yes
+								}
+								any_parent_culture = {
+									this = scope:county_check.culture
+								}
+							}
+							culture = {
+								cultural_acceptance = { target = scope:councillor_liege.culture value >= 50 }
+							}
+						}
+					}
+					any_sub_realm_county = {
+						count >= 3
+						culture = scope:councillor_liege.capital_county.culture
+					}
+				}
+			}
+			add = 300
+		}
+		
+		if = {
+			# More likely for independent rulers
+			limit = {
+				scope:councillor_liege = {
+					is_independent_ruler = yes
+				}
+			}
+			multiply = 2
+		}
+		if = {
+			# More likely for xenophiles
+			limit = {
+				scope:councillor_liege = {
+					culture = {
+						OR = {
+							has_cultural_tradition = tradition_xenophilic
+							has_cultural_tradition = tradition_fp2_malleable_subjects
+						}
+					}
+				}
+			}
+			multiply = 2
+		}
+		if = {
+			# Interrupt this task if you're bankrupt
+			limit = {
+				scope:councillor_liege = {
+					gold < -50
+				}
+			}
+			multiply = 0
+		}
+	}
+}
+
+task_convince_dejure = {
+	position = councillor_steward
+
+	task_type = task_type_county
+	county_target = neighbor_land
+	ai_county_target = neighbor_land
+	task_progress = task_progress_percentage
+
+	effect_desc = {
+		desc = {
+			desc = task_convince_dejure_effect_desc
+			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					stewardship > mediocre_skill_rating
+				}
+				desc = task_convince_dejure_gain_prestige
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+				}
+				desc = task_convince_dejure_lose_prestige
+			}
+			triggered_desc = {
+				trigger = {
+					stewardship < high_skill_rating
+				}
+				desc = task_convince_dejure_diplomatic_blunder
+			}
+		}
+	}
+
+	is_shown = {
+		has_dlc_feature = royal_court
+	}
+
+	progress = {
+		value = 0
+		add = {
+			value = steward_convince_dejure_base
+			desc = STEWARD_PROGRESS_BASE
+		}
+		add = {
+			value = scope:councillor.steward_convince_dejure_monthly_increase
+			desc = SCALED_COUNCILLOR_STEWARDSHIP_VALUE
+		}
+		#CGV bonuses/maluses
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 7
+				}
+			}
+			add = {
+				value = 0.1
+				desc = steward_convince_dejure_cg_bonus_desc
+			}
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 8
+				}
+			}
+			add = {
+				value = 0.2
+				desc = steward_convince_dejure_cg_bonus_desc
+			}
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 9
+				}
+			}
+			add = {
+				value = 0.3
+				desc = steward_convince_dejure_cg_bonus_desc
+			}
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 10
+				}
+			}
+			add = {
+				value = 0.4
+				desc = steward_convince_dejure_cg_bonus_desc
+			}
+		}
+		if = {
+			limit = {
+				scope:county.holder.top_liege = {
+					court_grandeur_current_level = 7
+				}
+			}
+			add = {
+				value = -0.1
+				desc = steward_convince_dejure_cg_malus_desc
+			}
+		}
+		if = {
+			limit = {
+				scope:county.holder.top_liege = {
+					court_grandeur_current_level = 8
+				}
+			}
+			add = {
+				value = -0.2
+				desc = steward_convince_dejure_cg_malus_desc
+			}
+		}
+		if = {
+			limit = {
+				scope:county.holder.top_liege = {
+					court_grandeur_current_level = 9
+				}
+			}
+			add = {
+				value = -0.3
+				desc = steward_convince_dejure_cg_malus_desc
+			}
+		}
+		if = {
+			limit = {
+				scope:county.holder.top_liege = {
+					court_grandeur_current_level = 10
+				}
+			}
+			add = {
+				value = -0.4
+				desc = steward_convince_dejure_cg_malus_desc
+			}
+		}
+		# Relation Bonuses/Penalties
+		if = { # Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_friend = scope:councillor
+					NOT = { has_relation_best_friend = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.steward_convince_dejure_monthly_increase_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_FRIEND
+			}
+		}
+		if = { # Best Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_best_friend = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.steward_convince_dejure_monthly_increase_best_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_BEST_FRIEND
+			}
+		}
+		if = { # Rival
+			limit = {
+				scope:councillor_liege = {
+					has_relation_rival = scope:councillor
+					NOT = { has_relation_nemesis = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.steward_convince_dejure_monthly_increase_rival_bonus
+				desc = COUNCILLOR_IS_YOUR_RIVAL
+			}
+		}
+		if = { # Nemesis
+			limit = {
+				scope:councillor_liege = {
+					has_relation_nemesis = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.steward_convince_dejure_monthly_increase_nemesis_bonus
+				desc = COUNCILLOR_IS_YOUR_NEMESIS
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			add = {
+				value = steward_convince_dejure_erudition_bonus
+				desc = ERUDITION_DYNASTY_PERK_BONUS_VALUE
+			}
+		}
+	}
+
+	#Unlocked at Court Grandeur level 6
+	is_valid_showing_failures_only = {
+		scope:councillor_liege = {
+			court_grandeur_current_level >= 6
+		}
+	}
+
+	potential_county = {
+		custom_tooltip = {
+			text = steward_convince_dejure_potential_county_tt
+			scope:councillor_liege = {
+				any_held_title = {
+					any_in_de_jure_hierarchy = {
+						tier = tier_county
+						NOT = {
+							has_county_modifier = steward_de_jure_denied_modifier
+						}
+						this = scope:county
+						holder = {
+							NOT = {
+								target_is_liege_or_above = scope:councillor_liege
+							}
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = steward_convince_dejure_potential_county_tt_2
+		trigger_if = {
+			limit = {
+				scope:councillor_liege = { is_ai = yes }
+			}
+			OR = {
+				is_independent_ruler = yes
+				scope:councillor_liege.primary_title.tier > tier_county
+			}
+			scope:county = {
+				any_neighboring_county = {
+					holder.top_liege = scope:councillor_liege # The AI only wants to convince counties bordering their own land
+				}
+			}
+		}
+	}
+
+	on_finish_task_county = {
+		scope:councillor = {
+			start_default_task = yes
+		}
+		scope:councillor_liege = {
+			if = {
+				limit = {
+					is_independent_ruler = no
+				}
+				add_character_flag = {
+					flag = no_de_jure_convince
+					years = 50
+				}
+			}
+			else = {
+				add_character_flag = {
+					flag = no_de_jure_convince
+					years = 20
+				}
+			}
+		}
+		scope:county.holder.top_liege = {
+			trigger_event = steward_task.0001
+		}
+	}
+
+	monthly_on_action = task_convince_dejure_side_effects
+	
+	ai_will_do = {
+		value = 0
+		if = {
+			limit = {
+				scope:councillor = {
+					is_performing_council_task = task_convince_dejure
+				}
+			}
+			add = 10000 # Always keep going if this is already chosen
+		}
+		# increase likelyhood with court grandeur level
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					has_character_modifier = court_grandeur_level_6
+				}
+			}
+			add = 100
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege = {
+					has_character_modifier = court_grandeur_level_7
+				}
+			}
+			add = 150
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege = {
+					has_character_modifier = court_grandeur_level_8
+				}
+			}
+			add = 200
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege = {
+					has_character_modifier = court_grandeur_level_9
+				}
+			}
+			add = 250
+		}
+		else_if = {
+			limit = {
+				scope:councillor_liege = {
+					has_character_modifier = court_grandeur_level_10
+				}
+			}
+			add = 300
+		}
+		if = {
+			# Don't do this too often
+			limit = {
+				scope:councillor_liege = { has_character_flag = no_de_jure_convince }
+			}
+			multiply = 0
+		}
+	}
+}
