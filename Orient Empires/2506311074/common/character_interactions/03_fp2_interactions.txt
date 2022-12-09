@@ -993,6 +993,9 @@ challenge_to_2p_chess_interaction = {
 	}
 
 	on_send = {
+		debug_log = chess_game_invite_sent
+		debug_log_scopes = yes
+
 		# We want to set this up in advance to stop scope:actor from giving away a county for opinion that they've already wagered.
 		if = {
 			limit = { always = scope:chess_land }
@@ -1757,103 +1760,49 @@ challenge_to_2p_chess_interaction = {
 	ai_will_do = {
 		base = -50
 
-		# Factor for opinion.
-		## Because they like you...
+		# Everyone likes to play boardgames with people they like
+		opinion_modifier = {
+			opinion_target = scope:recipient
+			trigger = {
+				NOT = {	culture = { has_cultural_parameter = may_challenge_to_board_games }	}
+			}
+		}
+
+		# Boardgame nerds like to challenge people they dislike...
+		opinion_modifier = {
+			opinion_target = scope:recipient
+			trigger = { 
+				culture = { has_cultural_parameter = may_challenge_to_board_games }
+				opinion = {
+					target = scope:recipient
+					value < 0
+				}
+			}
+			
+			multiplier = -1
+		}
+
+		# ...but they ALSO like to play with people they like
+		opinion_modifier = {
+			opinion_target = scope:recipient
+			trigger = {
+				culture = { has_cultural_parameter = may_challenge_to_board_games }
+				opinion = {
+					target = scope:recipient
+					value > 0
+				}
+			}
+		}
+
+		# If you are my rival and my culture likes to play board games, I'll see you as a good opponent.
 		modifier = {
 			add = 50
 			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value >= very_high_positive_opinion
-				}
-			}
-		}
-		modifier = {
-			add = 50
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value >= medium_positive_opinion
-				}
-			}
-		}
-		modifier = {
-			add = 25
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value >= low_positive_opinion
-				}
-			}
-		}
-		## Or they dislike you...
-		modifier = {
-			add = -25
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value >= low_negative_opinion
-				}
-				NOT = {
-					culture = { has_cultural_parameter = may_challenge_to_board_games }
-				}
-			}
-		}
-		modifier = {
-			add = -50
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value >= medium_negative_opinion
-				}
-				NOT = {
-					culture = { has_cultural_parameter = may_challenge_to_board_games }
-				}
-			}
-		}
-		modifier = {
-			add = -50
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value >= very_high_negative_opinion
-				}
-				NOT = {
-					culture = { has_cultural_parameter = may_challenge_to_board_games }
-				}
-			}
-		}
-		## Or they dislike you and wish to show off their pro-gamer strats...
-		modifier = {
-			add = 25
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value <= low_negative_opinion
-				}
+				has_relation_rival = scope:recipient
 				culture = { has_cultural_parameter = may_challenge_to_board_games }
 			}
 		}
-		modifier = {
-			add = 50
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value <= medium_negative_opinion
-				}
-				culture = { has_cultural_parameter = may_challenge_to_board_games }
-			}
-		}
-		modifier = {
-			add = 50
-			scope:actor = {
-				opinion = {
-					target = scope:recipient
-					value <= very_high_negative_opinion
-				}
-				culture = { has_cultural_parameter = may_challenge_to_board_games }
-			}
-		}
+
 		# Aaaaand boredom.
 		modifier = {
 			add = 10
@@ -2488,9 +2437,8 @@ purchase_truce_interaction = {
 ##################################################
 # Incite Revolts
 # by Maxence Voleau
-##################################################
+################################################## Updated for SP1
 
-# todo
 incite_revolts_interaction = {
 	interface_priority = 30
 	category = interaction_category_hostile
@@ -2581,20 +2529,6 @@ incite_revolts_interaction = {
 	}
 
 	on_accept = {
-		# Communicate the effect to the player
-		if = {
-			limit = { scope:small_investment_in_revolt = yes }
-			custom_tooltip = apply_small_investment_in_revolt_on_random_county
-		}
-		else_if = {
-			limit = { scope:medium_investment_in_revolt = yes }
-			custom_tooltip = apply_medium_investment_in_revolt_on_random_county
-		}
-		else_if = {
-			limit = { scope:high_investment_in_revolt = yes }
-			custom_tooltip = apply_high_investment_in_revolt_on_random_county
-		}
-
 		# Select the random county
 		hidden_effect = {
 			scope:recipient = {
@@ -2669,62 +2603,152 @@ incite_revolts_interaction = {
 					ambitious = medium_stress_impact_loss
 				}
 			}
+		}
 
-			hidden_effect = {
-				send_interface_toast = {
-					title = incite_revolts_interaction_result.tt
-
-					left_icon = scope:chosen_county
-
-					scope:chosen_county = {
+		# SP1 Polish (Hugo)
+		scope:actor = {
+			duel = {
+				skill = intrigue
+				value = scope:recipient.intrigue
+			
+				10 = { # Failure
+					desc = incite_revolts_interaction_notif_failure
+					compare_modifier = {
+						value = scope:duel_value
+						multiplier = -1.5
+					}
+					show_as_tooltip = {
 						if = {
 							limit = { scope:small_investment_in_revolt = yes }
-							add_county_modifier = {
-								modifier = small_investment_in_revolt_modifier
-								years = 10
-							}
+							custom_tooltip = apply_small_investment_in_revolt_on_random_county
 						}
 						else_if = {
 							limit = { scope:medium_investment_in_revolt = yes }
-							add_county_modifier = {
-								modifier = medium_investment_in_revolt_modifier
-								years = 10
-							}
+							custom_tooltip = apply_medium_investment_in_revolt_on_random_county
 						}
 						else_if = {
 							limit = { scope:high_investment_in_revolt = yes }
-							add_county_modifier = {
-								modifier = high_investment_in_revolt_modifier
-								years = 10
+							custom_tooltip = apply_high_investment_in_revolt_on_random_county
+						}
+						reverse_add_opinion = {
+							target = scope:recipient
+							modifier = angry_opinion
+							opinion = -50
+						}
+					}
+
+					hidden_effect = {
+						send_interface_toast = {
+							title = incite_revolts_interaction_result.tt
+							left_icon = scope:chosen_county
+							right_icon = scope:recipient
+		
+							scope:chosen_county = {
+								if = {
+									limit = { scope:small_investment_in_revolt = yes }
+									add_county_modifier = {
+										modifier = small_investment_in_revolt_modifier
+										years = 10
+									}
+								}
+								else_if = {
+									limit = { scope:medium_investment_in_revolt = yes }
+									add_county_modifier = {
+										modifier = medium_investment_in_revolt_modifier
+										years = 10
+									}
+								}
+								else_if = {
+									limit = { scope:high_investment_in_revolt = yes }
+									add_county_modifier = {
+										modifier = high_investment_in_revolt_modifier
+										years = 10
+									}
+								}
+							}
+							reverse_add_opinion = {
+								target = scope:recipient
+								modifier = angry_opinion
+								opinion = -50
+							}
+							hidden_effect = {
+								scope:recipient = {
+									progress_towards_rival_effect = {
+										CHARACTER = scope:actor
+										REASON = fp2_progress_towards_rival_funded_revolt_against_me
+										OPINION = 0
+									}
+								}
+							}
+						}
+					}
+				}
+				10 = { # Success
+					desc = incite_revolts_interaction_notif_success
+					compare_modifier = {
+						value = scope:duel_value
+						multiplier = 1.5
+					}
+						
+					show_as_tooltip = {
+						if = {
+							limit = { scope:small_investment_in_revolt = yes }
+							custom_tooltip = apply_small_investment_in_revolt_on_random_county
+						}
+						else_if = {
+							limit = { scope:medium_investment_in_revolt = yes }
+							custom_tooltip = apply_medium_investment_in_revolt_on_random_county
+						}
+						else_if = {
+							limit = { scope:high_investment_in_revolt = yes }
+							custom_tooltip = apply_high_investment_in_revolt_on_random_county
+						}
+					}
+
+					hidden_effect = {
+						send_interface_toast = {
+							title = incite_revolts_interaction_result.tt
+							left_icon = scope:chosen_county
+		
+							scope:chosen_county = {
+								if = {
+									limit = { scope:small_investment_in_revolt = yes }
+									add_county_modifier = {
+										modifier = small_investment_in_revolt_modifier
+										years = 10
+									}
+								}
+								else_if = {
+									limit = { scope:medium_investment_in_revolt = yes }
+									add_county_modifier = {
+										modifier = medium_investment_in_revolt_modifier
+										years = 10
+									}
+								}
+								else_if = {
+									limit = { scope:high_investment_in_revolt = yes }
+									add_county_modifier = {
+										modifier = high_investment_in_revolt_modifier
+										years = 10
+									}
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-
-		# TO DO POLISH: add a chance to be discovered depending on target's intrigue: leads to opinion loss and progress towards Rivalry
 	}
 
 	ai_frequency = 60
 
 	ai_potential = {
-		OR = {
-			any_character_struggle = {
-				involvement = involved
-				is_struggle_type = iberian_struggle
-				OR = {
-					is_struggle_phase = struggle_iberia_phase_opportunity
-					is_struggle_phase = struggle_iberia_phase_hostility
-				}
-			}
-			any_character_struggle = {
-				involvement = involved
-				is_struggle_type = tartaria_struggle
-				OR = {
-					is_struggle_phase = struggle_tartaria_phase_opportunity
-					is_struggle_phase = struggle_tartaria_phase_hostility
-				}
+		any_character_struggle = {
+			involvement = involved
+			is_struggle_type = iberian_struggle
+			OR = {
+				is_struggle_phase = struggle_iberia_phase_opportunity
+				is_struggle_phase = struggle_iberia_phase_hostility
 			}
 		}
 		short_term_gold >= medium_gold_value
@@ -2917,9 +2941,7 @@ contract_assistance_interaction = {
 				text = join_war_interaction_recipient_warring_with_my_liege
 				subject = scope:recipient
 				scope:actor = {
-					NOT = {
-						any_liege_or_above = { is_at_war_with = scope:recipient }
-					}
+					NOT = { any_liege_or_above = { is_at_war_with = scope:recipient } }
 				}
 			}
 		}
@@ -2930,9 +2952,7 @@ contract_assistance_interaction = {
 		# Can only contract one war at a time
 		custom_tooltip = {
 			text = contract_assistance_war_already_contracted_tt
-			scope:actor = {
-				NOT = { has_variable = owed_contract_assistance_war }
-			}
+			scope:actor = { NOT = { has_variable = owed_contract_assistance_war } }
 		}
 	}
 	
@@ -2965,9 +2985,18 @@ contract_assistance_interaction = {
 		}
 		# Actor effects
 		scope:actor = {
+			save_scope_as = contract_assistance_helper
 			set_variable = {
 				name = owed_contract_assistance_war
 				value = scope:target
+			}
+			set_variable = {
+				name = owed_contract_assistance_contribution
+				value = offer_assistance_interaction_war_contribution_value
+			}
+			set_variable = {
+				name = owed_contract_assistance_gold
+				value = offer_assistance_interaction_gold_value
 			}
 			stress_impact = {
 				craven = medium_stress_impact_gain
@@ -3230,6 +3259,12 @@ contract_assistance_interaction = {
 			NOT = { ai_boldness = 0 }
 			desc = AI_VALUE_MODIFIER_BOLDNESS
 		}
+
+		# Allegiances
+		# fp2_contracting_ally_modifier = {
+		# 	WARMONGER = scope:recipient
+		# 	WARJOINER = scope:actor
+		# }
 	}
 
 	ai_potential = {
@@ -3470,9 +3505,18 @@ request_contract_assistance_interaction = {
 		}
 		# Actor effects
 		scope:recipient = {
+			save_scope_as = contract_assistance_helper
 			set_variable = {
 				name = owed_contract_assistance_war
 				value = scope:target
+			}
+			set_variable = {
+				name = owed_contract_assistance_contribution
+				value = offer_assistance_interaction_war_contribution_value
+			}
+			set_variable = {
+				name = owed_contract_assistance_gold
+				value = offer_assistance_interaction_gold_value
 			}
 			stress_impact = {
 				craven = medium_stress_impact_gain
@@ -3517,7 +3561,7 @@ request_contract_assistance_interaction = {
 			show_as_tooltip = {
 				pay_short_term_gold = {
 					target = scope:recipient
-					gold = offer_assistance_interaction_gold_value
+					gold = offer_assistance_interaction_gold_value 
 				}
 			}
 		}
@@ -3631,6 +3675,12 @@ request_contract_assistance_interaction = {
 			}
 			NOT = { ai_boldness = 0 }
 			desc = AI_VALUE_MODIFIER_BOLDNESS
+		}
+
+		# Allegiances
+		fp2_contracting_ally_modifier = {
+			WARMONGER = scope:actor
+			WARJOINER = scope:recipient
 		}
 	}
 
@@ -4514,12 +4564,16 @@ invite_foreign_ruler_to = {
 		}
 
 		# Verify that you can start one of the decision
-		scope:actor = {
+		custom_description = {
+			text = no_activity_available
+			scope:actor = {
 			OR = {
-				can_execute_decision = start_hunt_decision
-				can_execute_decision = host_feast_decision
+					can_execute_decision = start_hunt_decision
+					can_execute_decision = host_feast_decision
+				}
 			}
 		}
+
 	}
 
 	on_accept = {
@@ -4532,7 +4586,7 @@ invite_foreign_ruler_to = {
 					value = scope:recipient
 				}
 				show_as_tooltip = {
-					remove_short_term_gold = feast_activity_cost
+					remove_short_term_gold = hunt_activity_cost
 				}
 				send_interface_toast = {
 					title = invited_to_hunt.accept.actor.tt
@@ -4561,7 +4615,7 @@ invite_foreign_ruler_to = {
 					value = scope:recipient
 				}
 				show_as_tooltip = {
-					remove_short_term_gold = hunt_activity_cost
+					remove_short_term_gold = feast_activity_cost
 				}
 				send_interface_toast = {
 					title = invited_to_feast.accept.actor.tt
@@ -4772,7 +4826,7 @@ invite_foreign_ruler_to = {
 	## Performance-enhancement
 	ai_potential = {
 		is_landed = yes
-		is_at_war = no
+		is_available_at_peace_ai_adult = yes
 		is_imprisoned = no
 		# Matches the regular minimum triggers.
 		OR = {
@@ -4896,4 +4950,3 @@ invite_foreign_ruler_to = {
 		}
 	}
 }
-

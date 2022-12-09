@@ -92,8 +92,8 @@
 
 		if = {
 			limit = {
-				scope:defender.primary_title.tier > scope:attacker.primary_title.tier
-				scope:defender.primary_title.tier < tier_empire
+				scope:defender.primary_title.tier >= scope:attacker.primary_title.tier
+				#scope:defender.primary_title.tier < tier_empire
 			}
 			scope:defender.primary_title = {
 				change_title_holder = {
@@ -102,48 +102,54 @@
 				}
 			}
 		}
-#		scope:defender = {
-#			every_held_title = {
-#				if = {
-#					limit = {					
-#						tier >= tier_kingdom
-#					}
-#					change_title_holder = {
-#						holder = scope:attacker
-#						change = scope:change
-#					}
-#				}
-#				else_if = {
-#					limit = {
-#						OR = {
-#							NOT = { exists = scope:secondary_title }
-#							tier > scope:secondary_title.tier
-#						}
-#					}
-#					save_temporary_scope_as = secondary_title
-#				}
-#			}
-#		}
-#		
-#		scope:defender = {
-#			if = {
-#				limit = {
-#					exists = scope:secondary_title
-#				}
-#				every_vassal = {
-#					limit = {
-#						primary_title.tier >= scope:secondary_title.tier
-#						NOT = {
-#							primary_title.tier = tier_barony
-#						}
-#					}
-#					change_liege = {
-#						liege = scope:attacker
-#						change = scope:change
-#					}
-#				}
-#			}
-#		}
+		if = {
+			limit = {
+				scope:attacker = { is_ai = yes }
+				scope:defender = { is_ai = yes }
+			}
+			scope:defender = {
+				every_held_title = {
+					if = {
+						limit = {					
+							tier >= tier_kingdom
+						}
+						change_title_holder = {
+							holder = scope:attacker
+							change = scope:change
+						}
+					}
+					else_if = {
+						limit = {
+							OR = {
+								NOT = { exists = scope:secondary_title }
+								tier > scope:secondary_title.tier
+							}
+						}
+						save_temporary_scope_as = secondary_title
+					}
+				}
+			}
+			
+			scope:defender = {
+				if = {
+					limit = {
+						exists = scope:secondary_title
+					}
+					every_vassal = {
+						limit = {
+							primary_title.tier >= scope:secondary_title.tier
+							NOT = {
+								primary_title.tier = tier_barony
+							}
+						}
+						change_liege = {
+							liege = scope:attacker
+							change = scope:change
+						}
+					}
+				}
+			}
+		}
 
 		resolve_title_and_vassal_change = scope:change
 		#望风而降
@@ -161,6 +167,7 @@
 						is_independent_ruler = yes
 						is_ai = yes
 						character_is_realm_neighbor = scope:attacker
+						NOT = { has_title = title:e_celestia }
 						NOT = { this = scope:defender }
 						NOT = { this = scope:attacker }
 						NOT = { has_truce = title:e_celestia.holder }
