@@ -22,8 +22,13 @@
 			NOT = { government_has_flag = can_not_be_vassal_or_liege }
 			
 			liege = {
+				is_independent_ruler = yes
 				any_character_war = {
-					using_cb = revolt_independence_war
+					OR = {
+						using_cb = revolt_independence_war
+						using_cb = shatuo_unite_war
+						using_cb = jurchen_invasion_war
+					}
 					scope:actor = { is_leader_in_war = prev }
 					scope:recipient.liege = { is_leader_in_war = prev }
 					scope:actor = { NOT = { is_allied_in_war = scope:recipient.liege } }
@@ -173,6 +178,7 @@
 		if = { #清除不适宜的意见修正
 			limit = {
 				scope:recipient.liege = {
+					is_independent_ruler = yes
 					OR = {
 						has_opinion_modifier = {
 							modifier = stay_loyalty
@@ -642,9 +648,22 @@
 		
 		modifier = { # If the player is at war, do not bother them with offensive calls
 			scope:actor = {
-				has_realm_law = crown_authority_1
+				has_realm_law = crown_authority_0
 			}
-			factor = 1
+			factor = 2
+		}
+		modifier = { # Military strength different
+			desc = MilitaryStrengthDifferentDesc
+	  	  	add = {
+				value = 1
+				subtract = {
+					value = scope:recipient.liege.current_military_strength
+					divide = { value = scope:actor.current_military_strength min = 1 }
+				}
+				multiply = 10
+				ceiling = yes
+				max = 100
+	  		}
 		}
 	}
 }
@@ -675,8 +694,8 @@ revolt_liege_to_be_enemy_vassal_interaction = { #反叛互动
 				any_character_war = {
 					OR = {
 						using_cb = revolt_independence_war
-						#using_cb = steppe_war
-						#using_cb = unite_war
+						using_cb = shatuo_unite_war
+						using_cb = jurchen_invasion_war
 					}
 				}
 			}
@@ -689,8 +708,8 @@ revolt_liege_to_be_enemy_vassal_interaction = { #反叛互动
 				AND = {
 					OR = {
 						using_cb = revolt_independence_war
-						#using_cb = steppe_war
-						#using_cb = unite_war
+						using_cb = shatuo_unite_war
+						using_cb = jurchen_invasion_war
 					}
 					OR = {
 						prev = this.primary_attacker
@@ -1086,10 +1105,23 @@ revolt_liege_to_be_enemy_vassal_interaction = { #反叛互动
 		base = 0
 		
 		modifier = { # If the player is at war, do not bother them with offensive calls
-			scope:actor = {
-				has_realm_law = crown_authority_2
+			scope:actor.liege = {
+				has_realm_law = crown_authority_0
 			}
-			factor = 1
+			factor = 2
+		}
+		modifier = { # Military strength different
+			desc = MilitaryStrengthDifferentDesc
+	  	  	add = {
+				value = 1
+				subtract = {
+					value = scope:actor.liege.current_military_strength
+					divide = { value = scope:recipient.current_military_strength min = 1 }
+				}
+				multiply = 10
+				ceiling = yes
+				max = 100
+	  		}
 		}
 	}
 }

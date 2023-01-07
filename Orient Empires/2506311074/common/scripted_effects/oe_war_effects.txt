@@ -1,0 +1,142 @@
+### Mongol war target evaluation and declaration
+jurchen_war_target_evaluation_and_declaration_effect = {
+	# Set the Mongol Emperor as reference point
+	save_scope_as = jurchen_emperor
+	# Select a new target
+	random_neighboring_top_liege_realm_owner = {
+		limit = {
+			is_oe_imperial_government_trigger = yes
+			NOT = { this = scope:jurchen_emperor }
+			NOT = { top_liege = scope:jurchen_emperor }
+			save_temporary_scope_as = truce_check
+		}
+		save_temporary_scope_as = next_invasion_target
+		random_realm_county = {
+			limit = {
+				any_neighboring_county = {
+					target_is_de_jure_liege_or_above = scope:jurchen_emperor
+				}
+			}
+			duchy.kingdom = { save_temporary_scope_as = next_invasion_title_target }
+		}
+	}
+	if = {
+		limit = {
+			exists = scope:next_invasion_target
+			scope:jurchen_emperor = {
+				is_allied_to = scope:next_invasion_target
+			}
+		}
+		scope:jurchen_emperor = {
+			break_alliance = scope:next_invasion_target
+		}
+	}	
+	if = {
+		limit = {
+			exists = scope:next_invasion_target
+		}
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = jurchen_invasion_war
+				target = scope:next_invasion_target
+				target_title = scope:next_invasion_title_target.kingdom
+			}
+		}
+	}
+}
+
+oe_migration_effect = { #大迁徙扔地
+	save_temporary_scope_as = seceding_duchy
+			
+	scope:seceding_duchy = {
+		every_held_title = {
+			limit = {
+				tier <= tier_duchy
+			}
+			add_to_temporary_list = seceding_duchy_list
+		}
+	}
+	#Create a local peasant warlord for the duchy & counties.
+	create_character = {
+		location = scope:seceding_duchy.title_capital_county.title_province
+		faith = scope:seceding_duchy.faith
+		culture = scope:seceding_duchy.culture
+		save_scope_as = local_warlord
+	}
+	#Assign the seceding titles to the new peasant warlord.
+	create_title_and_vassal_change = {
+		type = usurped
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	every_in_list = {
+		list = seceding_duchy_list
+
+		change_title_holder = {
+			holder = scope:local_warlord
+			change = scope:change
+			take_baronies = yes
+		}
+		remove_from_list = seceding_duchy_list
+	}
+	resolve_title_and_vassal_change = scope:change
+	#And give the warlord their independence.
+	create_title_and_vassal_change = {
+		type = independency
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	scope:local_warlord = {
+		becomes_independent = { change = scope:change }
+	}
+	resolve_title_and_vassal_change = scope:change
+}
+
+
+oe_migration_01_effect = { #大迁徙把地扔干净
+	save_temporary_scope_as = seceding_duchy
+			
+	scope:seceding_duchy = {
+		every_held_title = {
+			limit = {
+					tier <= tier_duchy
+				has_county_modifier = oe_migration_01_modifier
+			}
+			add_to_temporary_list = seceding_duchy_list
+		}
+	}
+	#Create a local peasant warlord for the duchy & counties.
+	create_character = {
+		location = scope:seceding_duchy.title_capital_county.title_province
+		faith = scope:seceding_duchy.faith
+		culture = scope:seceding_duchy.culture
+		save_scope_as = local_warlord
+	}
+	#Assign the seceding titles to the new peasant warlord.
+	create_title_and_vassal_change = {
+		type = usurped
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	every_in_list = {
+		list = seceding_duchy_list
+
+		change_title_holder = {
+			holder = scope:local_warlord
+			change = scope:change
+			take_baronies = yes
+		}
+		remove_from_list = seceding_duchy_list
+	}
+	resolve_title_and_vassal_change = scope:change
+	#And give the warlord their independence.
+	create_title_and_vassal_change = {
+		type = independency
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	scope:local_warlord = {
+		becomes_independent = { change = scope:change }
+	}
+	resolve_title_and_vassal_change = scope:change
+}
