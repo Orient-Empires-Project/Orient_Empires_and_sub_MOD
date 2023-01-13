@@ -85,7 +85,36 @@
 	}
 	
 	cost = {
-		prestige = 60
+		piety = {
+			value = 0
+			if = {
+				limit = { scope:attacker = { is_ai = no } }
+				add = common_cb_impious_piety_cost
+			}
+		}
+		prestige = {
+			value = 60
+			if = {
+				limit = { scope:attacker = { is_ai = no } }
+				add = {	
+					value = 0
+					add = claim_cb_prestige_cost
+					multiply = common_cb_prestige_cost_multiplier
+		
+					if = {
+						limit = {
+							scope:attacker = {
+								has_character_flag = temp_no_claim_war_cost
+							}
+						}
+						multiply = {
+							value = 0
+							desc = "not_imprisoned_filter" # Says 'free'
+						}
+					}
+				}
+			}
+		}
 	}
 
 	on_victory_desc = {
@@ -157,7 +186,7 @@
 		}
 		if = {
 			limit = {
-				#scope:attacker = { is_ai = yes }
+				scope:attacker = { is_ai = yes }
 				scope:defender = { is_ai = yes }
 				scope:defender = {
 					exists = capital_province
@@ -276,19 +305,23 @@
 			limit = {
 				scope:attacker = {
 					dynasty = dynasty:1051151
+					has_title = title:e_jurchen
 					NOT = {
 						completely_controls = title:k_yan
 					}
 				}
-				scope:defender = { dynasty = dynasty:1000102400 }
-				title:e_jurchen.holder = {					
+				scope:defender = {
+					dynasty = dynasty:1000102400
+					has_title = title:e_cathay
+				}
+				scope:attacker = {					
 					any_realm_county = {
 						count >= 1
 						title_province = { geographical_region = world_asia_china_yanzhao }
 					}
 				}
 			}
-			title:e_jurchen.holder = {
+			scope:attacker = {
 				trigger_event = mandate.0007
 			}
 		}
@@ -415,7 +448,7 @@
 	war_name = "CHINA_WAR_OF_REUNIFICATION_NAME"
 	cb_name_no_target = "WAR_OF_REUNIFICATION"
 	ai_only_against_neighbors = yes
-	interface_priority = 1000
+	interface_priority = 100
 	truce_days = 300
 	
 	max_attacker_score_from_battles = 200
@@ -490,9 +523,35 @@ steppe_war = {
 	}
 	
 	cost = {
-		#gold = scope:attacker.lifestyle_perk
-		piety = 100
-		prestige = 200
+		prestige = {
+			value = 100
+			if = {
+				limit = { scope:attacker = { is_ai = no } }
+				add = tribal_subjugation_cb_prestige_cost
+			}
+		}
+		piety = {
+			value = 0
+			if = {
+				limit = { scope:attacker = { is_ai = no } }
+				add = {
+					value = 0
+					# Explicit cost when attacking HoF in addition to the impious additions
+					if = {
+						limit = {
+							scope:attacker.faith.religious_head = scope:attacker
+							scope:defender.faith = scope:attacker.faith
+						}
+						add = {
+							value = 1000
+							desc = CB_BASE_COST
+						}
+					}
+					add = common_cb_impious_piety_cost
+					multiply = common_cb_piety_cost_multiplier
+				}
+			}
+		}
 	}
 
 	on_victory_desc = {
@@ -598,6 +657,24 @@ steppe_war = {
 						save_temporary_scope_as = secondary_title
 					}
 				}
+				every_vassal = { #剥夺同族土地
+					limit = {
+						dynasty = scope:defender.dynasty
+						primary_title.tier > tier_barony
+						exists = capital_province
+						capital_province = { geographical_region = world_asia_china }
+					}
+					every_held_title = {
+						limit = {
+							tier = tier_county
+							target_is_de_jure_liege_or_above = title:e_cathay
+						}
+						change_title_holder = {
+							holder = scope:attacker
+							change = scope:change
+						}
+					}
+				}
 				if = {
 					limit = {
 						exists = scope:secondary_title
@@ -640,7 +717,7 @@ steppe_war = {
 				take_occupied = yes
 			}
 			scope:defender = {
-				every_vassal = {
+				every_vassal = { #剥夺同族土地
 					limit = {
 						dynasty = scope:defender.dynasty
 						primary_title.tier > tier_barony
@@ -648,13 +725,17 @@ steppe_war = {
 						capital_province = { geographical_region = world_asia_china }
 					}
 					every_held_title = {
+						limit = {
+							tier = tier_county
+							target_is_de_jure_liege_or_above = title:e_cathay
+						}
 						change_title_holder = {
 							holder = scope:attacker
 							change = scope:change
 						}
 					}
 				}
-			}		
+			}
 		}
 		
 		resolve_title_and_vassal_change = scope:change
@@ -695,33 +776,7 @@ steppe_war = {
 				modifier = contributed_in_war
 			}
 		}
-
-		if = {
-			limit = {
-				scope:attacker = {
-					dynasty = dynasty:1051112
-					any_realm_county = {
-						count >= 1
-						title_province = { geographical_region = world_asia_china_yanzhao }
-					}
-				}
-				scope:defender = {
-					OR = {
-						dynasty = dynasty:1051151
-						dynasty = dynasty:1000102400
-					}
-				}
-				title:e_celestia.holder = {					
-					NOT = {
-						completely_controls = title:k_yan
-					}
-				}
-			}
-			scope:attacker = {
-				trigger_event = mandate.0007
-				jurchen_war_target_evaluation_and_declaration_effect = yes
-			}
-		}
+		jurchen_incident_effect = yes
 	}
 
 	on_white_peace_desc = {
@@ -2052,7 +2107,7 @@ jurchen_invasion_war = {
 	}
 	
 	allowed_against_character = {
-		NOT = { scope:defender.top_liege = scope:attacker }
+		#NOT = { scope:defender.top_liege = scope:attacker }
 		#scope:attacker = {
 			#ALL_FALSE = {
 				#top_liege = scope:defender.top_liege
@@ -2067,9 +2122,9 @@ jurchen_invasion_war = {
 	ignore_effect = change_title_holder
 	
 	valid_to_start = {
-		scope:target = {
-			tier = tier_empire
-		}
+		#scope:target = {
+			#tier = tier_empire
+		#}
 	}
 
 	should_invalidate = {
@@ -2097,19 +2152,37 @@ jurchen_invasion_war = {
 	cost = {
 		piety = {
 			value = 0
-			add = common_cb_impious_piety_cost
+			if = {
+				limit = { scope:attacker = { is_ai = no } }
+				add = common_cb_impious_piety_cost
+			}
 		}
 		prestige = {
 			add = {
 				value = 200
 				desc = CB_BASE_COST
 			}
-
-			multiply = common_cb_prestige_cost_multiplier
-
+			if = {
+				limit = { scope:attacker = { is_ai = no } }
+				add = {	
+					every_in_list = { 
+						list = target_titles 
+						limit = {
+							tier = tier_county
+							holder.top_liege = scope:defender
+						}
+						add = 100
+					}
+					desc = CB_CLAIM_COST_TARGET_TITLES
+				}
+				multiply = common_cb_prestige_cost_multiplier
+			}
 			# Genghis Khan gets it for free
 			if = {
-				limit = { scope:attacker = character:wanggiya_037 }
+				limit = {
+					scope:attacker = character:wanggiya_037
+					scope:attacker = { is_ai = yes }
+				}
 				multiply = {
 					value = 0
 					desc = CB_GENGHIS_KHAN_COST

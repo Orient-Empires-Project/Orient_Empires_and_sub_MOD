@@ -169,28 +169,30 @@ guohao_effects = {
 		if = { ## 改国号##
 			limit = {
 				OR = {
-					scope:title = title:e_celestia
-					scope:title = {
-						tier = tier_kingdom
-						holder = {
-							culture = { has_cultural_pillar = heritage_chinese }
-							liege = {
-								NOT = { culture = { has_cultural_pillar = heritage_chinese } }
+					AND = {
+						scope:title = title:e_celestia
+						OR = {
+							AND = {
+								exists = scope:previous_holder
+								NOR = {					
+									scope:transfer_type = flag:inheritance
+									root.house = scope:previous_holder.house
+								}
 							}
+							scope:transfer_type = flag:created
+						}
+					}
+					AND = {
+						culture = { has_cultural_pillar = heritage_chinese }
+						top_liege = {
+							NOT = { culture = { has_cultural_pillar = heritage_chinese } }
+						}
+						scope:title = {
+							tier = tier_kingdom
 						}
 					}
 				}
 				exists = capital_province
-				OR = {
-					AND = {
-						exists = scope:previous_holder
-						NOR = {					
-							scope:transfer_type = flag:inheritance
-							root.house = scope:previous_holder.house
-						}
-					}
-					scope:transfer_type = flag:created
-				}
 				is_ai = yes
 			}
 			save_scope_as = new_ruler
@@ -1941,5 +1943,20 @@ zunhao_effects = {
 	}
 	effect = {
 		trigger_event = nianhao.2
+	}
+}
+
+#被俘退位
+on_imprison = {
+	effect = {
+		if = {
+			limit = {
+				is_oe_imperial_government_trigger = yes
+			}
+			trigger_event = {
+				id = abdication.0001
+				days = 30
+			}
+		}
 	}
 }

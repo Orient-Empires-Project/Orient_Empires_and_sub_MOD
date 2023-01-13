@@ -1,24 +1,90 @@
+jurchen_incident_effect = {
+	if = {
+		limit = {
+			exists = title:e_jurchen.holder
+			exists = title:e_celestia.holder
+			scope:attacker = {
+				dynasty = dynasty:1051112
+				has_title = title:e_jurchen
+			}
+			scope:defender = {
+				OR = {
+					AND = {
+						dynasty = dynasty:1051151
+						has_title = title:e_celestia
+					}
+					AND = {
+						dynasty = dynasty:1000102400
+						has_title = title:e_cathay
+					}
+				}
+			}
+			title:e_jurchen.holder = {					
+				any_realm_county = {
+					count >= 1
+					title_province = { geographical_region = world_asia_china_yanzhao }
+				}
+			}
+			title:e_celestia.holder = {					
+				NOT = {
+					completely_controls = title:k_yan
+				}
+			}
+		}
+		scope:attacker = {
+			trigger_event = mandate.0007
+		}
+	}
+	if = {
+		limit = {
+			exists = title:e_jurchen.holder
+			title:e_jurchen.holder = {
+				dynasty = dynasty:1051112
+				is_ai = yes
+				NAND = {
+					completely_controls = title:k_zhou
+					completely_controls = title:k_qi
+					completely_controls = title:k_jin
+					completely_controls = title:k_yan
+					completely_controls = title:k_zhao
+					completely_controls = title:k_qin
+				}
+			}
+			exists = title:e_celestia.holder
+			title:e_celestia.holder = {
+				dynasty = dynasty:1051151
+				highest_held_title_tier = tier_empire
+				any_sub_realm_county = {
+					OR = {
+						title:k_zhou = { is_de_jure_liege_or_above_target = prev }
+						title:k_qi = { is_de_jure_liege_or_above_target = prev	}
+						title:k_jin = { is_de_jure_liege_or_above_target = prev	}
+						title:k_yan = { is_de_jure_liege_or_above_target = prev	}
+						title:k_zhao = { is_de_jure_liege_or_above_target = prev }
+						title:k_qin = { is_de_jure_liege_or_above_target = prev	}
+					}
+				}
+			}
+		}
+		title:e_jurchen.holder = {
+			trigger_event = {
+				id = east_title.0002 #延迟触发跳过停战期
+				days = 360
+				delayed = yes
+			}
+		}
+	}
+}
+
 ### Mongol war target evaluation and declaration
 jurchen_war_target_evaluation_and_declaration_effect = {
 	# Set the Mongol Emperor as reference point
-	save_scope_as = jurchen_emperor
+	title:e_jurchen.holder = { 
+		save_scope_as = jurchen_emperor
+	}
 	# Select a new target
-	random_neighboring_top_liege_realm_owner = {
-		limit = {
-			is_oe_imperial_government_trigger = yes
-			NOT = { this = scope:jurchen_emperor }
-			NOT = { top_liege = scope:jurchen_emperor }
-			save_temporary_scope_as = truce_check
-		}
+	title:e_celestia.holder = {
 		save_temporary_scope_as = next_invasion_target
-		random_realm_county = {
-			limit = {
-				any_neighboring_county = {
-					target_is_de_jure_liege_or_above = scope:jurchen_emperor
-				}
-			}
-			duchy.kingdom = { save_temporary_scope_as = next_invasion_title_target }
-		}
 	}
 	if = {
 		limit = {
@@ -30,16 +96,83 @@ jurchen_war_target_evaluation_and_declaration_effect = {
 		scope:jurchen_emperor = {
 			break_alliance = scope:next_invasion_target
 		}
-	}	
+	}
 	if = {
 		limit = {
-			exists = scope:next_invasion_target
+			scope:jurchen_emperor = {
+				NAND = {
+					completely_controls = title:k_yan
+					completely_controls = title:k_zhao
+					completely_controls = title:k_jin
+					completely_controls = title:k_qin
+					completely_controls = title:k_tengri
+				}
+			}
 		}
 		scope:jurchen_emperor = { # Emperors are not offered ways out
 			start_war = {
-				cb = jurchen_invasion_war
+				cb = steppe_war
 				target = scope:next_invasion_target
-				target_title = scope:next_invasion_title_target.kingdom
+				target_title = title:k_yan
+				target_title = title:k_zhao
+				target_title = title:k_jin
+				target_title = title:k_qin
+				target_title = title:k_tengri
+				target_title = title:d_ordos
+				target_title = title:d_xiazhou
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:jurchen_emperor = {
+				NAND = {
+					completely_controls = title:k_qi
+					completely_controls = title:k_zhou
+				}
+			}
+		}
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = steppe_war
+				target = scope:next_invasion_target
+				target_title = title:k_qi
+				target_title = title:k_zhou
+				target_title = title:d_xining
+				target_title = title:d_shanzhou
+				target_title = title:c_bozhou_song
+				target_title = title:c_haizhou_xu
+				target_title = title:c_suzhou_xu
+
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:jurchen_emperor = {
+				NOR = {
+					completely_controls = title:d_huainan
+				}
+			}
+		}
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = steppe_war
+				target = scope:next_invasion_target
+				target_title = title:d_huainan
+				target_title = title:d_huaixi
+				target_title = title:d_jingxiang
+			}
+		}
+	}
+	else = {
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = steppe_war
+				target = title:e_celestia.holder
+				target_title = title:k_wu
+				target_title = title:k_chu
+				target_title = title:k_shu
 			}
 		}
 	}
@@ -51,6 +184,7 @@ oe_migration_effect = { #大迁徙扔地
 	scope:seceding_duchy = {
 		every_held_title = {
 			limit = {
+				tier >= tier_county
 				tier <= tier_duchy
 			}
 			add_to_temporary_list = seceding_duchy_list
@@ -58,9 +192,12 @@ oe_migration_effect = { #大迁徙扔地
 	}
 	#Create a local peasant warlord for the duchy & counties.
 	create_character = {
-		location = scope:seceding_duchy.title_capital_county.title_province
+		location = scope:seceding_duchy.capital_county.title_province
 		faith = scope:seceding_duchy.faith
 		culture = scope:seceding_duchy.culture
+		gender_female_chance = {
+			value = 10
+		}
 		save_scope_as = local_warlord
 	}
 	#Assign the seceding titles to the new peasant warlord.
@@ -99,17 +236,25 @@ oe_migration_01_effect = { #大迁徙把地扔干净
 	scope:seceding_duchy = {
 		every_held_title = {
 			limit = {
-					tier <= tier_duchy
-				has_county_modifier = oe_migration_01_modifier
+				OR = {
+					AND = {
+						tier = tier_county
+						has_county_modifier = oe_migration_01_modifier
+					}
+		 			tier = tier_duchy
+			    }
 			}
 			add_to_temporary_list = seceding_duchy_list
 		}
 	}
 	#Create a local peasant warlord for the duchy & counties.
 	create_character = {
-		location = scope:seceding_duchy.title_capital_county.title_province
+		location = scope:seceding_duchy.capital_county.title_province
 		faith = scope:seceding_duchy.faith
 		culture = scope:seceding_duchy.culture
+		gender_female_chance = {
+			value = 10
+		}
 		save_scope_as = local_warlord
 	}
 	#Assign the seceding titles to the new peasant warlord.

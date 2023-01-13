@@ -78,3 +78,90 @@
 	}
 	auto_accept = yes
 }
+
+
+oe_chancellor_designate_heir_interaction = {
+	category = interaction_category_vassal
+	#common_interaction = yes
+	greeting = positive
+	desc = oe_imperor_designate_heir_interaction_desc
+	needs_recipient_to_open = yes
+	ai_frequency = 480
+	is_shown = {
+		NOT = { scope:recipient = scope:actor }
+		NOT = { scope:recipient = scope:actor.liege }
+		scope:actor = {
+			is_councillor = yes
+			has_character_flag = in_imperial_council
+		}
+		scope:recipient = { 
+			is_vassal_or_below_of = scope:actor.liege
+			highest_held_title_tier >= tier_county
+			has_government = imperial_government
+			has_realm_law = official_succession_law
+			is_landed = yes
+		}
+	}
+	populate_actor_list = {
+		scope:actor.liege = {
+			every_vassal_or_below = {
+				limit = {
+					highest_held_title_tier < scope:recipient.primary_title.tier
+					liege = { has_government = imperial_government }
+					has_realm_law = official_succession_law
+				}
+				add_to_list = characters
+			}
+			every_courtier_or_guest = {
+				limit = {
+					is_ruler = no
+					target_is_liege_or_above = scope:actor.liege
+					is_adult = yes
+					is_male = yes
+				}
+				add_to_list = characters
+			}
+		}
+		scope:recipient = {
+			every_courtier_or_guest = {
+				limit = {
+					is_ruler = no
+					target_is_liege_or_above = scope:actor.liege
+					is_adult = yes
+					is_male = yes
+				}
+				add_to_list = characters
+			}
+		}
+	}
+	is_valid_showing_failures_only = {
+		scope:recipient = { is_available_for_activity_trigger = yes }
+		scope:actor.liege = { prestige >= 1000 }
+	}
+	cost = {
+		prestige = {
+			value = 200
+		}
+	}	
+	on_accept = {
+		scope:recipient = {
+			send_interface_toast = {
+				title = designate_heir_interaction_notification
+
+				left_icon = scope:recipient					
+				right_icon = scope:secondary_actor
+
+				set_designated_heir = scope:secondary_actor
+			}
+			set_variable = {
+				name = oe_heir
+				value = scope:secondary_actor
+			}
+		}
+	}
+	
+	ai_will_do = {
+		base = 30
+	}
+	auto_accept = yes
+}
