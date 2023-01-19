@@ -10,6 +10,7 @@
 on_game_start_after_lobby = {
 	on_actions = {
 		WLTDJAutoStart_game_start_on_action
+		east_history_fix_action
 	}
 }
 
@@ -75,5 +76,63 @@ WLTDJAutoStart_game_start_on_action = {
 		WLTDJAutoStart_create_ruler_function_effect = { START_DATE = 889.1.1 END_DATE = 1033.1.1 LIEGE_TITLE = k_denmark higher_level_title = k_denmark manipulated_title_tier = tier_duchy generated_rulers_become_independent_or_not_trigger = WLTDJAutoStart_generated_rulers_not_become_independent_trigger }
 		WLTDJAutoStart_create_ruler_function_effect = { START_DATE = 889.1.1 END_DATE = 1033.1.1 LIEGE_TITLE = k_sweden higher_level_title = k_sweden manipulated_title_tier = tier_duchy generated_rulers_become_independent_or_not_trigger = WLTDJAutoStart_generated_rulers_not_become_independent_trigger }
 		WLTDJAutoStart_create_ruler_function_effect = { START_DATE = 889.1.1 END_DATE = 1033.1.1 LIEGE_TITLE = k_norway higher_level_title = k_norway manipulated_title_tier = tier_duchy generated_rulers_become_independent_or_not_trigger = WLTDJAutoStart_generated_rulers_not_become_independent_trigger }
+	}
+}
+
+
+east_history_fix_action = {
+	effect = {
+		every_ruler = {
+			if = {
+				limit = {
+					exists = primary_title
+					highest_held_title_tier > tier_county
+					primary_title = {
+						is_titular = no
+						exists = title_capital_county
+					}
+					NOT = {
+						primary_title.title_capital_county.holder = root
+					}
+					any_held_title = {
+						tier = tier_county
+						count = 0
+					}
+				}
+				save_temporary_scope_as = holder_fix
+				primary_title.title_capital_county = {
+					save_temporary_scope_as = capital_county_fix
+				}
+				if = {
+					limit = {
+						primary_title.title_capital_county.holder = {
+							any_held_title = {
+								tier = tier_county
+								count > 1
+							}
+						}
+					}
+					create_title_and_vassal_change = {
+						type = usurped
+						save_scope_as = change
+						add_claim_on_loss = yes
+					}
+					every_in_list = {
+						list = capital_county_fix
+						change_title_holder = {
+							holder = scope:holder_fix
+							change = scope:change
+							take_baronies = no
+						}
+					}	
+					resolve_title_and_vassal_change = scope:change
+				}
+				else = {
+					root = {
+						add_trait = bubonic_plague
+					}
+				}
+			}
+		}
 	}
 }
