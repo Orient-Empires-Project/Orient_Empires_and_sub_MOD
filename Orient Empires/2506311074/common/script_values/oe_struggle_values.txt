@@ -1,4 +1,96 @@
-﻿# Total tartaria counties of my Religion
+﻿# war values
+struggle_conquest_ai_score_value = {
+	value = 1
+	scope:attacker = {
+		# Are they a different faith than me?
+		if = {
+			limit = {
+				NOT = { faith = scope:defender.faith }
+			}
+			add = 1
+		}
+		# Are they a different culture than me?
+		if = {
+			limit = {
+				NOT = { culture = scope:defender.culture }
+			}
+			add = 1
+		}
+		# Do I have a negative relationship with them?
+		if = {
+			limit = { has_relation_nemesis = scope:defender }
+			add = 2
+		}
+		else_if = {
+			limit = {
+				has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = 1
+		}
+		# Do I have a positive relationship with them?
+		if = {
+			limit = {
+				OR = {
+					has_relation_soulmate = scope:defender
+					has_relation_best_friend = scope:defender
+				}
+			}
+			add = -5
+		}
+		else_if = {
+			limit = {
+				has_any_good_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = -1
+		}
+		# Multiply this up or down per the phase.
+		## Some phases make people hunger for violence...
+		if = {
+			limit = {
+				OR = {
+					any_character_struggle = { is_struggle_type = iberian_struggle is_struggle_phase = struggle_iberia_phase_hostility }
+					any_character_struggle = { is_struggle_type = tartaria_struggle is_struggle_phase = struggle_tartaria_phase_hostility }
+				}
+				# Unless you're just not that sort of person.
+				NOR = {
+					has_trait = content
+					has_trait = compassionate
+				}
+			}
+			multiply = 2
+		}
+		## ... but in others, it seems abhorrent.
+		if = {
+			limit = {
+				OR = {
+					any_character_struggle = {
+						is_struggle_type = iberian_struggle
+						OR = {
+							is_struggle_phase = struggle_iberia_phase_compromise
+							is_struggle_phase = struggle_iberia_phase_conciliation
+						}
+					}
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						OR = {
+							is_struggle_phase = struggle_tartaria_phase_compromise
+							is_struggle_phase = struggle_tartaria_phase_conciliation
+						}
+					}
+				}
+				NOR = {
+					has_trait = ambitious
+					has_trait = callous
+					has_trait = sadistic
+				}
+			}
+			multiply = 0.5
+		}
+	}
+}
+
+
+# Total tartaria counties of my Religion
 fp2_struggle_secure_tartaria_foothold_religion_total_value = {
 	value = 0
 	every_county_in_region = {

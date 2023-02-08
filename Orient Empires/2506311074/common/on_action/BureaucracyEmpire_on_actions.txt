@@ -60,7 +60,6 @@ BureaucracyEmpire_on_title_gain_inheritance = {
 			scope:transfer_type = flag:usurped #篡夺头衔
 		}
 		is_independent_ruler = no
-		#liege = { NOT = { is_corps_government_trigger = yes }
 	}
 	effect = { 
 		#不是继承，而是选择一个新的官员继任
@@ -358,16 +357,26 @@ BureaucracyEmpire_on_yearly_playable_pulse = {
 BureaucracyEmpire_clear_on_yearly_playable_pulse = {
 	trigger = {
 		has_government = imperial_government
-		OR = {
-			has_realm_law = tradition_succession_law
-			has_realm_law = corps_succession_law
-		}
 		highest_held_title_tier <= tier_duchy
+		highest_held_title_tier >= tier_county
+		OR = {
+			AND = {
+				is_independent_ruler = yes
+				OR = {
+					has_realm_law = tradition_succession_law
+					has_realm_law = corps_succession_law
+				}
+			}
+			AND = {
+				has_realm_law = bureau_succession_law
+				primary_heir = { NOT = { target_is_liege_or_above = root.top_liege } }
+			}
+		}
 		NOR = {
 			primary_title = { has_title_law = steppe_elective_succession_law }
 		}
 		exists = primary_heir
-		primary_heir = { NOT = { dynasty = root.dynasty } }	
+		primary_heir = { NOT = { house = root.house } }	
 		primary_heir = { NOT = { has_trait = great_misit } }	
 	}
 	effect = {

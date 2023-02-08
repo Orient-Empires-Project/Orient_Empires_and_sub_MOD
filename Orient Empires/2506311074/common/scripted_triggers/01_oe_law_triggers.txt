@@ -21,10 +21,6 @@ can_keep_high_partition_succession_law_trigger = {
 			has_title = title:e_cathay
 			has_title = title:k_khitan
 
-			AND = {
-				exists = primary_title
-				primary_title = { de_jure_liege = title:e_celestia }
-			}
 			is_royal_government_trigger = yes
 		}
 	}
@@ -36,7 +32,6 @@ can_have_high_partition_succession_law_trigger = {
 			NOT = { 
 				culture = { has_cultural_parameter = can_enact_high_partition_succession_law }
 			}
-			has_government = ulus_government
 		}
 		culture = { has_innovation = innovation_heraldry }
 	}
@@ -45,10 +40,9 @@ can_have_high_partition_succession_law_trigger = {
 		OR = {
 			has_government = feudal_government
 			has_government = clan_government
-			AND = {
-				exists = primary_title
-				primary_title = { de_jure_liege = title:e_celestia }
-			}
+			has_government = ulus_government
+			has_government = imperial_government
+			has_government = corps_government
 			is_royal_government_trigger = yes
 		}
 	}
@@ -65,10 +59,9 @@ can_keep_single_heir_succession_law_trigger = {
 			# Byzantine Empire
 			historical_succession_access_single_heir_succession_law_trigger = yes
 			AND = {
-				exists = primary_title
-				primary_title = { de_jure_liege = title:e_celestia }
+				culture = { has_cultural_pillar = heritage_chinese }
+				is_independent_ruler = yes
 			}
-			top_liege = { is_oe_imperial_official_trigger = yes }
 		}
 	}
 }
@@ -78,28 +71,26 @@ can_have_single_heir_succession_law_trigger = {
 		culture = {
 			has_innovation = innovation_primogeniture
 		}
+		is_corps_government_trigger = yes
 		AND = {
-			is_corps_government_trigger = yes
-			liege = { has_realm_law = crown_authority_0 }
-		}
-		AND = {
-			exists = primary_title
-			primary_title = { de_jure_liege = title:e_celestia }
+			culture = { has_cultural_pillar = heritage_chinese }
+			is_independent_ruler = yes
 		}
 		culture = culture:khitan
 		culture = culture:jurchen
 		culture = culture:tangut
 	}
 	# Non-tribals only
-	#custom_description = {
-		#text = succession_laws_must_have_organised_government_tooltip
-		#OR = {
-			#has_government = feudal_government
-			#has_government = clan_government
-			#has_government = imperial_government
-			#has_government = ulus_government
-		#}
-	#}
+	custom_description = {
+		text = succession_laws_must_have_organised_government_tooltip
+		OR = {
+			has_government = feudal_government
+			has_government = clan_government
+			has_government = imperial_government
+			has_government = ulus_government
+			has_government = corps_government
+		}
+	}
 }
 
 can_have_single_heir_youngest_succession_law_trigger = {
@@ -154,37 +145,15 @@ can_have_single_heir_dynasty_house_trigger = {
 			has_government = tribal_government
 			has_government = imperial_government
 			has_government = ulus_government
+			has_government = corps_government
 		}
 	}
 }
 
-
-#宗法指认制
-can_have_tradition_succession_law_trigger = {
-	OR = {
-		has_government = imperial_government
-		has_government = ulus_government
-	}
-	OR = {
-		is_royal_government_trigger = yes
-		is_independent_ruler = yes
-	}	
-}
-
-can_keep_tradition_succession_law_trigger = {
-	can_have_tradition_succession_law_trigger = yes
-}
-
-can_pass_tradition_succession_law_trigger = {
-	can_change_succession_law_trigger = yes
-	can_have_tradition_succession_law_trigger = yes
-}
-
-
 #流官制（与帝国官僚继承法接驳）
 can_have_official_succession_law_trigger = {
 	is_independent_ruler = no
-	#highest_held_title_tier >= tier_county
+	highest_held_title_tier >= tier_county
 	NOT = { has_trait = peasant_leader }
     OR = {
 		vassal_contract_has_flag = special_imperial_corps_4
@@ -217,16 +186,43 @@ can_have_official_succession_law_trigger = {
 }
 
 can_keep_official_succession_law_trigger = {
-	can_have_official_succession_law_trigger = yes
-	NOR = {
-		vassal_contract_has_flag = imperial_corps_3
-		vassal_contract_has_flag = imperial_royal_1
+	trigger_if = {
+		limit = { has_realm_law = official_succession_law }
+		can_have_official_succession_law_trigger = yes
+		NOR = {
+			vassal_contract_has_flag = imperial_corps_3
+			vassal_contract_has_flag = imperial_royal_1
+		}
 	}
 }
 
 can_pass_official_succession_law_trigger = {
 	can_change_title_law_trigger = yes
 	can_have_official_succession_law_trigger = yes
+}
+
+#宗法指认制
+can_have_tradition_succession_law_trigger = {
+	OR = {
+		has_government = imperial_government
+		has_government = ulus_government
+	}
+	OR = {
+		is_royal_government_trigger = yes
+		is_independent_ruler = yes
+	}	
+}
+
+can_keep_tradition_succession_law_trigger = {
+	trigger_if = {
+		limit = { has_realm_law = tradition_succession_law }
+		can_have_tradition_succession_law_trigger = yes
+	}
+}
+
+can_pass_tradition_succession_law_trigger = {
+	can_change_succession_law_trigger = yes
+	can_have_tradition_succession_law_trigger = yes
 }
 
 #留后册命制（藩镇基础继承法）
@@ -239,7 +235,10 @@ can_have_corps_succession_law_trigger = {
 }
 
 can_keep_corps_succession_law_trigger = {
-	can_have_corps_succession_law_trigger = yes
+	trigger_if = {
+		limit = { has_realm_law = corps_succession_law }
+		can_have_corps_succession_law_trigger = yes
+	}
 }
 
 can_pass_corps_succession_law_trigger = {
