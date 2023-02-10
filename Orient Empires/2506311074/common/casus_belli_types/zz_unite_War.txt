@@ -148,49 +148,16 @@
 
 		if = {
 			limit = {
-				OR = {
-					scope:defender.primary_title.tier >= scope:attacker.primary_title.tier
-					scope:defender.primary_title.tier >= tier_kingdom
-				}
-			}
-			if = {
-				limit = {
-					scope:attacker = { is_ai = yes }
-					scope:defender = { is_ai = yes }
-					scope:defender = {
-						exists = capital_province
-						capital_province = { geographical_region = world_asia_china }
-					}
-				}
-				scope:defender.primary_title = {
-					change_title_holder = {
-						holder = scope:attacker
-						change = scope:change
-					}
-				}
+				scope:defender.primary_title.tier < scope:attacker.primary_title.tier
 			}
 			scope:defender = {
-				every_vassal = {
-					limit = {
-						dynasty = scope:defender.dynasty
-						primary_title.tier > tier_barony
-						exists = capital_province
-						capital_province = { geographical_region = world_asia_china }
-					}
-					every_held_title = {
-						limit = {
-							tier = tier_county
-							target_is_de_jure_liege_or_above = title:e_cathay
-						}
-						change_title_holder = {
-							holder = scope:attacker
-							change = scope:change
-						}
-					}
+				change_liege = {
+					liege = scope:attacker
+					change = scope:change
 				}
 			}
 		}
-		if = {
+		else_if = {
 			limit = {
 				scope:attacker = { is_ai = yes }
 				scope:defender = { is_ai = yes }
@@ -203,8 +170,8 @@
 				every_held_title = {
 					if = {
 						limit = {					
+							tier = scope:defender.primary_title.tier
 							tier <= tier_kingdom
-							tier >= tier_county
 						}
 						change_title_holder = {
 							holder = scope:attacker
@@ -222,7 +189,26 @@
 					}
 				}
 			}
-			
+			scope:defender = {
+				every_vassal = {
+					limit = {
+						dynasty = scope:defender.dynasty #同家族剥夺
+						primary_title.tier > tier_barony
+						exists = capital_province
+						capital_province = { geographical_region = world_asia_china }
+					}
+					every_held_title = {
+						limit = {
+							tier = tier_county
+							target_is_de_jure_liege_or_above = title:e_cathay
+						}
+						change_title_holder = {
+							holder = scope:attacker
+							change = scope:change
+						}
+					}
+				}
+			}
 			scope:defender = {
 				if = {
 					limit = {
@@ -240,6 +226,13 @@
 							change = scope:change
 						}
 					}
+				}
+			}
+
+			scope:defender = {
+				change_liege = {
+					liege = scope:attacker
+					change = scope:change
 				}
 			}
 		}
@@ -418,16 +411,16 @@
 		}
 
 		# Attacker loses Prestige, all other war participants gain Prestige (Defender gains full prestige, all allies on both sides gain based on war contribution).
-		modify_all_participants_fame_values = { #报错点
-			WINNER = scope:defender
-			LOSER = scope:attacker
-			FAME_BASE = scope:cb_prestige_factor # Set by 'setup_claim_cb'
-			IS_RELIGIOUS_WAR = no
-			WINNER_FAME_SCALE = 10
-			LOSER_FAME_SCALE = -10
-			WINNER_ALLY_FAME_SCALE = 10
-			LOSER_ALLY_FAME_SCALE = 10
-		}
+		#modify_all_participants_fame_values = { #报错点
+			#WINNER = scope:defender
+			#LOSER = scope:attacker
+			#FAME_BASE = scope:cb_prestige_factor # Set by 'setup_claim_cb'
+			#IS_RELIGIOUS_WAR = no
+			#WINNER_FAME_SCALE = 10
+			#LOSER_FAME_SCALE = -10
+			#WINNER_ALLY_FAME_SCALE = 10
+			#LOSER_ALLY_FAME_SCALE = 10
+		#}
 	
 		add_truce_attacker_defeat_effect = yes
 		
@@ -604,49 +597,31 @@ steppe_war = {
 			save_scope_as = change
 			add_claim_on_loss = yes
 		}
+		setup_invasion_cb = {
+			titles = target_titles
+			attacker = scope:attacker
+			defender = scope:defender
+			change = scope:change
+			take_occupied = no
+		}
 		if = {
 			limit = {
-				scope:defender.highest_held_title_tier < scope:attacker.highest_held_title_tier
+				scope:defender.primary_title.tier < scope:attacker.primary_title.tier
 			}
 			scope:defender = {
-				if = {
-					limit = {
-						highest_held_title_tier = tier_kingdom
-					}
-					every_held_title = {
-						limit = { tier >= tier_county }
-						change_title_holder = {
-							holder = scope:attacker
-							change = scope:change
-						}
-					}
-				}
-				else = {
-					change_liege = {
-						liege = scope:attacker
-						change = scope:change
-					}
+				change_liege = {
+					liege = scope:attacker
+					change = scope:change
 				}
 			}
 		}
-		else_if = {
-			limit = {
-				scope:defender.highest_held_title_tier >= scope:attacker.highest_held_title_tier
-				scope:defender.highest_held_title_tier <= tier_kingdom
-			}
-			setup_invasion_cb = {
-				titles = target_titles
-				attacker = scope:attacker
-				defender = scope:defender
-				change = scope:change
-				take_occupied = yes
-			}
+		else = {
 			scope:defender = {
 				every_held_title = {
 					if = {
 						limit = {
+							tier = scope:defender.primary_title.tier
 							tier <= tier_kingdom
-							tier >= tier_county
 						}
 						change_title_holder = {
 							holder = scope:attacker
@@ -663,24 +638,8 @@ steppe_war = {
 						save_temporary_scope_as = secondary_title
 					}
 				}
-				every_vassal = { #剥夺同族土地
-					limit = {
-						dynasty = scope:defender.dynasty
-						primary_title.tier > tier_barony
-						exists = capital_province
-						capital_province = { geographical_region = world_asia_china }
-					}
-					every_held_title = {
-						limit = {
-							tier = tier_county
-							target_is_de_jure_liege_or_above = title:e_cathay
-						}
-						change_title_holder = {
-							holder = scope:attacker
-							change = scope:change
-						}
-					}
-				}
+			}
+			scope:defender = {
 				if = {
 					limit = {
 						exists = scope:secondary_title
@@ -698,64 +657,13 @@ steppe_war = {
 						}
 					}
 				}
-			}
-					
-			scope:defender = {			
-				change_liege = {
-					liege = scope:attacker
-					change = scope:change
-				}
-			}
-		}
-
-		else_if = {
-			limit = {
-				scope:defender.highest_held_title_tier >= scope:attacker.primary_title.tier
-				scope:defender.highest_held_title_tier > tier_kingdom
-			}
-			setup_invasion_cb = {
-				titles = target_titles
-				attacker = scope:attacker
-				defender = scope:defender
-				change = scope:change
-				take_occupied = yes
-			}
-			scope:defender = {
-				every_vassal = { #剥夺同族土地
-					limit = {
-						dynasty = scope:defender.dynasty
-						primary_title.tier > tier_barony
-						exists = capital_province
-						capital_province = { geographical_region = world_asia_china }
-					}
-					every_held_title = {
-						limit = {
-							tier = tier_county
-							target_is_de_jure_liege_or_above = title:e_cathay
-						}
-						change_title_holder = {
-							holder = scope:attacker
-							change = scope:change
-						}
-					}
-				}
-			}
-			if = {
-				limit = {
-					scope:defender = {
-						OR = {
-							has_government = tribal_government
-							has_government = ulus_government
-						}
-					}
-				}
-				scope:defender.primary_title = {
-					change_title_holder = {
-						holder = scope:attacker
-						change = scope:change
-					}
-				}
-			}
+			}	
+			#scope:defender = {			
+				#change_liege = {
+					#liege = scope:attacker
+					#change = scope:change
+				#}
+			#}
 		}
 		
 		resolve_title_and_vassal_change = scope:change
@@ -2111,455 +2019,4 @@ claim_cb = {
 	attacker_wargoal_percentage = 0.8
 
 	max_ai_diplo_distance_to_title = 1000
-}
-
-
-jurchen_invasion_war = {
-	group = invasion
-
-	combine_into_one = yes
-	should_show_war_goal_subview = yes
-	mutually_exclusive_titles = { always = no }
-
-	allowed_for_character = {
-		culture = culture:jurchen
-		prestige_level >= 3
-	}
-	
-	allowed_against_character = {
-		#NOT = { scope:defender.top_liege = scope:attacker }
-		#scope:attacker = {
-			#ALL_FALSE = {
-				#top_liege = scope:defender.top_liege
-				#liege = scope:defender
-			#}
-		#}
-	}
-	target_titles = neighbor_land
-	target_title_tier = all
-	target_de_jure_regions_above = yes
-	use_de_jure_wargoal_only = yes
-	ignore_effect = change_title_holder
-	
-	valid_to_start = {
-		#scope:target = {
-			#tier = tier_empire
-		#}
-	}
-
-	should_invalidate = {
-		NOT = {
-			any_in_list = {
-				list = target_titles
-				any_in_de_jure_hierarchy = {
-					tier = tier_county
-					holder = {
-						OR = {
-							this = scope:defender
-							target_is_liege_or_above = scope:defender
-						}
-					}
-				}
-			}
-		}
-	}
-
-	on_invalidated_desc = msg_mongol_invasion_war_invalidated_message
-	
-	on_invalidated = {
-	}
-
-
-	cost = {
-		piety = {
-			value = 0
-			if = {
-				limit = { scope:attacker = { is_ai = no } }
-				add = common_cb_impious_piety_cost
-			}
-		}
-		prestige = {
-			add = {
-				value = 100
-				desc = CB_BASE_COST
-			}
-			if = {
-				limit = { scope:attacker = { is_ai = no } }
-				add = tribal_subjugation_cb_prestige_cost
-			}
-			# Genghis Khan gets it for free
-			if = {
-				limit = {
-					scope:attacker = character:wanggiya_037
-					scope:attacker = { is_ai = yes }
-				}
-				multiply = {
-					value = 0
-					desc = CB_GENGHIS_KHAN_COST
-				}
-			}
-		}
-	}
-	
-	on_declaration = {
-		on_declared_war = yes
-	}	
-
-	on_victory_desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = { scope:attacker = { is_local_player = yes } }
-				desc = invasion_war_victory_desc_attacker
-			}
-			desc = invasion_war_victory_desc
-		}
-	}
-	
-	on_victory = {
-		scope:attacker = { show_pow_release_message_effect = yes }
-		create_title_and_vassal_change = {
-			type = conquest
-			save_scope_as = change
-			add_claim_on_loss = yes
-		}
-
-		# Target titles + dominant empires only
-		scope:defender = {
-			# Check whether any additional empires should be considered target titles
-				# First check for the primary defender
-			every_sub_realm_county = {
-				limit = {
-					any_neighboring_county = {
-						target_is_de_jure_liege_or_above = scope:attacker
-					}
-				}
-				duchy.kingdom = {
-				add_to_temporary_list = target_titles
-				}
-			}
-		}
-
-		
-		# Most of the title transfers are handled here
-		setup_invasion_cb = {
-			titles = target_titles
-			attacker = scope:attacker
-			defender = scope:defender
-			change = scope:change
-			take_occupied = yes
-		}
-		
-		scope:defender = {
-			every_sub_realm_county = {
-				limit = {
-					duchy.kingdom = {
-						is_in_list = target_titles
-					}
-				}
-				save_temporary_scope_as = county
-				random = {
-					chance = scope:attacker.martial
-					if = {
-						limit = {
-							NOT = { exists = var:looted_by_mongols }
-							NOT = {
-								holder = scope:attacker
-							}
-						}
-						# Each County should only be devastated once
-						set_variable = {
-							name = looted_by_mongols
-							value = yes
-						}
-						# Send a message (and gold!) to the Mongol Emperor
-						scope:attacker = {
-							send_interface_message = {
-								type = mongol_occupation_good
-								title = mongols_sieged_county.t
-								left_icon = scope:county.holder
-								right_icon = scope:county
-								goto = scope:county
-								add_gold = {
-									add = scope:county.development_level
-									multiply = 5
-								}
-								if = {
-									limit = {
-										dread < 100
-									}
-									add_dread = 2
-								}
-								show_as_tooltip = {
-									scope:county = {
-										mongols_devastate_county_effect = yes
-									}
-								}
-							}
-							save_scope_as = mongol_emperor
-							# Send a message to the County's owner
-							scope:county.holder = {
-								send_interface_message = {
-									type = mongol_occupation_bad
-									title = mongols_sieged_county.t
-									left_icon = scope:mongol_emperor
-									right_icon = scope:county
-									goto = scope:county
-									scope:county = {
-										mongols_devastate_county_effect = yes
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			every_vassal_or_below = {
-				every_sub_realm_county = {
-					limit = {
-						holder = { is_ai = yes }
-						duchy.kingdom = {
-							is_in_list = target_titles
-						}
-					}
-					save_temporary_scope_as = county
-					random = {
-						chance = scope:attacker.martial
-						if = {
-							limit = {
-								NOT = { exists = var:looted_by_mongols }
-								NOT = {
-									holder = scope:attacker
-								}
-							}
-							# Each County should only be devastated once
-							set_variable = {
-								name = looted_by_mongols
-								value = yes
-							}
-							# Send a message (and gold!) to the Mongol Emperor
-							scope:attacker = {
-								send_interface_message = {
-									type = mongol_occupation_good
-									title = mongols_sieged_county.t
-									left_icon = scope:county.holder
-									right_icon = scope:county
-									goto = scope:county
-									add_gold = {
-										add = scope:county.development_level
-										multiply = 5
-									}
-									if = {
-										limit = {
-											dread < 100
-										}
-										add_dread = 2
-									}
-									show_as_tooltip = {
-										scope:county = {
-											mongols_devastate_county_effect = yes
-										}
-									}
-								}
-								save_scope_as = mongol_emperor
-								# Send a message to the County's owner
-								scope:county.holder = {
-									send_interface_message = {
-										type = mongol_occupation_bad
-										title = mongols_sieged_county.t
-										left_icon = scope:mongol_emperor
-										right_icon = scope:county
-										goto = scope:county
-										scope:county = {
-											mongols_devastate_county_effect = yes
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		resolve_title_and_vassal_change = scope:change
-		
-		# If the defender was vassalised, take any Kingdom title they hold
-		scope:defender = {
-			if = {
-				limit = {
-					target_is_liege_or_above = scope:attacker
-					any_held_title = {
-						tier = tier_kingdom
-					}
-				}
-				create_title_and_vassal_change = {
-					type = conquest
-					save_scope_as = change_two
-					add_claim_on_loss = yes
-				}
-				every_held_title = {
-					limit = {
-						tier = tier_kingdom
-					}
-					change_title_holder = {
-						holder = scope:attacker
-						change = scope:change_two
-					}
-				}
-				resolve_title_and_vassal_change = scope:change_two
-			}
-		}
-
-		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
-		modify_allies_of_participants_fame_values = {
-			WINNER = scope:attacker
-			FAME_BASE = mongol_invasion_cb_ally_prestige
-			IS_RELIGIOUS_WAR = no
-			WINNER_ALLY_FAME_SCALE = 1
-			LOSER_ALLY_FAME_SCALE = 1
-		}
-		
-		# Prestige level progress for the attacker
-		scope:attacker = {
-			add_prestige_experience = {
-				value = mongol_invasion_cb_prestige_experience_gain
-			}
-		}
-
-		# Truce
-		add_truce_attacker_victory_effect = yes
-
-		# FP1: note the victory for future memorialisation via stele (if applicable).
-		scope:attacker = { fp1_remember_recent_conquest_victory_effect = yes }
-	}
-
-	on_white_peace_desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = { scope:defender = { is_local_player = yes } }
-				desc = invasion_war_white_peace_desc_defender
-			}
-			desc = invasion_war_white_peace_desc
-		}
-	}
-	
-	on_white_peace = {
-		scope:attacker = { show_pow_release_message_effect = yes }
-
-		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
-		modify_allies_of_participants_fame_values = {
-			WINNER = scope:attacker # Not important as the scales are identical
-			FAME_BASE = mongol_invasion_cb_ally_prestige
-			IS_RELIGIOUS_WAR = no
-			WINNER_ALLY_FAME_SCALE = 1
-			LOSER_ALLY_FAME_SCALE = 1
-		}
-
-		add_truce_white_peace_effect = yes
-
-		scope:attacker = {
-			add_prestige = mongol_invasion_cb_prestige_white_peace
-			stress_impact = {
-				ambitious = medium_stress_impact_gain
-				arrogant = medium_stress_impact_gain
-			}
-		}
-
-		scope:defender = {
-			stress_impact = {
-				arrogant = medium_stress_impact_gain
-			}
-		}
-	}
-	
-	on_defeat_desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = { scope:defender = { is_local_player = yes } }
-				desc = invasion_war_white_peace_desc_defender
-			}
-			desc = invasion_war_white_peace_desc
-		}
-	}
-	
-	on_defeat = {
-		scope:attacker = { show_pow_release_message_effect = yes }
-
-		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
-		modify_allies_of_participants_fame_values = {
-			WINNER = scope:defender
-			FAME_BASE = mongol_invasion_cb_ally_prestige
-			IS_RELIGIOUS_WAR = no
-			WINNER_ALLY_FAME_SCALE = 1
-			LOSER_ALLY_FAME_SCALE = 1
-		}
-	
-		# Truce
-		add_truce_attacker_defeat_effect = yes
-			
-		# piety change
-		every_in_list = {
-			list = target_titles
-			
-			scope:defender = {
-				add_prestige = mongol_invasion_cb_prestige_gain
-			}
-
-			scope:attacker = {
-				if = {
-					limit = {
-						scope:defender = { is_ai = no }
-					}
-					if = {
-						limit = {
-							monthly_character_income > 0
-						}
-						pay_short_term_income = {
-							years = 3
-							target = scope:defender
-						}
-					}
-					else = {
-						pay_short_term_gold = {
-							target = scope:defender
-							gold = medium_gold_value
-						}
-					}
-				}
-			}
-		}
-		
-		scope:attacker = {
-			every_vassal = {
-				add_opinion = {
-					modifier = liege_lost_mongol_invasion_war
-					target = prev
-				}
-			}
-		}
-		
-		scope:attacker = {
-			save_temporary_scope_as = loser
-		}
-		on_lost_aggression_war_discontent_loss = yes
-	}
-	
-	transfer_behavior = transfer
-	
-	on_primary_attacker_death = inherit
-	on_primary_defender_death = inherit
-	
-	attacker_allies_inherit = yes
-	defender_allies_inherit = yes
-	
-	war_name = "JURCHEN_INVASION_WAR_NAME"
-	cb_name = "JURCHEN_INVASION_CB_NAME"
-	
-	interface_priority = 100
-	
-	use_de_jure_wargoal_only = yes
-	
-	attacker_wargoal_percentage = 0.8
-	
-	max_ai_diplo_distance_to_title = 500
 }
