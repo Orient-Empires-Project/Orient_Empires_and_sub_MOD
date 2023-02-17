@@ -6,8 +6,16 @@
 		OR = {
 			culture = { has_cultural_pillar = heritage_chinese }
 			culture = { has_innovation = innovation_centralization_of_authority }
+			has_same_culture_as = scope:base
+			AND = {
+				exists = scope:base.primary_title.title_province.culture
+				culture = scope:base.primary_title.title_province.culture
+			}
 		}
-
+		OR = {
+			location.province_owner = { top_liege = scope:base.top_liege }
+			location = scope:base.top_liege.capital_province
+		}
 		trigger_if = {
 			limit = {
 				scope:base = { has_realm_law = female_only_law }
@@ -20,7 +28,6 @@
 			}
 			is_male = yes
 		}
-		is_ruler = no
 	}
 	
 	character_score = {
@@ -39,7 +46,7 @@
 		}
 
 		modifier = { #随从
-			add = 50
+			add = 20
 			is_courtier_of = scope:base
 		}
 		modifier = { #亲戚
@@ -50,16 +57,15 @@
 				dynasty = scope:base.dynasty				
 			}
 		}
-		modifier = { #门第
-			factor = {
-				value = scope:base.dynasty.dynasty_prestige_level
-			} 
-		}
 		modifier = { #年级
 			add = { value = age max = 30 }
 		}
+		modifier = { #教育
+			add = 10
+			has_education_stewardship_trigger = yes
+		}
 		modifier = { #寒门
-			add = 20 	
+			add = 10 	
 			is_lowborn = yes
 		}
 		modifier = { #中产
@@ -68,57 +74,29 @@
 				exists = dynasty
 				dynasty = {
 					any_dynasty_member = {
-						count <= 10
+						count < 10
 					}
 				}
 			}
 		}
+		modifier = { #门第
+			factor = {
+				value = scope:base.dynasty.dynasty_prestige_level
+			} 
+		}
 		modifier = { #考分
-			add = { value = learning_lifestyle_perk_points }
+			add = learning
 		}
 		modifier = { #女子无才便是德
-			factor = -500
+			factor = 0
 			is_female = yes
 		}
-		modifier = { #玩家继承人
-			add = 1000	
-			is_player_heir_of_trigger = { CHARACTER = root }
-		}
-		#资历
-		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_1
-			add = 50
-		}
-		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_2
-			add = 60
-		}
-		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_3
-			add = 80
-		}
-		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_4
-			add = 100
-		}
-		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_5
-			add = 200
-		}
-		modifier = {
-			has_trait = jinshi
-			add = 100
-		}
-		modifier = {
-			has_trait = zhuangyuan
-			add = 200
-		}
-		modifier = {
-			add = -2000
-			exists = scope:base.top_liege
-			scope:base.top_liege = { is_oe_imperial_official_trigger = yes }
-			scope:base.top_liege = { is_ai = no }
-			is_councillor_of = scope:base.top_liege
+		modifier = { #资历
+			factor = 0
+			has_trait_rank = {
+				trait = BureaucracyEmpire_lifestyle_bureaucrat
+				rank > 2
+			}
 		}
 	}
 	
@@ -130,8 +108,8 @@
 	selection_count = 25  #候补梯队
 	
 	pool = heritage
-	court = yes
-	gender = gender_law
+	court = no
+	gender = male
 }
 
 
@@ -140,12 +118,16 @@ pool_bureaucrat = { #这就是流官制
 	valid_character = {
 		is_capable_adult = yes
 		is_imprisoned = no
-		is_male = yes
-		is_independent_ruler = no
 
 		OR = {
 			culture = { has_cultural_pillar = heritage_chinese }
 			culture = { has_innovation = innovation_centralization_of_authority }
+			has_same_culture_as = scope:base
+			has_same_culture_as = scope:base.top_liege
+			AND = {
+				exists = scope:base.primary_title.title_province.culture
+				culture = scope:base.primary_title.title_province.culture
+			}
 		}
 
 		trigger_if = {
@@ -160,94 +142,113 @@ pool_bureaucrat = { #这就是流官制
 			}
 			is_male = yes
 		}
-
 		OR = {
-			is_lowborn = yes
-			is_courtier_of = scope:base
-			target_is_liege_or_above = scope:base
+			location.province_owner = { top_liege = scope:base.top_liege }
+			location = scope:base.top_liege.capital_province
+			AND = {
+				location.province_owner.top_liege = {
+					NOT = { is_at_war_with = scope:base.top_liege }
+				}
+				OR = {
+					has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+					has_trait = jinshi
+				}
+			}
 		}
-		has_trait = BureaucracyEmpire_lifestyle_bureaucrat
-		highest_held_title_tier < scope:base.highest_held_title_tier
-		#OR = {
-			#is_landed = no
-			#is_bureau_government_trigger = yes
-		#}
 	}
 	
 	character_score = {
-		base = 5
+		base = 0
 		
-		modifier = {
-			add = 100
-			is_courtier_of = scope:base
-		}
-		modifier = {
-			add = { value = age max = 20 }
-		}
-		modifier = {
-			add = 50 	
-			is_lowborn = yes
-		}
-		modifier = {
-			add = { value = dynasty_prestige_level multiply = 10 }
-		}
 		#资历
 		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_1
-			add = 50
+			add = { value = bureaucracy_exp_value }
+		}
+		#幕僚
+		modifier = {
+			add = 15
+			is_courtier_of = scope:base
+		}
+		#考分
+		compare_modifier = {
+			value = learning
+		}
+		#门第
+		modifier = {
+			add = 20
+			any_close_or_extended_family_member = {
+				OR = {
+					is_courtier_of = scope:base.top_liege
+					target_is_liege_or_above = scope:base.top_liege
+				}
+			}
+		}
+		modifier = { #中产
+			add = 20 	
+			AND = {
+				exists = dynasty
+				dynasty = {
+					any_dynasty_member = {
+						count > 5
+					}
+				}
+			}
 		}
 		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_2
-			add = 60
+			add = 10
+			has_trait = jinshi
 		}
 		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_3
-			add = 80
+			scope:base.primary_title.tier = tier_barony
+			has_trait_rank = {
+				trait = BureaucracyEmpire_lifestyle_bureaucrat
+				rank = 1
+			}
+			add = 10
 		}
 		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_4
-			add = 100
+			scope:base.primary_title.tier = tier_county
+			has_trait_rank = {
+				trait = BureaucracyEmpire_lifestyle_bureaucrat
+				rank < 3
+			}
+			add = 30
 		}
 		modifier = {
-			has_trait = BureaucracyEmpire_bureaucrat_5
-			add = 200
-		}	
-		#modifier = {
-			#highest_held_title_tier = tier_barony
-			#add = -30 	
-		#}
-		#modifier = {
-			#highest_held_title_tier = tier_county
-			#add = -100 	
-		#}
-		#modifier = { #朝野不兼
-			#highest_held_title_tier = tier_duchy
-			#add = -300 	
-		#}
-		#modifier = {
-			#add = { value = stewardship_lifestyle_perk_points }
-		#}
-		#modifier = {
-			#add = { value = learning_lifestyle_perk_points }
-		#}
-		#modifier = {
-			#add = { value = diplomacy_lifestyle_perk_points }
-		#}
+			scope:base.primary_title.tier = tier_duchy
+			has_trait_rank = {
+				trait = BureaucracyEmpire_lifestyle_bureaucrat
+				rank >= 3
+			}
+			add = 20
+		}
 		modifier = {
-			factor = -500
-			is_female = yes
-		}	
+			scope:base.primary_title.tier = tier_kingdom
+			has_trait_rank = {
+				trait = BureaucracyEmpire_lifestyle_bureaucrat
+				rank >= 4
+			}
+			add = 20
+		}
+		modifier = { #玩家继承人
+			add = 1000	
+			is_player_heir_of_trigger = { CHARACTER = scope:base }
+		}
+		modifier = { #玩家继承人
+			add = 1000
+			any_parent = { is_ai = no }
+		}		
 	}
 	
 	
 	config = {
 		background = bureaucrat
-		age = { 20 80 }
+		age = { 30 55}
 	}
 	
-	selection_count = 5
+	selection_count = 15
 	
-	pool = culture
-	court = yes
-	gender = gender_law
+	pool = heritage
+	court = no
+	gender = male
 }

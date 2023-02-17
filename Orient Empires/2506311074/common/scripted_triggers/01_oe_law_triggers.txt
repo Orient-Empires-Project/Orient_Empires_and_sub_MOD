@@ -149,30 +149,55 @@ can_have_single_heir_dynasty_house_trigger = {
 		}
 	}
 }
-
-#流官制（与帝国官僚继承法接驳）
-can_have_official_succession_law_trigger = {
+#玩家判定
+can_have_official_succession_law_player_trigger = {
 	is_independent_ruler = no
 	highest_held_title_tier >= tier_county
-	NOT = { has_trait = peasant_leader }
+	OR = {
+		is_ai = no
+		exists = var:player_officier
+	}
+	OR = {
+		has_government = imperial_government
+		has_government = bureau_government
+	}
     OR = {
 		vassal_contract_has_flag = special_imperial_corps_4
 		AND = {
+			highest_held_title_tier < tier_kingdom
+			NOT = { has_title = title:d_gosho }
+		}
+		AND = {
+			highest_held_title_tier = tier_kingdom
 			OR = {
-				liege = {
-					has_government = imperial_government
-					highest_held_title_tier >= tier_duchy
-				}
-				AND = {
-					liege = {
-						has_government = ulus_government
-					}
-					OR = {
-						has_government = imperial_government
-						has_government = bureau_government
-					}
-				}
-			}
+				culture = { has_innovation = innovation_court_officials }
+				top_liege = { culture = { has_innovation = innovation_court_officials } }
+			}			
+		}
+    }
+}
+#玩家判定
+can_keep_official_succession_law_player_trigger = {
+	trigger_if = {
+		limit = {
+			has_realm_law = player_official_succession_law
+		}
+		can_have_official_succession_law_player_trigger = yes
+	}
+}
+#流官制（与帝国官僚继承法接驳）
+can_have_official_succession_law_trigger = {
+	is_independent_ruler = no
+	is_ai = yes
+	highest_held_title_tier >= tier_county
+	OR = {
+		has_government = imperial_government
+		has_government = bureau_government
+	}
+    OR = {
+		vassal_contract_has_flag = special_imperial_corps_4
+		AND = {
+			highest_held_title_tier < tier_kingdom
 			NOT = { has_title = title:d_gosho }
 		}
 		AND = {
@@ -187,7 +212,9 @@ can_have_official_succession_law_trigger = {
 
 can_keep_official_succession_law_trigger = {
 	trigger_if = {
-		limit = { has_realm_law = official_succession_law }
+		limit = {
+			has_realm_law = official_succession_law
+		}
 		can_have_official_succession_law_trigger = yes
 		NOR = {
 			vassal_contract_has_flag = imperial_corps_3
@@ -195,6 +222,7 @@ can_keep_official_succession_law_trigger = {
 		}
 	}
 }
+
 
 can_pass_official_succession_law_trigger = {
 	can_change_title_law_trigger = yes
@@ -228,9 +256,11 @@ can_pass_tradition_succession_law_trigger = {
 #留后册命制（藩镇基础继承法）
 can_have_corps_succession_law_trigger = {
 	is_independent_ruler = no
+	#can_have_official_succession_law_trigger = no
+	highest_held_title_tier >= tier_county
 	OR = {
 		has_government = corps_government
-		has_government = imperial_government
+		#has_government = imperial_government
 	}
 }
 
@@ -243,7 +273,7 @@ can_keep_corps_succession_law_trigger = {
 
 can_pass_corps_succession_law_trigger = {
 	can_change_title_law_trigger = yes
-	is_legion_government_trigger = yes
+	is_corps_government_trigger = yes
 }
 
 #科举制

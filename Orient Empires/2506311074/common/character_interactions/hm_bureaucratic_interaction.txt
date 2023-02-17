@@ -1,4 +1,4 @@
-hm_replace_the_bureaucratic_interaction = {
+hm_replace_the_bureaucratic_interaction = {  #替换官员
 	category = interaction_category_friendly
 	common_interaction = yes
 	greeting = positive
@@ -14,35 +14,21 @@ hm_replace_the_bureaucratic_interaction = {
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
 
-	#ai_frequency = 480
-	populate_actor_list = {
-		scope:actor = {
-			every_courtier_or_guest = {
-				limit = { 
-					is_adult = yes
-					is_female = no
-					is_ruler = no
-				}
-				add_to_list = characters
-			}
-		}
-	}
+	ai_frequency = 40
 	is_shown = {
-		scope:recipient = { 
-			is_vassal_of = scope:actor
-			highest_held_title_tier <= tier_duchy
-			is_bureau_government_trigger = yes
-		}
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
-			OR = {
-				has_government = imperial_government
-				has_government = corps_government
-				has_government = ulus_government
-			}
-			is_independent_ruler = yes
+			is_oe_imperial_official_trigger = yes
 			is_ai = no
 		}
+		scope:recipient = { 
+			is_vassal_or_below_of = scope:actor
+			#is_bureau_government_trigger = yes
+			is_oe_landed_bureacrat_trigger = yes
+			highest_held_title_tier <= tier_duchy
+		}
 	}
+
 	has_valid_target_showing_failures_only = {
 		scope:actor = {
 			culture = { has_innovation = innovation_centralization_of_authority }
@@ -53,26 +39,71 @@ hm_replace_the_bureaucratic_interaction = {
 				}
 			}		
 		}
-		scope:secondary_actor = {
-			is_ai = yes
-			is_incapable = no
-			is_adult = yes
-			is_at_war = no
-			has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+		scope:secondary_actor = { #候任官
+			is_available_at_peace_adult = yes
+			OR = {
+				has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+				has_trait = jinshi
+				has_trait = zhuangyuan
+			}
 		}
-		scope:recipient = {
+		scope:recipient = { #卸任官
 			is_ai = yes
-			is_incapable = no
 			is_at_war = no
 			is_adult = yes
-			is_bureau_government_trigger = yes
-#			OR = {
-#				has_government = imperial_government
-#				has_government = corps_government
-#			}
+			is_oe_landed_bureacrat_trigger = yes
 		}
 	}
-
+	populate_actor_list = {
+		scope:actor = {
+			every_vassal_or_below = { #皇帝的其他文官
+				limit = {
+					highest_held_title_tier < scope:recipient.primary_title.tier
+					is_oe_landed_bureacrat_trigger = yes
+				}
+				add_to_list = characters
+			}
+			every_courtier_or_guest = { #皇帝的廷臣
+				limit = {
+					is_ruler = no
+					target_is_liege_or_above = scope:actor
+					is_available_ai_adult = yes
+					is_male = yes
+				}
+				add_to_list = characters
+			}
+			#every_pool_character = { #首都角色池
+				#limit = {
+					#is_available_healthy_ai_adult = yes
+					#OR = {
+						#has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+						#has_trait = jinshi
+						#has_trait = zhuangyuan
+					#}
+					#OR = {
+						#location.province_owner = { top_liege = scope:actor.top_liege }
+						#location = scope:actor.top_liege.capital_province
+					#}
+				#}
+				#add_to_list = characters
+			#}
+		}
+		scope:recipient = { #地方幕僚
+			every_courtier_or_guest = {
+				limit = {
+					is_ruler = no
+					target_is_liege_or_above = scope:actor
+					is_adult = yes
+					is_male = yes
+				}
+				add_to_list = characters
+			}
+		}
+	}
+	is_valid_showing_failures_only = {
+		scope:recipient = { is_available_for_activity_trigger = yes }
+		scope:actor = { prestige >= 1000 }
+	}
 	#Use hook
 	send_option = {
 		is_valid = {
@@ -100,7 +131,7 @@ hm_replace_the_bureaucratic_interaction = {
 	}
 	cost = {
 		prestige = {
-			value = 200
+			value = 300
 		}
 	}
 	on_auto_accept = {
@@ -184,13 +215,11 @@ hm_replace_the_bureaucratic_interaction = {
 	auto_accept = {
 		OR = {
 			scope:recipient = {
-				highest_held_title_tier = tier_barony
-			}
-			scope:recipient = {
-				is_bureau_government_trigger = yes
-			}
-			scope:recipient = {
-				is_imprisoned_by = scope:actor
+				OR = {
+					highest_held_title_tier = tier_barony
+					is_bureau_government_trigger = yes
+					is_imprisoned_by = scope:actor
+				}				
 			}
 			custom_description = {
 				text = "spending_hook"
@@ -223,6 +252,13 @@ hm_replace_the_bureaucratic_interaction = {
 				is_bureau_government_trigger = yes
 			}
 			desc = AI_REFUSAL_IS_BUREAU
+		}
+		modifier = {
+			add = -200
+			scope:recipient = {
+				is_corps_government_trigger = yes
+			}
+			desc = AI_REFUSAL_IS_CORPS
 		}
 		modifier = {
 			add = 20
@@ -1046,24 +1082,9 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
 
-	#ai_frequency = 480
-	populate_actor_list = {
-		scope:actor.liege = {
-			every_courtier_or_guest = {
-				limit = { 
-					is_adult = yes
-					is_female = no
-					is_ruler = no
-				}
-				add_to_list = characters
-			}
-		}
-	}
 	is_shown = {
-		scope:recipient = { 
-			is_vassal_of = scope:actor.liege
-			highest_held_title_tier <= tier_duchy
-			is_bureau_government_trigger = yes
+		scope:actor.liege = {
+			is_oe_imperial_government_trigger = yes
 		}
 		scope:actor = {
 			OR = {
@@ -1074,9 +1095,16 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				}
 			}
 		}
-		scope:actor.liege = {
-			is_oe_imperial_official_trigger = yes
+		scope:recipient = { 
+			is_vassal_or_below_of = scope:actor.liege
+			highest_held_title_tier <= tier_duchy
+			is_bureau_government_trigger = yes
+			is_oe_landed_bureacrat_trigger = yes
 		}
+	}
+	is_valid_showing_failures_only = {
+		scope:recipient = { is_available_for_activity_trigger = yes }
+		scope:actor = { prestige >= 1000 }
 	}
 	has_valid_target_showing_failures_only = {
 		scope:actor.liege = {
@@ -1088,26 +1116,60 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				}
 			}		
 		}
-		scope:secondary_actor = {
-			is_ai = yes
-			is_incapable = no
-			is_adult = yes
-			is_at_war = no
-			has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+		scope:secondary_actor = { #候任官
+			is_available_at_peace_adult = yes
+			OR = {
+				has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+				has_trait = jinshi
+				has_trait = zhuangyuan
+			}
 		}
-		scope:recipient = {
+		scope:recipient = { #卸任官
 			is_ai = yes
-			is_incapable = no
 			is_at_war = no
 			is_adult = yes
-			is_bureau_government_trigger = yes
-#			OR = {
-#				has_government = imperial_government
-#				has_government = corps_government
-#			}
+			is_oe_landed_bureacrat_trigger = yes
 		}
 	}
-
+	populate_actor_list = {
+		scope:actor = {
+			every_courtier_or_guest = { #皇帝的廷臣
+				limit = {
+					is_ruler = no
+					target_is_liege_or_above = scope:actor
+					is_available_ai_adult = yes
+					is_male = yes
+				}
+				add_to_list = characters
+			}
+			#every_pool_character = { #首都角色池
+				#limit = {
+					#is_available_healthy_ai_adult = yes
+					#OR = {
+						#has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+						#has_trait = jinshi
+						#has_trait = zhuangyuan
+					#}
+					#OR = {
+						#location.province_owner = { top_liege = scope:actor.top_liege }
+						#location = scope:actor.top_liege.capital_province
+					#}
+				#}
+				#add_to_list = characters
+			#}
+		}
+		scope:recipient = { #地方幕僚
+			every_courtier_or_guest = {
+				limit = {
+					is_ruler = no
+					target_is_liege_or_above = scope:actor
+					is_adult = yes
+					is_male = yes
+				}
+				add_to_list = characters
+			}
+		}
+	}
 	#Use hook
 	send_option = {
 		is_valid = {
@@ -1135,7 +1197,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 	}
 	cost = {
 		prestige = {
-			value = 200
+			value = 400
 		}
 	}
 	on_auto_accept = {

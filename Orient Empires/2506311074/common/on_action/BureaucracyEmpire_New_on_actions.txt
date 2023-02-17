@@ -1,0 +1,819 @@
+#获得头衔时触发
+# A title is inherited by a character
+# root = the new holder
+# scope:title = the title that changes hands
+# scope:previous_holder = previous holder. Should be dead
+# scope:transfer_type 的可用类型
+# flag:conquest 
+# flag:conquest_holy_war
+# flag:conquest_claim
+# flag:conquest_populist
+# flag:inheritance
+# flag:abdication
+# flag:destroyed
+# flag:created
+# flag:usurped
+# flag:granted
+# flag:revoked
+# flag:election
+# flag:independency
+# flag:returned
+# flag:leased_out
+# flag:lease_revoked
+# flag:faction_demand
+# flag:swear_fealty
+
+on_game_start_after_lobby = { #开局分配官阶
+	on_actions = {
+		east_on_after_lobby_bureaucrat_effects
+	}
+}	
+	
+	
+east_on_after_lobby_bureaucrat_effects = {	
+	effect = {
+		every_ruler = {
+			if = {
+				limit = {
+					is_ai = no
+					has_realm_law = official_succession_law
+				}
+				add_realm_law_skip_effects = player_official_succession_law
+			}
+			if = {
+				limit = {
+					is_oe_landed_bureacrat_trigger = yes
+				}
+				#如果资历够了，就提升资历等级。五个等级分别需要的资历为7/14/21/42/63
+				if = {
+					limit = { bureaucracy_exp_value < 7 }
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 14}
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 1
+						max = 1
+					}
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 21 }
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 2
+						max = 2
+					}
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 42 }
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 3
+						max = 3
+					}
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 63 }
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 4
+						max = 4
+					}
+				}
+				else = {
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 5
+						max = 5
+					}
+				}
+			}
+		}
+	}
+}
+
+
+three_year_playable_pulse = { #三年考绩+科举
+	on_actions = { 
+		BureaucracyEmpire_jinshi_pulse
+		BureaucracyEmpire_yearly_new_pulse
+	}
+}
+
+#科举考试
+BureaucracyEmpire_jinshi_pulse = {
+	trigger = {
+		has_primary_title = title:e_celestia
+		is_at_war = no
+		piety_level >= 4
+		has_global_variable = examination_modifier
+	}
+	effect = {
+		add_piety = -100
+		primary_title = { save_temporary_scope_as = temp_title }
+		create_character = {
+			location = scope:temp_title.title_capital_county.title_province
+			template = celestial_jinshi_repopulate
+			save_temporary_scope_as = jinshi1
+		}
+		create_character = {
+			location = scope:temp_title.title_capital_county.title_province
+			template = celestial_jinshi_repopulate
+			save_temporary_scope_as = jinshi2
+		}
+		create_character = {
+			location = scope:temp_title.title_capital_county.title_province
+			template = celestial_jinshi_repopulate
+			save_temporary_scope_as = jinshi3
+		}
+		create_character = {
+			location = scope:temp_title.title_capital_county.title_province
+			template = celestial_zhuangyuan_repopulate
+			save_temporary_scope_as = zhuangyuan
+		}
+		#add_courtier = scope:jinshi1
+		#add_courtier = scope:jinshi2
+		#add_courtier = scope:jinshi3
+		recruit_courtier = scope:zhuangyuan
+	}
+}
+
+#random_yearly_everyone_pulse = { #提拔县官时开启
+	#on_actions = { 
+		#BureaucracyEmpire_yearly_new_pulse
+	#}
+#}
+
+BureaucracyEmpire_yearly_new_pulse = {
+	effect = {
+		if = {#年度官僚资历结算
+			limit = {
+				OR = {
+					is_oe_landed_bureacrat_trigger = yes
+					any_parent = {
+						is_ai = no
+						is_oe_landed_bureacrat_trigger = yes
+					}
+					AND = {
+						is_councillor = yes
+						liege_or_court_owner = { is_oe_landed_bureacrat_trigger = yes }
+					}
+				}
+			}
+			save_scope_as = bureaucrat		
+			primary_title = { save_scope_as = primary_title }
+			every_held_title = {
+				add_to_list = list_old_titles
+			}
+			top_liege = { save_temporary_scope_as = temp_liege }
+			#储存契约
+			#save_east_contract_effect = yes
+			#如果资历够了，就提升资历等级。五个等级分别需要的资历为7/14/21/42/63
+			if = {
+				limit = { bureaucracy_exp_value < 7 }
+			}
+			else_if = {
+				limit = { bureaucracy_exp_value < 14}
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 1
+				}
+			}
+			else_if = {
+				limit = { bureaucracy_exp_value < 21 }
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 2
+				}
+			}
+			else_if = {
+				limit = { bureaucracy_exp_value < 42 }
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 3
+				}
+			}
+			else_if = {
+				limit = { bureaucracy_exp_value < 63 }
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 4
+				}
+			}
+			else = {
+				change_trait_rank = {
+					trait = BureaucracyEmpire_lifestyle_bureaucrat
+					rank = 1
+					max = 5
+				}
+			}
+			if = {
+				limit = {
+					is_oe_landed_bureacrat_trigger = yes #天朝流官
+					is_available_at_peace_ai_adult = yes #正常人
+					is_valid_for_narrow_yearly_events = yes #无事在身
+				}
+				#清查非法占地
+				#退休和罢免
+				if = {
+					limit = {
+						NOT = { is_councillor_of = top_liege }
+						NAND = {
+							is_councillor = yes
+							liege_or_court_owner = { is_ai = no }
+						}
+						OR = {
+							age < 16
+							age > 70
+							is_physically_able = no
+							has_trait = lunatic #纯质
+							has_trait = possessed #中邪
+							has_trait = peasant_leader #大逆
+							is_illegal_criminal_trigger = yes #众所周知的罪行
+							trigger_if = {
+								limit = { 
+									top_liege.faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
+								}
+								is_female = yes
+							}
+							trigger_if = {
+								limit = { 
+									top_liege.faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+								}
+								is_male = yes
+							}
+							trigger_if = {
+								limit = { 
+									top_liege.faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+								}
+								is_male = yes
+							}
+							trigger_if = {
+								limit = {
+									has_trait_rank = {
+										trait = BureaucracyEmpire_lifestyle_bureaucrat
+										rank < 3
+									}
+									highest_held_title_tier >= tier_duchy
+								}
+							}
+							trigger_if = {
+								limit = {
+									has_trait_rank = {
+										trait = BureaucracyEmpire_lifestyle_bureaucrat
+										rank < 2
+									}
+									highest_held_title_tier >= tier_county
+								}
+							}
+							trigger_if = {
+								limit = {
+									has_trait_rank = {
+										trait = BureaucracyEmpire_lifestyle_bureaucrat
+										rank > 2
+									}
+									highest_held_title_tier = tier_barony
+								}
+							}
+						}
+					}
+					depose = yes
+					every_in_list = {
+						list = list_old_titles
+						scope:bureaucrat = {
+							remove_claim = prev
+						}
+					}
+					move_to_pool_at = scope:temp_liege.capital_province
+				}
+			}
+		}
+	}
+}
+
+
+on_death = {
+	on_actions = {
+		BureaucracyEmpire_family_pulse
+		delay = {
+			days = 10
+		}
+	}
+}
+#丁忧
+BureaucracyEmpire_family_pulse = {
+	trigger = {
+		culture = { has_cultural_tradition = tradition_chinese_succession }		
+	}
+	effect = {
+		if = {
+			limit = {
+				any_child = {
+					is_oe_landed_bureacrat_trigger = yes
+					is_ai = yes
+				}
+			}
+			save_scope_as = bureaucrat_parent
+			every_child = {
+				limit = {
+					is_oe_landed_bureacrat_trigger = yes
+					is_available_ai_adult = yes
+					is_valid_for_narrow_yearly_events = yes
+					is_ai = yes
+				}
+				save_scope_as = bureaucrat
+				#save_east_contract_effect = yes
+				depose = yes
+				move_to_pool_at = scope:bureaucrat_parent.location
+			}
+		}
+	}
+}
+
+#流官家族传承
+on_death = {
+	on_actions = {
+		BureaucracyEmpire_player_bureaucrat_pulse
+	}
+}
+BureaucracyEmpire_player_bureaucrat_pulse = {
+	trigger = {
+		is_ai = no
+		OR = {
+			has_realm_law = player_official_succession_law
+			has_realm_law = official_succession_law
+		}
+	}
+	effect = {
+		add_realm_law_skip_effects = corps_succession_law
+		if = {
+			limit = { exists = player_heir }
+			player_heir = {
+				add_realm_law = player_official_succession_law
+				add_character_flag = {
+					flag = flag_bureacrat_positioned
+					years = 1
+				}
+			}
+		}
+		# 摄政/秘书长继承法
+		#if = { 
+			#limit = { exists = designated_heir }
+			#designated_heir = {
+				#set_variable = {
+					#name = player_officier
+					#value = yes
+					#days = 365
+				#}
+			#}
+		#}
+		#else_if = {
+			#limit = { exists = player_heir }
+			#player_heir = {
+				#set_variable = {
+					#name = player_officier
+					#value = yes
+					#days = 365
+				#}
+			#}
+		#}	
+	}
+}
+
+on_title_gain = {
+	on_actions = {
+		BureaucracyEmpire_player_pulse
+	}
+}
+#玩家流官叙迁，用其他默认官员触发
+BureaucracyEmpire_player_pulse = {
+	trigger = {
+		scope:title.tier > tier_barony
+		is_oe_landed_bureacrat_trigger = yes #暂时接班的ai
+		is_available_at_peace_ai_adult = yes
+		is_valid_for_narrow_yearly_events = yes
+		OR = {
+			scope:transfer_type = flag:inheritance #继承
+			scope:transfer_type = flag:abdication #退位继承
+			scope:transfer_type = flag:granted #被授予头衔
+			scope:transfer_type = flag:usurped #篡夺头衔
+		}
+		NOT = { has_character_flag = flag_bureacrat_positioned }
+	}	
+	effect = {
+		save_scope_as = temp_holder
+		liege = {
+			save_scope_as = liege
+		}
+		#scope:previous_holder = {
+			#save_scope_as = bureaucrat
+			#save_east_contract_effect = yes
+		#}
+		every_held_title = {
+			add_to_list = list_temp_title #目的地官位
+		}
+		every_vassal = {
+			add_to_list = list_temp_vassal #目的地封臣
+		}
+		every_player = {
+			limit = {
+				is_ai = no
+				is_oe_landed_bureacrat_trigger = yes
+				NOT = { has_character_flag = flag_bureacrat_positioned }
+			}
+			save_scope_as = player
+		}
+		scope:player = {
+			primary_title = {
+				save_scope_as = old_primary_title #卸任官位
+			}
+			every_held_title = {
+				add_to_list = list_old_title  #卸任官位
+			}
+			every_vassal = {
+				add_to_list = list_old_vassal #卸任封臣
+			}
+			liege = {
+				save_scope_as = old_liege #卸任领主
+			}
+		}
+		#玩家升迁，比较考绩即可
+		if = {
+			limit = {
+				is_oe_landed_bureacrat_trigger = yes
+				is_available_at_peace_adult = yes
+				is_valid_for_narrow_yearly_events = yes
+				scope:player.top_liege = scope:temp_holder.top_liege
+				OR = {
+					scope:title.tier > scope:player.primary_title.tier
+					AND = {
+						scope:title.tier = scope:player.primary_title.tier
+						OR = {
+							scope:temp_holder.CorruptionSystem_distance_value < scope:player.CorruptionSystem_distance_value
+							scope:temp_holder.capital_province.county.development_level > scope:player.capital_province.county.development_level
+						}
+					}
+				}
+				scope:player = {
+					has_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank > 2
+					}
+				}
+				NOR = {
+					has_trait = lunatic #纯质
+					has_trait = possessed #中邪
+					has_trait = peasant_leader #大逆
+					has_trait = incapable #失能
+					is_illegal_criminal_trigger = yes #众所周知的罪行
+				}
+				scope:player.bureaucracy_exp_value > scope:temp_holder.bureaucracy_exp_value
+			}
+			#scope:player = {
+				#trigger_event = bureaucracy.0003 #我去，我不去
+			#}
+			create_title_and_vassal_change = {
+				type = usurped
+				save_scope_as = change
+			}
+			every_in_list = {
+				list = list_temp_title
+				change_title_holder = {
+					holder = scope:player
+					change = scope:change
+				}
+				scope:temp_holder = {
+					remove_claim = prev
+				}
+			}	
+			every_in_list = {
+				list = list_old_title
+				change_title_holder = {
+					holder = scope:temp_holder
+					change = scope:change
+				}
+				scope:player = {
+					remove_claim = prev
+				}
+			}
+			every_in_list = {
+				list = list_old_vassal
+				change_liege = {
+					liege = scope:temp_holder
+					change = scope:change
+				}
+			}
+			every_in_list = {
+				list = list_temp_vassal
+				change_liege = {
+					liege = scope:player
+					change = scope:change
+				}
+			}
+			scope:player = { #升官
+				change_liege = {
+					liege = scope:liege
+					change = scope:change
+				}
+				add_character_flag = {
+					flag = flag_bureacrat_positioned
+					years = 1
+				}
+			}
+			scope:temp_holder = { #贬官
+				change_liege = {
+					liege = scope:old_liege
+					change = scope:change
+				}
+				add_character_flag = {
+					flag = flag_bureacrat_positioned
+					years = 1
+				}
+			}
+			#scope:player = {
+				#inter_east_contract_effect = yes
+			#}
+			resolve_title_and_vassal_change = scope:change
+		}
+		#玩家左迁，劣迹斑斑
+		if = {
+			limit = {
+				scope:player.top_liege = scope:temp_holder.top_liege
+				OR = {
+					scope:title.tier < scope:player.primary_title.tier
+					AND = {
+						scope:title.tier = scope:player.primary_title.tier
+						OR = {
+							scope:temp_holder.CorruptionSystem_distance_value > scope:player.CorruptionSystem_distance_value
+							scope:temp_holder.capital_province.county.development_level < scope:player.capital_province.county.development_level	
+						}
+					}
+				}				
+				scope:player.bureaucracy_exp_value < scope:temp_holder.bureaucracy_exp_value
+				scope:player = {
+					is_oe_landed_bureacrat_trigger = yes
+					is_available_at_peace_adult = yes
+					is_valid_for_narrow_yearly_events = yes
+					OR = {
+						has_trait = lunatic #纯质
+						has_trait = possessed #中邪
+						has_trait = peasant_leader #大逆
+						has_trait = incapable #失能
+						is_illegal_criminal_trigger = yes #众所周知的罪行
+						trigger_if = {
+							limit = { 
+								top_liege.faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
+							}
+							is_female = yes
+						}
+						trigger_if = {
+							limit = { 
+								top_liege.faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+							}
+							is_male = yes
+						}
+						trigger_if = {
+							limit = { 
+								top_liege.faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+							}
+							is_male = yes
+						}
+						trigger_if = {
+							limit = {
+								has_trait_rank = {
+									trait = BureaucracyEmpire_lifestyle_bureaucrat
+									rank < 3
+								}
+								highest_held_title_tier >= tier_duchy
+							}
+						}
+						trigger_if = {
+							limit = {
+								has_trait_rank = {
+									trait = BureaucracyEmpire_lifestyle_bureaucrat
+									rank < 2
+								}
+								highest_held_title_tier >= tier_county
+							}
+						}
+					}
+				}
+			}
+			#scope:player = {
+				#trigger_event = bureaucracy.0003
+			#}
+			create_title_and_vassal_change = {
+				type = usurped
+				save_scope_as = change
+			}
+			every_in_list = {
+				list = list_temp_title
+				change_title_holder = {
+					holder = scope:player
+					change = scope:change
+				}
+				scope:temp_holder = {
+					remove_claim = prev
+				}
+			}
+			every_in_list = {
+				list = list_old_title
+				change_title_holder = {
+					holder = scope:liege
+					change = scope:change
+				}
+				scope:player = {
+					remove_claim = prev
+				}
+			}
+			every_in_list = {
+				list = list_temp_vassal
+				change_liege = {
+					liege = scope:player
+					change = scope:change
+				}
+			}
+			every_in_list = {
+				list = list_old_vassal
+				change_liege = {
+					liege = scope:liege
+					change = scope:change
+				}
+			}
+			scope:player = { #贬官
+				change_liege = {
+					liege = scope:liege
+					change = scope:change
+				}
+				add_character_flag = {
+					flag = flag_bureacrat_positioned
+					years = 1
+				}
+			}
+			#scope:player = {
+				#inter_east_contract_effect = yes
+			#}
+			resolve_title_and_vassal_change = scope:change
+		}
+	}
+}
+
+
+on_title_gain = { #交接非法理头衔
+	on_actions = {
+		BureaucracyEmpire_on_title_gain_new		
+	}
+}
+
+BureaucracyEmpire_on_title_gain_new = {
+	trigger = {
+		#在天朝体制下
+		is_oe_landed_bureacrat_trigger = yes
+		OR = {
+			scope:transfer_type = flag:inheritance #继承
+			scope:transfer_type = flag:abdication #退位继承
+			scope:transfer_type = flag:granted #被授予头衔
+			scope:transfer_type = flag:usurped #篡夺头衔
+		}
+		#scope:title = primary_title 升迁
+	}
+	effect = {
+		add_character_flag = {
+			flag = flag_bureacrat_positioned
+			years = 1
+		}
+		#scope:previous_holder = {
+			#save_scope_as = bureaucrat
+			#save_east_contract_effect = yes
+		#}
+		#如果该官员是因为升迁获得的头衔，交接掉原有头衔
+		every_held_title = { 
+			limit = {
+				#不会替补掉同级头衔
+				tier <= scope:title.tier
+				tier > tier_barony
+				#不会替补掉自己的办公首府
+				trigger_if = {
+					limit = { exists = root.capital_county }
+					NOT = { this = root.capital_county }
+				}
+				#不在法理的的头衔要交出
+				OR = {
+					NOT = { target_is_de_jure_liege_or_above = scope:title }
+					NOT = { root.capital_province.county = { target_is_de_jure_liege_or_above = prev } }
+				}
+			}
+			save_scope_as = old_title
+			add_to_list = list_old_titles
+		}
+		if = {
+			limit = { 
+				exists = scope:old_title
+			}
+			ordered_pool_character = {
+				limit = {
+					is_capable_adult = yes
+					is_imprisoned = no
+					OR = {
+						location.province_owner = { top_liege = root.top_liege }
+						location = root.top_liege.capital_province
+						has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+						has_trait = jinshi
+					}
+				}			
+				order_by = {
+					value = bureaucracy_exp_value
+					add = learning
+				}
+				save_scope_as = lucky
+			}
+			#如果找到合适的人选的话……
+			if = {
+				limit = { 
+					exists = scope:lucky 
+				}
+				#开始交接
+				create_title_and_vassal_change = {
+					type = usurped
+					save_scope_as = change2
+					add_claim_on_loss = yes
+				}
+				scope:old_title = {
+					change_title_holder_include_vassals = {
+						holder = scope:lucky
+						change = scope:change2
+						take_baronies = no
+						government_base = root
+					}
+				}
+				scope:lucky = { 
+					#if = {
+						#limit = { is_landed = yes }
+						#inter_east_contract_effect = yes
+					#}
+					add_character_flag = {
+						flag = flag_bureacrat_positioned
+						years = 1
+					}
+					if = {
+						limit = {
+							scope:old_title.de_jure_liege = { exists = holder }
+						}
+						change_liege = {
+							liege = scope:old_title.de_jure_liege.holder
+							change = scope:change2
+						}
+						else = {
+							change_liege = {
+								liege = top_liege
+								change = scope:change2
+							}
+						}
+					}
+				}
+				resolve_title_and_vassal_change = scope:change2
+			}
+		}
+		every_vassal = {
+			limit = {
+				#NOT = { primary_title.de_jure_liege = scope:title }
+				NOT = { primary_title.de_jure_liege = { holder = root } }
+			}
+			save_scope_as = old_vassals
+		}
+		if = {
+			limit = { 
+				exists = scope:old_vassals
+			}
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change
+				add_claim_on_loss = yes
+			}
+			scope:old_vassals = {
+				if = {
+					limit = {
+						primary_title.de_jure_liege = { exists = holder }
+					}
+					change_liege = {
+						liege = primary_title.de_jure_liege.holder
+						change = scope:change
+					}
+				}
+				else = {
+					change_liege = {
+						liege = top_liege
+						change = scope:change
+					}
+				}
+			}
+			resolve_title_and_vassal_change = scope:change
+		}
+	}
+}
+
+#TO DO: 调职时选项，流官管理 实职的最低品级，最低任期
