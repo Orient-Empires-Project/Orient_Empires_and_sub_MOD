@@ -270,6 +270,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 									highest_held_title_tier >= tier_county
 								}
 							}
+							#升迁
 							trigger_if = {
 								limit = {
 									has_trait_rank = {
@@ -277,6 +278,15 @@ BureaucracyEmpire_yearly_new_pulse = {
 										rank > 2
 									}
 									highest_held_title_tier = tier_barony
+								}
+							}
+							trigger_if = {
+								limit = {
+									has_trait_rank = {
+										trait = BureaucracyEmpire_lifestyle_bureaucrat
+										rank > 3
+									}
+									highest_held_title_tier >= tier_county
 								}
 							}
 						}
@@ -307,7 +317,8 @@ on_death = {
 #丁忧
 BureaucracyEmpire_family_pulse = {
 	trigger = {
-		culture = { has_cultural_tradition = tradition_chinese_succession }		
+		culture = { has_cultural_tradition = tradition_chinese_succession }	
+		NOT = { is_oe_imperial_official_trigger = yes }
 	}
 	effect = {
 		if = {
@@ -343,6 +354,7 @@ on_death = {
 BureaucracyEmpire_player_bureaucrat_pulse = {
 	trigger = {
 		is_ai = no
+		is_independent_ruler = no
 		OR = {
 			has_realm_law = player_official_succession_law
 			has_realm_law = official_succession_law
@@ -396,6 +408,7 @@ BureaucracyEmpire_player_pulse = {
 		is_oe_landed_bureacrat_trigger = yes #暂时接班的ai
 		is_available_at_peace_ai_adult = yes
 		is_valid_for_narrow_yearly_events = yes
+		is_councillor = no
 		OR = {
 			scope:transfer_type = flag:inheritance #继承
 			scope:transfer_type = flag:abdication #退位继承
@@ -423,7 +436,6 @@ BureaucracyEmpire_player_pulse = {
 			limit = {
 				is_ai = no
 				is_oe_landed_bureacrat_trigger = yes
-				NOT = { has_character_flag = flag_bureacrat_positioned }
 			}
 			save_scope_as = player
 		}
@@ -447,6 +459,7 @@ BureaucracyEmpire_player_pulse = {
 				is_oe_landed_bureacrat_trigger = yes
 				is_available_at_peace_adult = yes
 				is_valid_for_narrow_yearly_events = yes
+				NOT = { has_character_flag = flag_bureacrat_positioned }
 				scope:player.top_liege = scope:temp_holder.top_liege
 				OR = {
 					scope:title.tier > scope:player.primary_title.tier
@@ -477,7 +490,7 @@ BureaucracyEmpire_player_pulse = {
 				#trigger_event = bureaucracy.0003 #我去，我不去
 			#}
 			create_title_and_vassal_change = {
-				type = usurped
+				type = abdication
 				save_scope_as = change
 			}
 			every_in_list = {
@@ -558,6 +571,7 @@ BureaucracyEmpire_player_pulse = {
 					is_oe_landed_bureacrat_trigger = yes
 					is_available_at_peace_adult = yes
 					is_valid_for_narrow_yearly_events = yes
+					NOT = { has_character_flag = flag_bureacrat_positioned }
 					OR = {
 						has_trait = lunatic #纯质
 						has_trait = possessed #中邪
@@ -607,7 +621,7 @@ BureaucracyEmpire_player_pulse = {
 				#trigger_event = bureaucracy.0003
 			#}
 			create_title_and_vassal_change = {
-				type = usurped
+				type = abdication
 				save_scope_as = change
 			}
 			every_in_list = {
@@ -690,6 +704,49 @@ BureaucracyEmpire_on_title_gain_new = {
 			#save_scope_as = bureaucrat
 			#save_east_contract_effect = yes
 		#}
+				#如果资历够了，就提升资历等级。五个等级分别需要的资历为7/14/21/42/63
+				if = {
+					limit = { bureaucracy_exp_value < 7 }
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 14}
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 1
+						max = 1
+					}
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 21 }
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 2
+						max = 2
+					}
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 42 }
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 3
+						max = 3
+					}
+				}
+				else_if = {
+					limit = { bureaucracy_exp_value < 63 }
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 4
+						max = 4
+					}
+				}
+				else = {
+					change_trait_rank = {
+						trait = BureaucracyEmpire_lifestyle_bureaucrat
+						rank = 5
+						max = 5
+					}
+				}
 		#如果该官员是因为升迁获得的头衔，交接掉原有头衔
 		every_held_title = { 
 			limit = {
@@ -738,7 +795,7 @@ BureaucracyEmpire_on_title_gain_new = {
 				}
 				#开始交接
 				create_title_and_vassal_change = {
-					type = usurped
+					type = abdication
 					save_scope_as = change2
 					add_claim_on_loss = yes
 				}
