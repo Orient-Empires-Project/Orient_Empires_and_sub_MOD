@@ -1,8 +1,7 @@
-jurchen_incident_effect = {
+jurchen_invasion_effect = {
+	#女真征服辽宋首都时，抓捕其所有廷臣和同宗族封臣并夺地
 	if = {
 		limit = {
-			exists = title:e_jurchen.holder
-			exists = title:e_celestia.holder
 			scope:attacker = {
 				dynasty = dynasty:1051112
 				has_title = title:e_jurchen
@@ -19,15 +18,60 @@ jurchen_incident_effect = {
 					}
 				}
 			}
-			title:e_jurchen.holder = {					
+			any_target_title = {
+				any_de_jure_county = {
+					this = scope:defender.capital_county
+				}
+			}
+		}
+		scope:defender = {
+			every_courtier = {
+				scope:attacker = {
+					imprison = { target = prev }
+				}
+			}
+		}
+		every_target_title = {
+			every_dejure_vassal_title_holder = {
+				if = {
+					limit = {
+						dynasty = scope:defender.dynasty
+						target_is_liege_or_above = scope:defender
+					}
+					scope:attacker = {
+						imprison = { target = prev }
+					}
+					every_held_title = {
+						limit = { tier >= tier_county }
+						change_title_holder = {
+							holder = scope:attacker
+							change = scope:change
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+jurchen_incident_effect = {
+	if = {
+		limit = {
+			scope:attacker = {
+				dynasty = dynasty:1051151
+				has_title = title:e_jurchen
+				NOT = {
+					completely_controls = title:k_yan
+				}
+			}
+			scope:defender = {
+				dynasty = dynasty:1000102400
+				has_title = title:e_cathay
+			}
+			scope:attacker = {					
 				any_realm_county = {
 					count >= 1
 					title_province = { geographical_region = world_asia_china_yanzhao }
-				}
-			}
-			title:e_celestia.holder = {					
-				NOT = {
-					completely_controls = title:k_yan
 				}
 			}
 		}
@@ -69,8 +113,7 @@ jurchen_incident_effect = {
 		title:e_jurchen.holder = {
 			trigger_event = {
 				id = east_title.0002 #延迟触发跳过停战期
-				days = 1000
-				delayed = yes
+				years = { 5 10 }
 			}
 		}
 	}

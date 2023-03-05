@@ -22,9 +22,9 @@ oe_migration_cb = {
 	}
 
 	allowed_for_character = {
-		is_at_war = no
+		#is_at_war = no
 		#is_independent_ruler = yes
-		is_ai = no
+		#is_ai = no
 		OR = {
 			culture = { has_cultural_pillar = heritage_mongolic }
 			culture = { has_cultural_pillar = heritage_turkic }
@@ -40,7 +40,7 @@ oe_migration_cb = {
 			}
 		}
 		highest_held_title_tier >= tier_duchy
-		faith = { has_doctrine_parameter = unreformed }
+		#faith = { has_doctrine_parameter = unreformed }
 		custom_description = {
 			text = has_used_lifetime_subjugation
 			subject = scope:attacker
@@ -61,8 +61,8 @@ oe_migration_cb = {
 					geographical_region = world_steppe
 					geographical_region = world_steppe_tartaria
 				}
-				NOT = { kingdom = scope:attacker.capital_province.kingdom }
 			}
+			NOT = { character_is_land_realm_neighbor = scope:attacker }
 			is_ai = yes
 		}
 	}
@@ -73,6 +73,8 @@ oe_migration_cb = {
 	ignore_effect = change_title_holder
 	use_de_jure_wargoal_only = yes
 	combine_into_one = yes
+	ai_can_target_all_titles = { always = yes }
+	ai_score_mult = { value = varangian_adventure_ai_targeting_value }
 
 	#Configure war-score. This is a bit different to usual, focusing mostly on battles and almost not at all on back-capping the attacker: the Mogyers literally do not care at all if you occupy their homelands, they're moving their whole people to Pannonia anyway.
 
@@ -147,6 +149,23 @@ oe_migration_cb = {
 	on_victory = {
 		scope:attacker = { show_pow_release_message_effect = yes }
 
+		if = {
+			limit = { #让不独立的先独立
+				scope:attacker = { is_independent_ruler = no }
+			}
+			scope:attacker = { 
+				create_title_and_vassal_change = {
+					type = independency
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				becomes_independent = {
+					change = scope:change
+				}
+				resolve_title_and_vassal_change = scope:change
+			}
+		}
+
 		scope:attacker = {
 			every_held_title = {
 				limit = {
@@ -181,7 +200,7 @@ oe_migration_cb = {
 			}
 			every_held_title = {
 				limit = {
-					tier >= tier_county
+					tier = tier_county
 				}
 				change_title_holder = {
 					holder = scope:attacker
@@ -384,4 +403,5 @@ oe_migration_cb = {
 	use_de_jure_wargoal_only = yes
 	
 	attacker_wargoal_percentage = 0.5
+	max_ai_diplo_distance_to_title = 2000
 }
