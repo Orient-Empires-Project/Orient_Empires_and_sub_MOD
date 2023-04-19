@@ -513,70 +513,6 @@ on_title_gain = {
 
 east_on_title_gain_effects = { #by 糜三小姐
 	effect = { 
-		if = { 	# 获得藩王、剥夺文官王
-			limit = {
-				scope:title.tier = tier_kingdom
-				is_independent_ruler = no
-				exists = capital_province
-				capital_province = { geographical_region = world_asia_china }
-				exists = top_liege
-				top_liege = { is_oe_imperial_official_trigger = yes }
-				NOT = { top_liege = { culture = { has_innovation = innovation_court_officials } } }
-				#OR = {
-					#has_primary_title = title:k_chinese_title_1
-					#has_primary_title = title:k_chinese_title_2
-					#has_primary_title = title:k_chinese_title_3
-					#has_primary_title = title:k_chinese_title_4
-					#has_primary_title = title:k_chinese_title_5
-					#has_primary_title = title:k_chinese_title_6
-				#}
-			}
-			if = {
-				limit = {
-					scope:transfer_type = flag:created
-					is_oe_landed_bureacrat_trigger = yes
-				}
-				create_title_and_vassal_change = {
-					type = usurped
-					save_scope_as = change
-					add_claim_on_loss = no
-				}
-				scope:title = {
-					change_title_holder = {
-						holder = root.top_liege
-						change = scope:change
-						take_baronies = no
-					}
-				}
-				resolve_title_and_vassal_change = scope:change
-				if = { 
-					limit = { NOT = { has_realm_law = official_succession_law } }
-					add_realm_law_skip_effects = official_succession_law
-				}
-			}
-			else = {
-				vassal_contract_set_obligation_level = {
-					type = special_imperial_contract
-					level = 2
-				}
-				vassal_contract_set_obligation_level = {
-					type = special_imperial_royal
-					level = 1
-				}
-				if = { 
-					limit = { NOT = { has_realm_law = partition_succession_law } }
-					add_realm_law_skip_effects = partition_succession_law
-				}
-				top_liege = {
-					add_opinion = {
-						target = root
-						modifier = dismissive_opinion
-						opinion = -100
-					}
-				}
-			}
-		}
-
 		if = { 	# 获得公卿
 			limit = {
 				is_independent_ruler = no
@@ -617,7 +553,75 @@ east_on_title_gain_effects = { #by 糜三小姐
 				add_realm_law_skip_effects = official_succession_law
 			}
 		}
-
+		if = { 	# 获得藩王、剥夺文官王
+			limit = {
+				scope:title.tier = tier_kingdom
+				is_independent_ruler = no
+				exists = top_liege
+				top_liege = { is_oe_imperial_official_trigger = yes }
+				NOT = { culture = { has_innovation = innovation_court_officials } }
+				#OR = {
+					#has_primary_title = title:k_chinese_title_1
+					#has_primary_title = title:k_chinese_title_2
+					#has_primary_title = title:k_chinese_title_3
+					#has_primary_title = title:k_chinese_title_4
+					#has_primary_title = title:k_chinese_title_5
+					#has_primary_title = title:k_chinese_title_6
+				#}
+				exists = capital_province
+				capital_province = { geographical_region = world_asia_china }
+			}
+			if = {
+				limit = {
+					OR = {
+						scope:transfer_type = flag:created
+						AND = {
+							is_ai = yes
+							scope:transfer_type = flag:granted
+						}
+					}
+					is_bureau_government_trigger = yes
+				}
+				create_title_and_vassal_change = {
+					type = usurped
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				scope:title = {
+					change_title_holder = {
+						holder = root.top_liege
+						change = scope:change
+					}
+				}
+				remove_claim = scope:title
+				resolve_title_and_vassal_change = scope:change
+				if = { 
+					limit = { NOT = { has_realm_law = official_succession_law } }
+					add_realm_law_skip_effects = official_succession_law
+				}
+			}
+			else = {
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_contract
+					level = 2
+				}
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_royal
+					level = 1
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = partition_succession_law } }
+					add_realm_law_skip_effects = partition_succession_law
+				}
+				top_liege = {
+					add_opinion = {
+						target = root
+						modifier = dismissive_opinion
+						opinion = -100
+					}
+				}
+			}
+		}
 		if = { # 称王转律令
 			limit = {
 				is_independent_ruler = yes
@@ -701,30 +705,6 @@ east_on_title_gain_effects = { #by 糜三小姐
 				primary_title = { remove_title_law = steppe_elective_succession_law }
 			}
 		}
-		if = { #获得王爵改继承人
-			limit = {
-				OR = {
-					has_government = imperial_government
-					has_government = corps_government
-					has_government = bureau_government
-				}
-				highest_held_title_tier > tier_duchy
-				scope:title.tier > tier_duchy
-				OR = {
-					scope:transfer_type = flag:created
-					scope:transfer_type = flag:usurped
-					scope:transfer_type = flag:granted
-					scope:transfer_type = flag:inheritance
-					scope:transfer_type = flag:abdication
-					scope:transfer_type = flag:faction_demand
-				}
-				NAND = {
-					has_realm_law = official_succession_law
-					culture = { has_innovation = innovation_court_officials }
-					is_royal_government_trigger = yes
-				}
-			}
-		}
 		if = { #清理宫相
 			limit = {
 				is_independent_ruler = yes
@@ -732,15 +712,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 			remove_trait = great_misit
 		}
-#		if = { #清理资历
-#			limit = {
-#				scope:title = {
-#					tier >= tier_kingdom
-#				}
-#				has_trait = BureaucracyEmpire_lifestyle_bureaucrat
-#			}
-#			remove_trait = BureaucracyEmpire_lifestyle_bureaucrat
-#		}
+
 		if = { #改朝换代
 			limit = {
 				scope:title = title:e_celestia				

@@ -8,12 +8,6 @@
 			default = yes
 			position = { 0 1 }
 			flag = imperial_contract_0
-			is_shown = {
-				OR = {
-					scope:vassal.capital_county.culture = scope:liege.capital_county.culture
-					scope:vassal.capital_province.empire = scope:liege.capital_province.empire
-				}
-			}
 
 			levies_factor = -0.5
 
@@ -26,8 +20,32 @@
 				#monthly_income = 0.5 #每个民州为皇帝提供0.5的税收基础
 				vassal_limit = 0.25 #每个民州少占用四分之一的封臣上限
 			}
-			ai_liege_desire = 4
-			ai_vassal_desire = 2
+			ai_liege_desire = {
+				value = 3
+			}
+			ai_vassal_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:vassal = {
+							learning > scope:vassal.martial
+						}
+					}
+					add = 4
+				}
+				if = {
+					limit = {
+						scope:vassal = {
+							OR = {
+								vassal_contract_has_flag = special_imperial_corps_2
+								vassal_contract_has_flag = special_imperial_corps_3
+								highest_held_title_tier = tier_kingdom
+							}
+						}
+					}
+					add = -6
+				}
+			}
 		}
 		special_imperial_contract_1 = {#军府
 			parent = special_imperial_contract_0
@@ -44,8 +62,55 @@
 			}
 			flag = imperial_contract_1
 			
-			ai_liege_desire = 2
-			ai_vassal_desire = 4
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:vassal = {
+							stewardship < scope:vassal.martial
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:vassal = {
+							any_neighboring_county = {
+								holder = {
+									NOR = {
+										top_liege = scope:vassal.top_liege
+										top_liege = { is_at_war_with = scope:vassal.top_liege }
+									}
+								}
+							}
+						}
+					}
+					add = 2
+				}
+			}
+			ai_vassal_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:vassal = {
+							learning < scope:vassal.martial
+						}
+					}
+					add = 4
+				}
+				if = {
+					limit = {
+						scope:vassal = {
+							OR = {
+								vassal_contract_has_flag = special_imperial_contract_0
+								vassal_contract_has_flag = special_imperial_contract_2
+								highest_held_title_tier < tier_kingdom
+							}
+						}
+					}
+					add = -6
+				}			
+			}
 		}
 		special_imperial_contract_2 = {#皇家采邑
 			parent = special_imperial_contract_0
@@ -62,11 +127,18 @@
 				vassal_limit = 1 #藩王会提供封臣上限
 				development_growth_factor = -0.3 #庄园经济
 			}
+			vassal_modifier = {			
+				levy_size = -0.5
+				tax_factor = 1 #专营专利
+				monthly_county_control_change_factor = 0.2 #上命下达
+				county_opinion_add = -20 #垄断经营
+				development_growth_factor = -0.1 #单一产业
+			}
 
 			flag = imperial_contract_2
 			
-			ai_liege_desire = 4
-			ai_vassal_desire = 2
+			ai_liege_desire = 2
+			ai_vassal_desire = 0
 		}
 	 }		
 }
@@ -150,8 +222,33 @@ special_imperial_corps = {
 			}
 			flag = imperial_corps_2
 			
-			ai_liege_desire = 0
-			ai_vassal_desire = 6
+			ai_liege_desire = { 
+				value = 0
+				if = {
+					limit = {
+						scope:vassal = {
+							OR = {
+								vassal_contract_has_flag = special_imperial_contract_1
+							}
+						}
+					}
+					add = highest_held_title_tier
+					multiply = -1
+				}
+			}
+			ai_vassal_desire = {
+				value = 3
+				if = {
+					limit = {
+						scope:vassal = {
+							OR = {
+								vassal_contract_has_flag = special_imperial_contract_1
+							}
+						}
+					}
+					add = highest_held_title_tier
+				}
+			}
 		}
 		special_imperial_corps_3 = { #羁縻
 			is_valid = {
@@ -160,7 +257,7 @@ special_imperial_corps = {
 					capital_province.county = {
 						OR = {
 							NOT = { culture = { has_same_culture_heritage = scope:liege.culture } }
-							NOT = { faith = scope:liege.faith }
+							NOT = { faith.religion = scope:liege.faith.religion }
 						}
 					}
 				}
@@ -353,14 +450,6 @@ special_imperial_royal = {
 			default = yes
 			position = { 0 1 }
 			flag = imperial_royal_0
-
-			vassal_modifier = {			
-				levy_size = -0.5
-				tax_factor = 1 #专营专利
-				monthly_county_control_change_factor = 0.2 #上命下达
-				county_opinion_add = -20 #垄断经营
-				development_growth_factor = -0.1 #单一产业
-			}
 			
 			ai_liege_desire = 5
 			ai_vassal_desire = 1
