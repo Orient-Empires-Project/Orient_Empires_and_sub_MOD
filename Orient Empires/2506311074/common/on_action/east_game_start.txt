@@ -27,7 +27,7 @@ east_on_game_start_effects = {
 		}
 	}
 }	
-on_game_start_after_lobby = { #by 糜三小姐
+on_game_start = { #by 糜三小姐
 	on_actions = {
 		east_on_after_lobby_effects
 	}
@@ -39,20 +39,18 @@ east_on_after_lobby_effects = {
 		every_ruler = {
 			if = { #晚唐，所有非玩家的听命属臣实行男性流官制
 				limit = { 
+					current_date >= 763.1.1
+					current_date <= 956.1.1
 					top_liege = { is_oe_imperial_government_trigger = yes }
 					has_government = imperial_government
 					is_independent_ruler = no
 					primary_title.tier < tier_kingdom
 					culture = { has_cultural_pillar = heritage_chinese }
-					NAND = {
-						current_date >= 763.1.1
-						current_date <= 956.1.1
-						OR = {
-							has_primary_title = title:d_chengde
-							has_primary_title = title:d_youzhou
-							has_primary_title = title:d_lulong
-							has_primary_title = title:d_weibo
-						} 
+					NOR = {
+						has_primary_title = title:d_chengde
+						has_primary_title = title:d_youzhou
+						has_primary_title = title:d_lulong
+						has_primary_title = title:d_weibo
 					}
 					NOR = {
 						has_title = title:d_confucius
@@ -470,7 +468,6 @@ east_on_after_lobby_effects = {
 		}
 		if = {
 			limit = {
-				has_dlc_feature = the_fate_of_iberia
 				exists = struggle:tartaria_struggle
 				current_date >= 936.1.1
 				current_date < 1005.1.1
@@ -481,7 +478,6 @@ east_on_after_lobby_effects = {
 		}
 		if = {
 			limit = {
-				has_dlc_feature = the_fate_of_iberia
 				exists = struggle:tartaria_struggle
 				current_date >= 1005.1.1
 				current_date < 1101.2.12
@@ -492,7 +488,6 @@ east_on_after_lobby_effects = {
 		}
 		if = {
 			limit = {
-				has_dlc_feature = the_fate_of_iberia
 				exists = struggle:tartaria_struggle
 				current_date >= 1101.2.12
 				current_date < 1141.1.1
@@ -574,14 +569,22 @@ east_on_title_gain_effects = { #by 糜三小姐
 			if = {
 				limit = {
 					OR = {
-						scope:transfer_type = flag:created
+						AND = {
+							scope:transfer_type = flag:created
+							is_oe_landed_bureacrat_trigger = yes
+						}
 						AND = {
 							is_ai = yes
 							scope:transfer_type = flag:granted
+							exists = scope:previous_holder
+							scope:previous_holder = { is_oe_imperial_official_trigger = yes is_ai = yes }
+							is_bureau_government_trigger = yes
 						}
 					}
-					is_bureau_government_trigger = yes
 				}
+				trigger_event = east_title.0007
+				scope:previous_holder = { trigger_event = east_title.0007 }
+				top_liege = { trigger_event = east_title.0007 }
 				create_title_and_vassal_change = {
 					type = usurped
 					save_scope_as = change
@@ -614,6 +617,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					add_realm_law_skip_effects = partition_succession_law
 				}
 				top_liege = {
+					trigger_event = east_title.0007
 					add_opinion = {
 						target = root
 						modifier = dismissive_opinion
