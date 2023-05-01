@@ -1,0 +1,506 @@
+namespace = house_customizer
+
+house_customizer.0020 = {
+	type = character_event
+	title = house_customizer.0020.t
+	desc = house_customizer.0020.desc
+
+	theme = family
+
+	override_background = {
+		event_background = study
+	}
+
+	left_portrait = {
+		character = root
+		animation = throne_room_writer
+	}
+
+	right_portrait = {
+		character = scope:recipient
+		animation = throne_room_writer
+	}
+
+	immediate = {
+		scope:recipient = {
+			save_scope_as = hc_selection
+		}
+	}
+	#义结金兰
+	option = {
+		name = "house_customizer.0020.a"
+
+		trigger = {
+		   OR = {
+			   exists = scope:hc_selection.mother
+			   exists = scope:hc_selection.father
+		   }
+		}
+
+		if = {
+		   limit = {
+			   scope:hc_selection.father.primary_title.tier >= scope:hc_selection.mother.primary_title.tier
+		   }
+		   set_father = scope:hc_selection.father
+		   set_house = scope:hc_selection.father.house
+		}
+		else = {
+		   set_mother = scope:hc_selection.mother
+		   set_house = scope:hc_selection.mother.house
+		}
+
+		if = {
+		   limit = {
+			   any_child = { #If any child is not the same house
+				   NOT = {
+					   house = root.house
+				   }
+			   }
+		   }
+		   every_child = { #Then we scope to every possible child and set their house as YOUR house.
+			   limit = {
+				   NOT = {
+					   house = root.house
+				   }
+			   }
+			   set_house = root.house
+		   }
+	   }
+
+	   add_prestige = -300
+
+		#debugging
+		show_as_unavailable = {
+		   always = yes
+		}
+   }
+
+   #拜为义父
+   option = {
+	   name = "house_customizer.0020.b"
+	   trigger = {
+		   scope:hc_selection = {
+			   can_be_parent_of = root
+		   }
+	   }
+	   if = {
+		   limit = {
+			   scope:hc_selection = {
+				   is_male = yes
+			   }
+		   }
+		   set_father = scope:hc_selection
+		   set_house = scope:hc_selection.house
+	   }
+	   else = {
+		   set_mother = scope:hc_selection
+		   set_house = scope:hc_selection.house
+	   }
+	   if = {
+		   limit = {
+			   any_child = { #If any child is not the same house
+				   NOT = {
+					   house = root.house
+				   }
+			   }
+		   }
+		   every_child = { #Then we scope to every possible child and set their house as YOUR house.
+			   limit = {
+				   NOT = {
+					   house = root.house
+				   }
+			   }
+			   set_house = root.house
+		   }
+	   }
+
+	   add_prestige = -350
+   }
+
+  #当亲戚就好
+  option = {
+	   name = "house_customizer.0020.c"
+	   trigger = {
+		   scope:hc_selection = {
+			   any_close_or_extended_family_member = {
+					even_if_dead = yes
+					is_adult = yes
+					house = scope:hc_selection.house
+			   }
+		   }
+	   }
+
+	   scope:hc_selection = {
+		   every_close_or_extended_family_member = {
+			   even_if_dead = yes
+			   limit = {
+				   is_adult = yes
+				   house = scope:hc_selection.house
+			   }
+			   add_to_list = house_customizer_random_relative_list
+			   debug_log = "House Customizer: Populating Random Relative List..."
+		   }
+	   }
+
+	   random_in_list = {
+		   list = house_customizer_random_relative_list
+		   save_scope_as = hc_random_relative_selection
+	   }
+
+	   set_house = scope:hc_random_relative_selection.house
+	   if = {
+		   limit = {
+			   scope:hc_random_relative_selection = {
+				   is_male = yes
+			   }
+		   }
+		   set_father = scope:hc_random_relative_selection
+	   } 
+	   else = {
+		   set_mother = scope:hc_random_relative_selection
+	   }
+
+	   if = {
+		   limit = {
+			   any_child = { #If any child is not the same house
+				   NOT = {
+					   house = root.house
+				   }
+			   }
+		   }
+		   every_child = { #Then we scope to every possible child and set their house as YOUR house.
+			   limit = {
+				   NOT = {
+					   house = root.house
+				   }
+			   }
+			   set_house = root.house
+		   }
+	   }
+
+	   add_prestige = -300
+  }
+  	# Back Option
+	option = {
+		name = house_customizer.00021.back_option
+	}
+}
+
+#加入一个皇族
+house_customizer.00021 = {
+	type = character_event
+	title = house_customizer.00021.t
+	desc = house_customizer.00021.desc
+
+	theme = family
+
+	override_background = {
+		event_background = study
+	}
+
+	left_portrait = {
+		character = root
+		animation = throne_room_writer
+	}
+
+	right_portrait = {
+		character = scope:hc_selection
+		animation = throne_room_writer
+	}
+
+	immediate = {
+	}
+	#Displays Extinct  Houses
+		option = {
+			name = "peiguo_han_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:peiguo_han_motto } }
+				current_year > 220
+			}
+			
+			character:1800882 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "sishui_cao_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:sishui_cao_dyn } }
+				current_year > 265
+			}
+			
+			character:sishui_cao_0019 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "house_zhuojun_liu_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { house = house:house_zhuojun_liu } }
+				current_year > 265
+			}
+		
+			character:1800056 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "house_fuchun_sun_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { house = house:house_fuchun_sun } }
+				current_year > 280
+			}
+		
+			character:1407867 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "henei_sima_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:henei_sima_dyn } }
+				current_year > 420
+			}
+			
+			character:henei_sima_018 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "house_pengcheng_suiyu_liu_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { house = house:house_pengcheng_suiyu_liu } }
+				current_year > 479
+			}
+		
+			character:1800915 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "dynn_Xiao1" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { house = house:house_nanliang_xiao } }
+				current_year > 502
+			}
+		
+			character:1402410 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "lanling_xiao_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:lanling_xiao_dyn } }
+				current_year > 557
+			}
+			
+			character:1402537 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "yingchuan_chen_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:yingchuan_chen_dyn } }
+				current_year > 589
+			}
+			
+			character:1406821 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "dynn_Tuoba" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:1029300 } }
+				current_year > 556
+			}
+			
+			character:1415014 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "hongnong_yang_motto" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:hongnong_yang_dyn } }
+				current_year > 618
+			}
+			
+			character:247725 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "longxi_li_dyn.loc" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:longxi_li_dyn } }
+				current_year > 907
+			}
+			
+			character:longxi_li_0646 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "dynn_Wu2" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:1051152 } }
+				current_year > 705
+			}
+			
+			character:217704 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+#		option = {
+#			name = "dynn_Zhu1" 
+#			trigger = {
+#				NOT = { title:e_celestia.holder = { dynasty = dynasty:1000048157 } }
+#				current_year > 923
+#			}
+
+#			trigger_event = house_customizer.0003	
+#		}
+#		option = {
+#			name = "dynn_Li" 
+#			trigger = {
+#				NOT = { title:e_celestia.holder = { dynasty = dynasty:1000049852 } }
+#				current_year > 936
+#			}
+
+#			trigger_event = house_customizer.0003
+#		}
+#		option = {
+#			name = "dynn_Shi" 
+#			trigger = {
+#				NOT = { title:e_celestia.holder = { dynasty = dynasty:1000049854 } }
+#				current_year > 947
+#			}
+
+#			trigger_event = house_customizer.0003
+#		}
+#		option = {
+#			name = "dynn_Liu" 
+#			trigger = {
+#				NOT = { title:e_celestia.holder = { dynasty = dynasty:1000049855 } }
+#				current_year > 979
+#			}
+#			dynasty:1000049855 = { save_scope_as = royal_house 
+#			trigger_event = house_customizer.0003}
+#		}
+		option = {
+			name = "dynn_Chai1" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:1000048291 } }
+				current_year > 960
+			}
+			
+			character:1401283 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		option = {
+			name = "dynn_Zhao1" 
+			trigger = {
+				NOT = { title:e_celestia.holder = { dynasty = dynasty:1051151 } }
+				current_year > 1279
+			}
+			
+			character:217721 = { save_scope_as = hc_selection }
+			trigger_event = house_customizer.0003
+		}
+		# Back Option
+		option = {
+			name = house_customizer.00021.back_option
+			add_prestige = massive_prestige_value
+		}
+}
+
+
+house_customizer.0003 = {
+	type = character_event
+	title = house_customizer.0003.t
+	desc = house_customizer.0003.desc
+
+	theme = family
+
+	override_background = {
+		event_background = physicians_study
+	}
+
+	left_portrait = {
+		character = root
+		animation = throne_room_writer
+	}
+
+	right_portrait = {
+		character = scope:hc_selection
+		animation = throne_room_writer
+	}
+
+	immediate = {
+		scope:hc_selection.house = {
+			save_scope_as = royal_house
+		}
+	}
+
+	option = {
+		name = "house_customizer.0020.c"
+		trigger = {
+			scope:hc_selection = {
+				any_close_or_extended_family_member = {
+					 even_if_dead = yes
+					 is_adult = yes
+					 house = scope:hc_selection.house
+				}
+			}
+		}
+ 
+		scope:hc_selection = {
+			every_close_or_extended_family_member = {
+				even_if_dead = yes
+				limit = {
+					is_adult = yes
+					house = scope:hc_selection.house
+				}
+				add_to_list = house_customizer_random_relative_list
+				debug_log = "House Customizer: Populating Random Relative List..."
+			}
+		}
+ 
+		random_in_list = {
+			list = house_customizer_random_relative_list
+			#limit = { can_be_parent_of = root }
+			save_scope_as = hc_random_relative_selection
+		}
+		set_house = scope:hc_selection.house
+		if = {
+			limit = {
+				scope:hc_random_relative_selection = {
+					is_male = yes
+				}
+			}
+			set_father = scope:hc_random_relative_selection
+		} 
+		else = {
+			set_mother = scope:hc_random_relative_selection
+		}
+ 
+		if = {
+			limit = {
+				any_child = { #If any child is not the same house
+					NOT = {
+						house = root.house
+					}
+				}
+			}
+			every_child = { #Then we scope to every possible child and set their house as YOUR house.
+				limit = {
+					NOT = {
+						house = root.house
+					}
+				}
+				set_house = root.house
+			}
+		}
+	}
+
+	# Back Option
+	option = {
+		name = house_customizer.back_option
+		trigger_event = {
+			id = house_customizer.00021
+		}
+	}
+
+}
+
+
