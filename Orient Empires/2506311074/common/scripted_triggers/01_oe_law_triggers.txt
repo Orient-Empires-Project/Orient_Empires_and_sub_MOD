@@ -158,12 +158,6 @@ can_have_official_succession_law_trigger = {
 		has_government = bureau_government
 		is_corps_government_trigger = yes
 	}
-	top_liege = {
-		OR = {
-			has_government = imperial_government
-			has_government = ulus_government
-		}
-	}
     OR = {
 		vassal_contract_has_flag = special_imperial_corps_4
 		AND = {
@@ -229,13 +223,31 @@ can_pass_tradition_succession_law_trigger = {
 can_have_corps_succession_law_trigger = {
 	is_independent_ruler = no
 	highest_held_title_tier >= tier_county
-	is_corps_government_trigger = yes
+	NOR = {
+		has_character_flag = flag_bureacrat_positioned
+		has_variable = player_officier
+	}
+	OR = {
+		is_corps_government_trigger = yes
+		AND = {
+			is_legion_government_trigger = no
+			has_government = imperial_government
+			top_liege = { NOT = { has_government = imperial_government } }
+		}
+	}
 }
 
 can_keep_corps_succession_law_trigger = {
 	trigger_if = {
 		limit = { has_realm_law = corps_succession_law }
-		can_have_corps_succession_law_trigger = yes
+		OR = {
+			is_legion_government_trigger = yes
+			AND = {
+				is_legion_government_trigger = no
+				has_government = imperial_government
+				top_liege = { NOT = { has_government = imperial_government } }
+			}
+		}
 	}
 }
 
@@ -265,10 +277,14 @@ can_have_admin_succession_law_trigger = {
 can_have_official_succession_law_player_trigger = {
 	is_independent_ruler = no
 	highest_held_title_tier >= tier_county
-	is_ai = no
 	OR = {
 		has_government = imperial_government
 		has_government = bureau_government
+	}
+	OR = {
+		is_ai = no
+		has_character_flag = flag_bureacrat_positioned
+		has_variable = player_officier
 	}
     OR = {
 		vassal_contract_has_flag = special_imperial_corps_4
@@ -295,6 +311,6 @@ can_keep_official_succession_law_player_trigger = {
 		limit = {
 			has_realm_law = player_official_succession_law
 		}
-		can_have_official_succession_law_player_trigger = yes
+		has_government = imperial_government
 	}
 }

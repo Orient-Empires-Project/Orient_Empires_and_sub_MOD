@@ -1,4 +1,4 @@
-#获得头衔时触发
+﻿#获得头衔时触发
 # A title is inherited by a character
 # root = the new holder
 # scope:title = the title that changes hands
@@ -36,6 +36,15 @@ east_on_after_lobby_bureaucrat_effects = {
 			if = {
 				limit = {
 					is_oe_landed_bureacrat_trigger = yes
+				}
+				if = {
+					limit = {
+						NOT = { has_character_flag = flag_bureacrat_positioned }
+					}
+					add_character_flag = {
+						flag = flag_bureacrat_positioned
+						years = 2
+					}
 				}
 				#如果资历够了，就提升资历等级。五个等级分别需要的资历为7/14/21/42/63
 				if = {
@@ -78,15 +87,6 @@ east_on_after_lobby_bureaucrat_effects = {
 						trait = BureaucracyEmpire_lifestyle_bureaucrat
 						rank = 5
 						max = 5
-					}
-				}
-				if = {
-					limit = {
-						NOT = { has_character_flag = flag_bureacrat_positioned }
-					}
-					add_character_flag = {
-						flag = flag_bureacrat_positioned
-						years = 2
 					}
 				}
 			}
@@ -343,102 +343,6 @@ BureaucracyEmpire_yearly_new_pulse = {
 }
 
 
-#on_death = {
-#	on_actions = {
-#		BureaucracyEmpire_family_pulse
-#		delay = {
-#			days = 10
-#		}
-#	}
-#}
-#丁忧
-BureaucracyEmpire_family_pulse = {
-	trigger = {
-		culture = { has_cultural_tradition = tradition_chinese_succession }	
-		NOT = { is_oe_imperial_official_trigger = yes }
-	}
-	effect = {
-		if = {
-			limit = {
-				any_child = {
-					is_oe_landed_bureacrat_trigger = yes
-					is_ai = yes
-				}
-			}
-			save_scope_as = bureaucrat_parent
-			every_child = {
-				limit = {
-					is_oe_landed_bureacrat_trigger = yes
-					is_available_ai_adult = yes
-					is_valid_for_narrow_yearly_events = yes
-					is_ai = yes
-				}
-				save_scope_as = bureaucrat
-				#save_east_contract_effect = yes
-				depose = yes
-				move_to_pool_at = scope:bureaucrat_parent.location
-			}
-		}
-	}
-}
-
-#流官家族传承
-on_death = {
-	on_actions = {
-		BureaucracyEmpire_player_bureaucrat_pulse
-	}
-}
-BureaucracyEmpire_player_bureaucrat_pulse = {
-	trigger = {
-		is_ai = no
-		is_independent_ruler = no
-		OR = {
-			has_realm_law = player_official_succession_law
-			has_realm_law = official_succession_law
-		}
-	}
-	effect = {
-		add_character_flag = player_officier
-		add_realm_law_skip_effects = player_succession_law
-		if = {
-			limit = { exists = player_heir }			
-			player_heir = {
-				add_realm_law_skip_effects = player_official_succession_law
-				#add_character_flag = {
-					#flag = flag_bureacrat_positioned
-					#years = 1
-				#}
-				#set_variable = {
-					#name = player_officier
-					#value = yes
-					#days = 365
-				#}
-			}
-		}	
-		# 摄政/秘书长继承法
-		#if = { 
-			#limit = { exists = designated_heir }
-			#designated_heir = {
-				#set_variable = {
-					#name = player_officier
-					#value = yes
-					#days = 365
-				#}
-			#}
-		#}
-		#else_if = {
-			#limit = { exists = player_heir }
-			#player_heir = {
-				#set_variable = {
-					#name = player_officier
-					#value = yes
-					#days = 365
-				#}
-			#}
-		#}
-	}
-}
-
 on_title_gain = {
 	on_actions = {
 		BureaucracyEmpire_player_pulse
@@ -534,8 +438,15 @@ BureaucracyEmpire_player_pulse = {
 				}
 				scope:player.bureaucracy_exp_value > scope:temp_holder.bureaucracy_exp_value
 			}
-			scope:player = {
-				trigger_event = bureaucracy.0001 #升官
+			if = {
+				limit = {
+					scope:player = {
+						NOT = { has_character_flag = flag_bureacrat_positioned }
+					}
+				}
+				scope:player = {
+					trigger_event = bureaucracy.0001 #升官
+				}
 			}
 		}
 		#玩家左迁，劣迹斑斑
@@ -608,8 +519,15 @@ BureaucracyEmpire_player_pulse = {
 					}
 				}
 			}
-			scope:player = {
-				trigger_event = bureaucracy.0007 #贬官
+			if = {
+				limit = {
+					scope:player = {
+						NOT = { has_character_flag = flag_bureacrat_positioned }
+					}
+				}
+				scope:player = {
+					trigger_event = bureaucracy.0007 #贬官
+				}
 			}
 		}
 	}
@@ -828,4 +746,121 @@ BureaucracyEmpire_on_title_gain_new = {
 	}
 }
 
-#TO DO: 调职时选项，流官管理 实职的最低品级，最低任期
+#on_death = {
+#	on_actions = {
+#		BureaucracyEmpire_family_pulse
+#		delay = {
+#			days = 10
+#		}
+#	}
+#}
+##丁忧
+#BureaucracyEmpire_family_pulse = {
+#	trigger = {
+#		culture = { has_cultural_tradition = tradition_chinese_succession }	
+#		NOT = { is_oe_imperial_official_trigger = yes }
+#	}
+#	effect = {
+#		if = {
+#			limit = {
+#				any_child = {
+#					is_oe_landed_bureacrat_trigger = yes
+#					is_ai = yes
+#				}
+#			}
+#			save_scope_as = bureaucrat_parent
+#			every_child = {
+#				limit = {
+#					is_oe_landed_bureacrat_trigger = yes
+#					is_available_ai_adult = yes
+#					is_valid_for_narrow_yearly_events = yes
+#					is_ai = yes
+#				}
+#				save_scope_as = bureaucrat
+#				#save_east_contract_effect = yes
+#				depose = yes
+#				move_to_pool_at = scope:bureaucrat_parent.location
+#			}
+#		}
+#	}
+#}
+
+#流官家族传承
+#on_death = {
+#	on_actions = {
+#		BureaucracyEmpire_player_bureaucrat_pulse
+#	}
+#}
+#BureaucracyEmpire_player_bureaucrat_pulse = {
+#	trigger = {
+#		is_ai = no
+#		is_independent_ruler = no
+#		OR = {
+#			has_realm_law = player_official_succession_law
+#			has_realm_law = official_succession_law
+#		}
+#	}
+#	effect = {
+#		add_character_flag = player_officier
+#		add_realm_law_skip_effects = player_succession_law
+#		if = {
+#			limit = { exists = player_heir }			
+#			player_heir = {
+#				add_character_flag = {
+#					flag = flag_bureacrat_positioned
+#					years = 1
+#				}
+#				set_variable = {
+#					name = player_officier
+#					value = yes
+#					days = 365
+#				}
+#				add_realm_law_skip_effects = player_official_succession_law
+#			}
+#		}
+#		else_if = {
+#			limit = { any_close_family_member = { exists = this } }
+#			random_close_family_member = {
+#				limit = { is_adult = yes }
+#				save_scope_as = player_heir
+#			}
+#			set_designated_heir = scope:player_heir
+#			scope:player_heir = {
+#				add_character_flag = {
+#					flag = flag_bureacrat_positioned
+#					years = 1
+#				}
+#				set_variable = {
+#					name = player_officier
+#					value = yes
+#					days = 365
+#				}
+#				add_realm_law_skip_effects = player_official_succession_law
+#			}
+#		}	
+#		# 摄政/秘书长继承法
+#		#if = { 
+#			#limit = { exists = designated_heir }
+#			#designated_heir = {
+#				#set_variable = {
+#					#name = player_officier
+#					#value = yes
+#					#days = 365
+#				#}
+#			#}
+#		#}
+#		#else_if = {
+#			#limit = { exists = player_heir }
+#			#player_heir = {
+#				#set_variable = {
+#					#name = player_officier
+#					#value = yes
+#					#days = 365
+#				#}
+#			#}
+#		#}
+#	}
+#}
+
+
+#TO DO:流官管理 实职的最低品级，最低任期
