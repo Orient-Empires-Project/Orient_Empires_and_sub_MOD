@@ -1,4 +1,4 @@
-version="1.8.*"
+version="1.9.*"
 tags={
 	"Graphics"
 	"Map"
@@ -11,5 +11,5 @@ tags={
 	"Bookmarks"
 }
 name="Oriental Empires"
-supported_version="1.8.*"
+supported_version="1.9.0.3"
 remote_file_id="2506311074"

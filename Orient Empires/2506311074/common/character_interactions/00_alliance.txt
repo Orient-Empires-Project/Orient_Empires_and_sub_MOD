@@ -16,7 +16,15 @@
 			is_at_war = yes
 		}
 		scope:recipient = {
-			is_allied_to = scope:actor
+			OR = {
+				is_allied_to = scope:actor
+				AND = {
+					this ?= scope:actor.diarch
+					scope:actor = {
+						any_character_war = { diarch_callable_in_internal_war_trigger = yes }
+					}
+				}
+			}
 		}
 		scope:actor = { #If you can call them as a House Member then do that
 			NOT = {
@@ -149,12 +157,50 @@
 					any_war_defender = { this = scope:recipient }
 				}
 			}
+
+			# Diarchs can only be called to internal wars.
+			custom_tooltip = {
+				text = call_ally_interaction.tt.diarchs_called_to_internal_wars
+				trigger_if = {
+					limit = { scope:recipient ?= scope:actor.diarch }
+					primary_defender = scope:actor
+					diarch_callable_in_internal_war_trigger = yes
+				}
+			}
 		}
 	}
 
 	on_auto_accept = {
 		scope:recipient = {
 			trigger_event = call_ally.0001
+		}
+		scope:target = {
+			if = {
+				limit = {
+					is_religious_war = yes
+					scope:recipient = {
+						any_active_accolade = {
+							has_accolade_parameter = acclaimed_knight_piety_from_battle
+						}
+					}
+				}
+				scope:recipient = {
+					add_piety = miniscule_piety_gain
+				}
+			}
+			if = {
+				limit = {
+					is_religious_war = yes
+					scope:recipient = {
+						any_active_accolade = {
+							has_accolade_parameter = acclaimed_knight_piety_from_battle_high
+						}
+					}
+				}
+				scope:recipient = {
+					add_piety = minor_piety_gain
+				}
+			}
 		}
 	}
 		
@@ -179,6 +225,34 @@
 				}
 			}
 			trigger_event = call_ally.0100
+		}
+		scope:target = {
+			if = {
+				limit = {
+					is_religious_war = yes
+					scope:recipient = {
+						any_active_accolade = {
+							has_accolade_parameter = acclaimed_knight_piety_from_battle
+						}
+					}
+				}
+				scope:recipient = {
+					add_piety = minor_piety_gain
+				}
+			}
+			if = {
+				limit = {
+					is_religious_war = yes
+					scope:recipient = {
+						any_active_accolade = {
+							has_accolade_parameter = acclaimed_knight_piety_from_battle_high
+						}
+					}
+				}
+				scope:recipient = {
+					add_piety = medium_piety_gain
+				}
+			}
 		}
 	}
 	
@@ -526,6 +600,16 @@
 			}
 		}
 
+		modifier = {  # Serious diarchs wish to support their liege
+			add = 50
+			desc = ENTRENCHED_REGENT_WILL_SUPPORT_LIEGE
+			trigger_if = {
+				limit = { scope:recipient ?= scope:actor.diarch }
+				scope:actor = { has_diarchy_parameter = diarchy_type_is_entrenched_regency }
+			}
+			trigger_else = { always = no }
+		}		
+
 		compare_modifier = { # Likes fighting infidels
 			trigger = {
 				scope:recipient.faith = scope:actor.faith
@@ -778,9 +862,15 @@ negotiate_alliance_interaction = {
 			scope:actor = { has_perk = defensive_negotiations_perk }
 			#Ruler is married to other ruler.
 			scope:actor = { is_spouse_of = scope:recipient }
-			#Ruler is close relative of other ruler (child/parent/sibling)
+			#Ruler is relative of other ruler
 			scope:actor = { is_parent_of = scope:recipient }
+			scope:actor = { is_grandparent_of = scope:recipient }
+			scope:actor = { is_great_grandparent_of = scope:recipient }
 			scope:actor = { is_child_of = scope:recipient }
+			scope:actor = { is_grandchild_of = scope:recipient }
+			scope:actor = { is_great_grandchild_of = scope:recipient }
+			scope:actor = { is_uncle_or_aunt_of = scope:recipient }
+			scope:actor = { is_nibling_of = scope:recipient }
 			scope:actor = { is_sibling_of = scope:recipient }
 
 			custom_description = {
@@ -895,6 +985,12 @@ negotiate_alliance_interaction = {
 							is_child_of = scope:recipient
 							is_parent_of = scope:recipient
 							is_sibling_of = scope:recipient
+							is_grandparent_of = scope:recipient
+							is_great_grandparent_of = scope:recipient
+							is_grandchild_of = scope:recipient
+							is_great_grandchild_of = scope:recipient
+							is_uncle_or_aunt_of = scope:recipient
+							is_nibling_of = scope:recipient
 						}
 					}
 				}
@@ -1070,7 +1166,7 @@ negotiate_alliance_interaction = {
 		}
 	}
 	ai_accept = {
-		base = 20
+		base = 0
 
 		# Tier Difference 	(+/-)
 		# Inheritance 		(+)
@@ -1084,7 +1180,35 @@ negotiate_alliance_interaction = {
 		# Same House (+)
 		# Declared war opinion
 		# Actor is at war penalty
+		
+		modifier = {
+			add = 20
+			scope:recipient = {
+				is_close_family_of = scope:actor
+			}
+			desc = CLOSE_FAMILY_REASON
+		}
+		
+		modifier = {
+			add = 10
+			scope:recipient = {
+				NOT = { is_close_family_of = scope:actor }
+				is_extended_family_of = scope:actor
+			}
+			desc = EXTENDED_FAMILY_REASON
+		}
 
+		modifier = {
+			add = -20
+			scope:recipient = {
+				NOT = { is_close_or_extended_family_of = scope:actor }
+				any_spouse = {
+					NOT = { is_close_family_of = scope:actor }
+					is_extended_family_of = scope:actor
+				}
+			}
+			desc = DISTANT_FAMILY_CONNECTION_REASON
+		}
 
 		# Tier Differences
 		modifier = {
@@ -1208,14 +1332,91 @@ negotiate_alliance_interaction = {
 		opinion_modifier = { # More likely to accept if Recipient likes the Actor
 			who = scope:recipient
 			opinion_target = scope:actor
-			multiplier = 0.25
+			multiplier = 1
 			desc = AI_OPINION_REASON
 		}
+
 		modifier = {
-			scope:recipient = { has_relation_rival = scope:actor }
-			add = -100
-			desc = WE_ARE_RIVALS
+			add = 20
+			scope:recipient = {
+				has_trait = loyal
+			}
+			desc = INTERACTION_LOYAL
 		}
+
+		modifier = {
+			add = 20
+			scope:recipient = {
+				has_trait = trusting
+			}
+			desc = INTERACTION_TRUSTING
+		}
+
+		modifier = {
+			add = 5
+			scope:recipient = {
+				has_trait = craven
+			}
+			desc = INTERACTION_CRAVEN
+		}
+
+		modifier = {
+			add = -20
+			scope:recipient = {
+				has_trait = paranoid
+			}
+			desc = INTERACTION_PARANOID
+		}
+
+		modifier = {
+			add = -20
+			scope:recipient = {
+				has_trait = arrogant
+			}
+			desc = INTERACTION_ARROGANT
+		}
+
+		modifier = {
+			add = -20
+			scope:recipient = {
+				has_trait = ambitious
+			}
+			desc = INTERACTION_AMBITIOUS
+		}
+
+		modifier = {
+			add = -40
+			scope:recipient = {
+				has_trait = disloyal
+			}
+			desc = INTERACTION_DISLOYAL
+		}
+
+		modifier = {
+			add = -10
+			scope:recipient = {
+				has_trait = fickle
+			}
+			desc = INTERACTION_FICKLE
+		}
+
+		# Rivalry
+		modifier = { # Say no to rivals
+			add = -100
+			scope:recipient = {
+				has_relation_rival = scope:actor
+				NOT = { has_relation_nemesis = scope:actor }
+			}
+			desc = "ACTOR_RIVAL_TO_ME_REASON"
+		}
+		modifier = { # Say no to nemesis
+			add = -300
+			scope:recipient = {
+				has_relation_nemesis = scope:actor
+			}
+			desc = "ACTOR_NEMESIS_TO_ME_REASON"
+		}
+		
 		# Dynasty Prestige Levels
 		modifier = {
 			add = -5
@@ -1288,6 +1489,9 @@ negotiate_alliance_interaction = {
 					value > faith_fully_accepted_level
 				}
 			}
+			NOT = {
+				scope:recipient.ai_zeal <= -50
+			}
 			add = {
 				value = -20
 				if = {
@@ -1328,63 +1532,23 @@ negotiate_alliance_interaction = {
 						}
 						subtract = 60
 					}
+					if = {
+						limit = {
+							scope:recipient.ai_zeal <= -25
+						}
+						divide = 2
+					}
 				}
 			}
 			desc = MARRY_DIFFERENT_FAITH_REASON
 		}
 
 		modifier = { # A Recipient is more likely to agree to an alliance requested by his liege.
-			add = 40
+			add = 20
 			scope:recipient = {
 				target_is_liege_or_above = scope:actor
 			}
 			desc = LIEGE_REASON
-		}
-		
-		modifier = {
-			add = intimidated_reason_value
-			scope:recipient = {
-				target_is_liege_or_above = scope:actor
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 1
-				}
-			}
-			desc = INTIMIDATED_REASON
-		}
-		modifier = {
-			add = cowed_reason_value
-			scope:recipient = {
-				target_is_liege_or_above = scope:actor
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 2
-				}
-			}
-			desc = COWED_REASON
-		}
-		
-		modifier = {
-			add = intimidated_external_reason_value
-			scope:recipient = {
-				NOT = { target_is_liege_or_above = scope:actor }
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 1
-				}
-			}
-			desc = INTIMIDATED_REASON
-		}
-		modifier = {
-			add = cowed_external_reason_value
-			scope:recipient = {
-				NOT = { target_is_liege_or_above = scope:actor }
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 2
-				}
-			}
-			desc = COWED_REASON
 		}
 		
 		modifier = {
@@ -1394,20 +1558,32 @@ negotiate_alliance_interaction = {
 					value = scope:recipient.max_military_strength # For foreign diplomacy, consider recipients max
 					divide = { value = scope:actor.current_military_strength min = 1 }
 				}
-				multiply = 10
+				multiply = 20
+				min = -1000
+				max = 100
 	  		}
-			desc = offer_vassalization_interaction_aibehavior_power_tt
+			desc = AI_MILITARY_BALANCE_REASON
 		}
 		# Recipient is a Claimant to Actor's titles.
 		modifier = {
 			scope:recipient = {
-				NOT = { has_government = clan_government }
+				NOT = { government_has_flag = government_is_clan }
 				any_claim = {
 					holder = scope:actor
 				}
+				NOR = {
+					is_heir_of = scope:actor
+					ai_greed <= -25
+				}
 			}
 			add = {
-				value = -200
+				value = -50
+				if = {
+					limit = {
+						scope:recipient.ai_greed >= 25
+					}
+					add = ai_greed
+				}
 				if = {
 					limit = {
 						NOT = {
@@ -1415,30 +1591,6 @@ negotiate_alliance_interaction = {
 						}
 					}
 					multiply = 2
-				}
-				if = {
-					limit = {
-						NOT = {
-							scope:recipient.dynasty = scope:actor.dynasty
-						}
-					}
-					multiply = 2
-				}
-				if = {
-					limit = {
-						scope:recipient.dynasty = scope:actor.dynasty
-						OR = {
-							has_trait = bastard
-							has_trait = legitimized_bastard
-						}
-					}
-					multiply = 1.5
-				}
-				if = { # Primary heir will probably inherit the lands after the rulers death
-					limit = {
-						scope:recipient = { is_primary_heir_of = scope:actor }
-					}
-					divide = 4
 				}
 			}
 			desc = IS_CLAIMANT_TO_ACTORS_TITLES
@@ -1498,7 +1650,7 @@ negotiate_alliance_interaction = {
 			desc = TRADITION_ASTUTE_DIPLOMATS_ACCEPTANCE_MODIFIER
 		}
 
-				# The AI doesn't want to form alliances with AI vassals within its capital duchy, so it can revoke them
+		# The AI doesn't want to form alliances with AI vassals within its capital duchy, so it can revoke them
 		modifier = {
 			scope:actor = {
 				is_ai = yes
@@ -1512,22 +1664,6 @@ negotiate_alliance_interaction = {
 				is_ai = yes
 			}
 			add = -5000
-		}
-
-		# Rivalry
-		modifier = { # Say no to rivals
-			add = -55
-			scope:recipient = {
-				has_relation_rival = scope:actor
-			}
-			desc = "ACTOR_RIVAL_TO_ME_REASON"
-		}
-		modifier = { # Say no to nemesis
-			add = -300
-			scope:recipient = {
-				has_relation_nemesis = scope:actor
-			}
-			desc = "ACTOR_NEMESIS_TO_ME_REASON"
 		}
 
 		# Feud
@@ -1586,20 +1722,97 @@ negotiate_alliance_interaction = {
 			}
 			desc = CELESTIA_GREAT_HOLY_WAR_WAR_CB_NAME
 		}
-		# The AI doesn't want to form alliances with AI vassals within its capital duchy, so it can revoke them
+
+		# Existing Alliances
 		modifier = {
+			add = {
+				scope:actor = {
+					every_ally = {
+						add = -15
+					}
+				}
+			}
 			scope:actor = {
-				is_ai = yes
-				is_vassal_or_below_of = scope:recipient
-				any_held_title = {
-					tier = tier_county
-					de_jure_liege = scope:actor.primary_title.title_capital_county.de_jure_liege
+				any_ally = {
+					count >= 2
+				}
+			}
+			NAND = {
+				scope:recipient = {
+					government_has_flag = government_is_clan
+					is_vassal_or_below_of = scope:actor
+				}
+			}
+			desc = EXISTING_ALLIANCES_REASON
+		}
+
+		# Existing Alliances
+		modifier = {
+			add = {
+				scope:recipient = {
+					every_ally = {
+						add = -15
+					}
 				}
 			}
 			scope:recipient = {
-				is_ai = yes
+				any_ally = {
+					count >= 2
+				}
 			}
-			add = -5000
+			NAND = {
+				scope:recipient = {
+					government_has_flag = government_is_clan
+					is_vassal_or_below_of = scope:actor
+				}
+			}
+			desc = THEIR_EXISTING_ALLIANCES_REASON
+		}
+		
+		modifier = {
+			add = intimidated_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		
+		modifier = {
+			add = intimidated_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
 		}
 	}
 
@@ -1630,13 +1843,40 @@ negotiate_alliance_interaction = {
 			any_ally = {
 				count < 2
 			}
+			scope:recipient = { # Don't propose alliances to tiny insignificant rulers just because
+				OR = {
+					current_military_strength >= scope:actor.eighty_percent_of_current_military_strength
+					primary_title.tier >= scope:actor.primary_title.tier
+					AND = {
+						primary_title.tier >= tier_duchy
+						scope:actor.primary_title.tier < tier_empire
+					}
+				}
+			}
 		}
 		
-		modifier = { # The AI shouldn't propose to their Lieges or Vassals
+		modifier = { # Clans always want alliances with Vassals
+			add = 100
+			scope:actor = {
+				government_has_flag = government_is_clan
+			}
+			scope:recipient = {
+				is_vassal_of = scope:actor
+			}
+		}
+		
+		modifier = { # The AI shouldn't propose to their Lieges
 			factor = 0
-			OR = {
-				target_is_liege_or_above = scope:recipient
-				target_is_vassal_or_below = scope:recipient
+			is_liege_or_above_of = scope:recipient
+		}
+		
+		modifier = { # The AI shouldn't propose to their Vassals unless Clan
+			factor = 0
+			scope:actor = {
+				NOT = { government_has_flag = government_is_clan }
+			}
+			scope:recipient = {
+				is_vassal_of = scope:actor
 			}
 		}
 	}
@@ -1646,6 +1886,7 @@ perk_alliance_interaction = {
 	category = interaction_category_diplomacy
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
+	icon = alliance
 	
 
 	interface_priority = 60
@@ -1909,9 +2150,91 @@ perk_alliance_interaction = {
 		opinion_modifier = { # More likely to accept if Recipient likes the Actor
 			who = scope:recipient
 			opinion_target = scope:actor
-			multiplier = 0.25
+			multiplier = 1
 			desc = AI_OPINION_REASON
 		}
+
+		modifier = {
+			add = 20
+			scope:recipient = {
+				has_trait = loyal
+			}
+			desc = INTERACTION_LOYAL
+		}
+
+		modifier = {
+			add = 20
+			scope:recipient = {
+				has_trait = trusting
+			}
+			desc = INTERACTION_TRUSTING
+		}
+
+		modifier = {
+			add = 5
+			scope:recipient = {
+				has_trait = craven
+			}
+			desc = INTERACTION_CRAVEN
+		}
+
+		modifier = {
+			add = -20
+			scope:recipient = {
+				has_trait = paranoid
+			}
+			desc = INTERACTION_PARANOID
+		}
+
+		modifier = {
+			add = -20
+			scope:recipient = {
+				has_trait = arrogant
+			}
+			desc = INTERACTION_ARROGANT
+		}
+
+		modifier = {
+			add = -20
+			scope:recipient = {
+				has_trait = ambitious
+			}
+			desc = INTERACTION_AMBITIOUS
+		}
+
+		modifier = {
+			add = -40
+			scope:recipient = {
+				has_trait = disloyal
+			}
+			desc = INTERACTION_DISLOYAL
+		}
+
+		modifier = {
+			add = -10
+			scope:recipient = {
+				has_trait = fickle
+			}
+			desc = INTERACTION_FICKLE
+		}
+
+		# Rivalry
+		modifier = { # Say no to rivals
+			add = -100
+			scope:recipient = {
+				has_relation_rival = scope:actor
+				NOT = { has_relation_nemesis = scope:actor }
+			}
+			desc = "ACTOR_RIVAL_TO_ME_REASON"
+		}
+		modifier = { # Say no to nemesis
+			add = -300
+			scope:recipient = {
+				has_relation_nemesis = scope:actor
+			}
+			desc = "ACTOR_NEMESIS_TO_ME_REASON"
+		}
+		
 		# Dynasty Prestige Levels
 		modifier = {
 			add = -5
@@ -1984,6 +2307,9 @@ perk_alliance_interaction = {
 					value > faith_fully_accepted_level
 				}
 			}
+			NOT = {
+				scope:recipient.ai_zeal <= -50
+			}
 			add = {
 				value = -20
 				if = {
@@ -2024,55 +2350,23 @@ perk_alliance_interaction = {
 						}
 						subtract = 60
 					}
+					if = {
+						limit = {
+							scope:recipient.ai_zeal <= -25
+						}
+						divide = 2
+					}
 				}
 			}
 			desc = MARRY_DIFFERENT_FAITH_REASON
 		}
-		
-		modifier = {
-			add = intimidated_reason_value
+
+		modifier = { # A Recipient is more likely to agree to an alliance requested by his liege.
+			add = 20
 			scope:recipient = {
 				target_is_liege_or_above = scope:actor
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 1
-				}
 			}
-			desc = INTIMIDATED_REASON
-		}
-		modifier = {
-			add = cowed_reason_value
-			scope:recipient = {
-				target_is_liege_or_above = scope:actor
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 2
-				}
-			}
-			desc = COWED_REASON
-		}
-		
-		modifier = {
-			add = intimidated_external_reason_value
-			scope:recipient = {
-				NOT = { target_is_liege_or_above = scope:actor }
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 1
-				}
-			}
-			desc = INTIMIDATED_REASON
-		}
-		modifier = {
-			add = cowed_external_reason_value
-			scope:recipient = {
-				NOT = { target_is_liege_or_above = scope:actor }
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 2
-				}
-			}
-			desc = COWED_REASON
+			desc = LIEGE_REASON
 		}
 		
 		modifier = {
@@ -2082,19 +2376,32 @@ perk_alliance_interaction = {
 					value = scope:recipient.max_military_strength # For foreign diplomacy, consider recipients max
 					divide = { value = scope:actor.current_military_strength min = 1 }
 				}
-				multiply = 10
+				multiply = 20
+				min = -1000
+				max = 100
 	  		}
-			desc = offer_vassalization_interaction_aibehavior_power_tt
+			desc = AI_MILITARY_BALANCE_REASON
 		}
 		# Recipient is a Claimant to Actor's titles.
 		modifier = {
 			scope:recipient = {
+				NOT = { government_has_flag = government_is_clan }
 				any_claim = {
 					holder = scope:actor
 				}
+				NOR = {
+					is_heir_of = scope:actor
+					ai_greed <= -25
+				}
 			}
 			add = {
-				value = -200
+				value = -50
+				if = {
+					limit = {
+						scope:recipient.ai_greed >= 25
+					}
+					add = ai_greed
+				}
 				if = {
 					limit = {
 						NOT = {
@@ -2102,30 +2409,6 @@ perk_alliance_interaction = {
 						}
 					}
 					multiply = 2
-				}
-				if = {
-					limit = {
-						NOT = {
-							scope:recipient.dynasty = scope:actor.dynasty
-						}
-					}
-					multiply = 2
-				}
-				if = {
-					limit = {
-						scope:recipient.dynasty = scope:actor.dynasty
-						OR = {
-							has_trait = bastard
-							has_trait = legitimized_bastard
-						}
-					}
-					multiply = 1.5
-				}
-				if = { # Primary heir will probably inherit the lands after the rulers death
-					limit = {
-						scope:recipient = { is_primary_heir_of = scope:actor }
-					}
-					divide = 4
 				}
 			}
 			desc = IS_CLAIMANT_TO_ACTORS_TITLES
@@ -2152,12 +2435,6 @@ perk_alliance_interaction = {
 			add = 15
 			desc = IS_SAME_HOUSE_REASON
 		}
-		#Bonus from Tradition Astute Diplomats
-		modifier = {
-			scope:actor.culture = { has_cultural_parameter = facilitate_alliance_acceptance }
-			add = 50 #should be in a file 00_traditions_values
-			desc = TRADITION_ASTUTE_DIPLOMATS_ACCEPTANCE_MODIFIER
-		}
 		modifier = {
 			scope:recipient = {
 				has_opinion_modifier = {
@@ -2168,22 +2445,45 @@ perk_alliance_interaction = {
 			add = -100
 			desc = DECLARED_WAR_REASON
 		}
-		
-		#Rivalry
-		modifier = { # Say no to rivals
-			add = -55
-			scope:recipient = {
-				has_relation_rival = scope:actor
+
+		# Don't form new alliances with people already at war.
+		modifier = {
+			scope:actor = {
+				is_at_war = yes
+
+				# Since vassals and lieges can't call us into wars, this doesn't matter for us if we have that relationship. 
+				NOR = {
+					target_is_liege_or_above = scope:recipient
+					target_is_vassal_or_below = scope:recipient
+				}
 			}
-			desc = "ACTOR_RIVAL_TO_ME_REASON"
+			add = -50
+			desc = IS_AT_WAR_REASON
 		}
-		modifier = { # Say no to nemesis
-			add = -300
-			scope:recipient = {
-				has_relation_nemesis = scope:actor
+
+		#Bonus from Tradition Astute Diplomats
+		modifier = {
+			scope:actor.culture = { has_cultural_parameter = facilitate_alliance_acceptance }
+			add = 50 #should be in a file 00_traditions_values
+			desc = TRADITION_ASTUTE_DIPLOMATS_ACCEPTANCE_MODIFIER
+		}
+
+		# The AI doesn't want to form alliances with AI vassals within its capital duchy, so it can revoke them
+		modifier = {
+			scope:actor = {
+				is_ai = yes
+				is_vassal_or_below_of = scope:recipient
+				any_held_title = {
+					tier = tier_county
+					de_jure_liege = scope:actor.primary_title.title_capital_county.de_jure_liege
+				}
 			}
-			desc = "ACTOR_NEMESIS_TO_ME_REASON"
+			scope:recipient = {
+				is_ai = yes
+			}
+			add = -5000
 		}
+
 		# Feud
 		modifier = {
 			add = -25
@@ -2240,10 +2540,93 @@ perk_alliance_interaction = {
 			}
 			desc = CELESTIA_GREAT_HOLY_WAR_WAR_CB_NAME
 		}
+
+		# Existing Alliances
+		modifier = {
+			add = {
+				scope:actor = {
+					every_ally = {
+						add = -15
+					}
+				}
+			}
+			scope:actor = {
+				any_ally = {
+					count >= 2
+				}
+			}
+			desc = EXISTING_ALLIANCES_REASON
+		}
+
+		# Existing Alliances
+		modifier = {
+			add = {
+				scope:recipient = {
+					every_ally = {
+						add = -15
+					}
+				}
+			}
+			scope:recipient = {
+				any_ally = {
+					count >= 2
+				}
+			}
+			desc = THEIR_EXISTING_ALLIANCES_REASON
+		}
+		
+		modifier = {
+			add = intimidated_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		
+		modifier = {
+			add = intimidated_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
 	}
 
 	ai_potential = {
 		is_at_war = no
+		any_ally = {
+			count < 2
+		}
 	}
 	
 	ai_targets = {
@@ -2258,12 +2641,16 @@ perk_alliance_interaction = {
 	ai_frequency = 72
 	
 	ai_will_do = {
-		base = 0
+		base = 100
 		
-		modifier = {
-			add = 100
-			any_ally = {
-				count < 2
+		modifier = { # Don't disturb the player with pointless asks
+			add = -5000
+			scope:recipient = {
+				is_ai = no
+			}
+			NOR = {
+				scope:actor.current_military_strength >= scope:recipient.current_military_strength
+				scope:actor.primary_title.tier >= scope:recipient.primary_title.tier
 			}
 		}
 	}
@@ -2276,6 +2663,7 @@ join_war_interaction = {
 	special_interaction = interfere_in_war_interaction
 	popup_on_receive = yes
 	desc = join_war_interaction_desc
+	icon = alliance
 
 	greeting = positive
 	notification_text = join_war_interaction_notification
@@ -2396,6 +2784,7 @@ join_war_interaction = {
 				}
 			}
 		}
+
 		# recipient is liege
 		trigger_else = {
 			custom_description = {
@@ -2568,6 +2957,32 @@ join_war_interaction = {
 			}
 			else = {
 				add_defender = scope:actor
+			}
+			if = {
+				limit = {
+					is_religious_war = yes
+					scope:actor = {
+						any_active_accolade = {
+							has_accolade_parameter = acclaimed_knight_piety_from_battle
+						}
+					}
+				}
+				scope:actor = {
+					add_piety = medium_piety_gain
+				}
+			}
+			if = {
+				limit = {
+					is_religious_war = yes
+					scope:actor = {
+						any_active_accolade = {
+							has_accolade_parameter = acclaimed_knight_piety_from_battle_high
+						}
+					}
+				}
+				scope:actor = {
+					add_piety = major_piety_gain
+				}
 			}
 		}
 		scope:actor = {

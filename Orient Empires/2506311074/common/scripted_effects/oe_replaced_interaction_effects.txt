@@ -1,0 +1,380 @@
+﻿
+
+
+revocation_tyranny_effect = {
+	if = {
+		limit = { exists = scope:use_strife_not_tyranny }
+		# If you have revocation reason, we allow that.
+		if = {
+			limit = { has_revoke_title_reason = scope:recipient }
+			consume_revoke_title_reason = scope:recipient
+		}
+		else = { change_strife_opinion = major_strife_gain }
+	}
+	else_if = {
+		limit = {
+			title_revocation_is_tyrannical_trigger = yes
+		}
+		add_tyranny = revoke_title_tyranny_gain
+
+		#If my culture is different from the recipients
+		if = {
+			limit = {
+				NOT = { culture = scope:recipient.culture }
+			}
+			scope:recipient.culture = {
+				change_cultural_acceptance = {
+					target = scope:actor.culture
+					value = revoke_title_culture_acceptance_impact
+					desc = cultural_acceptance_loss_revokation
+				}
+			}
+		}
+	}
+	else = {
+		if = {
+			limit = {
+				has_claim_on = scope:landed_title
+			}
+			custom_tooltip = IS_ALLOWED_TO_REVOKE_TITLE_FOR_CLAIM_DESC
+		}
+		else_if = {
+			limit = {
+				has_revoke_title_reason = scope:recipient
+			}
+			custom_tooltip = IS_ALLOWED_TO_REVOKE_TITLE_DESC
+		}
+		else_if = {
+			limit = {
+				government_has_flag = government_is_celestial
+				scope:recipient = {
+					is_bureau_government_trigger = yes
+				}
+			}
+			custom_tooltip = IS_ALLOWED_TO_REVOKE_TITLE_DESC
+		}
+		else_if = {
+			limit = {
+				faith = {
+					OR = {
+						has_doctrine_parameter = pluralism_righteous_revocation_tyranny_reduced
+						has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal
+					}
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value >= faith_hostile_level
+					}
+				}
+			}
+			if = {
+				limit = {
+					faith = {
+						has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal 								
+						faith_hostility_level = {
+							target = scope:recipient.faith
+							value = faith_hostile_level
+						}
+					}
+				}
+				custom_tooltip = IS_ALLOWED_TO_REVOKE_HOSTILE_INFIDEL_TITLE
+			}
+			else = {
+				custom_tooltip = IS_ALLOWED_TO_REVOKE_EVIL_INFIDEL_TITLE
+			}						
+			every_vassal = {
+				limit = {
+					faith = scope:recipient.faith
+				}
+				custom = INFIDEL_REVOCATION_OPINION
+				add_opinion = {
+					modifier = angry_opinion
+					target = scope:actor
+					opinion = {
+						value = revoke_title_tyranny_gain
+						multiply = -1
+					}
+				}
+			}
+		}
+	}	
+}
+
+war_for_revoke_effect = {
+	scope:recipient = {
+		save_scope_value_as = {
+			name = war_for_revocation_flavour
+			value = yes
+		}
+		start_war = {
+			casus_belli = refused_liege_demand_war
+			target = scope:actor
+		}
+	}
+	if = {
+		limit = {
+			scope:actor = { NOT = { has_revoke_title_reason = scope:recipient } }
+		}
+		scope:actor = {
+			every_vassal = { #Vassals joining the rebel.
+				limit = {
+					NOR = {
+						this = scope:recipient
+						is_ai = no
+						has_trait = incapable
+						is_imprisoned = yes
+						dread_modified_ai_boldness = { #Too scared to do anything.
+							dreaded_character = scope:actor
+							value <= -50
+						}
+						is_at_war_with = scope:recipient
+						is_at_war_with = scope:actor
+					}
+					highest_held_title_tier > tier_barony
+					OR = {
+						#Lovers and friends always back rebel (unless also lovers/friends of the liege)
+						AND = {
+							OR = {
+								has_relation_lover = scope:recipient
+								has_relation_friend = scope:recipient
+							}
+							NOR = {
+								has_relation_lover = scope:actor
+								has_relation_friend = scope:actor
+							}
+						}
+						#Vassals that either like recipient or have high honor will rally if the liege is being tyrannical.
+						AND = {
+							# If they can't join a faction against the liege they should not revolt
+							NOR = {
+								has_relation_lover = scope:actor
+								has_relation_friend = scope:actor
+								is_allied_to = scope:actor
+								is_primary_heir_of = scope:actor
+								scope:actor = { has_strong_hook = prev }
+								has_dread_level_towards = {
+									target = scope:actor
+									level = 2
+								}								
+							}						
+							OR = {
+								ai_honor >= 25
+								opinion = {
+									target = scope:recipient
+									value >= 40
+								}
+							}
+							NOR = {
+								scope:actor = {
+									has_revoke_title_reason = scope:recipient
+								}
+								scope:actor = {
+									has_claim_on = scope:landed_title
+								}
+								faith = {								
+									faith_hostility_level = {
+										target = scope:recipient.faith
+										value >= faith_hostile_level
+									}
+								}
+							}
+						}
+						#And finally, vassals that really hate their liege will join regardless (provided that they also do not hate recipient).
+						AND = {
+							opinion = {
+								target = scope:recipient
+								value >= -25
+							}
+							OR = {
+								#default threshold
+								opinion = {
+									target = scope:actor
+									value <= -50
+								}
+								#If tyrannical, the default threshold will be reached if at this level
+								AND = {
+									scope:actor = { title_revocation_is_tyrannical_trigger = yes }
+									opinion = {
+										target = scope:actor
+										value <= -30 #revoke_title_tyranny_gain adds -20
+									}
+								}
+							}
+						}
+					}
+				}
+				save_scope_as = joining_vassal
+				custom_tooltip = tooltip_fellow_vassal_joins_war #The war has not started when viewing the interaction screen.
+				hidden_effect = {
+					scope:recipient = {
+						every_character_war = {
+							limit = {
+								using_cb = refused_liege_demand_war
+								casus_belli = {
+									primary_attacker = scope:recipient
+									primary_defender = scope:actor
+								}
+							}
+								add_to_list = war_to_join
+						}
+					}
+					every_in_list = {
+						list = war_to_join
+						limit = {
+							NOT = { is_defender = prev }
+						}
+						hidden_effect = {
+							set_called_to = prev
+						}
+						add_attacker = prev
+					}
+				}
+				hidden_effect = {
+					scope:actor = {
+						add_opinion = {
+							target = prev
+							modifier = rebellious_vassal_opinion
+						}
+					}
+				}
+			}
+			every_vassal = {
+				limit = {
+					is_ai = no
+					NOT = { this = scope:recipient }
+					is_imprisoned = no
+				}
+				trigger_event = char_interaction.0232
+			}
+		}
+	}
+	scope:recipient = {
+		add_opinion = {
+			target = scope:actor
+			modifier = attempted_arrest_opinion
+		}
+	}
+}
+
+
+
+offer_vassalization_interaction_effect = {
+	create_title_and_vassal_change = {
+		type = swear_fealty
+		save_scope_as = change
+	}
+	scope:recipient = {
+		change_liege = {
+			liege = scope:actor
+			change = scope:change
+		}
+		add_opinion = {
+			modifier = became_vassal
+			target = scope:actor
+			opinion = 10
+		}
+	}
+	resolve_title_and_vassal_change = scope:change
+
+	# Special terms for feudal contracts
+	scope:recipient = {
+		if = {
+			limit = {
+				government_has_flag = government_is_feudal
+			}
+			if = {
+				limit = { scope:high_obligations = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 3 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 3 }
+					}	
+				}
+				custom_tooltip = high_obligations_taxes
+				custom_tooltip = high_obligations_levies
+			}
+			else_if = {
+				limit = { scope:low_obligations = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 1 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 1 }
+					}			
+				}
+				custom_tooltip = low_obligations_taxes
+				custom_tooltip = low_obligations_levies
+			}
+			else_if = {
+				limit = { scope:religious_exemption = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 1 }
+						if = {
+							limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
+							vassal_contract_set_obligation_level = { type = jizya_special_rights level = 1 }
+						}
+						else = {
+							vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+						}
+					}
+				}
+				custom_tooltip = normal_obligations_taxes
+				custom_tooltip = low_obligations_levies
+				if = {
+					limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
+					custom_tooltip = jizya_religious_protection_tt
+				}
+				else = { custom_tooltip = religious_protection_tt }
+			}
+			else = {
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 2 }
+					}		
+				}
+				custom_tooltip = normal_obligations_taxes
+				custom_tooltip = normal_obligations_levies
+			}		
+		}
+		if = {
+			limit = {
+				government_has_flag = government_is_celestial
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					vassal_contract_set_obligation_level = { type = special_imperial_contract level = 1 }
+					vassal_contract_set_obligation_level = { type = special_imperial_legion level = 2 }
+				}		
+			}
+		}
+		else_if = {
+			limit = {
+				government_has_flag = government_is_clan
+				scope:religious_exemption_clan = yes
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					if = {
+						limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
+						vassal_contract_set_obligation_level = { type = jizya_special_rights level = 1 }
+					}
+					else = {
+						vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+					}
+				}
+			}
+			if = {
+				limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
+				custom_tooltip = jizya_religious_protection_tt
+			}
+			else = { custom_tooltip = religious_protection_tt }
+		}
+	}
+}

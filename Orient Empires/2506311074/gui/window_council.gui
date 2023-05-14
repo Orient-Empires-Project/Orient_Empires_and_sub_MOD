@@ -19,7 +19,6 @@ window = {
 		using = Sound_WindowShow_Standard
 		using = Window_Position_MainTab
 
-		on_start = "[GetVariableSystem.Set( 'right_window_open', 'true' )]"
 		on_start = "[GetVariableSystem.Set( 'council_tabs', 'my_council' )]"
 	}
 
@@ -28,7 +27,6 @@ window = {
 		using = Animation_FadeOut_Quick
 		using = Sound_WindowHide_Standard
 		using = Window_Position_MainTab_Hide
-		on_start = "[GetVariableSystem.Clear( 'right_window_open' )]"
 	}
 
 	margin_widget = {
@@ -39,9 +37,6 @@ window = {
 		widget = {
 			size = { 100% 100% }
 
-			using = Window_Background
-			using = Window_Decoration_Thin
-
 			vbox = {
 				using = Window_Margins
 
@@ -51,7 +46,6 @@ window = {
 					blockoverride "header_text"
 					{
 						text = "COUNCILWINDOW_TITLE"
-						using = Font_Size_Big
 					}
 
 					blockoverride "button_close"
@@ -63,28 +57,13 @@ window = {
 				hbox = {
 					layoutpolicy_horizontal = expanding
 
-					text_single = {
-						visible = "[GetPlayer.IsIndependentRuler]"
-						text = "COUNCIL_WINDOW_PLAYER_COUNCIL"
-						align = nobaseline
-						default_format = "#low"
-
-						# onclick = "[PdxGuiTriggerAllAnimations('council_refresh')]"
-
-						# state = {
-						# 	name = _mouse_click
-						# 	delay = 0.2
-						# 	on_finish = "[CouncilWindow.SetPlayerCouncil]"
-						# }
-					}
-
 					button_tab = {
-						visible = "[Not(GetPlayer.IsIndependentRuler)]"
 						layoutpolicy_horizontal = expanding
 						text = "COUNCIL_WINDOW_PLAYER_COUNCIL"
 
-						down = "[CouncilWindow.IsPlayerCouncilShown]"
+						down = "[And( CouncilWindow.IsPlayerCouncilShown, Not( GetVariableSystem.Exists( 'diarchy_tab' ) ) )]"
 						onclick = "[CouncilWindow.SetPlayerCouncil]"
+						onclick = "[GetVariableSystem.Clear( 'diarchy_tab' )]"
 
 						# onclick = "[PdxGuiTriggerAllAnimations('council_refresh')]"
 
@@ -98,9 +77,9 @@ window = {
 					button_tab = {
 						visible = "[Not(GetPlayer.IsIndependentRuler)]"
 
-						down = "[CouncilWindow.IsLiegeCouncilShown]"
+						down = "[And( CouncilWindow.IsLiegeCouncilShown, Not( GetVariableSystem.Exists( 'diarchy_tab' ) ) )]"
 						onclick = "[CouncilWindow.SetLiegeCouncil]"
-
+						onclick = "[GetVariableSystem.Clear( 'diarchy_tab' )]"
 
 						# onclick = "[PdxGuiTriggerAllAnimations('council_refresh')]"
 
@@ -127,9 +106,7 @@ window = {
 
 					vbox_council_layout = {
 						name = "my_council"
-						visible = "[CouncilWindow.IsPlayerCouncilShown]"
-						layoutpolicy_horizontal = expanding
-						layoutpolicy_vertical = expanding
+						visible = "[And( CouncilWindow.IsPlayerCouncilShown, Not( GetVariableSystem.Exists( 'diarchy_tab' ) ) )]"
 
 						using = Animation_Tab_Switch
 					}
@@ -137,9 +114,7 @@ window = {
 
 					vbox_council_layout = {
 						name = "council_refresh"
-						visible = "[CouncilWindow.IsLiegeCouncilShown]"
-						layoutpolicy_horizontal = expanding
-						layoutpolicy_vertical = expanding
+						visible = "[And( CouncilWindow.IsLiegeCouncilShown, Not( GetVariableSystem.Exists( 'diarchy_tab' ) ) )]"
 
 						using = Animation_Tab_Switch
 
@@ -498,9 +473,10 @@ types CouncilWindow
 					using = Color_Blue
 
 					modify_texture = {
-						texture = "gfx/interface/component_masks/mask_fade_horizontal_right.dds"
+						texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
 						blend_mode = alphamultiply
 						alpha = 0.9
+						mirror = horizontal
 					}
 
 					modify_texture = {
@@ -521,9 +497,10 @@ types CouncilWindow
 					using = Color_Blue
 
 					modify_texture = {
-						texture = "gfx/interface/component_masks/mask_fade_horizontal_right.dds"
+						texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
 						blend_mode = alphamultiply
 						alpha = 0.9
+						mirror = horizontal
 					}
 				}
 

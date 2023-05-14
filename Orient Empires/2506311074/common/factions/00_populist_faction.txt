@@ -58,8 +58,8 @@
 	is_character_valid = {
 		# Only AIs are allowed to be in popular factions.
 		is_ai = yes
-
-				# Landed rulers can only be in the faction...
+		
+		# Landed rulers can only be in the faction...
 		trigger_if = {
 			limit = {
 				is_landed = yes
@@ -217,18 +217,24 @@
 			value = county_opinion
 			multiplier = -3.0
 		}
+		pluralism_fundamentalism_dual_modifier = {
+			ASTRAY_BASE_VALUE = faction_county_opinion_astray
+			HOSTILE_BASE_VALUE = faction_county_opinion_hostile
+			EVIL_BASE_VALUE = faction_county_opinion_evil
+			BASE_FAITH = faith
+			TARGET = scope:target
+		}
 		pluralism_fundamentalism_modifier = {
 			ASTRAY_BASE_VALUE = faction_county_opinion_astray
 			HOSTILE_BASE_VALUE = faction_county_opinion_hostile
 			EVIL_BASE_VALUE = faction_county_opinion_evil
 			BASE_FAITH = faith
-			TARGET_FAITH = scope:target.faith
+			TARGET = scope:target
 		}
 
 		# Greatly reduced chance for a character's capital county to form a faction against them (extra -25 opinion needed).
 		modifier = {
 			add = -200
-			exists = scope:target.capital_province
 			this.title_province = scope:target.capital_province
 		}
 
@@ -303,25 +309,50 @@
 		#	Different Culture (Same Group) OR Astray Faith: Never Joins
 		compare_modifier = {
 			trigger = {
-				NOT = { this.title_province.culture = scope:faction.faction_target.culture }
-				this.title_province.culture = { has_same_culture_heritage = scope:faction.faction_target.culture }
+				NOR = {
+					this.title_province.culture = scope:faction.faction_target.culture
+					AND = {
+						scope:faction.faction_target = { has_active_diarchy = yes }
+						this.title_province.culture = scope:faction.faction_target.diarch.culture
+					}
+				}
+				OR = {
+					this.title_province.culture = { has_same_culture_heritage = scope:faction.faction_target.culture }
+					AND = {
+						scope:faction.faction_target = { has_active_diarchy = yes }
+						this.title_province.culture = { has_same_culture_heritage = scope:faction.faction_target.diarch.culture }
+					}
+				}
 			}
 			value = county_opinion
 			multiplier = -1.0
 		}
 		compare_modifier = {
 			trigger = {
-				NOT = { this.title_province.culture = { has_same_culture_heritage = scope:faction.faction_target.culture } }
+				NOR = {
+					this.title_province.culture = scope:faction.faction_target.culture
+					AND = {
+						scope:faction.faction_target = { has_active_diarchy = yes }
+						this.title_province.culture = scope:faction.faction_target.diarch.culture
+					}
+				}
 			}
 			value = county_opinion
 			multiplier = -3.0
+		}
+		pluralism_fundamentalism_dual_modifier = {
+			ASTRAY_BASE_VALUE = faction_county_opinion_astray
+			HOSTILE_BASE_VALUE = faction_county_opinion_hostile
+			EVIL_BASE_VALUE = faction_county_opinion_evil
+			BASE_FAITH = faith
+			TARGET = scope:faction.faction_target
 		}
 		pluralism_fundamentalism_modifier = {
 			ASTRAY_BASE_VALUE = faction_county_opinion_astray
 			HOSTILE_BASE_VALUE = faction_county_opinion_hostile
 			EVIL_BASE_VALUE = faction_county_opinion_evil
 			BASE_FAITH = faith
-			TARGET_FAITH = scope:faction.faction_target.faith
+			TARGET = scope:faction.faction_target
 		}
 
 		# Reduced chance for a character's capital county to join a faction against them (extra -10 opinion needed).
@@ -365,7 +396,7 @@
 			add = -200
 			has_game_rule = extreme_realm_stability
 		}
-		
+
 		# Struggle interaction
 
 	}
@@ -460,12 +491,20 @@
 			}
 		}
 
-		pluralism_fundamentalism_modifier = { # Can range from +17.5 to +250 depending on hostility and pluralism/fundamentalism levels.
+		# Base values can range from +17.5 to +250 depending on hostility and pluralism/fundamentalism levels.
+		pluralism_fundamentalism_dual_modifier = {
 			ASTRAY_BASE_VALUE = 35
 			HOSTILE_BASE_VALUE = 75
 			EVIL_BASE_VALUE = 125
 			BASE_FAITH = faith
-			TARGET_FAITH = scope:faction.faction_target.faith
+			TARGET = scope:faction.faction_target
+		}
+		pluralism_fundamentalism_modifier = {
+			ASTRAY_BASE_VALUE = 35
+			HOSTILE_BASE_VALUE = 75
+			EVIL_BASE_VALUE = 125
+			BASE_FAITH = faith
+			TARGET = scope:faction.faction_target
 		}
 
 		legalism_virtue_and_sin_modifier = {
@@ -666,7 +705,7 @@
 		special_title = {
 			save_scope_as = target_title
 		}
-
+		
 		# Check for relevant vassals that owns any land targeted by the faction.
 		save_temporary_scope_as = county_faction
 		every_faction_county_member = {
@@ -711,7 +750,7 @@
 				}
 			}
 		}
-			
+		
 		# Check if there is a player affected by the faction. AI rulers are blocked from accepting the faction demand if so.
 		if = {
 			limit = {
@@ -829,7 +868,7 @@
 		# Give the populist leader a small purse so they don't immediately go bankrupt with army maintenance.
 		every_faction_county_member = {
 			root.faction_leader = {
-				add_gold = 25 
+				add_gold = 25
 			}
 		}
 	}
