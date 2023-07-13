@@ -218,10 +218,10 @@ east_contract.0002 = { #授予军镇
 		}
 		trigger = {
 			scope:recipient = {
-				capital_province.county = {
+				capital_county ?= {
 					OR = {
 						NOT = { culture = { has_same_culture_heritage = scope:actor.culture } }
-						NOT = { faith = scope:actor.faith }
+						NOT = { faith.religion = scope:actor.faith.religion }
 					}
 				}
 			}
@@ -438,4 +438,90 @@ east_contract.0005 = { #授予皇室契约
 			}
 		}		
 	}
+}
+
+east_contract.0006 = { #设定任期
+	type = letter_event
+	opening = {
+		desc = east_contract.0006.opening
+	}
+	desc = east_contract.0006.desc
+		
+	sender = scope:recipient
+	trigger = {
+		scope:recipient = {	
+			NOR = { 
+				has_variable = bureaucrat_term_set
+			}
+		}	
+	}
+	immediate = {
+		scope:recipient = {	
+			set_variable = {
+				name = bureaucrat_term_set
+				years = 10
+			}
+		}
+	}
+	option = { #三年
+		name = east_contract.0006.a
+		scope:recipient = {	
+			add_character_modifier = {
+				modifier = bureaucrat_positioned_term
+				years = 3
+			}
+		}	
+		ai_chance = 100
+	}
+	option = { #六年
+		name = east_contract.0006.b
+		scope:recipient = {	
+			add_character_modifier = {
+				modifier = bureaucrat_positioned_term
+				years = 6
+			}
+			add_opinion = {
+				target = scope:actor
+				modifier = grateful_opinion
+				opinion = 15
+			}
+		}
+		ai_chance = 0
+	}
+	option = { #十年
+		name = east_contract.0006.c
+		scope:recipient = {	
+			add_character_modifier = {
+				modifier = bureaucrat_positioned_term
+				years = 6
+			}
+			add_opinion = {
+				target = scope:actor
+				modifier = grateful_opinion
+				opinion = 35
+			}
+		}
+		ai_chance = 0
+	}
+	option = { #永远
+		name = east_contract.0006.d
+		trigger = {
+			scope:actor = {
+				has_realm_law = crown_authority_3
+			}
+		}
+		scope:recipient = {	
+			add_character_modifier = {
+				modifier = bureaucrat_positioned_term
+				years = 99
+			}
+		}
+		scope:actor = {
+			add_hook = {
+				target = scope:recipient
+				type = favor_hook
+			}
+		}
+		ai_chance = 0
+	}	
 }

@@ -33,11 +33,6 @@
 			target_is_liege_or_above = scope:actor
 			# is_vassal_of = scope:actor
 		}
-		NOT = {
-			scope:actor = {
-				is_bureau_government_trigger = yes 
-			}
-		}
 		trigger_if = {
 			limit = {
 				scope:actor = {
@@ -53,20 +48,6 @@
 		title_revocation_standard_valid_showing_failures_only_trigger = yes
 		# Plus make sure there's a legal right to revoke.
 		scope:actor = {
-			NOR =  {
-				is_at_war_with = scope:recipient
-				has_truce = scope:recipient
-			}
-			custom_description = {
-				text = "character_interactions_revoke_title_from_ally_without_reason"
-				object = scope:recipient
-				OR = {
-					NOT = {
-						is_allied_to = scope:recipient
-					}
-					has_revoke_title_reason = scope:recipient
-				}
-			}
 			trigger_if = {
 				limit = { government_has_flag = government_is_tribal }
 				custom_description = {
@@ -97,6 +78,20 @@
 				}
 			}
 		}
+		trigger_if = {
+			limit = {
+				NOR = {
+					scope:recipient = { is_imprisoned_by = scope:actor }
+					scope:actor = { has_strong_hook = scope:recipient }
+				}
+			}
+			custom_description = {
+				text = ACTOR_REFUSAL_IS_BUREAU
+				scope:actor = {
+					NOT = { is_oe_landed_bureaucrat_trigger = yes }
+				}
+			}
+		}
 		# And uhh... the sensible check.
 		scope:recipient = {
 			is_vassal_of = scope:actor
@@ -108,8 +103,11 @@
 				culture = { has_same_culture_heritage = scope:actor.culture }
 			}
 			NAND = {
-				is_ai = no
-				is_bureau_government_trigger = yes
+				is_ai = no #玩家流官不会被频繁剥夺
+				custom_description = {
+					text = AI_REFUSAL_IS_BUREAU
+					is_oe_landed_bureaucrat_trigger = yes
+				}
 			}
 		}
 		custom_tooltip = {
@@ -123,6 +121,20 @@
 			custom_description = {
 				text = "character_interactions_hostile_actions_disabled_delay"
 				NOT = { has_character_flag = flag_hostile_actions_disabled_delay }
+			}
+		}
+		trigger_if = {
+			limit = {
+				NOR = {
+					scope:recipient = { is_imprisoned_by = scope:actor }
+					scope:actor = { has_strong_hook = scope:recipient }
+				}
+			}
+			custom_description = {
+				text = ACTOR_REFUSAL_IS_BUREAU
+				scope:actor = {
+					NOT = { is_oe_landed_bureaucrat_trigger = yes }
+				}
 			}
 		}
 	}
@@ -212,17 +224,27 @@
 		if = {
 			limit = {
 				scope:landed_title.tier != tier_barony
-				NAND = {
-					scope:actor = { has_realm_law = crown_authority_3 }
-					scope:recipient = { is_bureau_government_trigger = yes is_ai = yes } 
-				}
 			}
 			scope:actor = {
 				revocation_tyranny_effect = yes
 				title_revocation_stress_effect = yes
 			}
 		}
-		war_for_revoke_effect = yes
+		if = {
+			limit = {
+				NAND = {
+					scope:actor = { has_realm_law = crown_authority_3 }
+					scope:recipient = { 
+						is_ai = yes
+						custom_description = {
+							text = AI_REFUSAL_IS_BUREAU
+							is_oe_landed_bureaucrat_trigger = yes
+						}
+					} 
+				}
+			}
+			war_for_revoke_effect = yes #流官不会之间开战废黜皇帝
+		}
 		scope:recipient = {
 			add_opinion = {
 				target = scope:actor
@@ -283,8 +305,11 @@
 		base = 0 # Try to make it 0 for most interactions
 		CorruptionSystem_corruption_revoke_title_modifier = yes
 		modifier = {
-			is_bureau_government_trigger = yes
-			add = 100
+			custom_description = {
+				text = AI_REFUSAL_IS_BUREAU
+				is_oe_landed_bureaucrat_trigger = yes
+			}
+			add = 60
 			desc = AI_REFUSAL_IS_BUREAU
 		}
 		modifier = {
@@ -495,6 +520,69 @@
 
 			add = 990
 		}
+				# Only certain rulers won't revoke vassals who have revolted against them
+				modifier = {
+					scope:actor = {
+						ai_compassion <= 75
+						ai_greed >= -50
+						ai_honor <= 50
+						scope:recipient = {
+							is_imprisoned = yes
+							is_ai = yes # Be kinder to players
+							opinion = {
+								target = scope:actor
+								value <= 0
+							}
+						}
+						NOT = {
+							title_revocation_is_tyrannical_trigger = yes
+						}
+						OR = {
+							has_opinion_modifier = {
+								modifier = rebellious_vassal_opinion
+								target = scope:recipient
+							}
+							has_opinion_modifier = {
+								modifier = vassal_lost_faction_revolt_war
+								target = scope:recipient
+							}
+							has_opinion_modifier = {
+								modifier = vassal_wp_faction_revolt_war
+								target = scope:recipient
+							}
+						}
+					}
+					add = {
+						value = 100
+						add = scope:actor.ai_greed
+						add = {
+							value = scope:actor.ai_honor
+							multiply = -1
+						}
+						if = {
+							limit = {
+								scope:actor.ai_vengefulness > 0
+							}
+							add = scope:actor.ai_vengefulness
+						}
+					}
+				}
+				# Vengeful AI's want to revoke
+				modifier = {
+					scope:actor = {
+						ai_vengefulness > 0
+						scope:recipient = {
+							is_imprisoned = yes
+						}
+						NOT = {
+							title_revocation_is_tyrannical_trigger = yes
+						}
+					}
+					add = {
+						value = scope:actor.ai_vengefulness
+						multiply = 2
+					}
+				}
 		# Always revoke preferred capital and capital duchy
 		modifier = {
 			years_from_game_start >= 3
@@ -783,7 +871,10 @@
 			add = -5000
 			scope:recipient = { has_character_flag = is_party_baron }
 		}
-
+		modifier = { # The AI shouldn't ruin the player's fun
+			add = -1000
+			scope:recipient = { is_ai = no is_oe_landed_bureaucrat_trigger = yes }
+		}
 		modifier = { # Avoid triggering Tyranny wars mid-war
 			factor = 0
 			scope:actor = {
@@ -811,6 +902,16 @@
 				scope:recipient = {
 					highest_held_title_tier = tier_barony
 				}
+			}
+		}
+
+		modifier = { # 剥夺王爵
+			add = 1000
+			scope:actor = {
+				is_oe_imperial_government_trigger = yes
+			}
+			scope:recipient = {
+				highest_held_title_tier = tier_kingdom
 			}
 		}
 	}

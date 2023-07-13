@@ -1,5 +1,5 @@
 hm_replace_the_bureaucratic_interaction = {  #替换官员
-	category = interaction_category_friendly
+	category = interaction_category_vassal
 	common_interaction = yes
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -15,25 +15,26 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 	ai_max_reply_days = 9
 
 	ai_frequency = 40
-	is_shown = {
-		NOT = { scope:recipient = scope:actor }
+	is_shown = {	
 		scope:actor = {
 			is_oe_imperial_official_trigger = yes
 			is_ai = no
 		}
 		scope:recipient = { 
 			is_vassal_or_below_of = scope:actor
-			#is_bureau_government_trigger = yes
-			is_oe_landed_bureacrat_trigger = yes
-			highest_held_title_tier <= tier_duchy
+			is_oe_landed_bureaucrat_trigger = yes
 		}
+		NOT = { scope:recipient = scope:actor }
+	}
+	is_valid = {
+
 	}
 
 	has_valid_target_showing_failures_only = {
 		scope:actor = {
 			culture = { has_innovation = innovation_centralization_of_authority }
+			has_realm_law = crown_authority_3
 			NOT = {
-				#has_realm_law = crown_authority_3
 				scope:recipient = {
 					is_legion_government_trigger = yes
 				}
@@ -41,8 +42,9 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 		}
 		scope:secondary_actor = { #候任官
 			is_available_at_peace_adult = yes
+			 #不在活动中
 			OR = {
-				has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+				has_trait = lifestyle_bureaucrat
 				has_trait = jinshi
 				has_trait = zhuangyuan
 			}
@@ -50,8 +52,8 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 		scope:recipient = { #卸任官
 			is_ai = yes
 			is_at_war = no
-			is_adult = yes
-			is_oe_landed_bureacrat_trigger = yes
+			is_oe_landed_bureaucrat_trigger = yes
+			is_available_at_peace = yes
 		}
 	}
 	populate_actor_list = {
@@ -59,7 +61,7 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 			every_vassal_or_below = { #皇帝的其他文官
 				limit = {
 					highest_held_title_tier < scope:recipient.primary_title.tier
-					is_oe_landed_bureacrat_trigger = yes
+					is_oe_landed_bureaucrat_trigger = yes
 				}
 				add_to_list = characters
 			}
@@ -76,7 +78,7 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 				#limit = {
 					#is_available_healthy_ai_adult = yes
 					#OR = {
-						#has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+						#has_trait = lifestyle_bureaucrat
 						#has_trait = jinshi
 						#has_trait = zhuangyuan
 					#}
@@ -101,8 +103,8 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 		}
 	}
 	is_valid_showing_failures_only = {
-		scope:recipient = { is_available_for_activity_trigger = yes }
-		scope:actor = { prestige >= 1000 }
+		scope:recipient = { is_available_at_peace = yes }
+		scope:actor = { prestige_level >= 3 }
 	}
 	#Use hook
 	send_option = {
@@ -169,7 +171,7 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 			resolve_title_and_vassal_change = scope:change
 		}
 		scope:actor = {
-			recruit_courtier = scope:recipient 
+			add_courtier = scope:recipient 
 		}
 		scope:secondary_actor = {
 			change_government = celestial_government
@@ -179,7 +181,7 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 	on_decline = {
 		if = {
 			limit = {
-				scope:landed_title.tier != tier_barony
+				scope:recipient.primary_title.tier != tier_barony
 			}
 			scope:actor = {
 				revocation_tyranny_effect = yes
@@ -232,7 +234,7 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 	}
 	ai_accept = {
 		base = 0 # Try to make it 0 for most interactions
-		CorruptionSystem_corruption_revoke_title_modifier = yes
+		CorruptionSystem_corruption_retract_vassal_modifier = yes
 
 		modifier = {
 			scope:hook = yes
@@ -247,14 +249,14 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 			desc = AI_OPINION_REASON
 		}
 		modifier = {
-			add = 200
+			add = 40
 			scope:recipient = {
 				is_bureau_government_trigger = yes
 			}
 			desc = AI_REFUSAL_IS_BUREAU
 		}
 		modifier = {
-			add = -200
+			add = -40
 			scope:recipient = {
 				is_legion_government_trigger = yes
 			}
@@ -268,18 +270,9 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 			desc = AI_REFUSAL_IS_TREASON
 		}
 		modifier = {
-			exists = scope:actor.primary_title.title_capital_county
-			OR = {
-				scope:landed_title = scope:actor.primary_title.title_capital_county
-				scope:landed_title = scope:actor.primary_title.title_capital_county.de_jure_liege
-			}
-			add = 50
-			desc = AI_TITLE_IS_REALM_CAPITAL
-		}
-		modifier = {
 			add = 30
 			scope:actor = {
-				has_claim_on = scope:landed_title
+				has_claim_on = scope:recipient.primary_title
 			}
 			desc = AI_LIEGE_HAS_CLAIM_ON_TITLE
 		}
@@ -321,16 +314,6 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 				scope:recipient = { highest_held_title_tier = tier_kingdom }
 			}
 			add = -20
-		}
-		modifier = { #Title is part of vassal's primary title de-jure.
-			add = -25
-			OR = {
-				scope:recipient.primary_title = {
-					is_de_jure_liege_or_above_target = scope:landed_title
-				}
-				scope:recipient.primary_title = scope:landed_title
-			}
-			desc = AI_REFUSAL_IS_DE_JURE_UNDER
 		}
 		modifier = {
 			add = intimidated_halved_reason_value
@@ -413,11 +396,11 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 		modifier = {
 			exists = scope:actor.primary_title.title_capital_county
 			OR = {
-				scope:landed_title = scope:actor.primary_title.title_capital_county
-				scope:landed_title = scope:actor.primary_title.title_capital_county.de_jure_liege
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county.de_jure_liege
 			}
 			NAND = { # Don't revoke player titles tyranically, it must be possible to play and succeed as Ulm!
-				scope:landed_title.holder = {
+				scope:recipient = {
 					is_ai = no
 				}
 				scope:actor = {
@@ -429,8 +412,8 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 		# Revoke county we're dejure liege of if below domain limit
 		modifier = {
 			scope:actor.domain_size < scope:actor.domain_limit
-			scope:landed_title.tier = tier_county
-			scope:landed_title.de_jure_liege.holder = scope:actor
+			scope:recipient.primary_title.tier = tier_county
+			scope:recipient.primary_title.de_jure_liege.holder = scope:actor
 			add = 500
 		}
 		# Revoke from vassals of the wrong faith if you can do it without tyranny
@@ -470,7 +453,7 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 		}
 		# Slight preference for higher-tier titles
 		modifier = {
-			add = scope:landed_title.tier
+			add = scope:recipient.primary_title.tier
 		}
 		# Do not revoke titles from certain characters
 		modifier = {
@@ -530,7 +513,6 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 }
 
 hm_exchange_two_bannermen_interaction = {
-	#category = interaction_category_friendly
 	category = interaction_category_vassal
 	common_interaction = yes
 
@@ -585,7 +567,7 @@ hm_exchange_two_bannermen_interaction = {
 	}
 	is_valid_showing_failures_only = {
 		scope:actor = {
-			#has_realm_law = crown_authority_3
+			has_realm_law = crown_authority_3
 			culture = { has_innovation = innovation_centralization_of_authority }
 		}
 		trigger_if = {
@@ -673,7 +655,7 @@ hm_exchange_two_bannermen_interaction = {
 	on_decline = {
 		if = {
 			limit = {
-				scope:landed_title.tier != tier_barony
+				scope:recipient.primary_title.tier != tier_barony
 			}
 			scope:actor = {
 				revocation_tyranny_effect = yes
@@ -789,7 +771,7 @@ hm_exchange_two_bannermen_interaction = {
 			desc = AI_OPINION_REASON
 		}
 		modifier = {
-			add = 200
+			add = 40
 			scope:recipient = {
 				is_bureau_government_trigger = yes
 			}
@@ -803,18 +785,9 @@ hm_exchange_two_bannermen_interaction = {
 			desc = AI_REFUSAL_IS_TREASON
 		}
 		modifier = {
-			exists = scope:actor.primary_title.title_capital_county
-			OR = {
-				scope:landed_title = scope:actor.primary_title.title_capital_county
-				scope:landed_title = scope:actor.primary_title.title_capital_county.de_jure_liege
-			}
-			add = 50
-			desc = AI_TITLE_IS_REALM_CAPITAL
-		}
-		modifier = {
 			add = 30
 			scope:actor = {
-				has_claim_on = scope:landed_title
+				has_claim_on = scope:recipient.primary_title
 			}
 			desc = AI_LIEGE_HAS_CLAIM_ON_TITLE
 		}
@@ -856,16 +829,6 @@ hm_exchange_two_bannermen_interaction = {
 				scope:recipient = { highest_held_title_tier = tier_kingdom }
 			}
 			add = -20
-		}
-		modifier = { #Title is part of vassal's primary title de-jure.
-			add = -25
-			OR = {
-				scope:recipient.primary_title = {
-					is_de_jure_liege_or_above_target = scope:landed_title
-				}
-				scope:recipient.primary_title = scope:landed_title
-			}
-			desc = AI_REFUSAL_IS_DE_JURE_UNDER
 		}
 		modifier = {
 			add = intimidated_halved_reason_value
@@ -948,11 +911,11 @@ hm_exchange_two_bannermen_interaction = {
 		modifier = {
 			exists = scope:actor.primary_title.title_capital_county
 			OR = {
-				scope:landed_title = scope:actor.primary_title.title_capital_county
-				scope:landed_title = scope:actor.primary_title.title_capital_county.de_jure_liege
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county.de_jure_liege
 			}
 			NAND = { # Don't revoke player titles tyranically, it must be possible to play and succeed as Ulm!
-				scope:landed_title.holder = {
+				scope:recipient = {
 					is_ai = no
 				}
 				scope:actor = {
@@ -964,8 +927,8 @@ hm_exchange_two_bannermen_interaction = {
 		# Revoke county we're dejure liege of if below domain limit
 		modifier = {
 			scope:actor.domain_size < scope:actor.domain_limit
-			scope:landed_title.tier = tier_county
-			scope:landed_title.de_jure_liege.holder = scope:actor
+			scope:recipient.primary_title.tier = tier_county
+			scope:recipient.primary_title.de_jure_liege.holder = scope:actor
 			add = 500
 		}
 		# Revoke from vassals of the wrong faith if you can do it without tyranny
@@ -1005,7 +968,7 @@ hm_exchange_two_bannermen_interaction = {
 		}
 		# Slight preference for higher-tier titles
 		modifier = {
-			add = scope:landed_title.tier
+			add = scope:recipient.primary_title.tier
 		}
 		# Do not revoke titles from certain characters
 		modifier = {
@@ -1066,7 +1029,7 @@ hm_exchange_two_bannermen_interaction = {
 #####宰相人事权#####
 
 oe_chancellor_replace_the_bureaucratic_interaction = {
-	category = interaction_category_friendly
+	category = interaction_category_vassal
 	common_interaction = yes
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -1091,25 +1054,58 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				AND = {
 					is_councillor = yes
 					has_character_flag = in_imperial_council
+					OR = {
+						has_council_position = councillor_tongpingzhang
+						has_council_position = councillor_shumishi
+					}
+				}
+				AND = {
+					exists = top_liege
+					is_diarch_of_target = top_liege
 				}
 			}
 		}
 		scope:recipient = { 
 			is_vassal_or_below_of = scope:actor.liege
 			highest_held_title_tier <= tier_duchy
-			is_bureau_government_trigger = yes
-			is_oe_landed_bureacrat_trigger = yes
+			is_oe_landed_bureaucrat_trigger = yes
+		}
+	}
+	is_valid = {
+		trigger_if = {
+			limit = {
+				scope:actor = {
+					has_council_position = councillor_tongpingzhang
+				}
+			}
+			scope:recipient = {
+				is_bureau_government_trigger = yes
+			}
+		}
+		trigger_if = {
+			limit = {
+				scope:actor = {
+					has_council_position = councillor_shumishi
+				}
+			}
+			scope:recipient = {
+				is_milita_government_trigger = yes
+			}
+		}
+		scope:recipient = {
+			NOT = {
+				has_variable = bureaucrat_term_set
+			}
 		}
 	}
 	is_valid_showing_failures_only = {
-		scope:recipient = { is_available_for_activity_trigger = yes }
-		scope:actor = { prestige >= 1000 }
+		scope:actor = { prestige_level >= 3 }
 	}
 	has_valid_target_showing_failures_only = {
 		scope:actor.liege = {
+			has_realm_law = crown_authority_3
 			culture = { has_innovation = innovation_centralization_of_authority }
 			NOT = {
-				#has_realm_law = crown_authority_3
 				scope:recipient = {
 					is_legion_government_trigger = yes
 				}
@@ -1117,8 +1113,9 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		}
 		scope:secondary_actor = { #候任官
 			is_available_at_peace_adult = yes
+			 #不在活动中
 			OR = {
-				has_trait = BureaucracyEmpire_lifestyle_bureaucrat
+				has_trait = lifestyle_bureaucrat
 				has_trait = jinshi
 				has_trait = zhuangyuan
 			}
@@ -1126,36 +1123,22 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		scope:recipient = { #卸任官
 			is_ai = yes
 			is_at_war = no
-			is_adult = yes
-			is_oe_landed_bureacrat_trigger = yes
+			is_oe_landed_bureaucrat_trigger = yes
+			is_available_at_peace = yes
 		}
 	}
 	populate_actor_list = {
-		scope:actor = {
+		scope:actor.top_liege = {
 			every_courtier_or_guest = { #皇帝的廷臣
 				limit = {
 					is_ruler = no
 					target_is_liege_or_above = scope:actor
 					is_available_ai_adult = yes
 					is_male = yes
+					 #不在活动中
 				}
 				add_to_list = characters
 			}
-			#every_pool_character = { #首都角色池
-				#limit = {
-					#is_available_healthy_ai_adult = yes
-					#OR = {
-						#has_trait = BureaucracyEmpire_lifestyle_bureaucrat
-						#has_trait = jinshi
-						#has_trait = zhuangyuan
-					#}
-					#OR = {
-						#location.province_owner = { top_liege = scope:actor.top_liege }
-						#location = scope:actor.top_liege.capital_province
-					#}
-				#}
-				#add_to_list = characters
-			#}
 		}
 		scope:recipient = { #地方幕僚
 			every_courtier_or_guest = {
@@ -1167,6 +1150,18 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				}
 				add_to_list = characters
 			}
+		}
+		every_pool_character = { #首都角色池
+			limit = {
+				is_available_healthy_ai_adult = yes
+				OR = {
+					has_trait = lifestyle_bureaucrat
+					has_trait = jinshi
+					has_trait = zhuangyuan
+				}
+				location = scope:actor.top_liege.capital_province
+			}
+			add_to_list = characters
 		}
 	}
 	#Use hook
@@ -1234,7 +1229,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			resolve_title_and_vassal_change = scope:change
 		}
 		scope:actor.liege = {
-			recruit_courtier = scope:recipient 
+			add_courtier = scope:recipient 
 		}
 		scope:secondary_actor = {
 			change_government = celestial_government
@@ -1244,7 +1239,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 	on_decline = {
 		if = {
 			limit = {
-				scope:landed_title.tier != tier_barony
+				scope:recipient.primary_title.tier != tier_barony
 			}
 			scope:actor = {
 				revocation_tyranny_effect = yes
@@ -1314,7 +1309,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			desc = AI_OPINION_REASON
 		}
 		modifier = {
-			add = 200
+			add = 40
 			scope:recipient = {
 				is_bureau_government_trigger = yes
 			}
@@ -1330,8 +1325,8 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		modifier = {
 			exists = scope:actor.liege.primary_title.title_capital_county
 			OR = {
-				scope:landed_title = scope:actor.primary_title.title_capital_county
-				scope:landed_title = scope:actor.primary_title.title_capital_county.de_jure_liege
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county.de_jure_liege
 			}
 			add = 50
 			desc = AI_TITLE_IS_REALM_CAPITAL
@@ -1339,7 +1334,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		modifier = {
 			add = 30
 			scope:actor.liege = {
-				has_claim_on = scope:landed_title
+				has_claim_on = scope:recipient.primary_title
 			}
 			desc = AI_LIEGE_HAS_CLAIM_ON_TITLE
 		}
@@ -1381,16 +1376,6 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				scope:recipient = { highest_held_title_tier = tier_kingdom }
 			}
 			add = -20
-		}
-		modifier = { #Title is part of vassal's primary title de-jure.
-			add = -25
-			OR = {
-				scope:recipient.primary_title = {
-					is_de_jure_liege_or_above_target = scope:landed_title
-				}
-				scope:recipient.primary_title = scope:landed_title
-			}
-			desc = AI_REFUSAL_IS_DE_JURE_UNDER
 		}
 		modifier = {
 			add = intimidated_halved_reason_value
@@ -1466,11 +1451,11 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		modifier = {
 			exists = scope:actor.primary_title.title_capital_county
 			OR = {
-				scope:landed_title = scope:actor.primary_title.title_capital_county
-				scope:landed_title = scope:actor.primary_title.title_capital_county.de_jure_liege
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county.de_jure_liege
 			}
 			NAND = { # Don't revoke player titles tyranically, it must be possible to play and succeed as Ulm!
-				scope:landed_title.holder = {
+				scope:recipient = {
 					is_ai = no
 				}
 				scope:actor = {
@@ -1482,8 +1467,8 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		# Revoke county we're dejure liege of if below domain limit
 		modifier = {
 			scope:actor.domain_size < scope:actor.domain_limit
-			scope:landed_title.tier = tier_county
-			scope:landed_title.de_jure_liege.holder = scope:actor
+			scope:recipient.primary_title.tier = tier_county
+			scope:recipient.primary_title.de_jure_liege.holder = scope:actor
 			add = 500
 		}
 		# Revoke from vassals of the wrong faith if you can do it without tyranny
@@ -1523,7 +1508,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		}
 		# Slight preference for higher-tier titles
 		modifier = {
-			add = scope:landed_title.tier
+			add = scope:recipient.primary_title.tier
 		}
 		# Do not revoke titles from certain characters
 		modifier = {

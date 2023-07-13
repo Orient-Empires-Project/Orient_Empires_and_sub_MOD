@@ -74,6 +74,7 @@ can_have_single_heir_succession_law_trigger = {
 		culture = culture:khitan
 		culture = culture:jurchen
 		culture = culture:tangut
+		has_title = title:d_tianshi
 	}
 	# Non-tribals only
 	custom_description = {
@@ -152,7 +153,14 @@ can_have_single_heir_dynasty_house_trigger = {
 can_have_official_succession_law_trigger = {
 	is_independent_ruler = no
 	is_ai = yes
-	highest_held_title_tier >= tier_county
+	liege ?= {
+		OR = {
+			government_has_flag = government_is_celestial
+			government_has_flag = government_is_bureau
+			is_legion_government_trigger = yes
+		}
+	}
+	#highest_held_title_tier >= tier_county
 	OR = {
 		government_has_flag = government_is_celestial
 		government_has_flag = government_is_bureau
@@ -176,6 +184,7 @@ can_have_official_succession_law_trigger = {
 	NOR = {
 		vassal_contract_has_flag = imperial_legion_3
 		vassal_contract_has_flag = imperial_royal_1
+		vassal_contract_has_flag = heir_succession_rights_unlock
 	}
 }
 
@@ -204,6 +213,7 @@ can_have_tradition_succession_law_trigger = {
 		is_royal_government_trigger = yes
 		is_independent_ruler = yes
 		is_oe_imperial_official_trigger = yes
+		vassal_contract_has_flag = heir_succession_rights_unlock
 	}	
 }
 
@@ -221,53 +231,40 @@ can_pass_tradition_succession_law_trigger = {
 
 #留后册命制（藩镇基础继承法）
 can_have_legion_succession_law_trigger = {
-	is_independent_ruler = no
-	highest_held_title_tier >= tier_county
-	NOR = {
-		has_character_flag = flag_bureacrat_positioned
-		has_variable = player_officier
-	}
 	OR = {
-		is_legion_government_trigger = yes
+		is_milita_government_trigger = yes
+		government_has_flag = government_is_legion
 		AND = {
-			is_milita_government_trigger = no
 			government_has_flag = government_is_celestial
-			top_liege = { NOT = { government_has_flag = government_is_celestial } }
+			liege = { NOT = { government_has_flag = government_is_celestial } }
 		}
+		vassal_contract_has_flag = heir_succession_rights_unlock
 	}
 }
 
 can_keep_legion_succession_law_trigger = {
 	trigger_if = {
 		limit = { has_realm_law = legion_succession_law }
-		OR = {
-			is_milita_government_trigger = yes
-			AND = {
-				is_milita_government_trigger = no
-				government_has_flag = government_is_celestial
-				top_liege = { NOT = { government_has_flag = government_is_celestial } }
-			}
-		}
+		can_have_legion_succession_law_trigger = yes
 	}
 }
 
 can_pass_legion_succession_law_trigger = {
 	can_change_title_law_trigger = yes
-	is_legion_government_trigger = yes
+	can_have_legion_succession_law_trigger = yes
 }
 
 #科举制
 can_have_admin_succession_law_trigger = {
+	highest_held_title_tier = tier_barony
 	OR = {
 		government_has_flag = government_is_bureau
 		AND = {
-			highest_held_title_tier = tier_barony
 			government_has_flag = government_is_celestial
 			is_theocratic_lessee = no
 		}	
 		AND = {
 			is_theocratic_lessee = yes
-			highest_held_title_tier = tier_barony
 			religion = religion:confucianism_religion
 		}	
 	}
@@ -277,13 +274,21 @@ can_have_admin_succession_law_trigger = {
 can_have_official_succession_law_player_trigger = {
 	is_independent_ruler = no
 	highest_held_title_tier >= tier_county
+	liege ?= {
+		OR = {
+			government_has_flag = government_is_celestial
+			government_has_flag = government_is_bureau
+			is_legion_government_trigger = yes
+		}
+	}
+	#highest_held_title_tier >= tier_county
 	OR = {
 		government_has_flag = government_is_celestial
 		government_has_flag = government_is_bureau
+		is_legion_government_trigger = yes
 	}
 	OR = {
 		is_ai = no
-		has_character_flag = flag_bureacrat_positioned
 		has_variable = player_officier
 	}
     OR = {
@@ -303,6 +308,7 @@ can_have_official_succession_law_player_trigger = {
 	NOR = {
 		vassal_contract_has_flag = imperial_legion_3
 		vassal_contract_has_flag = imperial_royal_1
+		vassal_contract_has_flag = heir_succession_rights_unlock
 	}
 }
 #玩家判定
@@ -311,6 +317,24 @@ can_keep_official_succession_law_player_trigger = {
 		limit = {
 			has_realm_law = player_official_succession_law
 		}
-		government_has_flag = government_is_celestial
+		is_ai = no
+	}
+}
+
+#can_pass_law_ca1_trigger = {
+#	culture = { has_innovation = innovation_plenary_assemblies }
+#}
+
+can_pass_law_ca2_trigger = {
+	OR = {
+		culture = { has_innovation = innovation_royal_prerogative }
+		culture = { has_cultural_pillar = heritage_chinese }
+	}
+}
+
+can_pass_law_ca3_trigger = {
+	OR = {
+		culture = { has_innovation = innovation_royal_prerogative }
+		culture = { has_cultural_pillar = heritage_chinese }
 	}
 }

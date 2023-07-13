@@ -14,7 +14,7 @@ bureaucracy.0001 = {
 	}
 	immediate = {
 		scope:temp_holder = { save_scope_as = bureaucrat	save_east_contract_effect = yes	 }
-		scope:player = { save_scope_as = lucky }
+		scope:player = { save_scope_as = recipient }
 	}
 	override_background = {
 		reference = throne_room
@@ -33,7 +33,31 @@ bureaucracy.0001 = {
 	# Join 答应升官
 	option = {
 		name = bureaucracy.0001.a
-		
+
+		#升官
+		scope:player = { 
+			if = {
+				set_variable = {
+					name = homage_type
+					value = flag:homage_submission
+				}
+				save_scope_as = homage_vassal
+				if = {
+					limit = { exists = liege } # To stop errors
+					liege = { save_scope_as = homage_liege }
+				}
+				start_travel_plan = {
+					destination = capital_province
+					companion = scope:companion1
+					companion = scope:companion2
+					companion = scope:companion3
+					on_start_on_action = bureaucracy_start
+					on_travel_planner_cancel_on_action = pay_homage_travel_planner_exit
+					on_arrival_event = bureaucracy.0010
+					on_arrival_destinations = all_but_last
+				}
+			}
+		}
 		create_title_and_vassal_change = {
 			type = usurped
 			save_scope_as = change
@@ -72,18 +96,45 @@ bureaucracy.0001 = {
 				change = scope:change
 			}
 		}
+		every_in_list = {
+			list = list_temp_courtier
+			scope:temp_holder = {
+				add_courtier = prev
+			}
+			hidden_effect = {
+				return_to_court = yes
+				set_location = {
+					location = scope:temp_holder.capital_province
+					stick_to_location = yes
+				}
+			}
+		}
+		every_in_list = {
+			list = list_old_courtier
+			scope:player = {
+				add_courtier = prev
+			}
+			hidden_effect = {
+				return_to_court = yes
+				set_location = {
+					location = scope:temp_holder.capital_province
+					stick_to_location = yes
+				}
+			}
+		}	
 		scope:player = { #升官
+		
 			change_liege = {
 				liege = scope:liege
 				change = scope:change
 			}
 			if = {
 				limit = {
-					NOT = { has_character_flag = flag_bureacrat_positioned }
+					NOT = { has_character_modifier = bureaucrat_positioned_term }
 				}
-				add_character_flag = {
-					flag = flag_bureacrat_positioned
-					years = 6
+				add_character_modifier = {
+					modifier = bureaucrat_positioned_term
+					years = 4
 				}
 			}
 		}
@@ -131,11 +182,11 @@ bureaucracy.0001 = {
 			add_dynasty_prestige_level = -1
 			if = {
 				limit = {
-					NOT = { has_character_flag = flag_bureacrat_positioned }
+					NOT = { has_character_modifier = bureaucrat_positioned_term }
 				}
-				add_character_flag = {
-					flag = flag_bureacrat_positioned
-					years = 6
+				add_character_modifier = {
+					modifier = bureaucrat_positioned_term
+					years = 4
 				}
 			}
 		}
@@ -177,6 +228,30 @@ bureaucracy.0007 = {
 	# 答应贬官
 	option = {
 		name = bureaucracy.0007.a
+
+		scope:player = { #贬官
+			if = {
+				set_variable = {
+					name = homage_type
+					value = flag:homage_submission
+				}
+				save_scope_as = homage_vassal
+				if = {
+					limit = { exists = liege } # To stop errors
+					liege = { save_scope_as = homage_liege }
+				}
+				start_travel_plan = {
+					destination = capital_province
+					companion = scope:companion1
+					companion = scope:companion2
+					companion = scope:companion3
+					on_start_on_action = bureaucracy_start
+					on_travel_planner_cancel_on_action = pay_homage_travel_planner_exit
+					on_arrival_event = bureaucracy.0010
+					on_arrival_destinations = all_but_last
+				}
+			}
+		}
 		
 		create_title_and_vassal_change = {
 			type = usurped
@@ -216,6 +291,32 @@ bureaucracy.0007 = {
 				change = scope:change
 			}
 		}
+		every_in_list = {
+			list = list_temp_courtier
+			scope:temp_holder = {
+				add_courtier = prev
+			}
+			hidden_effect = {
+				return_to_court = yes
+				set_location = {
+					location = scope:temp_holder.capital_province
+					stick_to_location = yes
+				}
+			}
+		}
+		every_in_list = {
+			list = list_old_courtier
+			scope:player = {
+				add_courtier = prev
+			}
+			hidden_effect = {
+				return_to_court = yes
+				set_location = {
+					location = scope:player.capital_province
+					stick_to_location = yes
+				}
+			}
+		}
 		scope:player = { #贬官
 			change_liege = {
 				liege = scope:liege
@@ -223,11 +324,11 @@ bureaucracy.0007 = {
 			}
 			if = {
 				limit = {
-					NOT = { has_character_flag = flag_bureacrat_positioned }
+					NOT = { has_character_modifier = bureaucrat_positioned_term }
 				}
-				add_character_flag = {
-					flag = flag_bureacrat_positioned
-					years = 6
+				add_character_modifier = {
+					modifier = bureaucrat_positioned_term
+					years = 4
 				}
 			}
 			add_stress = 100
@@ -271,11 +372,11 @@ bureaucracy.0007 = {
 			}
 			if = {
 				limit = {
-					NOT = { has_character_flag = flag_bureacrat_positioned }
+					NOT = { has_character_modifier = bureaucrat_positioned_term }
 				}
-				add_character_flag = {
-					flag = flag_bureacrat_positioned
-					years = 6
+				add_character_modifier = {
+					modifier = bureaucrat_positioned_term
+					years = 4
 				}
 			}
 		}
@@ -358,10 +459,10 @@ bureaucracy.0002 = {
 						NOT = { this = scope:recipient.primary_title }
 					}
 				}
-				BureaucracyEmpire_bureaucracy_liege_effect = {
-					TITLE = scope:recipient.primary_title#TITLE是被继任的头衔
-					TEMP_HOLDER = scope:recipient #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
-				}
+				#BureaucracyEmpire_bureaucracy_liege_effect = {
+					#TITLE = scope:recipient.primary_title#TITLE是被继任的头衔
+					#TEMP_HOLDER = scope:recipient #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+				#}
 				create_title_and_vassal_change = {
 					type = granted
 					save_scope_as = change
@@ -431,10 +532,10 @@ bureaucracy.0002 = {
 						}
 					}	
 				}
-				BureaucracyEmpire_bureaucracy_liege_effect = {
-					TITLE = scope:recipient.primary_title#TITLE是被继任的头衔
-					TEMP_HOLDER = scope:recipient #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
-				}
+				#BureaucracyEmpire_bureaucracy_liege_effect = {
+					#TITLE = scope:recipient.primary_title#TITLE是被继任的头衔
+					#TEMP_HOLDER = scope:recipient #TEMP_HOLDER是目前临时持有头衔的人，一般是死去的官员的孩子。用于正常交接
+				#}
 				random_vassal = {
 					limit = {
 						any_held_title = {
@@ -690,25 +791,25 @@ bureaucracy.0003 = {
 	hidden = yes
 	immediate = {
 		change_government_bureau_government_effect = yes
-						if = { #文官流官制
-								limit = {
-									top_liege = { is_oe_imperial_official_trigger = yes }					
-									is_bureau_government_trigger = yes
-									highest_held_title_tier <= tier_duchy
-									culture = { has_cultural_pillar = heritage_chinese }
-									is_independent_ruler = no
-									is_ai = yes
-									#NOT = { vassal_contract_has_flag = imperial_bureau_3 }
-								}
-								if = { 
-									limit = { NOT = { has_realm_law = official_succession_law } }
-									add_realm_law_skip_effects = official_succession_law
-								}
-								if = { 
-									limit = { NOT = { has_realm_law = male_only_law } }
-									add_realm_law_skip_effects = male_only_law
-								}
-						}
+		if = { #文官流官制
+				limit = {
+					top_liege = { is_oe_imperial_official_trigger = yes }					
+					is_bureau_government_trigger = yes
+					highest_held_title_tier <= tier_duchy
+					culture = { has_cultural_pillar = heritage_chinese }
+					is_independent_ruler = no
+					is_ai = yes
+					#NOT = { vassal_contract_has_flag = imperial_bureau_3 }
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = official_succession_law } }
+					add_realm_law_skip_effects = official_succession_law
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = male_only_law } }
+					add_realm_law_skip_effects = male_only_law
+				}
+		}
 		
 		if = {
 			limit = {
@@ -729,5 +830,258 @@ bureaucracy.0003 = {
 			resolve_title_and_vassal_change = scope:change
 		}	
 		
+	}
+}
+
+
+
+#转任
+bureaucracy.0010 = {
+	type = character_event
+	title = bureaucracy.0010.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { has_royal_court = yes }
+				desc = pay_homage.0601.desc.court
+			}
+			triggered_desc = {
+				trigger = { is_imprisoned = yes }
+				desc = pay_homage.0601.desc.imprisoned
+			}
+			triggered_desc = {
+				trigger = {
+					scope:homage_liege = {
+						is_alive = no
+						exists = killer
+						killer = root
+					}
+				}
+				desc = pay_homage.0601.desc.liege_dead_me
+			}
+			triggered_desc = {
+				trigger = {
+					scope:homage_liege = { is_alive = no }
+				}
+				desc = pay_homage.0601.desc.liege_dead
+			}
+			triggered_desc = {
+				trigger = {
+					scope:homage_liege = {
+						is_imprisoned = yes
+						exists = imprisoner
+						imprisoner = root
+					}
+				}
+				desc = pay_homage.0601.desc.liege_imprisoned_me
+			}
+			triggered_desc = {
+				trigger = {
+					scope:homage_liege = { is_imprisoned = yes }
+				}
+				desc = pay_homage.0601.desc.liege_imprisoned
+			}
+		}
+		triggered_desc = {
+			trigger = {
+				exists = liege
+				NOR = {
+					liege = root
+					liege = scope:homage_liege
+				}
+			}
+			desc = pay_homage.0601.desc.new_liege
+		}
+		triggered_desc = {
+			trigger = {
+				scope:homage_liege = { is_alive = yes }
+				exists = liege
+				NOT = { liege = root }
+			}
+			desc = bureaucracy.0010.desc
+		}
+	}
+	theme = realm
+	left_portrait = {
+		character = scope:homage_liege
+		triggered_animation = {
+			trigger = { is_imprisoned = yes }
+			animation = prison_dungeon
+		}
+		triggered_animation = {
+			trigger = { is_alive = no }
+			animation = idle
+		}
+		triggered_animation = {
+			trigger = { is_available = no }
+			animation = dismissal
+		}
+	}
+	right_portrait = {
+		character = liege
+		trigger = {
+			NOT = { liege = scope:homage_liege }
+		}
+	}
+
+	
+
+	immediate = {
+		# Transfer the variable to a scope for loc & such.
+		var:homage_liege_scope ?= { save_scope_as = homage_liege }
+	}
+
+	option = {
+		name = {
+			text = pay_homage.0601.a_court
+			trigger = { has_royal_court = yes }
+		}
+		name = {
+			text = pay_homage.0601.a_prison
+			trigger = { is_imprisoned = yes }
+		}
+		name = {
+			text = bureaucracy.0010.t
+			trigger = {
+				scope:homage_liege = {
+					is_alive = yes
+					is_imprisoned = no
+				}
+			}
+		}
+		name = {
+			text = bureaucracy.0010.t
+			trigger = { always = yes }
+		}
+	}
+}
+
+#领军府
+bureaucracy.0011 = {
+	type = character_event
+	title = bureaucracy.0011.t
+	desc = bureaucracy.0011.desc
+	theme = realm
+	left_portrait = {
+		character = scope:homage_liege
+		triggered_animation = {
+			trigger = { is_imprisoned = yes }
+			animation = prison_dungeon
+		}
+		triggered_animation = {
+			trigger = { is_alive = no }
+			animation = idle
+		}
+		triggered_animation = {
+			trigger = { is_available = no }
+			animation = dismissal
+		}
+	}
+	right_portrait = {
+		character = top_liege
+		trigger = {
+			NOT = { top_liege = scope:homage_liege }
+		}
+	}
+
+	
+
+	immediate = {
+		# Transfer the variable to a scope for loc & such.
+		top_liege ?= { save_scope_as = homage_liege }
+	}
+
+	option = { #同意
+		name = {
+			text = pay_homage.0601.a_court
+			trigger = { has_royal_court = yes }
+		}
+		name = {
+			text = pay_homage.0601.a_prison
+			trigger = { is_imprisoned = yes }
+		}
+		name = {
+			text = petition_liege.0201.a
+			trigger = {
+				scope:homage_liege = {
+					is_alive = yes
+					is_imprisoned = no
+				}
+			}
+		}
+		name = {
+			text = convert_to_milita_contract_decision_confirm
+			trigger = { always = yes }
+		}
+	}
+
+	after = {
+		change_government_milita_government_effect = yes
+		add_realm_law_skip_effects = crown_authority_2
+	}
+}
+#领藩镇
+bureaucracy.0012 = {
+	type = character_event
+	title = bureaucracy.0012.t
+	desc = bureaucracy.0012.desc
+	theme = realm
+	left_portrait = {
+		character = scope:homage_liege
+		triggered_animation = {
+			trigger = { is_imprisoned = yes }
+			animation = prison_dungeon
+		}
+		triggered_animation = {
+			trigger = { is_alive = no }
+			animation = idle
+		}
+		triggered_animation = {
+			trigger = { is_available = no }
+			animation = dismissal
+		}
+	}
+	right_portrait = {
+		character = top_liege
+		trigger = {
+			NOT = { top_liege = scope:homage_liege }
+		}
+	}
+
+	
+
+	immediate = {
+		# Transfer the variable to a scope for loc & such.
+		top_liege ?= { save_scope_as = homage_liege }
+	}
+
+	option = { #同意
+		name = {
+			text = pay_homage.0601.a_court
+			trigger = { has_royal_court = yes }
+		}
+		name = {
+			text = pay_homage.0601.a_prison
+			trigger = { is_imprisoned = yes }
+		}
+		name = {
+			text = petition_liege.0201.a
+			trigger = {
+				scope:homage_liege = {
+					is_alive = yes
+					is_imprisoned = no
+				}
+			}
+		}
+		name = {
+			text = transfer_to_legion_contract_decision_confirm
+			trigger = { always = yes }
+		}
+	}
+
+	after = {
+		change_government_legion_government_effect = yes
+		add_realm_law_skip_effects = crown_authority_3
+		add_realm_law_skip_effects = legion_succession_law
 	}
 }

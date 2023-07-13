@@ -10,6 +10,6 @@ tags={
 	"Character Interactions"
 	"Bookmarks"
 }
-name="Oriental Empires"
-supported_version="1.9.0.3"
-remote_file_id="2506311074"
+name="Developer Edition of Oriental Empires"
+supported_version="1.9.*"
+remote_file_id="2930186367"

@@ -14,15 +14,26 @@
 			is_vassal_or_below_of = scope:actor
 			highest_held_title_tier >= tier_county
 			is_bureau_government_trigger = yes
-			is_oe_landed_bureacrat_trigger = yes
+			is_oe_landed_bureaucrat_trigger = yes
+			is_available_for_activity_trigger = yes
 		}
+	}
+	is_valid = {
+		scope:recipient = {
+			NOT = {
+				has_variable = bureaucrat_term_set
+			}
+		}
+	}
+	is_valid_showing_failures_only = {
+		scope:actor = { prestige >= 1000 }
 	}
 	populate_actor_list = {
 		scope:actor = {
 			every_vassal_or_below = { #皇帝的其他文官
 				limit = {
 					highest_held_title_tier < scope:recipient.primary_title.tier
-					is_oe_landed_bureacrat_trigger = yes
+					is_oe_landed_bureaucrat_trigger = yes
 				}
 				add_to_list = characters
 			}
@@ -47,10 +58,6 @@
 				add_to_list = characters
 			}
 		}
-	}
-	is_valid_showing_failures_only = {
-		scope:recipient = { is_available_for_activity_trigger = yes }
-		scope:actor = { prestige >= 1000 }
 	}
 	cost = {
 		prestige = {
@@ -98,6 +105,14 @@ oe_chancellor_designate_heir_interaction = {
 				AND = {
 					is_councillor = yes
 					has_character_flag = in_imperial_council
+					OR = {
+						has_council_position = councillor_tongpingzhang
+						has_council_position = councillor_shumishi
+					}
+				}
+				AND = {
+					exists = top_liege
+					is_diarch_of_target = top_liege
 				}
 			}
 		}
@@ -107,6 +122,34 @@ oe_chancellor_designate_heir_interaction = {
 			government_has_flag = government_is_celestial
 			has_realm_law = official_succession_law
 			is_landed = yes
+			is_available_for_activity_trigger = yes
+		}
+	}
+	is_valid = {
+		trigger_if = {
+			limit = {
+				scope:actor = {
+					has_council_position = councillor_tongpingzhang
+				}
+			}
+			scope:recipient = {
+				is_bureau_government_trigger = yes
+			}
+		}
+		trigger_if = {
+			limit = {
+				scope:actor = {
+					has_council_position = councillor_shumishi
+				}
+			}
+			scope:recipient = {
+				is_milita_government_trigger = yes
+			}
+		}
+		scope:recipient = {
+			NOT = {
+				has_variable = bureaucrat_term_set
+			}
 		}
 	}
 	populate_actor_list = {
@@ -140,9 +183,20 @@ oe_chancellor_designate_heir_interaction = {
 				add_to_list = characters
 			}
 		}
+		every_pool_character = { #首都角色池
+			limit = {
+				is_available_healthy_ai_adult = yes
+				OR = {
+					has_trait = lifestyle_bureaucrat
+					has_trait = jinshi
+					has_trait = zhuangyuan
+				}
+				location = scope:actor.top_liege.capital_province
+			}
+			add_to_list = characters
+		}
 	}
 	is_valid_showing_failures_only = {
-		scope:recipient = { is_available_for_activity_trigger = yes }
 		scope:actor.liege = { prestige >= 1000 }
 	}
 	cost = {
@@ -171,4 +225,971 @@ oe_chancellor_designate_heir_interaction = {
 		base = 30
 	}
 	auto_accept = yes
+}
+
+set_bureaucratic_term_interaction = {  #
+	category = interaction_category_vassal
+	common_interaction = yes
+	greeting = positive
+	icon = vassal_claim_liege_title_interaction	
+	desc = set_bureaucratic_term_interaction_desc
+	needs_recipient_to_open = yes
+
+	ai_maybe = no
+	can_send_despite_rejection = yes
+	popup_on_receive = yes
+	pause_on_receive = yes
+	interface_priority = 60
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	cooldown_against_recipient = { years = 10 } 
+	is_shown = {	
+		scope:actor = {
+			is_oe_imperial_official_trigger = yes
+			is_ai = no
+			is_available_adult = yes
+		}
+		scope:recipient = { 
+			is_vassal_or_below_of = scope:actor
+			has_realm_law = official_succession_law
+			is_oe_available_ai_at_peace = yes
+		}
+		NOT = { scope:recipient = scope:actor }
+	}
+	is_valid = {
+
+	}
+
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			is_capable_adult = yes
+			is_imprisoned = no
+			OR = {
+				has_realm_law = crown_authority_2
+				has_realm_law = crown_authority_3
+			}
+		}
+		scope:actor = { prestige >= 1000 }
+	}
+	#Use hook
+	send_option = {
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = scope:recipient
+			}
+		}
+		flag = hook
+		localization = SCHEME_HOOK
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+
+	send_options_exclusive = no
+
+	on_send = {
+		scope:actor = {
+			add_character_flag = {
+				flag = flag_hostile_actions_disabled_delay
+				days = 10
+			}
+		}
+	}
+	cost = {
+		prestige = {
+			value = 100
+		}
+	}
+		
+	on_accept = {
+		scope:actor = {
+			trigger_event = east_contract.0006
+		}
+	}
+
+	on_decline = {
+		if = {
+			limit = {
+				scope:recipient.primary_title.tier != tier_barony
+			}
+			scope:actor = {
+				revocation_tyranny_effect = yes
+				title_revocation_stress_effect = yes
+			}
+		}
+		#war_for_revoke_effect = yes
+		scope:recipient = {
+			add_opinion = {
+				target = scope:actor
+				modifier = revoked_title
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = { has_realm_law_flag = vassal_refusal_is_treason }
+			}
+			scope:actor = {
+				add_opinion = {
+					target = scope:recipient
+					modifier = treasonous_revoke_refusal
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = { has_character_flag = flag_hostile_actions_disabled_delay }
+			}
+			scope:actor = { remove_character_flag = flag_hostile_actions_disabled_delay }
+		}
+	}
+
+	auto_accept = {
+		OR = {
+			scope:recipient = {
+				OR = {
+					is_bureau_government_trigger = yes
+					is_imprisoned_by = scope:actor
+				}				
+			}
+			custom_description = {
+				text = "spending_hook"
+				subject = scope:actor
+				object = scope:recipient
+				scope:hook = yes
+				scope:actor = { has_strong_hook = scope:recipient }
+			}
+		}
+	}
+	ai_accept = {
+		base = 0 # Try to make it 0 for most interactions
+		CorruptionSystem_corruption_retract_vassal_modifier = yes
+		modifier = {
+			scope:hook = yes
+			add = 60
+			desc = SCHEME_WEAK_HOOK_USED
+		}
+		modifier = {
+			add = 40
+			scope:recipient = {
+				is_bureau_government_trigger = yes
+			}
+			desc = AI_REFUSAL_IS_BUREAU
+		}
+		modifier = {
+			add = 20
+			scope:actor = {
+				has_realm_law_flag = vassal_refusal_is_treason
+			}
+			desc = AI_REFUSAL_IS_TREASON
+		}
+		modifier = {
+			add = 30
+			scope:actor = {
+				has_claim_on = scope:actor.primary_title.title_capital_county
+			}
+			desc = AI_LIEGE_HAS_CLAIM_ON_TITLE
+		}
+		modifier = {
+			add = 60
+			scope:actor = {
+				has_title = title:e_celestia
+			}
+			desc = AI_IMPERIAL_GOVEMENT_CAN_REVOKE_TITLE
+		}
+	}
+
+	# AI
+	ai_frequency = 0 # This is handled via code instead; see REVOKE_TITLE_TICK in the AI defines. All the logic for *if* to send a revoke though is scripted below
+
+	ai_potential = {
+		always = no
+	}
+
+	ai_will_do = {
+		base = -1000
+	}
+
+}
+
+
+sent_to_bureaucracy_pool_interaction = {
+	category = interaction_category_diplomacy
+	icon = guest
+
+
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:recipient = { is_foreign_court_or_pool_guest = yes } }
+				desc = kick_from_court_interaction_desc_guest
+			}
+			desc = sent_to_bureaucracy_pool_interaction_desc
+		}
+	}
+
+	is_shown = {
+		NOT = { scope:actor = scope:recipient }
+		scope:actor = {
+			has_realm_law = player_official_succession_law
+		}
+		scope:recipient = {
+			OR = {
+				is_courtier_of = scope:actor
+				is_pool_guest_of = scope:actor
+			}
+		}
+	}
+
+	cost = {
+		prestige = {
+			if = {
+				limit = {
+					scope:recipient = {
+						any_traveling_family_member = {
+							count = all
+							is_lowborn = yes
+						}
+					}
+				}
+				value = minor_prestige_value
+			}
+			else = {
+				value = medium_prestige_value
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		scope:recipient = {
+			oe_kick_from_court_validity_trigger = yes
+			trigger_if = {
+				limit = { 
+					top_liege.faith = { has_doctrine_parameter = women_cannot_be_granted_titles }
+				}
+				is_female = no
+			}
+			trigger_if = {
+				limit = { 
+					top_liege.faith = { has_doctrine_parameter = men_cannot_be_granted_titles }
+				}
+				is_male = no
+			}
+			custom_description = {
+				text = "kick_from_court_interaction_travelling_family_invalid"
+				subject = scope:recipient
+				NOT = {
+					any_traveling_family_member = {
+						NOT = { this = scope:recipient }
+						oe_kick_from_court_validity_trigger = no
+					}
+				}
+			}
+		}
+	}
+	
+	on_accept = {
+		scope:actor = {
+			stress_impact = {
+				gregarious = minor_stress_impact_gain
+				compassionate = minor_stress_impact_gain
+			}
+			
+			hidden_effect = {
+				send_interface_message = {
+					type = event_generic_neutral
+					title = msg_kicked_courtier_from_court_interaction_title
+					
+					right_icon = scope:recipient
+
+					show_as_tooltip = {
+						scope:actor = {
+							remove_courtier_or_guest = scope:recipient
+						}
+					}
+
+			   		#Remove them as guardian/ward for any courtier
+			   		if = {
+						limit = {
+							any_courtier = {
+								has_relation_guardian = scope:recipient
+							}
+						}
+						every_courtier = {
+							limit = {
+								has_relation_guardian = scope:recipient
+							}
+							save_scope_as = ward
+							scope:recipient = { remove_relation_ward = scope:ward }
+							if = {
+								limit = {
+									NOT = { host = liege }
+								}
+								return_to_court = yes
+							}
+							guardian_remove_opinion_effect = {
+								GUARDIAN = scope:recipient
+								WARD = this
+								WARD_LIEGE = scope:actor
+							}
+						}
+						scope:recipient = { trigger_event = char_interaction.0090 }
+					}
+					if = {
+						limit = {
+							any_courtier = {
+								has_relation_ward = scope:recipient
+							}
+						}
+						random_courtier = {
+							limit = {
+								has_relation_ward = scope:recipient
+							}
+							save_scope_as = guardian
+
+							send_interface_message = {
+								type = event_generic_neutral
+								title = remove_guardian_interaction_notification
+								left_icon = scope:recipient
+								right_icon = scope:guardian
+
+								scope:guardian = {
+									remove_relation_ward = scope:recipient
+									if = {
+										limit = {
+											NOT = { host = liege }
+										}
+										return_to_court = yes
+									}
+									guardian_remove_opinion_effect = {
+										GUARDIAN = this
+										WARD = scope:recipient
+										WARD_LIEGE = scope:actor
+									}
+								}
+							}
+						}
+					}
+				}
+				scope:recipient = {
+					move_to_pool_at = scope:actor.top_liege.capital_county.title_province
+				}
+			}
+
+			#To be able to send a cohesive interface message AND show a good tooltip
+			show_as_tooltip = {
+				#Remove them as guardian for any child
+		   		if = {
+					limit = {
+						any_courtier = {
+							has_relation_guardian = scope:recipient
+						}
+					}
+					every_courtier = {
+						limit = {
+							has_relation_guardian = scope:recipient
+						}
+						save_scope_as = ward
+						scope:recipient = { remove_relation_ward = scope:ward }
+						if = {
+							limit = {
+								NOT = { host = liege }
+							}
+							return_to_court = yes
+						}
+						guardian_remove_opinion_effect = {
+							GUARDIAN = scope:recipient
+							WARD = this
+							WARD_LIEGE = scope:actor
+						}
+					}
+				}
+
+				#Remove them as ward of any courtier
+				if = {
+					limit = {
+						any_courtier = {
+							has_relation_ward = scope:recipient
+						}
+					}
+					random_courtier = {
+						limit = {
+							has_relation_ward = scope:recipient
+						}
+						remove_relation_ward = scope:recipient
+						if = {
+							limit = {
+								NOT = { host = liege }
+							}
+							return_to_court = yes
+						}
+						guardian_remove_opinion_effect = {
+							GUARDIAN = this
+							WARD = scope:recipient
+							WARD_LIEGE = scope:actor
+						}
+					}
+				}
+			}
+		}
+
+		scope:recipient = {
+			every_traveling_family_member = {
+				add_to_temporary_list = kicked_family
+			}
+		}
+#
+#		every_in_list = {
+#			list = kicked_family
+#			#Kicks, adds opinions, adds people to kicked_relatives_list
+#			kick_from_court_interaction_effect = yes
+#		}
+
+#		if = {
+#			limit = {
+#				any_in_list = {
+#					list = kicked_relatives_list
+#					is_alive = yes
+#				}
+#			}
+#			every_in_list = {
+#				list = kicked_relatives_list
+#				custom = all_close_family_members_of_kicked_characters
+#				add_opinion = {
+#					modifier = kicked_relative_from_court
+#					target = scope:actor
+#				}
+#			}
+#		}
+	}
+	
+	auto_accept = yes
+}
+
+
+
+
+callback_to_court_interaction = {
+	category = interaction_category_diplomacy
+	icon = guest
+	desc = invite_to_court_interaction_desc
+
+	is_shown = {
+		NOT = { scope:actor = scope:recipient }
+		scope:actor = {
+			cultrue = { has_cultural_tradition = tradition_chinese_succession }
+		}
+		scope:recipient = {
+			cultrue = { has_cultural_tradition = tradition_chinese_succession }
+			#is_child_of = scope:actor
+			is_close_family_of = scope:actor
+			NOR = {
+				is_courtier_of = scope:actor
+				is_foreign_court_guest = yes
+				AND = {
+					exists = host
+					host = scope:actor
+				}
+				highest_held_title_tier > tier_barony
+			}
+		}
+	}
+
+	cost = {
+		prestige = {
+			if = {
+				limit = {
+					scope:recipient = {
+						any_traveling_family_member = {
+							count = all
+							is_lowborn = yes
+						}
+					}
+				}
+				value = minor_prestige_value
+			}
+			else = {
+				value = medium_prestige_value
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		scope:recipient = {
+			highest_held_title_tier > tier_barony
+		}
+	}
+	
+	#Pay som gold to persuade a wandering character to come to your court
+	send_option = {
+		is_shown = {
+			exists = scope:recipient
+			scope:recipient = {
+				is_pool_guest = no
+				location.province_owner = {
+					OR = {
+						any_liege_or_above = { this = scope:actor }
+						this = scope:actor
+					}
+				}
+				NOR = {
+					has_relation_rival = scope:actor
+					#exists = liege
+					#is_child_of = scope:actor
+					has_character_modifier = lust_for_adventure
+				}
+			}
+		}
+		flag = cover_travel_expenses
+		localization = COVER_TRAVEL_EXPENSES
+	}
+
+	on_accept = {
+		hidden_effect = {
+			if = {
+				limit = {
+					exists = scope:recipient.liege
+				}
+				scope:recipient.liege = {
+					send_interface_message = {
+						type = event_generic_neutral
+						title = msg_courtier_left_court_interaction_title
+						
+						right_icon = scope:recipient
+
+						show_as_tooltip = {
+							remove_courtier_or_guest = scope:recipient
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						highest_held_title_tier = tier_barony
+					}
+				}
+				scope:recipient = {
+					depose = yes
+				}
+			}
+		}
+		
+		scope:actor = {
+			send_interface_message = {
+				type = event_generic_neutral
+				title = invite_to_court_interaction_notification
+				right_icon = scope:recipient
+
+				scope:recipient = {
+					every_traveling_family_member = {
+						scope:actor = { add_courtier = prev }
+						hidden_effect = {
+							return_to_court = yes
+						}
+					}
+				}
+
+				if = {
+					limit = { always = scope:hook }
+					scope:actor = {
+						use_hook = scope:recipient
+					}
+				}
+
+				scope:actor = {
+					stress_impact = {
+						shy = minor_stress_impact_gain
+					}
+				}
+			}
+		}
+		
+		
+		if = {
+			limit = { always = scope:cover_travel_expenses }
+			scope:actor = {
+				pay_short_term_gold = {
+					gold = {
+						value = bribe_value
+						multiply = 0.5
+					}
+					target = scope:recipient
+				}
+				stress_impact = {
+					greedy = minor_stress_impact_gain
+				}
+			}
+		}
+	}
+
+	ai_accept = {
+ 		base = -50
+
+ 		#Opinions
+ 		opinion_modifier = {
+ 			trigger = {
+ 				exists = liege
+ 				is_courtier_of = liege
+ 			}
+ 			opinion_target = liege
+ 			multiplier = -0.5
+ 			step = 5
+ 			max = 25
+ 		}
+ 		opinion_modifier = {
+ 			opinion_target = scope:actor
+ 			multiplier = 0.5
+ 			step = 5
+ 			max = 25
+ 		}
+
+ 		#Current roles
+ 		modifier = {
+ 			is_knight = yes
+ 			add = -20
+ 			desc = AI_MY_LIEGES_KNIGHT
+ 		}
+ 		modifier = {
+ 			is_commanding_army = yes
+ 			add = -30
+ 			desc = AI_MY_LIEGES_COMMANDER
+ 		}
+ 		modifier = {
+ 			is_councillor = yes
+ 			add = -40
+ 			desc = AI_ON_THE_COUNCIL
+ 		}
+		
+		modifier = {		
+			trigger = { scope:recipient = { has_court_position = court_physician_court_position } }			
+ 			add = -20
+ 			desc = AI_COURT_PHYSICIAN
+ 		}
+
+ 		#Relations & relatives (with actor)
+ 		modifier = {
+ 			has_relation_lover = scope:actor
+ 			add = 100
+ 			desc = AI_YOUR_LOVER
+ 		}
+
+ 		modifier = {
+ 			has_relation_friend = scope:actor
+ 			add = 75
+ 			desc = AI_YOUR_FRIEND
+ 		}
+
+ 		modifier = {
+ 			is_child_of = scope:actor
+ 			add = 160
+ 			desc = AI_YOUR_CHILD
+ 		}
+
+ 		modifier = {
+ 			this.dynasty.dynast = scope:actor
+ 			add = 30
+ 			desc = AI_YOU_ARE_THE_DYNAST
+ 		}
+
+ 		modifier = {
+ 			this.house.house_head = scope:actor
+ 			add = 30
+ 			desc = AI_YOU_ARE_THE_HOUSE_HEAD
+ 		}
+
+ 		modifier = {
+ 			NOT = { is_child_of = scope:actor }
+ 			is_close_family_of = scope:actor
+ 			add = 75
+ 			desc = AI_YOUR_RELATIVE
+ 		}
+
+ 		modifier = {
+ 			is_spouse_of = scope:actor
+ 			add = 160
+ 			desc = AI_YOUR_SPOUSE
+ 		}
+
+ 		#Relations & relatives (with host)
+ 		modifier = {
+ 			exists = liege
+ 			has_relation_lover = liege
+ 			add = -100
+ 			desc = AI_THEIR_LOVER
+ 		}
+
+ 		modifier = {
+ 			exists = liege
+ 			has_relation_friend = liege
+ 			add = -75
+ 			desc = AI_THEIR_FRIEND
+ 		}
+
+ 		modifier = {
+ 			exists = liege
+ 			is_child_of = liege
+ 			add = -100
+ 			desc = AI_THEIR_CHILD
+ 		}
+
+ 		modifier = {
+ 			exists = liege
+ 			NOT = { is_child_of = liege }
+ 			is_close_family_of = liege
+ 			add = -75
+ 			desc = AI_THEIR_RELATIVE
+ 		}
+
+ 		#Family (at location)
+ 		modifier = {
+ 			exists = location
+ 			any_consort_not_in_traveling_family_trigger = yes
+ 			desc = AI_LEAVING_MY_SPOUSE
+ 			add = -100
+ 		}
+
+ 		modifier = {
+ 			exists = location
+ 			any_child_not_in_traveling_family_trigger = yes
+ 			desc = AI_LEAVING_MY_CHILD
+ 			add = -100
+ 		}
+
+ 		modifier = {
+ 			add = -50
+ 			desc = AI_MARRIED_MATRILINIALLY
+ 			is_married = yes
+ 			is_male = yes
+ 			any_spouse = {
+ 				matrilinear_marriage = yes
+ 				host = scope:recipient.host
+ 			}
+ 		}
+
+ 		modifier = {
+ 			add = -50
+ 			desc = AI_MARRIED_PATRILINIALLY
+ 			is_married = yes
+ 			is_female = yes
+ 			any_spouse = {
+ 				patrilinear_marriage = yes
+ 				host = scope:recipient.host
+ 			}
+ 		}
+
+ 		modifier = {
+ 			add = -50
+ 			desc = AI_INSPIRED
+ 			exists = inspiration
+			inspiration = {
+				NOT = {
+					exists = inspiration_sponsor
+				}
+			}
+ 		}
+
+ 		modifier = {
+ 			add = -500
+ 			desc = AI_SPONSORED_INSPIRATION
+ 			exists = inspiration
+			inspiration = {
+				exists = inspiration_sponsor
+			}
+ 		}
+
+ 		modifier = {
+ 			add = -500
+ 			desc = AI_WANDERLUST
+			is_child_of = scope:actor
+ 			has_character_modifier = lust_for_adventure
+ 		}
+		
+		#Wandering characters (who aren't doing anything else)
+		modifier = {
+ 			add = {
+				value = 10
+				add = scope:actor.diplomacy
+				
+				if = {
+					limit = {
+						faith = scope:actor.faith
+					}
+					add = 10
+				}
+				else_if = {
+					limit = {
+						faith = { #Same religion - But faith should not be considered Hostile or Evil
+							religion = scope:actor.faith.religion
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value < 2
+							}
+						}
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						culture = scope:actor.culture
+					}
+					add = 10
+				}
+				else_if = {
+					limit = {
+						culture = {
+							has_same_culture_heritage = scope:actor.culture
+						}
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						OR = {
+							has_trait = content
+							has_trait = lazy
+							has_trait = trusting
+						}
+					}
+					add = 10
+				}
+			}
+ 			desc = AI_CAN_BE_PERSUADED_TO_STAY
+			
+			is_pool_guest = no
+			location.province_owner = {
+				OR = {
+					any_liege_or_above = { this = scope:actor }
+					this = scope:actor
+				}
+			}
+			NOR = {
+				has_relation_rival = scope:actor
+				exists = liege
+				is_child_of = scope:actor
+				has_character_modifier = lust_for_adventure
+			}
+ 		}
+		
+		modifier = {
+			add = {
+				value = 20
+				if = {
+					limit = {
+						has_trait = greedy
+					}
+					multiply = 1.5
+				}
+				else_if = {
+					limit = {
+						has_trait = generous
+					}
+					multiply = 0.5
+				}
+			}
+			scope:cover_travel_expenses = yes
+			desc = AI_TRAVEL_EXPENSES
+		}
+
+ 		# Amenities impact
+ 		## Actor's amenities increases acceptance
+ 		modifier = {
+ 			add = {
+ 				value = 10
+ 				if = {
+ 					limit = {
+ 						scope:actor = {
+			 				has_royal_court = yes
+			 				amenity_level = { type = court_lodging_standards value >=  high_amenity_level }
+			 			}
+ 					}
+ 			 		add = 10
+ 				}
+ 				if = {
+ 					limit = {
+ 						scope:actor = {
+			 				amenity_level = { type = court_lodging_standards value >=  very_high_amenity_level }
+			 			}
+ 					}
+ 			 		add = 10
+ 				}
+ 				if = {
+ 					limit = {
+ 						scope:actor = {
+			 				amenity_level = { type = court_lodging_standards value >=  max_amenity_level }
+			 			}
+ 					}
+ 			 		add = 20
+ 				}
+ 			}
+ 			desc = AI_COURT_LODGING_STANDARDS_QUALITY
+			scope:actor = {
+			 	has_royal_court = yes
+				amenity_level = { type = court_lodging_standards value >=  medium_amenity_level }
+			}
+ 		}
+		## Target's liege amenities decreases acceptance 
+ 		modifier = {
+ 			add = {
+ 				value = -10
+				if = {
+					limit = {
+						liege = {
+							amenity_level = { type = court_lodging_standards value >=  high_amenity_level } 
+						}
+					}
+					add = -10
+				}
+				if = {
+					limit = {
+						liege = {
+							amenity_level = { type = court_lodging_standards value >=  very_high_amenity_level } 
+						}
+					}
+					add = -10
+				}
+				if = {
+					limit = {
+						liege = {
+							amenity_level = { type = court_lodging_standards value >=  max_amenity_level } 
+						}
+					}
+					add = -20
+				}
+ 			}
+ 			desc = AI_LIEGE_COURT_LODGING_STANDARDS_QUALITY
+			exists = liege
+			is_courtier_of = liege
+			liege = {
+				has_royal_court = yes
+				amenity_level = { type = court_lodging_standards value >=  medium_amenity_level }
+			}
+ 		}
+	}
+
+
+	auto_accept = {
+		custom_description = {
+			text = "spending_hook"
+			subject = scope:actor
+			object = scope:recipient
+			scope:hook = yes
+		}
+	}
+
+	send_option = {
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = scope:recipient
+			}
+		}
+		flag = hook
+		localization = SCHEME_HOOK
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+
+	send_options_exclusive = no
 }

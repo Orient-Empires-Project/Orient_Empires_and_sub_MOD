@@ -1,13 +1,12 @@
 ﻿special_imperial_contract = {
 	display_mode = radiobutton
-	is_shown = {
-		scope:vassal.primary_title.tier >= tier_duchy
-	}
+
 	obligation_levels = {
 		special_imperial_contract_0 = {#民州
 			default = yes
 			position = { 0 1 }
 			flag = imperial_contract_0
+			score = 0
 
 			levies_factor = -0.5
 
@@ -50,6 +49,7 @@
 		special_imperial_contract_1 = {#军府
 			parent = special_imperial_contract_0
 			position = { 0 2 }
+			score = 3
 			#flag = vassal_contract_war_override
 			tax_factor = -0.2
 			levies_factor = 0.3
@@ -75,11 +75,13 @@
 				if = {
 					limit = {
 						scope:vassal = {
-							any_neighboring_county = {
-								holder = {
-									NOR = {
-										top_liege = scope:vassal.top_liege
-										top_liege = { is_at_war_with = scope:vassal.top_liege }
+							any_held_county = {
+								any_neighboring_county = {
+									holder = {
+										NOR = {
+											top_liege = scope:vassal.top_liege
+											top_liege = { is_at_war_with = scope:vassal.top_liege }
+										}
 									}
 								}
 							}
@@ -115,12 +117,7 @@
 		special_imperial_contract_2 = {#皇家采邑
 			parent = special_imperial_contract_0
 			position = { 0 3 }
-			is_shown = {
-				OR = {
-					scope:vassal.capital_county.culture = scope:liege.capital_county.culture
-					scope:vassal.capital_province.empire = scope:liege.capital_province.empire
-				}
-			}
+			score = -3
 			tax_factor = 1 #专营专利
 			liege_modifier = {
 				tax_mult = -0.05 #藩王会减少国家收入修正系数
@@ -145,7 +142,6 @@
 special_imperial_legion = {
 	display_mode = radiobutton
 	is_shown = {
-		scope:vassal.primary_title.tier >= tier_duchy
 		scope:vassal = { 
 			vassal_contract_has_flag = imperial_contract_1 
 		}
@@ -155,7 +151,7 @@ special_imperial_legion = {
 			default = yes
 			position = { 0 1 }
 			flag = imperial_legion_0
-			
+			score = 0
 			ai_liege_desire = 3
 			ai_vassal_desire = 3
 		}
@@ -167,6 +163,7 @@ special_imperial_legion = {
 			}
 			parent = special_imperial_legion_0
 			position = { 0 2 }
+			score = 1
 			tax_factor = -0.5 #额外军饷
 			levies_factor = -0.7 #驻军兵源
 			liege_modifier = {
@@ -189,7 +186,6 @@ special_imperial_legion = {
 		}
 		special_imperial_legion_2 = { #藩镇
 			is_valid = {
-				#scope:vassal.primary_title.tier >= tier_duchy
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_1 
 				}
@@ -197,6 +193,7 @@ special_imperial_legion = {
 			parent = special_imperial_legion_0
 			#flag = vassal_contract_war_override
 			position = { 0 3 }
+			score = 4
 			tax_factor = -1 #不输贡赋
 			levies_factor = -1 #不听征调
 			liege_modifier = {
@@ -205,14 +202,14 @@ special_imperial_legion = {
 				men_at_arms_maintenance = 0.05 #劳军监军
 				#levy_size = -0.1 #地方养兵
 				#domain_limit = -0.2 #流失直辖
-				knight_limit = -1 #流失将佐
+				knight_limit = -0.5 #流失将佐
 			}
 			vassal_modifier = {
 				knight_limit = 10 #牙将
 				men_at_arms_cap = 5 #牙兵
 				men_at_arms_maintenance = -0.35 #以利豢兵（平衡军费）
 				opinion_of_different_culture = 10 #不问出身
-				domain_limit = 2 #跨州连郡
+				#domain_limit = 1 #跨州连郡
 				development_growth_factor = -0.2 #军事优先
 				monthly_county_control_change_factor = -0.5 #武人跋扈
 				opinion_of_liege = -40 #不奉王命
@@ -252,11 +249,11 @@ special_imperial_legion = {
 		special_imperial_legion_3 = { #羁縻
 			is_valid = {
 				scope:vassal = { 
-					#vassal_contract_has_flag = imperial_contract_1
-					capital_province.county = {
+					vassal_contract_has_flag = imperial_contract_1
+					capital_county ?= {
 						OR = {
 							NOT = { culture = { has_same_culture_heritage = scope:liege.culture } }
-							#NOT = { faith.religion = scope:liege.faith.religion }
+							NOT = { faith.religion = scope:liege.faith.religion }
 						}
 					}
 				}
@@ -264,7 +261,7 @@ special_imperial_legion = {
 			#flag = vassal_contract_cannot_revoke_titles
 			parent = special_imperial_legion_0
 			position = { 0 4 }
-
+			score = 2
 			tax_factor = -1.2 #罕征贡赋
 			levies_factor = -1
 			liege_modifier = {
@@ -286,13 +283,13 @@ special_imperial_legion = {
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_1 
 					NOT = {
-						capital_province.empire = scope:liege.capital_province.empire
+						capital_province.empire ?= scope:liege.capital_province.empire
 					}
 				}
 			}
 			parent = special_imperial_legion_0
 			position = { 0 5 }
-
+			score = 3
 			tax_factor = -0.9 #罕征贡赋
 			levies_factor = -0.5
 			liege_modifier = {
@@ -315,13 +312,8 @@ special_imperial_legion = {
 special_imperial_bureau = {
 	display_mode = radiobutton
 	is_shown = {
-		scope:vassal.primary_title.tier >= tier_duchy
 		scope:vassal = { 
 			vassal_contract_has_flag = imperial_contract_0
-		}
-		OR = {
-			scope:vassal.capital_county.culture = scope:liege.capital_county.culture
-			scope:vassal.capital_province.empire = scope:liege.capital_province.empire
 		}
 	}
 	obligation_levels = {
@@ -329,7 +321,7 @@ special_imperial_bureau = {
 			default = yes
 			position = { 0 1 }
 			flag = imperial_bureau_0
-			
+			score = 0
 			
 			ai_liege_desire = 4
 			ai_vassal_desire = 2
@@ -342,6 +334,7 @@ special_imperial_bureau = {
 				}
 			}
 			position = { 0 2 }
+			score = 1
 			tax_factor = -0.5
 			levies_factor = -1
 			liege_modifier = {
@@ -382,7 +375,7 @@ special_imperial_bureau = {
 			}
 			parent = special_imperial_bureau_0
 			position = { 0 3 }
-
+			score = 2
 			tax_factor = 1 #榷务多利						
 
 			liege_modifier = {
@@ -405,10 +398,10 @@ special_imperial_bureau = {
 		special_imperial_bureau_3 = {#贵族自治
 			parent = special_imperial_bureau_0
 			position = { 0 2 }
+			score = 2
 			tax_factor = -0.3 #庄园隐户
 			levies_factor = -0.3 #坞堡部曲
 			is_valid = {
-				scope:vassal.primary_title.tier < tier_kingdom
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_0 
 				}
@@ -435,23 +428,20 @@ special_imperial_bureau = {
 special_imperial_royal = {
 	display_mode = radiobutton
 	is_shown = {
-		scope:vassal.primary_title.tier >= tier_duchy
 		scope:vassal = { 
 			vassal_contract_has_flag = imperial_contract_2
-		}	
-		OR = {
-			scope:vassal.capital_county.culture = scope:liege.capital_county.culture
-			scope:vassal.capital_province.empire = scope:liege.capital_province.empire
 		}	
 	}
 	obligation_levels = {
 		special_imperial_royal_0 = {#宫廷属地
 			default = yes
 			position = { 0 1 }
+			score = 0
 			flag = imperial_royal_0
-			
+
 			ai_liege_desire = 5
 			ai_vassal_desire = 1
+
 		}
 		special_imperial_royal_1 = {#藩王领
 			parent = special_imperial_royal_0
@@ -461,20 +451,31 @@ special_imperial_royal = {
 				}
 			}
 			position = { 0 2 }
-			
+			score = 3
 			liege_modifier = {
 				development_growth_factor = -0.1
 				domain_limit = 0.5 #每个藩王提供0.5直辖
 			}
 			vassal_modifier = {
+				levy_size = 0.5
 				monthly_prestige_gain_mult = 0.3 #君临一方
 				monthly_dynasty_prestige = 0.05  #宗枝繁茂
 				development_growth_factor = -0.1 #藩王田庄
 			}
 			flag = imperial_royal_1
 			
-			ai_liege_desire = 1
-			ai_vassal_desire = 5
+			ai_liege_desire = 0
+			ai_vassal_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:vassal = {
+							dynasty = scope:liege.dynasty
+						}
+					}
+					add = highest_held_title_tier
+				}
+			}
 		}
 		special_imperial_royal_2 = {#林苑
 			parent = special_imperial_royal_0
@@ -484,6 +485,7 @@ special_imperial_royal = {
 				}
 			}
 			position = { 0 3 }
+			score = -3
 			tax = 0
 			levies_factor = 0
 			liege_modifier = {
@@ -507,7 +509,47 @@ special_imperial_royal = {
 }
 
 
+heir_succession_rights = {
+	display_mode = checkbox
+	is_shown = {
+		scope:vassal = {
+			government_has_flag = government_is_celestial
+		}
+	}
+	obligation_levels = {
+		heir_succession_rights_default = {
+			default = yes
+			position = { 0 0 }
 
+			ai_liege_desire = 6
+			ai_vassal_desire = 0
+		}
+		heir_succession_rights_unlock = {
+			is_valid = {
+				custom_description = {
+					text = ACTOR_REFUSAL_IS_BUREAU
+					scope:liege = {
+						is_oe_landed_bureaucrat_trigger = no
+					}
+				}
+				custom_description = {
+					text = ACTOR_REFUSAL_IS_BUREAU
+					scope:vassal = {
+						is_oe_landed_bureaucrat_trigger = yes
+					}
+				}
+			}
+			score = 3
+			parent = heir_succession_rights_default
+			position = { 1 0 }
 
+			vassal_opinion = 15
 
+			flag = heir_succession_rights_unlock
+
+			ai_liege_desire = 0
+			ai_vassal_desire = @ai_standard_vassal_desire
+		}
+	}
+}
 

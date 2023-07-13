@@ -1,0 +1,210 @@
+﻿#斗争参与方判定，改回原版
+
+fp2_character_any_involvement_iberian_struggle_trigger = {
+	has_fp2_dlc_trigger = yes
+	OR = {
+		fp2_character_involved_in_iberian_struggle_trigger = yes
+		fp2_character_interloper_in_iberian_struggle_trigger = yes
+	}
+}
+
+fp2_character_involved_in_iberian_struggle_trigger = {
+	has_fp2_dlc_trigger = yes
+	any_character_struggle = {
+		involvement = involved
+		is_struggle_type = iberian_struggle
+	}
+}
+
+fp2_character_interloper_in_iberian_struggle_trigger = {
+	has_fp2_dlc_trigger = yes
+	any_character_struggle = {
+		involvement = interloper
+		is_struggle_type = iberian_struggle
+	}
+}
+
+#fp2_character_uninvolved_in_struggle_trigger = {
+#	has_fp2_dlc_trigger = yes
+#	exists = struggle:iberian_struggle
+#	fp2_character_interloper_in_struggle_trigger = no
+#	fp2_character_involved_in_struggle_trigger = no
+#}
+
+#fp2_character_involved_in_struggle_trigger = {
+#	has_fp2_dlc_trigger = yes
+#	any_character_struggle = {
+#		involvement = involved
+#		OR = {
+#			is_struggle_type = iberian_struggle
+#			is_struggle_type = tartaria_struggle
+#		}
+#	}
+#}
+#
+#fp2_character_interloper_in_struggle_trigger = {
+#	has_fp2_dlc_trigger = yes
+#	any_character_struggle = {
+#		involvement = interloper
+#		OR = {
+#			is_struggle_type = iberian_struggle
+#			is_struggle_type = tartaria_struggle
+#		}
+#	}
+#}
+
+oe_character_any_involvement_tartaria_struggle_trigger = {
+	OR = {
+		oe_character_involved_in_tartaria_struggle_trigger = yes
+		oe_character_interloper_in_tartaria_struggle_trigger = yes
+	}
+}
+
+oe_character_involved_in_tartaria_struggle_trigger = {
+	#has_fp2_dlc_trigger = yes
+	any_character_struggle = {
+		involvement = involved
+		is_struggle_type = tartaria_struggle
+	}
+}
+
+oe_character_interloper_in_tartaria_struggle_trigger = {
+	#has_fp2_dlc_trigger = yes
+	any_character_struggle = {
+		involvement = interloper
+		is_struggle_type = tartaria_struggle
+	}
+}
+
+oe_character_uninvolved_in_tartaria_struggle_trigger = {
+	#has_fp2_dlc_trigger = yes
+	exists = struggle:tartaria_struggle
+	oe_character_involved_in_tartaria_struggle_trigger = no
+	oe_character_interloper_in_tartaria_struggle_trigger = no
+}
+
+oe_struggle_tartaria_reclamation_should_vassalize_trigger = {
+	any_character_struggle = { is_struggle_type = tartaria_struggle }
+	any_held_title = { tier < scope:attacker.primary_title.tier }
+	any_realm_county = {
+		count = all
+		duchy = { is_in_list = target_titles }
+		any_county_struggle = { is_struggle_type = tartaria_struggle }
+	}
+}
+
+oe_tartaria_reclamation_vassalize_vassal_trigger = {
+	primary_title.tier >= tier_county
+	primary_title.tier < scope:attacker.primary_title.tier
+	any_character_struggle = { is_struggle_type = tartaria_struggle }
+	capital_county = {
+		duchy = { is_in_list = target_titles }
+	}
+	any_sub_realm_county = {
+		count = all
+		duchy = { is_in_list = target_titles }
+		any_county_struggle = { is_struggle_type = tartaria_struggle }
+	}
+}
+
+fp2_struggle_secure_tartaria_foothold_tartaria_kingdom_trigger = {
+	tier = tier_kingdom
+	de_jure_liege = title:e_celestia
+	root = { completely_controls = prev }
+	save_temporary_scope_as = tartaria_kingdom_temp
+}
+
+fp2_struggle_secure_tartaria_foothold_outsider_kingdom_trigger = {
+	any_de_jure_county = {
+		any_title_to_title_neighboring_and_across_water_county = {
+			NOT = { empire = title:e_celestia }
+			kingdom.holder = root
+		}
+	}
+}
+
+##### Struggle Ending #####
+
+### Common
+
+# Checks a de jure kingdom of Hispania is completely controlled
+oe_struggle_ending_hold_de_jure_kingdom_trigger = {
+	any_held_title = {
+		tier = tier_kingdom
+		de_jure_liege = title:e_celestia
+		save_temporary_scope_as = celestia_kingdom
+	}
+	trigger_if = {
+		limit = { exists = scope:celestia_kingdom }
+		completely_controls = scope:celestia_kingdom
+	}
+	trigger_else = { always = no }
+}
+
+# Checks more than half of Iberia owned
+oe_struggle_ending_percent_tartaria_trigger = {
+	any_county_in_region = {
+		region = world_struggle_tartaria
+		percent > oe_struggle_compromise_owned_percent_decimal_value
+		holder.top_liege = root
+	}
+}
+
+# Checks no more than half of Iberia is owned by another
+oe_struggle_ending_other_percent_tartaria_trigger = {
+	struggle:tartaria_struggle = {
+		NOT = {
+			any_involved_ruler = {
+				exists = primary_title # Max figured out that is_independent_ruler causes errors if you are unlanded
+				NOT = { this = root }
+				is_independent_ruler = yes
+				primary_title = { is_mercenary_company = no }
+				any_county_in_region = {
+					region = world_struggle_tartaria
+					percent > fp2_struggle_compromise_involved_percent_decimal_value
+					holder.top_liege = prev
+				}
+			}
+		}
+	}
+}
+
+fp2_struggle_secure_tartaria_foothold_faith_trigger = {
+	fp2_struggle_secure_tartaria_foothold_faith_percent_value >= 50
+}
+
+fp1_remove_stele_new_holder_trigger = {
+	# Is there a rogue stone around?
+	$TITLE$ = { exists = var:stele_commissioner }
+	# And would the new holder want to tear down the stele?
+	$NEW_HOLDER$ = {
+		OR = {
+			AND = {
+				exists = dynasty
+				# E.g., because they're a different family and won't maintain it.
+				NOT = { dynasty = $PREVIOUS_HOLDER$.dynasty }
+			}
+			# Or because they're subject of the runestone, which means it's memorialising their defeat.
+			## ... Unless they're a ghost. Damned proctors, I guess.
+			AND = {
+				exists = scope:stele_type
+				NOT = { scope:stele_type = flag:promotion } # We don't want to compare a character with a title
+				exists = $TITLE$.var:stele_container
+				this = $TITLE$.var:stele_container
+			}
+		}
+	}
+}
+
+oe_does_this_player_care_about_the_fate_of_tartaria = {
+	NOT = { this = root }
+	OR = {
+		location = {
+			OR = { # Is in region
+				geographical_region = world_steppe_tartaria
+				geographical_region = world_asia_china
+			}
+		}
+		struggle:tartaria_struggle = { is_culture_involved_in_struggle = culture }
+	}
+}

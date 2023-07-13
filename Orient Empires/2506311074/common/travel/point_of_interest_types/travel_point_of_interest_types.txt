@@ -1,0 +1,542 @@
+﻿poi_capitals = {
+	build_province_list = {
+		every_kingdom = {
+			limit = {
+				this = this.holder.primary_title
+			}
+			holder.capital_province ?= {
+				add_to_list = provinces
+			}
+		}
+		every_empire = {
+			limit = {
+				this = this.holder.primary_title
+			}
+			holder.capital_province ?= {
+				add_to_list = provinces
+			}
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_capitals.visit
+			left_icon = root
+
+			scope:province.barony.holder = {
+				if = {
+					limit = {
+						primary_title = {
+							tier = tier_empire
+						}
+					}
+					save_temporary_scope_value_as = {
+						name = xp_gain_amount
+						value = travel_major_xp
+					}
+				}
+				else = {
+					save_temporary_scope_value_as = {
+						name = xp_gain_amount
+						value = travel_medium_xp
+					}
+				}
+
+				if = {
+					limit = {
+						has_royal_court = no
+					}
+					root = {
+						add_diplomacy_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_diplomatic
+					}
+					root = {
+						add_diplomacy_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_warlike
+					}
+					root = {
+						add_martial_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_administrative
+					}
+					root = {
+						add_stewardship_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_intrigue
+					}
+					root = {
+						add_intrigue_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_scholarly
+					}
+					root = {
+						add_learning_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_tribal
+					}
+					root = {
+						add_martial_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+				else = {
+					root = {
+						add_diplomacy_lifestyle_xp = scope:xp_gain_amount
+					}
+				}
+			}
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+# Walls and Forts
+poi_special_buildings_martial = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				OR = {
+					has_building_with_flag = { flag = travel_point_of_interest_martial }
+					has_building_with_flag = { flag = travel_point_of_interest_martial_minor }
+				}
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+			if = {
+				# Walls and Forts
+				limit = {
+					scope:province = {
+						has_building_with_flag = { flag = travel_point_of_interest_martial }
+					}
+				}
+				add_martial_lifestyle_xp = travel_medium_xp
+				traveler_danger_xp_effect = {
+					MIN = 3
+					MAX = 5
+				}
+			}
+			else_if = {
+				# Minor POI (mostly for multi-province defenses like Hadrian's wall)
+				limit = {
+					scope:province = {
+						has_building_with_flag = { flag = travel_point_of_interest_martial_minor }
+					}
+				}
+				add_martial_lifestyle_xp = miniscule_lifestyle_xp
+				traveler_travel_xp_effect = {
+					MIN = 1
+					MAX = 1
+				}
+			}
+			else = {
+				# Rest / Fallback
+				add_learning_lifestyle_xp = travel_medium_xp
+				traveler_travel_xp_effect = {
+					MIN = 3
+					MAX = 5
+				}
+			}
+		}
+	}
+}
+
+# Universities & places of general learning
+poi_special_buildings_learning = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_learning }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			if = {
+				limit = {
+					 has_lifestyle = diplomacy_lifestyle
+				}
+				add_diplomacy_lifestyle_xp = travel_medium_xp
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = martial_lifestyle
+				}
+				add_martial_lifestyle_xp = travel_medium_xp
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = stewardship_lifestyle
+				}
+				add_stewardship_lifestyle_xp = travel_medium_xp
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = intrigue_lifestyle
+				}
+				add_intrigue_lifestyle_xp = travel_medium_xp
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = learning_lifestyle
+				}
+				add_learning_lifestyle_xp = travel_medium_xp
+			}
+			else = {
+				add_learning_lifestyle_xp = travel_medium_xp
+			}
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+# Religious sites
+poi_special_buildings_religious = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_religious }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_learning_lifestyle_xp = travel_medium_xp
+			if = {
+				limit = {
+					scope:province.barony ?= {
+						is_holy_site_of = root.faith
+					}
+				}
+				add_piety = medium_piety_gain
+			}
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+# Palaces & Political places
+poi_special_buildings_diplomatic = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_diplomatic }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_diplomacy_lifestyle_xp = travel_medium_xp
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+poi_grand_city = {
+	build_province_list = {
+		province:4828 = { add_to_list = provinces } #Baghdad
+		province:2575 = { add_to_list = provinces } #Rome
+		province:9859 = { add_to_list = provinces } #Changan
+		province:10175 = { add_to_list = provinces } #Jianye
+		province:11243 = { add_to_list = provinces } #Kyoto
+	}
+
+	on_visit = {
+		trigger_event = {
+			on_action = on_visited_grand_city
+		}
+		if = {
+			limit = {
+				NOT = { scope:province.county.holder = root } #If I own it then it does not make sense to visit it.
+			}
+			custom_tooltip = poi_grand_city_visit_event_tt
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_trait = lifestyle_traveler
+				}
+			}
+			send_interface_toast = {
+				title = poi_grand_city.visit
+				left_icon = root
+				add_trait = lifestyle_traveler
+				traveler_travel_xp_effect = {
+					MIN = 1
+					MAX = 3
+				}
+			}
+		}
+		else = {
+			send_interface_toast = {
+				title = poi_grand_city.visit
+				left_icon = root
+
+				traveler_travel_xp_effect = {
+					MIN = 3
+					MAX = 5
+				}
+			}
+		}
+	}
+}
+
+# Ancient / New wonders
+poi_special_buildings_wonder = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_wonder }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_stewardship_lifestyle_xp = travel_medium_xp
+			add_prestige = medium_prestige_gain
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+# Economic Buildings (mines, ports)
+poi_special_buildings_economic = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_economic }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_stewardship_lifestyle_xp = travel_medium_xp
+			traveler_danger_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+poi_mausoleum_at_halicarnassus = {
+	on_visit = {
+		send_interface_toast = {
+			title = poi_mausoleum_at_halicarnassus.visit
+			left_icon = root
+
+			add_stewardship_lifestyle_xp = travel_medium_xp
+			add_prestige = medium_prestige_gain
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+poi_lighthouse_of_alexandria = {
+	build_province_list = {
+		province:6053 = {
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_lighthouse_of_alexandria.visit
+			left_icon = root
+
+			add_stewardship_lifestyle_xp = travel_medium_xp
+			add_prestige = medium_prestige_gain
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+		}
+	}
+}
+
+poi_nature = {
+	build_province_list = {
+		province:9688 = { add_to_list = provinces }
+		province:9697 = { add_to_list = provinces }
+		province:9694 = { add_to_list = provinces }
+		province:10633 = { add_to_list = provinces }
+		province:10706 = { add_to_list = provinces }
+		province:10176 = { add_to_list = provinces }
+		province:10175 = { add_to_list = provinces }
+		province:10183 = { add_to_list = provinces }
+		province:10179 = { add_to_list = provinces }
+		province:10186 = { add_to_list = provinces }
+		province:10178 = { add_to_list = provinces }
+		province:10132 = { add_to_list = provinces }
+		province:10192 = { add_to_list = provinces }
+		province:10204 = { add_to_list = provinces }
+		province:10203 = { add_to_list = provinces }
+		province:10214 = { add_to_list = provinces }
+		province:10197 = { add_to_list = provinces }
+		province:10210 = { add_to_list = provinces }
+		province:10238 = { add_to_list = provinces }
+		province:10170 = { add_to_list = provinces }
+		province:10150 = { add_to_list = provinces }
+		province:12157 = { add_to_list = provinces }
+		province:10227 = { add_to_list = provinces }
+		province:10219 = { add_to_list = provinces }
+		province:12377 = { add_to_list = provinces }
+		province:10240 = { add_to_list = provinces }
+		province:10239 = { add_to_list = provinces }
+		province:10243 = { add_to_list = provinces }
+		province:10244 = { add_to_list = provinces }
+		province:10250 = { add_to_list = provinces }
+		province:10245 = { add_to_list = provinces }
+		province:12154 = { add_to_list = provinces }
+		province:10259 = { add_to_list = provinces }
+		province:10122 = { add_to_list = provinces }
+		province:10114 = { add_to_list = provinces }
+		province:12200 = { add_to_list = provinces }
+		province:10054 = { add_to_list = provinces }
+		province:10057 = { add_to_list = provinces }
+		province:10065 = { add_to_list = provinces }
+		province:10039 = { add_to_list = provinces }
+		province:10097 = { add_to_list = provinces }
+		province:9995 = { add_to_list = provinces }
+		province:10274 = { add_to_list = provinces }
+		province:10272 = { add_to_list = provinces }
+		province:10005 = { add_to_list = provinces }
+		province:10281 = { add_to_list = provinces }
+		province:10285 = { add_to_list = provinces }
+		province:10325 = { add_to_list = provinces }
+		province:10287 = { add_to_list = provinces }
+		province:10397 = { add_to_list = provinces }
+		province:10032 = { add_to_list = provinces }
+		province:9936 = { add_to_list = provinces }
+		province:9937 = { add_to_list = provinces }
+		province:9891 = { add_to_list = provinces }
+		province:9957 = { add_to_list = provinces }
+		province:9852 = { add_to_list = provinces }
+		province:10327 = { add_to_list = provinces }
+		province:10497 = { add_to_list = provinces }
+		province:10487 = { add_to_list = provinces }
+		province:9870 = { add_to_list = provinces }
+		province:9849 = { add_to_list = provinces }
+		province:12266 = { add_to_list = provinces }
+		province:9476 = { add_to_list = provinces }
+		province:9502 = { add_to_list = provinces }
+		province:10164 = { add_to_list = provinces }
+		province:9905 = { add_to_list = provinces } #Qingchengshan
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_nature.visit
+			left_icon = root
+
+			if = {
+				limit = {
+					 has_lifestyle = diplomacy_lifestyle
+				}
+				add_diplomacy_lifestyle_xp = 25
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = martial_lifestyle
+				}
+				add_martial_lifestyle_xp = 25
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = stewardship_lifestyle
+				}
+				add_stewardship_lifestyle_xp = 25
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = intrigue_lifestyle
+				}
+				add_intrigue_lifestyle_xp = 25
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = learning_lifestyle
+				}
+				add_learning_lifestyle_xp = 25
+			}
+			else = {
+				add_learning_lifestyle_xp = 25
+			}
+
+			traveler_travel_xp_effect = {
+				MIN = 1
+				MAX = 3
+			}
+		}
+	}
+}

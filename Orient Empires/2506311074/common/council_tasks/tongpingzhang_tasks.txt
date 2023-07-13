@@ -25,6 +25,25 @@
 			}
 			desc = task_domestic_affairs_family_business_bonus_desc
 		}
+		desc = task_domestic_affairs_tyranny_effect_desc
+		triggered_desc = {
+			trigger = {
+				liege = { has_perk = chains_of_loyalty_perk }
+			}
+			desc = task_domestic_affairs_tyranny_chains_of_loyalty_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			desc = task_domestic_affairs_tyranny_bureaucrats_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_domestic_affairs_tyranny_family_business_bonus_desc
+		}
 		desc = {
 			desc = council_task_possible_side_effects
 			triggered_desc = {
@@ -101,6 +120,18 @@
 		scale = chancellor_domestic_affairs_opinion_scale
 	}
 
+	council_owner_modifier = {
+		name = task_domestic_affairs_parochial_opinion_moidifier
+		parochial_opinion = 1
+		scale = chancellor_domestic_affairs_opinion_scale
+	}
+
+	council_owner_modifier = {
+		name = task_domestic_affairs_opinion_moidifier
+		tyranny_loss_mult = 0.01
+		scale = chancellor_domestic_affairs_tyranny_base
+	}
+
 	monthly_on_action = task_domestic_affairs_side_effects
 
 	on_monthly = {
@@ -154,6 +185,7 @@
 					any_targeting_faction = {
 						OR = {
 							faction_is_type = independence_faction
+							faction_is_type = nation_fracturing_faction
 							faction_is_type = liberty_faction
 							faction_is_type = claimant_faction
 						}
@@ -161,6 +193,27 @@
 				}
 			}
 			add = 1000
+		}
+		if = { # Get rid of tyranny
+			limit = {
+				scope:councillor_liege = {
+					OR = {
+						AND = { # Somewhat rational characters prefer this over the prestige of foreign affairs
+							ai_rationality > -25
+							NOT = { has_trait = arrogant }
+							tyranny >= 5
+						}
+						AND = { # If you're arrogant or deeply irrational, it'll take a long time for you to realize
+							OR = {
+								ai_rationality <= -25
+								has_trait = arrogant
+							}
+							tyranny >= 15
+						}
+					}
+				}
+			}
+			add = 500
 		}
 	}
 }
@@ -180,6 +233,16 @@ task_tongpingzhang_2 = { #推广文化
 	effect_desc = {
 		desc = {
 			desc = task_promote_culture_effect_desc
+			triggered_desc = {
+				trigger = {
+					scope:councillor_liege = {
+						any_vassal = {
+							has_vassal_stance = minority
+						}
+					}
+				}
+				desc = minority_disapproves_conversion_tooltip
+			}
 			triggered_desc = {
 				trigger = {
 					trigger_if = {
@@ -741,10 +804,9 @@ task_tongpingzhang_3 = { #游说法理领土
 	position = councillor_tongpingzhang
 
 	task_type = task_type_county
-	county_target = all
+	county_target = neighbor_land
 	ai_county_target = neighbor_land
 	task_progress = task_progress_percentage
-	restart_on_finish = yes
 
 	effect_desc = {
 		desc = {

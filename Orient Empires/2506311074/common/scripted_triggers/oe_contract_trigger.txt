@@ -35,7 +35,7 @@ is_oe_imperial_government_trigger = { #什么是中华帝国
 	}
 }
 is_royal_government_trigger = { #什么是皇室领地
-	OR = {
+	OR = {		
 		AND = {
 			vassal_contract_has_flag = imperial_contract_2
 			vassal_contract_has_flag = imperial_royal_1
@@ -44,8 +44,52 @@ is_royal_government_trigger = { #什么是皇室领地
 			top_liege = { is_oe_imperial_government_trigger = yes }
 			has_title = title:d_gosho
 		}
+		AND = {
+			top_liege = { is_oe_imperial_government_trigger = yes }
+			has_title = title:d_confucius
+		}
 	}
 }
+is_oe_imperial_clothing_trigger = { #天子帝后服装
+	OR = {
+		has_title = title:e_celestia
+		AND = {
+			highest_held_title_tier = tier_empire
+			culture = { has_cultural_pillar = heritage_chinese }
+		}
+		AND = {
+			exists = primary_spouse
+			primary_spouse = {
+				OR = {
+					has_title = title:e_celestia
+					AND = {
+						highest_held_title_tier = tier_empire
+						culture = { has_cultural_pillar = heritage_chinese }
+					}
+				}
+			}
+		}
+	}
+}
+
+is_oe_court_fashion_level_5_trigger = { #宫廷奢侈礼服
+	exists = this
+	is_adult = yes
+	OR = {
+		AND = {
+			has_royal_court = yes
+			amenity_level = { type = court_fashion value = 5 }
+		}
+		AND = {
+			exists = primary_spouse
+			primary_spouse = {
+				has_royal_court = yes
+				amenity_level = { type = court_fashion value = 5 }
+			}	
+		}
+	}
+}
+
 is_oe_imperial_official_trigger = { #什么是朝廷
 	OR = {
 		is_oe_imperial_government_trigger = yes
@@ -53,29 +97,16 @@ is_oe_imperial_official_trigger = { #什么是朝廷
 			OR = {
 				government_has_flag = government_is_ulus
 				government_has_flag = government_is_celestial
-			}						
+			}
 			highest_held_title_tier >= tier_kingdom
-			is_independent_ruler = yes
+			OR = {
+				culture = { has_cultural_pillar = heritage_chinese }
+				culture = { has_cultural_pillar = heritage_goryeo }
+			}
 		}
 	}
 }
 
-is_oe_landed_bureacrat_trigger = { #什么是在职流官
-	is_independent_ruler = no
-	exists = top_liege
-	top_liege = { is_oe_imperial_official_trigger = yes }
-	#所有流官继承头衔
-	OR = {
-		has_realm_law = official_succession_law
-		has_realm_law = player_official_succession_law
-		government_has_flag = government_is_bureau
-	}	
-	#伯爵级以上
-	highest_held_title_tier >= tier_county
-	highest_held_title_tier <= tier_kingdom
-	NOT = { has_trait = peasant_leader }
-	#is_legion_government_trigger = no
-}
 
 is_oe_imperial_councillor_trigger = { #什么是京官
 	exists = top_liege
@@ -103,5 +134,354 @@ is_oe_imperial_shangshu_trigger = { #什么是尚书
 		has_council_position = councillor_hubu
 		has_council_position = councillor_xingbu
 		has_council_position = councillor_gongbu
+	}
+}
+
+is_oe_landed_bureaucrat_trigger = { #什么是在职流官
+	exists = top_liege
+	top_liege = { is_oe_imperial_official_trigger = yes }
+	#government_has_flag = government_is_celestial
+	#所有流官继承头衔
+	OR = {
+		has_realm_law = official_succession_law
+		has_realm_law = player_official_succession_law
+		government_has_flag = government_is_bureau
+	}
+	#伯爵级以上
+	#highest_held_title_tier >= tier_county
+	highest_held_title_tier <= tier_kingdom
+	#is_legion_government_trigger = no #藩镇不迁
+	NOT = { vassal_contract_has_flag = vassal_contract_cannot_revoke_titles }
+}
+
+#众所周知的罪行
+is_oe_illegal_criminal_trigger = {
+	exists = liege.faith
+	OR = {
+		AND = {
+			liege.faith = {
+				NOR = {
+					has_doctrine = doctrine_kinslaying_accepted
+					has_doctrine = doctrine_kinslaying_shunned
+				}
+			}
+			OR = {
+				has_trait = kinslayer_1
+				has_trait = kinslayer_2
+				has_trait = kinslayer_3
+			}
+		}
+		AND = {
+			NOT = {
+				liege.faith = { has_doctrine = tenet_ritual_cannibalism }
+			}
+			has_trait = cannibal
+		}
+		AND = {
+			liege.faith = { has_doctrine_parameter = witchcraft_illegal }
+			has_trait = witch
+		}
+		AND = {
+			liege.faith = { has_doctrine_parameter = deviancy_illegal }
+			has_trait = deviant
+		}
+		AND = {
+			liege.faith = { has_doctrine = doctrine_homosexuality_crime }
+			is_male = yes
+			has_trait = sodomite
+		}
+		AND = {	
+			liege.faith = {
+				NOT = { has_doctrine = doctrine_consanguinity_unrestricted }
+			}
+			has_trait = incestuous
+		}
+		AND = {
+			OR = {
+				AND = {
+					liege.faith = { has_doctrine = doctrine_adultery_women_crime }
+					is_female = yes
+				}
+				AND = {
+					liege.faith = { has_doctrine = doctrine_adultery_men_crime }
+					is_male = yes
+				}
+			}
+			OR = {
+				has_trait = adulterer
+				has_trait = fornicator
+			}
+		}
+		AND = {
+			faith = liege.faith
+			has_trait = excommunicated
+		}
+		AND = {
+			faith = {
+				faith_hostility_level = {
+					target = ROOT.faith
+					value >= faith_hostile_level
+				}
+			}
+		}
+		has_trait = denounced
+		has_trait = peasant_leader #大逆
+	}
+}
+
+is_oe_available = {
+	is_available = yes
+	is_valid_for_narrow_yearly_events = yes
+	is_available_for_activity_trigger = yes
+}
+
+is_oe_available_ai_at_peace = {
+	is_available_at_peace = yes
+	is_ai = yes
+	is_valid_for_narrow_yearly_events = yes
+	is_available_for_activity_trigger = yes
+}
+
+#官阶组升级判定
+lifestyle_bureaucrat_1_trigger = {
+	has_trait = lifestyle_bureaucrat
+	NOR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value > 15
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value > 15
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value > 15
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value > 15
+		}
+	}
+}
+
+lifestyle_bureaucrat_2_trigger = {
+	has_trait = lifestyle_bureaucrat
+	OR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value > 15
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value > 15
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value > 15
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value > 15
+		}
+	}
+	NOR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value > 40
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value > 40
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value > 40
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value > 40
+		}
+	}
+}
+
+lifestyle_bureaucrat_3_trigger = {
+	has_trait = lifestyle_bureaucrat
+	OR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value > 40
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value > 40
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value > 40
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value > 40
+		}
+	}
+	NOR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value > 70
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value > 70
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value > 70
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value > 70
+		}
+	}
+}
+
+lifestyle_bureaucrat_4_trigger = {
+	has_trait = lifestyle_bureaucrat
+	OR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value > 70
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value > 70
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value > 70
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value > 70
+		}
+	}
+	NOR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value = 100
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value = 100
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value = 100
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value = 100
+		}
+	}
+}
+
+lifestyle_bureaucrat_5_trigger = {
+	has_trait = lifestyle_bureaucrat
+	OR = {
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = scholastics
+			value = 100
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = accomplishments
+			value = 100
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = seniority
+			value = 100
+		}
+		has_trait_xp = {
+			trait = lifestyle_bureaucrat
+			track = sociability
+			value = 100
+		}
+	}
+}
+
+#政区分等 - 同级分等 200-250
+bureaucrat_title_rank_1 = { #root = temp_holder/base
+	highest_held_title_tier = tier_barony
+}
+bureaucrat_title_rank_2 = {
+	highest_held_title_tier = tier_county
+	bureaucrat_title_score < 180
+}
+bureaucrat_title_rank_3 = {
+	highest_held_title_tier = tier_county
+	bureaucrat_title_score >= 180
+}
+bureaucrat_title_rank_4 = {
+	highest_held_title_tier = tier_duchy
+	bureaucrat_title_score < 180
+}
+bureaucrat_title_rank_5 = {
+	highest_held_title_tier = tier_duchy
+	bureaucrat_title_score >= 180
+}
+#TO DO:流官管理 实职的最低品级，最低任期
+
+oe_kick_from_court_validity_trigger = {
+	is_busy_in_events_localised = yes
+	NOR = {
+		is_spouse_of = scope:actor
+		is_concubine_of = scope:actor
+		has_council_position = councillor_court_chaplain
+		is_diarch = yes
+		# Marriage major partners of diarchs.
+		## Female.
+		AND = {
+			is_married = yes
+			is_female = yes
+			matrilinear_marriage = yes
+			any_consort = { is_diarch = yes }
+		}
+		## Male.
+		AND = {
+			is_married = yes
+			is_male = yes
+			patrilinear_marriage = yes
+			any_consort = { is_diarch = yes }
+		}
 	}
 }

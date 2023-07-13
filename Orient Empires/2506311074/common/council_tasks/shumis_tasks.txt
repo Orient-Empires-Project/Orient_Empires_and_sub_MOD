@@ -118,6 +118,46 @@
 
 	ai_will_do = {
 		value = 1 # Always a good backup
+		if = {
+			limit = {
+				has_trait = paranoid
+			}
+			add = 1000
+		}
+		if = {
+			limit = {
+				any_targeting_scheme = {
+					hostile_scheme_trigger = yes
+					is_scheme_exposed = yes
+				}
+			}
+			add = 1000
+		}
+		if = { # Somewhat rational AI's want to protect themselves from people who might murder them
+			limit = {
+				ai_rationality > 0
+				OR = {
+					any_relation = {
+						type = rival
+						intrigue >= 12
+						ai_honor <= 0
+					}
+					any_sibling = {
+						ai_honor <= -50
+						ai_greed >= 50
+						save_temporary_scope_as = sibling
+						any_heir_title = {
+							holder = prev
+							place_in_line_of_succession = {
+								target = scope:sibling
+								value <=3
+							}
+						}
+					}
+				}
+			}
+			add = ai_rationality
+		}
 	}
 }
 
@@ -138,6 +178,16 @@ councillor_shumishi_3 = {
 		desc = task_increase_control_effect_desc
 		desc = {
 			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					scope:councillor_liege = {
+						any_active_accolade = {
+							has_accolade_parameter = accolade_increase_control_bonus
+						}
+					}
+				}
+				desc = task_increase_control_acclaimed_knight_subdues_peasantry
+			}
 			triggered_desc = {
 				trigger = {
 					martial > mediocre_skill_rating

@@ -1,4 +1,83 @@
-﻿can_be_councillor_basics_trigger = {
+﻿######### TRAVELLING ##########################
+is_landless_ruler = {
+	is_ruler = yes
+	NOT = { exists = capital_province }
+}
+
+is_available_allow_travelling = {
+	is_alive = yes
+	is_in_army = no
+	is_imprisoned = no
+	is_landless_ruler = no
+	has_contagious_deadly_disease_trigger = no
+	NOT = { has_trait = incapable }
+	custom_description = {
+		text = ALREADY_IN_ACTIVITY
+		# CD ALERT: if you add anything to this criteria, be sure to update the custom loc key GetActivityName so the tooltip reads exactly why a character is unavailable
+		NOR = {
+			exists = involved_activity
+			has_variable = homage_liege_scope
+			has_character_flag = meditation_character_flag
+			has_character_flag = petition_liege_character_flag
+			has_character_flag = holding_court_character_flag
+			is_being_visited_on_tour_strict = yes
+		}
+	}
+	custom_description = {
+		text = ALREADY_PLANNING_ACTIVITY
+		NOT = { has_character_flag = planning_an_activity }
+	}
+	# Variable set within the adventure inspiration events
+	NOT = { has_variable = gone_adventuring }
+}
+
+is_available_travelling = {
+	is_alive = yes
+	is_in_army = no
+	is_imprisoned = no
+	has_contagious_deadly_disease_trigger = no
+	NOT = { has_trait = incapable }
+	NOT = { has_variable = gone_adventuring }
+	#TODO_CD_EP2 should this be localized?
+	is_busy_in_events_unlocalised = no
+	is_travelling = yes
+	is_landless_ruler = no
+}
+
+is_available_for_activity_trigger = {
+	NOT = { exists = involved_activity }
+	is_adult = yes
+	OR = {
+		is_ai = no
+		is_busy_in_events_unlocalised = no
+	}
+	is_at_war = no
+	is_imprisoned = no
+	is_landless_ruler = no
+	is_healthy = yes
+	NOR = {
+		exists = var:booked_for_a_party
+		exists = var:engaged_in_single_combat
+	}
+}
+
+is_available_for_child_activity_trigger = {
+	NOT = { exists = involved_activity }
+	is_adult = no
+	age >= 4
+	OR = {
+		is_ai = no
+		is_busy_in_events_unlocalised = no
+	}
+	is_at_war = no
+	is_imprisoned = no
+	is_landless_ruler = no
+	is_healthy = yes
+	NOT = { exists = var:booked_for_a_party }
+}
+#####################################################################
+
+can_be_councillor_basics_trigger = {
 	is_capable_adult = yes
 	is_imprisoned = no
 	is_at_war_with_liege = no
@@ -12,17 +91,6 @@
 ######################################################################
 # Government
 ######################################################################
-
-building_requirement_tribal_holding_in_county = {
-	scope:holder = {
-		government_has_flag = government_is_tribal
-	}
-	county = {
-		any_county_province = {
-			has_holding_type = tribal_holding
-		}
-	}
-}
 
 building_requirement_tribal_ulus = {
 	scope:holder = {
@@ -254,12 +322,16 @@ can_change_single_heir_dynasty_house_succession_law_trigger = {
 # contract_obligation
 ######################################################################
 
-has_bp1_dlc_trigger = {
-	always = yes
-}
+#has_bp1_dlc_trigger = {
+#	always = yes
+#}
 
 building_tea_plantation_requirement_terrain = {
-	terrain = hills
+	OR = {
+		terrain = hills
+		terrain = farmlands
+		terrain = forest
+	}
 	geographical_region = world_tea_plantation
 }
 building_silk_plantation_requirement_terrain = {
@@ -281,6 +353,8 @@ building_spice_plantation_requirement_terrain = {
 }
 
 ### HUNT ###
+
+
 
 hunt_animal_tiger_trigger = {
 	OR = {
@@ -330,5 +404,66 @@ hunt_animal_steppe_trigger = { # Saiga/etc.
 		terrain = hills
 		terrain = desert
 		terrain = wetlands
+	}
+}
+
+title_revocation_is_tyrannical_trigger = {
+	NOR = {
+		has_revoke_title_reason = scope:recipient
+		has_claim_on = scope:landed_title
+		AND = {
+			scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+			scope:actor = {
+				OR = {
+					is_independent_ruler = yes
+					is_oe_imperial_official_trigger = yes
+					has_strong_hook = scope:recipient
+				}
+			}
+		}
+		faith = {
+			scope:recipient = {
+				NOT = { vassal_contract_has_flag = religiously_protected}
+			}
+			OR = {
+				AND = {								
+					has_doctrine_parameter = pluralism_righteous_revocation_tyranny_reduced
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value = faith_evil_level
+					}
+				}
+				AND = {								
+					has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value >= faith_hostile_level
+					}
+				}
+			}
+		}
+	}
+}
+
+has_university_building_trigger = {
+	OR = {
+		has_building_or_higher = celestial_university
+		has_building_or_higher = generic_university
+		has_building_or_higher = al_azhar_university
+		has_building_or_higher = sankore_university
+		has_building_or_higher = siena_university
+		has_building_or_higher = nalanda_university
+	}
+}
+
+# Petition is still valid
+petition_top_liege_valid_trigger = {
+	is_alive = yes
+	is_imprisoned = no
+	has_variable = petition_liege_scope
+	top_liege = var:petition_liege_scope
+	var:petition_liege_scope = {
+		is_imprisoned = no
+		has_royal_court = yes
 	}
 }
