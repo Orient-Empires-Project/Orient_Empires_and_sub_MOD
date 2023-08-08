@@ -86,6 +86,11 @@ bureaucracy_exp_value = {
 	add = Bureaucrat_county_opinion_value
 	add = Bureaucrat_physically_value
 	add = Bureaucrat_illegal_criminal_value
+
+	if = {
+		limit = { is_oe_landed_bureaucrat_trigger = no }
+		multiply = 0
+	}
 }
 
 bureaucracy_exp_value_levelup = {
@@ -167,6 +172,13 @@ Bureaucrat_prestige_level_value = {
 	desc = Bureaucrat_prestige_level_value_desc
 }
 Bureaucrat_dynasty_prestige_level_value = {
+	if = {
+		limit = {
+			exists = dynasty
+			NOT = { dynasty = top_liege.dynasty }
+			dynasty = { dynasty_prestige_level >= 3 }
+		}
+	}
 	add = 3
 	multiply = dynasty.dynasty_prestige_level
 	desc = Bureaucrat_dynasty_prestige_level_value_desc
@@ -262,6 +274,20 @@ Bureaucrat_councillor_opinion_value = {
 			}
 		}
 		add = -50
+	}
+	else_if = {
+		limit = {
+			exists = top_liege
+			NOT = { dynasty = top_liege.dynasty }
+			any_close_or_extended_family_member = {
+				is_alive = yes
+				OR = {
+					is_councillor_of = top_liege
+					target_is_liege_or_above = top_liege
+				}
+			}
+		}
+		add = 30 
 	}
 	desc = Bureaucrat_emperor_opinion_value
 }
@@ -362,5 +388,170 @@ bureaucrat_level_value = {
 			lifestyle_bureaucrat_1_trigger = yes
 		}
 		add = 10
+	}
+}
+
+#流官排位分数
+bureaucracy_score = {
+	value = 0
+	#原考绩 - 转入经验增长
+	add = bureaucracy_exp_value
+	#生活方式
+	#add = lifestyle_perk_points
+	#门第
+	if = {
+		limit = {
+			exists = top_liege
+			exists = dynasty
+			NOT = { dynasty = top_liege.dynasty }
+			dynasty = { dynasty_prestige_level >= 3 }
+		}
+		add = 30 
+		factor = dynasty.dynasty_prestige_level
+	}
+	#朝中有人
+	if = {
+		limit = {
+			exists = top_liege
+			exists = dynasty
+			NOT = { dynasty = top_liege.dynasty }
+			any_close_or_extended_family_member = {
+				is_alive = yes
+				exists = top_liege
+				OR = {
+					is_councillor_of = top_liege
+					target_is_liege_or_above = top_liege
+				}
+			}
+		}
+		add = 30
+	}
+	#进士
+	if = {
+		limit = {
+			has_trait = jinshi
+		}
+		add = 20
+	}
+	#状元
+	if = {
+		limit = {
+			has_trait = zhuangyuan
+		}
+		add = 50
+	}
+	#官阶州等对位
+	if = {
+		limit = { lifestyle_bureaucrat_1_trigger = yes }
+		if = {
+			limit = { is_landed = no }
+			add = 20
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value >= 3 }
+			add = -250
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_2_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 3 }
+			add = 20
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value >= 3 }
+			add = -100
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_3_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 3 }
+			add = 30
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value > 3 }
+			add = -30
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_4_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 4 }
+			add = 40
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value > 4 }
+			add = -40
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_5_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 5 }
+			add = 100
+		}
+	}
+	if = {
+		limit = { is_oe_landed_bureaucrat_trigger = no }
+		multiply = 0
+	}
+}
+
+#州等 数值
+bureaucrat_title_rank_value = {
+	if = {
+		limit = { bureaucrat_title_rank_1 = yes }
+		add = 1
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_2 = yes }
+		add = 2
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_3 = yes }
+		add = 3
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_4 = yes }
+		add = 4
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_5 = yes }
+		add = 5
+	}
+}
+
+#同官阶考绩排名=升迁顺位
+bureaucracy_exp_rank = {
+	value = 1
+	if = {
+		limit = {
+			is_ai = no
+		}
+		every_ruler = {
+			if = {
+				limit = {
+					is_oe_landed_bureaucrat_trigger = yes
+					has_trait = lifestyle_bureaucrat
+					bureaucrat_title_rank_value = root.bureaucrat_title_rank_value
+					bureaucracy_exp_value > root.bureaucracy_exp_value
+				}
+				add = 1
+			}
+		}
+	}
+	else = {
+		every_ruler = {
+			if = {
+				limit = {
+					is_oe_landed_bureaucrat_trigger = yes
+					has_trait = lifestyle_bureaucrat
+					bureaucrat_title_rank_value = root.bureaucrat_title_rank_value
+					bureaucracy_score > root.bureaucracy_score
+				}
+				add = 1
+			}
+		}
 	}
 }

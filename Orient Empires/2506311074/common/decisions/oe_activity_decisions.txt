@@ -367,61 +367,70 @@ oe_petition_liege_decision = {
 		is_landed = yes
 		is_independent_ruler = no
 		is_available_adult = yes
-		#top_liege = { is_available_adult = yes }
-	}
-	is_valid = {
-		government_has_flag = government_is_celestial
-		trigger_if = { # 讨官
-			limit = { scope:ask_for_bureaucrat_position = yes }
-			custom_tooltip = {
-				text = ACTOR_REFUSAL_IS_BUREAU
-				is_oe_landed_bureaucrat_trigger = yes
-			}
-			exists = primary_heir
-			primary_heir = { is_adult = yes }
-		}
-		trigger_if = { # 请设军府
-			limit = { scope:convert_to_milita = yes }
-			custom_tooltip = {
-				text = IS_MILITA
-				is_milita_government_trigger = no
-			}
-		}
-		trigger_if = { # 请设方镇
-			limit = { scope:transfer_to_legion = yes }
-			custom_tooltip = {
-				text = IS_LEGION
-				vassal_contract_has_flag = imperial_contract_1
-				NOT = { vassal_contract_has_flag = imperial_legion_2 }
-			}
-		}
 	}
 
 	is_valid_showing_failures_only = {
 		NOT = { is_at_war_with = top_liege }
 		top_liege = { has_royal_court = yes }
-		#liege = top_liege #直属封臣
+		top_liege = { is_available_adult = yes }
 		custom_tooltip = {
 			text = petition_liege_council_no_petition_valid_tt
 			OR = {
-				gold >= -100
-				prestige > 300
-				prestige_level >= 3
-				dynasty = { dynasty_prestige_level >= 2 }
+				AND = {
+					scope:ask_for_bureaucrat_position = yes
+					is_oe_landed_bureaucrat_trigger = yes
+				}
+				AND = {
+					scope:convert_to_milita = yes
+					is_milita_government_trigger = no
+				}
+				AND = {
+					scope:transfer_to_legion = yes
+					vassal_contract_has_flag = imperial_contract_1
+					NOT = { vassal_contract_has_flag = imperial_legion_2 }
+				}
+				AND = {
+					scope:heir_succession = yes
+					vassal_contract_has_flag = imperial_contract_1
+					has_realm_law = player_official_succession_law
+				}
 			}
 		}
 		trigger_if = { # 讨官
 			limit = { scope:ask_for_bureaucrat_position = yes }
-			custom_tooltip = {
-				text = ACTOR_REFUSAL_IS_BUREAU
-				is_oe_landed_bureaucrat_trigger = yes
-			}
+				custom_tooltip = { #
+					text = has_official_succession_law_tt
+					OR = {
+						has_realm_law = official_succession_law
+						has_realm_law = player_official_succession_law
+					}
+				}
+				custom_tooltip = {
+					text = has_unlanded_adult_son_tt
+					any_child = {
+						is_alive = yes
+						is_adult = yes
+						is_male = yes
+						is_landed = no
+					}
+				}
 		}
 		trigger_if = { # 请设军府
 			limit = { scope:convert_to_milita = yes }
 			custom_tooltip = {
 				text = IS_MILITA
 				is_milita_government_trigger = no
+			}
+			custom_tooltip = {
+				text = prestige_level_3_tt	
+				OR = {
+					prestige_level >= 3
+					dynasty = { dynasty_prestige_level >= 2 }
+				}
+			}
+			custom_tooltip = { 
+				text = perks_in_martial_lifestyle_10
+				perks_in_martial_lifestyle >= 10
 			}
 		}
 		trigger_if = { # 请设方镇
@@ -430,6 +439,36 @@ oe_petition_liege_decision = {
 				text = IS_LEGION
 				vassal_contract_has_flag = imperial_contract_1
 				NOT = { vassal_contract_has_flag = imperial_legion_2 }
+			}
+			custom_tooltip = { 
+				text = perstige_level_5_tt
+				OR = {
+					is_powerful_vassal = yes
+					prestige_level >= 5
+				}
+			}
+			custom_tooltip = {
+				text = perks_in_martial_lifestyle_20
+				perks_in_martial_lifestyle >= 20
+			}
+		}
+		trigger_if = { # 留后册命
+			limit = { scope:heir_succession = yes }
+			has_realm_law = player_official_succession_law
+			custom_tooltip = {
+				text = IS_LEGION
+				vassal_contract_has_flag = imperial_contract_1
+			}
+			custom_tooltip = { 
+				text = perstige_level_5_tt
+				OR = {
+					is_powerful_vassal = yes
+					prestige_level >= 5
+				}
+			}
+			custom_tooltip = {
+				text = perks_in_martial_lifestyle_20
+				perks_in_martial_lifestyle >= 20
 			}
 		}
 	}
@@ -444,15 +483,21 @@ oe_petition_liege_decision = {
 		item = { # 讨官
 			value = ask_for_bureaucrat_position
 			is_valid = {
-				OR = {
-					has_realm_law = official_succession_law
-					has_realm_law = player_official_succession_law
+				custom_tooltip = { #
+					text = has_official_succession_law_tt
+					OR = {
+						has_realm_law = official_succession_law
+						has_realm_law = player_official_succession_law
+					}
 				}
-				any_child = {
-					is_alive = yes
-					is_adult = yes
-					is_male = yes
-					is_landed = no
+				custom_tooltip = {
+					text = has_unlanded_adult_son_tt
+					any_child = {
+						is_alive = yes
+						is_adult = yes
+						is_male = yes
+						is_landed = no
+					}
 				}
 			}
 			current_description = ask_for_bureaucrat_position_desc
@@ -463,30 +508,16 @@ oe_petition_liege_decision = {
 		item = { # 请设军府
 			value = convert_to_milita
 			is_valid = {
-				OR = {
-					prestige_level >= 3
-					dynasty = { dynasty_prestige_level >= 2 }
+				custom_tooltip = {
+					text = prestige_level_3_tt	
+					OR = {
+						prestige_level >= 3
+						dynasty = { dynasty_prestige_level >= 2 }
+					}
 				}
-				OR = {
-					custom_tooltip = { 
-						text = perks_in_martial_lifestyle_10
-						perks_in_martial_lifestyle >= 10
-					}
-					AND = {	
-						custom_tooltip = {
-							text = perk_points_assigned_11
-							perk_points_assigned > 11
-						}
-						custom_tooltip = {
-							text = perks_in_tree_chivalry				
-								perks_in_tree = {
-									tree = chivalry
-									value > 8
-								}
-						}
-					}
-					top_liege = { has_realm_law = crown_authority_0 }
-					top_liege = { has_realm_law = crown_authority_1 }
+				custom_tooltip = { 
+					text = perks_in_martial_lifestyle_10
+					perks_in_martial_lifestyle >= 10
 				}
 			}
 			current_description = convert_to_milita_contract_decision_desc
@@ -497,43 +528,42 @@ oe_petition_liege_decision = {
 		item = { # 请设方镇
 			value = transfer_to_legion
 			is_valid = {
-				OR = {
-					is_powerful_vassal = yes
-					prestige_level >= max_prestige_level
-				}
-				OR = {
-					custom_tooltip = {
-						text = perks_in_martial_lifestyle_20
-						perks_in_martial_lifestyle >= 20
-					}	
-					AND = {
-						custom_tooltip = {
-							text = perk_points_assigned_20
-							perk_points_assigned > 20
-						}	
-						custom_tooltip = {
-							text = perks_in_tree_strategy
-							perks_in_tree = {
-								tree = strategy
-								value > 8
-							}
-						}
-						custom_tooltip = {
-							text = perks_in_tree_authority
-							perks_in_tree = {
-								tree = authority
-								value > 8
-							}
-						}
+				custom_tooltip = { 
+					text = perstige_level_5_tt
+					OR = {
+						is_powerful_vassal = yes
+						prestige_level >= 5
 					}
 				}
-				OR = {
-					top_liege = { has_realm_law = crown_authority_0 }
-					top_liege = { has_realm_law = crown_authority_1 }
+				custom_tooltip = {
+					text = perks_in_martial_lifestyle_20
+					perks_in_martial_lifestyle >= 20
 				}
 			}
+			
 			current_description = transfer_to_legion_contract_decision_desc
 			localization = transfer_to_legion_contract_decision
+			icon = "gfx/interface/illustrations/decisions/decision_realm.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		item = { # 留后册命
+			value = heir_succession
+			is_valid = {
+				custom_tooltip = { 
+					text = perstige_level_5_tt
+					OR = {
+						is_powerful_vassal = yes
+						prestige_level >= 5
+					}
+				}
+				custom_tooltip = {
+					text = perks_in_martial_lifestyle_20
+					perks_in_martial_lifestyle >= 20
+				}
+			}
+			
+			current_description = heir_succession_desc
+			localization = heir_succession
 			icon = "gfx/interface/illustrations/decisions/decision_realm.dds"
 			ai_chance = { value = 0 } # Currently unused
 		}
@@ -573,6 +603,13 @@ oe_petition_liege_decision = {
 			set_variable = {
 				name = petition_type
 				value = flag:legion
+			}
+		}
+		else_if = { # 留后册命
+			limit = { scope:heir_succession = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:heir_succession
 			}
 		}
 		top_liege = { save_scope_as = petition_liege }

@@ -228,6 +228,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 					is_oe_landed_bureaucrat_trigger = yes
 					AND = {
 						is_councillor = yes
+						exists = liege_or_court_owner
 						liege_or_court_owner = { government_has_flag = flag_is_celestial }
 					}
 					has_trait = lifestyle_bureaucrat
@@ -276,13 +277,19 @@ BureaucracyEmpire_yearly_new_pulse = {
 			if = {
 				limit = {
 					is_oe_landed_bureaucrat_trigger = yes #天朝流官
-					is_oe_available_ai_at_peace = yes
+					has_trait = lifestyle_bureaucrat
 				}
 				#资历
 				add_trait_xp = {
 					trait = lifestyle_bureaucrat
 					track = seniority
 					value = highest_held_title_tier
+				}
+				#奉献等级
+				add_trait_xp = {
+					trait = lifestyle_bureaucrat
+					track = scholastics
+					value = piety_level
 				}
 				#是内阁成员
 				if = {
@@ -307,12 +314,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 					add_trait_xp = {
 						trait = lifestyle_bureaucrat
 						track = scholastics
-						value = perks_in_diplomacy_lifestyle
-					}
-					add_trait_xp = {
-						trait = lifestyle_bureaucrat
-						track = scholastics
-						value = piety_level
+						value = perks_in_learning_lifestyle
 					}
 					add_trait_xp = {
 						trait = lifestyle_bureaucrat
@@ -377,6 +379,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 						NOT = { is_councillor_of = top_liege }
 						NAND = {
 							is_councillor = yes
+							exists = liege_or_court_owner
 							liege_or_court_owner = { is_ai = no }
 						}
 						OR = {
@@ -504,7 +507,7 @@ on_title_gain = {
 	on_actions = {
 		BureaucracyEmpire_player_pulse
 		BureaucracyEmpire_on_title_gain_new #交接非法理头衔
-		BureaucracyEmpire_on_title_gain_remove	#抹去官阶
+		#BureaucracyEmpire_on_title_gain_remove	#抹去官阶
 	}
 }
 #玩家流官叙迁，用其他默认官员触发
@@ -586,8 +589,6 @@ BureaucracyEmpire_player_pulse = {
 					scope:player = {
 						is_oe_landed_bureaucrat_trigger = yes
 						is_oe_available = yes
-						is_capable_adult = yes
-						is_imprisoned = no
 						NOT = { has_character_modifier = bureaucrat_positioned_term }
 						is_oe_illegal_criminal_trigger = no #众所周知的罪行
 					}
@@ -669,7 +670,11 @@ BureaucracyEmpire_on_title_gain_remove = {
 		if = {
 			limit = {
 				has_trait = lifestyle_bureaucrat
-				is_oe_landed_bureaucrat_trigger = no
+				NOR = {
+					has_realm_law = official_succession_law
+					has_realm_law = player_official_succession_law
+					government_has_flag = government_is_bureau
+				}
 			}
 			remove_trait = lifestyle_bureaucrat
 		}
@@ -956,7 +961,7 @@ BureaucracyEmpire_succession_pulse = {
 					is_landed = yes
 				}
 			}
-			set_designated_heir = primary_heir		
+			set_designated_heir = player_heir
 		}
 		else_if = {
 			limit = {
@@ -970,10 +975,16 @@ BureaucracyEmpire_succession_pulse = {
 				}
 				save_scope_as = heir
 			}
-			set_designated_heir = scope:heir
+			
 			set_player_character = scope:heir
 		}
-		else = {
+		else_if = {
+			limit = {
+				any_close_family_member = {
+					has_trait = lifestyle_bureaucrat
+					is_landed = yes
+				}
+			}
 			random_close_family_member = {
 				limit = {
 					has_trait = lifestyle_bureaucrat
@@ -981,7 +992,18 @@ BureaucracyEmpire_succession_pulse = {
 				}
 				save_scope_as = heir
 			}
-			set_designated_heir = scope:heir
+			
+			set_player_character = scope:heir
+		}
+		else = {
+			random_close_or_extended_family_member = {
+				limit = {
+					has_trait = lifestyle_bureaucrat
+					is_landed = yes
+				}
+				save_scope_as = heir
+			}
+			
 			set_player_character = scope:heir
 		}
 	}

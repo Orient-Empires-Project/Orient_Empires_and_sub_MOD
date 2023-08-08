@@ -2,21 +2,13 @@ oe_migration_cb = {
 	group = invasion	#Switching this to event will render the CB invisible.
 
 	cost = {
-		piety = 500
-		prestige = {
-			value = 0
-			add = {
-				value = 2000
-				desc = CB_BASE_COST
-			}
-			multiply = common_cb_prestige_cost_multiplier
+		piety = {
+			add = fp1_varangian_adventure_base_piety_cost
+
+			multiply = common_cb_piety_cost_multiplier
 		}
-		gold = {
-			value = 0
-			add = {
-				value = 500
-				desc = CB_BASE_COST
-			}
+		prestige = {
+			value = varangian_adventurer_cb_cost
 			multiply = common_cb_prestige_cost_multiplier
 		}
 	}
@@ -42,11 +34,12 @@ oe_migration_cb = {
 		highest_held_title_tier >= tier_duchy
 		#faith = { has_doctrine_parameter = unreformed }
 		custom_description = {
-			text = has_used_lifetime_subjugation
+			text = used_lifetime_migration
 			subject = scope:attacker
 			NOT = {
 				scope:attacker = {
-					has_character_flag = used_lifetime_subjugation
+					has_variable = used_lifetime_migration
+					var:used_lifetime_migration > 2
 				}
 			}
 		}
@@ -54,7 +47,6 @@ oe_migration_cb = {
 
 	allowed_against_character = {
 		scope:defender = {
-			#highest_held_title_tier <= 4
 			exists = capital_province
 			capital_province = {
 				OR = {
@@ -113,7 +105,12 @@ oe_migration_cb = {
 	on_declaration = {
 		on_declared_war = yes
 		scope:attacker = {
-			add_character_flag = used_lifetime_subjugation
+			scope:attacker = {
+				change_variable = {
+					name = used_lifetime_migration
+					add = 1
+				}				
+			}
 		}
 	
 		if = {
@@ -152,6 +149,10 @@ oe_migration_cb = {
 		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
 
+		scope:attacker = {
+			every_courtier = { add_to_list = followers_list }
+		}
+
 		if = {
 			limit = { #让不独立的先独立
 				scope:attacker = { is_independent_ruler = no }
@@ -179,18 +180,12 @@ oe_migration_cb = {
 					years = 1
 				}
 			}
-		}
-
-		hidden_effect = {
 			every_held_title = {
 				limit = {
 					tier >= tier_county
 					tier <= tier_duchy
 				}
 				add_to_list = seceding_duchy_list
-			}
-			scope:attacker = {
-				oe_migration_effect = yes #（大迁徙效果）把之前持有的地扔了（因为角色必须保留一块领地所以会随机残留一块，后续再扔掉）
 			}
 		}
 
@@ -218,6 +213,7 @@ oe_migration_cb = {
 					change = scope:change
 				}
 			}
+			resolve_title_and_vassal_change = scope:change
 		}
 		scope:attacker = {
 			set_capital_county = scope:new_capital
@@ -249,63 +245,61 @@ oe_migration_cb = {
 					add_to_list = followers_list #参战封臣名单
 					add_gold = 50
 
+					every_courtier = {
+						add_to_list = followers_list #参战封臣宫廷
+					}
 					every_vassal_or_below = {
+						add_to_list = followers_list #参战封臣宫廷
 						oe_migration_effect = yes #封臣把之前的地都扔了
 					}
+					oe_migration_effect = yes #封臣把之前的地都扔了
 				}
 
 				add_prestige = 500
 
-				pay_short_term_gold = { #给参战封臣金钱(其实没效果，只是会显示)
-					gold = {
-						value = -50
+				scope:attacker = {
+					pay_short_term_gold = { #给参战封臣金钱
+						gold = {
+							value = 50
+						}
+						target = prev
 					}
-					target = scope:attacker
-				}
-			}
-
-		}
-
-		scope:attacker = {
-
-			every_vassal = { #参战封臣获得威望
-				limit = {
-					is_at_war_with = scope:defender
-				}
-				hidden_effect = {
-					oe_migration_effect = yes #封臣把之前的地都扔了
 				}
 			}
 		}
-
-		every_in_list = { #所有参战封臣加入你的宫廷
-			list = followers_list
-			save_temporary_scope_as = followers
-			every_courtier = {
-				save_temporary_scope_as = followers_courtier #参战封臣宫廷
+		hidden_effect = {
+			every_in_list = { #所有参战封臣加入你的宫廷
+				list = followers_list
+				scope:attacker = {
+					add_courtier = prev
+				}
+				return_to_court = yes
+				set_location = {
+					location = scope:attacker.capital_province
+					stick_to_location = yes
+				}
 			}
-			scope:attacker = {
-				add_courtier = scope:followers
-				add_courtier = scope:followers_courtier
-			}				
 		}
 
-		
 		scope:defender = { #防御方封臣变化
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change2
+				add_claim_on_loss = no
+			}
 			every_vassal = {
 				change_liege = {
 					liege = scope:attacker
 					change = scope:change
 				}
 			}
-
-			resolve_title_and_vassal_change = scope:change
+			resolve_title_and_vassal_change = scope:change2
 		}
 
 		scope:attacker = { #把多余的地扔干净
-			oe_migration_01_effect = yes
+			oe_migration_effect = yes
 		}
-
+	
 		# Truce
 		add_truce_attacker_victory_effect = yes
 

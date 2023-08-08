@@ -223,7 +223,15 @@
 	on_decline = {
 		if = {
 			limit = {
-				scope:landed_title.tier != tier_barony
+				OR = {
+					scope:landed_title.tier != tier_barony
+					NAND = {
+						scope:actor = { has_realm_law = crown_authority_3 }
+						scope:recipient = { 
+							is_bureau_government_trigger = yes
+						} 
+					}
+				}
 			}
 			scope:actor = {
 				revocation_tyranny_effect = yes
@@ -232,18 +240,14 @@
 		}
 		if = {
 			limit = {
-				NAND = {
-					scope:actor = { has_realm_law = crown_authority_3 }
+				NOT = {
 					scope:recipient = { 
 						is_ai = yes
-						custom_description = {
-							text = AI_REFUSAL_IS_BUREAU
-							is_oe_landed_bureaucrat_trigger = yes
-						}
-					} 
+						is_oe_landed_bureaucrat_trigger = yes
+					}
 				}
 			}
-			war_for_revoke_effect = yes #流官不会之间开战废黜皇帝
+			war_for_revoke_effect = yes #流官不会开战废黜皇帝
 		}
 		scope:recipient = {
 			add_opinion = {
@@ -906,12 +910,13 @@
 		}
 
 		modifier = { # 剥夺王爵
-			add = 1000
+			add = 200
 			scope:actor = {
 				is_oe_imperial_government_trigger = yes
 			}
 			scope:recipient = {
 				highest_held_title_tier = tier_kingdom
+				NOT = { dynasty = scope:actor.dynasty }
 			}
 		}
 	}

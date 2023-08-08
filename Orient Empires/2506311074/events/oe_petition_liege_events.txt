@@ -59,6 +59,11 @@ oe_petition_liege.9000 = {
 					vassal_contract_has_flag = imperial_contract_1
 					NOT = { vassal_contract_has_flag = imperial_legion_2 }
 				}
+				trigger_if = { # 留后册命
+					limit = { var:petition_type = flag:heir_succession }
+					vassal_contract_has_flag = imperial_contract_1
+					has_realm_law = player_official_succession_law
+				}
 			}
 			switch = {
 				trigger = scope:petition_vassal.var:petition_type
@@ -68,6 +73,7 @@ oe_petition_liege.9000 = {
 							limit = {
 								NOT = { holder = scope:petition_vassal }
 								NOT = { holder = scope:petition_liege }
+								holder = { is_oe_landed_bureaucrat_trigger = yes }
 							}
 							save_scope_as = petition_claim
 							holder = { save_scope_as = second_party }
@@ -78,7 +84,7 @@ oe_petition_liege.9000 = {
 							limit = {
 								is_adult = yes
 								OR = {
-									is_landed = yes
+									is_landed = no
 									highest_held_title_tier = tier_barony
 								}
 								is_male = yes
@@ -104,6 +110,27 @@ oe_petition_liege.9000 = {
 					scope:petition_liege = {
 						random_neighboring_top_liege_realm_owner = { #随便选一个外患
 							save_scope_as = second_party
+						}
+					}
+				}
+				flag:heir_succession = { # 留后册命
+					scope:petition_vassal = {
+						every_child = {
+							limit = {
+								is_adult = yes
+								OR = {
+									is_landed = no
+									highest_held_title_tier = tier_barony
+								}
+								is_male = yes
+							}
+							add_to_list = child_list
+						}
+						ordered_in_list = {
+							list = child_list
+							order_by = age
+							max = 1
+							save_scope_as = heir_holder
 						}
 					}
 				}
@@ -146,7 +173,7 @@ oe_petition_liege.9001 = {
 
 	immediate = {
 		# Find out which petitions might still be valid 
-		if = { # Convert
+		if = { # 
 			limit = {
 				NOT = { var:petition_type = flag:bureaucrat_position }
 				OR = {
@@ -165,7 +192,7 @@ oe_petition_liege.9001 = {
 				target = flag:bureaucrat_position
 			}
 		}
-		if = { # Opinion
+		if = { # 
 			limit = { 
 				NOT = { var:petition_type = flag:milita }
 				NOT = { vassal_contract_has_flag = imperial_contract_1 }
@@ -175,7 +202,7 @@ oe_petition_liege.9001 = {
 				target = flag:milita
 			}
 		}
-		if = { # Liege Title
+		if = { # 
 			limit = { 
 				NOT = { var:petition_type = flag:legion }
 				vassal_contract_has_flag = imperial_contract_1
@@ -184,6 +211,17 @@ oe_petition_liege.9001 = {
 			add_to_variable_list = {
 				name = available_petitions
 				target = flag:legion
+			}
+		}
+		if = { # 
+			limit = { 
+				NOT = { var:petition_type = flag:heir_succession }
+				vassal_contract_has_flag = imperial_contract_1
+				has_realm_law = player_official_succession_law
+			}
+			add_to_variable_list = {
+				name = available_petitions
+				target = flag:heir_succession
 			}
 		}
 		# Cull list to 4 max
@@ -234,7 +272,7 @@ oe_petition_liege.9001 = {
 		}
 		set_variable = {
 			name = petition_type
-			value = flag:title_liege
+			value = flag:bureaucrat_position
 		}
 	}
 	option = {
@@ -322,6 +360,24 @@ oe_petition_liege.9001 = {
 		set_variable = {
 			name = petition_type
 			value = flag:legion
+		}
+	}
+	option = {
+		name = heir_succesion
+		trigger = { # Liege Title
+			any_in_list = {
+				variable = petitions_to_show
+				this = flag:heir_succession
+			}
+			NOT = { var:petition_type = flag:heir_succession }
+			OR = {
+				has_realm_law = official_succession_law
+				has_realm_law = player_official_succession_law
+			}
+		}
+		set_variable = {
+			name = petition_type
+			value = flag:heir_succession
 		}
 	}
 	option = {
@@ -520,7 +576,7 @@ oe_petition_liege.0101 = { #卡点
 		first_valid = {
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:bureaucrat_position }
-				desc = ask_for_bureaucrat_position
+				desc = ask_for_bureaucrat_position_desc
 			}
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:milita }
@@ -529,6 +585,10 @@ oe_petition_liege.0101 = { #卡点
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 				desc = transfer_to_legion_contract_decision
+			}
+			triggered_desc = {
+				trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+				desc = heir_succesion_desc
 			}
 		}
 	}
@@ -631,6 +691,11 @@ oe_petition_liege.0101 = { #卡点
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 			text = petition_liege.0101.accept.war_aid
 		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.accept.title_vassal
+		}
+		
 		scope:petition_vassal = {
 			trigger_event = {
 				on_action = oe_petition_liege_0201
@@ -718,6 +783,10 @@ oe_petition_liege.0101 = { #卡点
 				scope:petition_vassal.var:petition_type = flag:legion
 				add = -50
 			}
+			modifier = {
+				scope:petition_vassal.var:petition_type = flag:heir_succession
+				add = -50
+			}
 		}
 	}
 
@@ -783,6 +852,10 @@ oe_petition_liege.0101 = { #卡点
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 			text = petition_liege.0101.bribe_factions.war_aid
 		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.bribe_factions.title_vassal
+		}
 		save_scope_value_as = { name = bribe_type value = 1 }
 		scope:petition_vassal = {
 			trigger_event = {
@@ -838,6 +911,10 @@ oe_petition_liege.0101 = { #卡点
 		name = {
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 			text = petition_liege.0101.bribe_gold.war_aid
+		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.bribe_gold.title_vassal
 		}
 		save_scope_value_as = { name = bribe_type value = 2 }
 		scope:petition_vassal = {
@@ -895,6 +972,10 @@ oe_petition_liege.0101 = { #卡点
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 			text = petition_liege.0101.bribe_favor.war_aid
 		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.bribe_favor.title_vassal
+		}
 		save_scope_value_as = { name = bribe_type value = 3 }
 		scope:petition_vassal = {
 			trigger_event = {
@@ -945,8 +1026,12 @@ oe_petition_liege.0101 = { #卡点
 			text = petition_liege.0101.refusal.fortify_border
 		}
 		name = {
-			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
+			trigger = { scope:petition_vassal.var:petition_type = flag:legion } 
 			text = petition_liege.0101.refusal.war_aid
+		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.refusal.title_vassal
 		}
 		scope:petition_vassal = {
 			trigger_event = {
@@ -1039,6 +1124,10 @@ oe_petition_liege.0201 = {
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 				desc = petition_liege.0201.desc.war_aid
+			}
+			triggered_desc = {
+				trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+				desc = petition_liege.0201.desc.bureaucrat_position
 			}
 		}
 		desc = petition_liege.0201.desc.bridge
@@ -1133,6 +1222,10 @@ oe_petition_liege.0205 = {
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 				desc = petition_liege.0205.desc.war_aid
+			}
+			triggered_desc = {
+				trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+				desc = petition_liege.0205.desc.bureaucrat_position
 			}
 		}
 		desc = petition_liege.0205.desc.bridge
@@ -1258,6 +1351,10 @@ oe_petition_liege.0209 = {
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 				desc = petition_liege.0201.desc.war_aid
+			}
+			triggered_desc = {
+				trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+				desc = petition_liege.0201.desc.title_vassal
 			}
 			desc = petition_liege.0201.desc.council_second_party
 		}
@@ -2266,7 +2363,11 @@ oe_petition_liege.1101 = {
 		}
 		name = {
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
-			text = petition_liege.0101.accept.war_aid
+			text = petition_liege.0101.accept.war_aid 
+		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.accept.title_vassal
 		}
 		scope:petition_vassal = {
 			trigger_event = {
@@ -2355,6 +2456,10 @@ oe_petition_liege.1101 = {
 				scope:petition_vassal.var:petition_type = flag:legion
 				add = -50
 			}
+			modifier = {
+				scope:petition_vassal.var:petition_type = flag:heir_succession
+				add = -50
+			}
 		}
 	}
 
@@ -2420,6 +2525,10 @@ oe_petition_liege.1101 = {
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 			text = petition_liege.0101.bribe_factions.war_aid
 		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.bribe_factions.title_vassal
+		}
 		save_scope_value_as = { name = bribe_type value = 1 }
 		scope:petition_vassal = {
 			trigger_event = {
@@ -2476,6 +2585,10 @@ oe_petition_liege.1101 = {
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 			text = petition_liege.0101.bribe_gold.war_aid
 		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.bribe_gold.title_vassal
+		}
 		save_scope_value_as = { name = bribe_type value = 2 }
 		scope:petition_vassal = {
 			trigger_event = {
@@ -2529,8 +2642,12 @@ oe_petition_liege.1101 = {
 			text = petition_liege.0101.bribe_favor.fortify_border
 		}
 		name = {
-			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
+			trigger = { scope:petition_vassal.var:petition_type = flag:legion } 
 			text = petition_liege.0101.bribe_favor.war_aid
+		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.bribe_favor.title_vassal
 		}
 		save_scope_value_as = { name = bribe_type value = 3 }
 		scope:petition_vassal = {
@@ -2584,6 +2701,10 @@ oe_petition_liege.1101 = {
 		name = {
 			trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 			text = petition_liege.0101.refusal.war_aid
+		}
+		name = {
+			trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+			text = petition_liege.0101.refusal.title_vassal
 		}
 		scope:petition_vassal = {
 			trigger_event = { 
@@ -2687,6 +2808,10 @@ oe_petition_liege.1201 = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 				desc = petition_liege.0201.desc.war_aid
 			}
+			triggered_desc = {
+				trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+				desc = petition_liege.0201.desc.bureaucrat_position
+			}
 		}
 		desc = petition_liege.0201.desc.bridge
 	}
@@ -2760,6 +2885,10 @@ oe_petition_liege.1205 = {
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 				desc = petition_liege.0205.desc.war_aid
+			}
+			triggered_desc = {
+				trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+				desc = petition_liege.0205.desc.bureaucrat_position
 			}
 		}
 		desc = petition_liege.0205.desc.bridge
@@ -2893,6 +3022,10 @@ oe_petition_liege.1209 = {
 			triggered_desc = {
 				trigger = { scope:petition_vassal.var:petition_type = flag:legion }
 				desc = petition_liege.0201.desc.war_aid
+			}
+			triggered_desc = {
+				trigger = { scope:petition_vassal.var:petition_type = flag:heir_succession }
+				desc = petition_liege.0201.desc.title_vassal
 			}
 			desc = petition_liege.0201.desc.council_second_party
 		}

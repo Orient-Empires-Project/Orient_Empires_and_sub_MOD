@@ -14,7 +14,7 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
 
-	ai_frequency = 40
+	#ai_frequency = 40
 	is_shown = {	
 		scope:actor = {
 			is_oe_imperial_official_trigger = yes
@@ -27,33 +27,30 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 		NOT = { scope:recipient = scope:actor }
 	}
 	is_valid = {
-
-	}
-
-	has_valid_target_showing_failures_only = {
 		scope:actor = {
 			culture = { has_innovation = innovation_centralization_of_authority }
-			has_realm_law = crown_authority_3
-			NOT = {
-				scope:recipient = {
-					is_legion_government_trigger = yes
-				}
-			}		
-		}
-		scope:secondary_actor = { #候任官
-			is_available_at_peace_adult = yes
-			 #不在活动中
-			OR = {
-				has_trait = lifestyle_bureaucrat
-				has_trait = jinshi
-				has_trait = zhuangyuan
-			}
+			has_realm_law = crown_authority_3	
 		}
 		scope:recipient = { #卸任官
 			is_ai = yes
 			is_at_war = no
-			is_oe_landed_bureaucrat_trigger = yes
+			#is_available_at_peace = yes
+			custom_description = {
+				text = AI_REFUSAL_IS_BUREAU
+				is_oe_landed_bureaucrat_trigger = yes
+			}
+		}
+	}
+
+	has_valid_target_showing_failures_only = {
+		scope:recipient = { #卸任官
+			is_ai = yes
+			is_at_war = no
 			is_available_at_peace = yes
+			custom_description = {
+				text = AI_REFUSAL_IS_BUREAU
+				is_oe_landed_bureaucrat_trigger = yes
+			}
 		}
 	}
 	populate_actor_list = {
@@ -74,21 +71,21 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 				}
 				add_to_list = characters
 			}
-			#every_pool_character = { #首都角色池
-				#limit = {
-					#is_available_healthy_ai_adult = yes
-					#OR = {
-						#has_trait = lifestyle_bureaucrat
-						#has_trait = jinshi
-						#has_trait = zhuangyuan
-					#}
-					#OR = {
-						#location.province_owner = { top_liege = scope:actor.top_liege }
-						#location = scope:actor.top_liege.capital_province
-					#}
-				#}
-				#add_to_list = characters
-			#}
+			every_pool_character = { #首都角色池
+				limit = {
+					is_available_healthy_ai_adult = yes
+					OR = {
+						has_trait = lifestyle_bureaucrat
+						has_trait = jinshi
+						has_trait = zhuangyuan
+					}
+					OR = {
+						location.province_owner = { top_liege = scope:actor.top_liege }
+						location = scope:actor.top_liege.capital_province
+					}
+				}
+				add_to_list = characters
+			}
 		}
 		scope:recipient = { #地方幕僚
 			every_courtier_or_guest = {
@@ -143,6 +140,10 @@ hm_replace_the_bureaucratic_interaction = {  #替换官员
 	}
 		
 	on_accept = {
+		if = {
+			limit = { scope:secondary_actor = { is_landed = yes } }
+			scope:secondary_actor = { depose = yes }
+		}
 		scope:recipient = {
 			create_title_and_vassal_change = {
 				type = granted
@@ -1118,6 +1119,16 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				has_trait = lifestyle_bureaucrat
 				has_trait = jinshi
 				has_trait = zhuangyuan
+			}
+			OR = {
+				is_courtier_of = scope:actor
+				AND = {
+					top_liege = scope:actor
+					OR = {
+						is_landed = no
+						highest_held_title_tier = tier_barony
+					}
+				}				
 			}
 		}
 		scope:recipient = { #卸任官
