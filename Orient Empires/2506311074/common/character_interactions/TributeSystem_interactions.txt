@@ -1,0 +1,1592 @@
+﻿############# TributeSystem_interactions
+# by 往来天地间 WangLaiTianDiJian
+# TributeSystem
+
+#WLTDJ20211219
+#游牧君重写20221230
+
+#不让AI进行解除朝贡、贿赂成为附属国这类操作，一来增加运算量，二来这些操作都有可能对AI造成不利影响，削弱AI（例如要花钱、要承受撕破脸带来的好感度惩罚等）
+
+#游牧君重写20230830
+
+
+offer_tribute_interaction = {#请求成为朝贡国
+	category = interaction_category_vassal
+	icon = icon_vassal
+	use_diplomatic_range = yes
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	
+
+	interface_priority = 60
+	desc = TributeSystem_offer_tribute_desc
+	
+	greeting = positive
+	notification_text = TributeSystem_offer_tribute_notification
+	
+	is_shown = {
+		NOT = {
+			scope:recipient = { has_relation_suzerain = scope:actor }
+		}
+		scope:actor = {
+			TributeSystem_can_be_tributary_of_trigger = { SUZERAIN = scope:recipient }
+		}
+		scope:recipient = {
+			TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = scope:actor }
+		}
+	}
+	
+	is_valid_showing_failures_only = {
+		
+		scope:recipient = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		scope:actor = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		#scope:recipient = { is_available_for_activity_trigger = yes }
+
+		custom_description = {
+			text = "TributeSystem_allegiance_offer_has_been_rejected"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_opinion_modifier = {
+						modifier = offer_tribute_refused_opinion
+						target = scope:recipient
+					}
+				}
+			}
+		}
+		
+	}
+
+	#send_option
+	
+	can_send = {
+		custom_description = { # Exploit prevention
+			text = "has_sent_interaction_already"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_pending_interaction_of_type = TributeSystem_offer_tribute
+				}
+			}
+		}
+	}
+
+	on_auto_accept = {
+		scope:recipient = {
+			trigger_event = TributeSystem.1001
+		}
+	}
+
+	#Use hook
+	send_option = {
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = scope:recipient
+			}
+		}
+		flag = hook	
+		localization = GENERIC_SPEND_A_HOOK
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+
+	send_options_exclusive = no
+		
+	on_accept = {
+		scope:actor = {
+			trigger_event = TributeSystem.1002
+			make_tributary = {
+				TYPE = tributary_non_permanent
+				TRIBUTARY = scope:actor
+				SUZERAIN = scope:recipient
+			}
+			stress_impact = {
+				shy = minor_stress_impact_gain
+			}
+
+			if = {
+				limit = { scope:hook = yes }
+				use_hook = scope:recipient
+			}
+		}
+	}
+	
+	on_decline = {
+		scope:actor = {
+			trigger_event = TributeSystem.1003
+		}
+		scope:actor = {
+			add_opinion = {
+				modifier = offer_tribute_refused_opinion
+				target = scope:recipient
+			}
+		}
+	}
+
+	auto_accept = {
+		custom_description = {
+			text = "spending_hook"
+			subject = scope:actor
+			object = scope:recipient
+			scope:hook = yes
+		}
+	}
+	
+	ai_accept = { # Similar to Negotiate Alliance, but without modifiers for Liege, being an heir, etc.
+		base = -50
+		modifier = {
+			add = 150
+			scope:actor.realm_size > scope:recipient.realm_size
+			desc = will_accept_bigger_trib
+		}
+		modifier = {
+			add = 50
+			scope:actor.realm_size < scope:recipient.realm_size
+			desc = will_accept_smaller_trib			
+		}
+		modifier = {
+			scope:actor = {
+				is_at_war = yes
+			}
+			factor = 0
+			desc = do_not_want_to_fight_trib_war
+		}	
+		modifier = { # Perk boost
+			desc = offer_vassalization_true_ruler_perk_tt
+			trigger = {
+				scope:actor = { has_perk = true_ruler_perk }
+			}
+			add = true_ruler_value
+		}
+
+		#以下照抄原版生活方式解锁的同盟谈判，同盟谈判基础接受度为-25
+		#照抄原版开始
+		# Tier Differences
+		modifier = {
+			scope:actor = {
+				tier_difference = {
+					target = scope:recipient
+					value >= 1
+				}
+			}
+			add = {
+				value = 30
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 2
+						}
+					}
+					add = 30
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 3
+						}
+					}
+					add = 60
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 4
+						}
+					}
+					add = 90
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 5
+						}
+					}
+					add = 120
+				}
+			}
+			desc = RANK_DIFFERENCE_REASON
+		}
+		modifier = {
+			scope:actor = {
+				tier_difference = {
+					target = scope:recipient
+					value <= -1
+				}
+			}
+			add = {
+				value = -30
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -2
+						}
+					}
+					add = -30
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -3
+						}
+					}
+					add = -60
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -4
+						}
+					}
+					add = -90
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -5
+						}
+					}
+					add = -120
+				}
+			}
+			desc = RANK_DIFFERENCE_REASON
+		}
+		opinion_modifier = { # More likely to accept if Recipient likes the Actor
+			who = scope:recipient
+			opinion_target = scope:actor
+			multiplier = 0.25
+			desc = AI_OPINION_REASON
+		}
+		# Dynasty Prestige Levels
+		modifier = {
+			add = -5
+			desc = AI_DYNASTY_PRESTIGE_REASON
+			scope:actor = { has_dynasty = yes }
+			NOT = { scope:actor.dynasty = scope:recipient.dynasty }
+			scope:actor.dynasty = { dynasty_prestige_level = 0 }
+		}
+		modifier = {
+			desc = AI_DYNASTY_PRESTIGE_REASON
+			scope:actor = { has_dynasty = yes }
+			NOT = { scope:actor.dynasty = scope:recipient.dynasty }
+			scope:actor.dynasty = { dynasty_prestige_level >= 2 }
+			add = {
+				value = 10
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 3 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 4 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 5 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 6 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 7 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 8 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 9 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 10 }
+					}
+					add = 5
+				}
+			}
+		}
+		modifier = { #Faith compatibility
+			scope:recipient.faith = {
+				faith_hostility_level = {
+					target = scope:actor.faith
+					value > faith_fully_accepted_level
+				}
+			}
+			add = {
+				value = -20
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_astray_level
+							}
+						}
+					}
+					subtract = 20
+				}
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_hostile_level
+							}
+						}
+					}
+					subtract = 40
+				}
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_evil_level
+							}
+						}
+					}
+					subtract = 60
+				}
+			}
+			desc = MARRY_DIFFERENT_FAITH_REASON
+		}
+		
+		modifier = {
+			add = intimidated_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		
+		modifier = {
+			add = intimidated_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		
+		modifier = {
+	  	  	add = {
+					value = scope:recipient.max_military_strength
+					divide = { value = scope:actor.max_military_strength min = 1 }
+				multiply = 10
+	  		}
+			desc = offer_vassalization_interaction_aibehavior_power_tt
+		}
+		# Recipient is a Claimant to Actor's titles.
+		modifier = {
+			scope:recipient = {
+				any_claim = {
+					holder = scope:actor
+				}
+			}
+			add = {
+				value = -200
+				if = {
+					limit = {
+						NOT = {
+							scope:recipient.house = scope:actor.house
+						}
+					}
+					multiply = 2
+				}
+				if = {
+					limit = {
+						NOT = {
+							scope:recipient.dynasty = scope:actor.dynasty
+						}
+					}
+					multiply = 2
+				}
+				if = {
+					limit = {
+						scope:recipient.dynasty = scope:actor.dynasty
+						OR = {
+							has_trait = bastard
+							has_trait = legitimized_bastard
+						}
+					}
+					multiply = 1.5
+				}
+				if = { # Primary heir will probably inherit the lands after the rulers death
+					limit = {
+						scope:recipient = { is_primary_heir_of = scope:actor }
+					}
+					divide = 4
+				}
+			}
+			desc = IS_CLAIMANT_TO_ACTORS_TITLES
+		}
+		#Actor has claims on recipient's titles.
+		modifier = {
+			scope:actor = {
+				any_claim = {
+					holder = scope:recipient
+				}
+			}
+			add = 25
+			desc = IS_CLAIMANT_TO_RECIPIENT_TITLES
+		}
+		modifier = {
+			scope:recipient = {
+				NOT = {
+					any_claim = {
+						holder = scope:actor
+					}
+				}
+			}
+			scope:recipient.house = scope:actor.house
+			add = 15
+			desc = IS_SAME_HOUSE_REASON
+		}
+		modifier = {
+			scope:recipient = {
+				has_opinion_modifier = {
+					target = scope:actor
+					modifier = declared_war
+				}
+			}
+			add = -100
+			desc = DECLARED_WAR_REASON
+		}
+	}
+	# 照抄原版结束
+	ai_potential = {
+		is_at_war = no
+	}
+	
+	ai_targets = {
+		ai_recipients = neighboring_rulers
+		max = 3
+	}
+	
+	ai_frequency = 72
+	
+	ai_will_do = {
+		base = 0
+		
+		modifier = {
+	  	  	add = {
+				value = scope:recipient.max_military_strength
+				divide = { value = scope:actor.max_military_strength min = 1 }
+				subtract = 1.5
+				multiply = 50
+	  		}
+		}
+		modifier = {
+			scope:recipient.realm_size > scope:actor.realm_size
+			add = 20
+		}
+		modifier = {
+			scope:recipient.realm_size < scope:actor.realm_size
+			factor = 0
+		}
+	}
+	
+}
+
+
+demand_tribute_interaction = {#要求成为朝贡国
+	category = interaction_category_vassal
+	icon = icon_liege
+	use_diplomatic_range = yes
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+
+	interface_priority = 60
+	desc = TributeSystem_demand_tribute_desc
+	
+	greeting = positive
+	notification_text = TributeSystem_demand_tribute_notification
+	
+	is_shown = {
+		scope:actor = {
+			TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = scope:recipient }
+		}
+		scope:recipient = {
+			TributeSystem_can_be_tributary_of_trigger = { SUZERAIN = scope:actor }
+		}
+	}
+	
+	is_valid_showing_failures_only = {
+		
+		scope:recipient = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		scope:actor = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		#scope:recipient = { is_available_for_activity_trigger = yes }
+
+		custom_description = {
+			text = "TributeSystem_allegiance_demand_has_been_rejected"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_opinion_modifier = {
+						modifier = demand_tribute_refused_opinion
+						target = scope:recipient
+					}
+				}
+			}
+		}
+		
+	}
+	
+	can_send = {
+		custom_description = { # Exploit prevention
+			text = "has_sent_interaction_already"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_pending_interaction_of_type = TributeSystem_demand_tribute
+				}
+			}
+		}
+	}
+
+	on_auto_accept = {
+		scope:recipient = {
+			trigger_event = TributeSystem.1004
+		}
+	}
+
+	#Use hook
+	send_option = {
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = scope:recipient
+			}
+		}
+		flag = hook	
+		localization = GENERIC_SPEND_A_HOOK
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+
+	send_options_exclusive = no
+		
+	on_accept = {
+		scope:actor = {
+			trigger_event = TributeSystem.1005
+			make_tributary = {
+				TYPE = tributary_non_permanent
+				TRIBUTARY = scope:recipient
+				SUZERAIN = scope:actor
+			}
+			stress_impact = {
+				shy = minor_stress_impact_gain
+			}
+
+			if = {
+				limit = { scope:hook = yes }
+				use_hook = scope:recipient
+			}
+		}
+	}
+	
+	on_decline = {
+		scope:actor = {
+			trigger_event = TributeSystem.1006
+		}
+		scope:actor = {
+			add_opinion = {
+				modifier = demand_tribute_refused_opinion
+				target = scope:recipient
+			}
+		}
+	}
+
+	auto_accept = {
+		custom_description = {
+			text = "spending_hook"
+			subject = scope:actor
+			object = scope:recipient
+			scope:hook = yes
+		}
+	}
+	
+	ai_accept = { # Similar to Negotiate Alliance, but without modifiers for Liege, being an heir, etc.
+		base = -50
+
+		modifier = {
+			add = -1000
+			scope:actor.realm_size < scope:recipient.realm_size
+			desc = will_not_accept_smaller_suzerain
+		}
+		modifier = {
+			add = 50
+			scope:actor.realm_size > scope:recipient.realm_size
+			desc = will_accept_bigger_suzerain		
+		}
+		modifier = {
+			scope:actor = {
+				is_at_war = yes
+			}
+			factor = 0
+			desc = do_not_want_to_fight_suzerain_war
+		}	
+		modifier = { # Perk boost
+			desc = offer_vassalization_true_ruler_perk_tt
+			trigger = {
+				scope:actor = { has_perk = true_ruler_perk }
+			}
+			add = true_ruler_value
+		}
+
+		#以下照抄原版生活方式解锁的同盟谈判，同盟谈判基础接受度为-25
+		#照抄原版开始
+		# Tier Differences
+		modifier = {
+			scope:actor = {
+				tier_difference = {
+					target = scope:recipient
+					value >= 1
+				}
+			}
+			add = {
+				value = 30
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 2
+						}
+					}
+					add = 30
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 3
+						}
+					}
+					add = 60
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 4
+						}
+					}
+					add = 90
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = 5
+						}
+					}
+					add = 120
+				}
+			}
+			desc = RANK_DIFFERENCE_REASON
+		}
+		modifier = {
+			scope:actor = {
+				tier_difference = {
+					target = scope:recipient
+					value <= -1
+				}
+			}
+			add = {
+				value = -30
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -2
+						}
+					}
+					add = -30
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -3
+						}
+					}
+					add = -60
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -4
+						}
+					}
+					add = -90
+				}
+				if = {
+					limit = {
+						tier_difference = {
+							target = scope:recipient
+							value = -5
+						}
+					}
+					add = -120
+				}
+			}
+			desc = RANK_DIFFERENCE_REASON
+		}
+		opinion_modifier = { # More likely to accept if Recipient likes the Actor
+			who = scope:recipient
+			opinion_target = scope:actor
+			multiplier = 0.25
+			desc = AI_OPINION_REASON
+		}
+		# Dynasty Prestige Levels
+		modifier = {
+			add = -5
+			desc = AI_DYNASTY_PRESTIGE_REASON
+			scope:actor = { has_dynasty = yes }
+			NOT = { scope:actor.dynasty = scope:recipient.dynasty }
+			scope:actor.dynasty = { dynasty_prestige_level = 0 }
+		}
+		modifier = {
+			desc = AI_DYNASTY_PRESTIGE_REASON
+			scope:actor = { has_dynasty = yes }
+			NOT = { scope:actor.dynasty = scope:recipient.dynasty }
+			scope:actor.dynasty = { dynasty_prestige_level >= 2 }
+			add = {
+				value = 10
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 3 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 4 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 5 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 6 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 7 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 8 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 9 }
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						scope:actor.dynasty = { dynasty_prestige_level >= 10 }
+					}
+					add = 5
+				}
+			}
+		}
+		modifier = { #Faith compatibility
+			scope:recipient.faith = {
+				faith_hostility_level = {
+					target = scope:actor.faith
+					value > faith_fully_accepted_level
+				}
+			}
+			add = {
+				value = -20
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_astray_level
+							}
+						}
+					}
+					subtract = 20
+				}
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_hostile_level
+							}
+						}
+					}
+					subtract = 40
+				}
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_evil_level
+							}
+						}
+					}
+					subtract = 60
+				}
+			}
+			desc = MARRY_DIFFERENT_FAITH_REASON
+		}
+		
+		modifier = {
+			add = intimidated_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_reason_value
+			scope:recipient = {
+				target_is_liege_or_above = scope:actor
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		
+		modifier = {
+			add = intimidated_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_external_reason_value
+			scope:recipient = {
+				NOT = { target_is_liege_or_above = scope:actor }
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		
+		modifier = {
+	  	  	add = {
+					value = scope:recipient.max_military_strength
+					divide = { value = scope:actor.max_military_strength min = 1 }
+				multiply = 10
+	  		}
+			desc = offer_vassalization_interaction_aibehavior_power_tt
+		}
+		# Recipient is a Claimant to Actor's titles.
+		modifier = {
+			scope:recipient = {
+				any_claim = {
+					holder = scope:actor
+				}
+			}
+			add = {
+				value = -200
+				if = {
+					limit = {
+						NOT = {
+							scope:recipient.house = scope:actor.house
+						}
+					}
+					multiply = 2
+				}
+				if = {
+					limit = {
+						NOT = {
+							scope:recipient.dynasty = scope:actor.dynasty
+						}
+					}
+					multiply = 2
+				}
+				if = {
+					limit = {
+						scope:recipient.dynasty = scope:actor.dynasty
+						OR = {
+							has_trait = bastard
+							has_trait = legitimized_bastard
+						}
+					}
+					multiply = 1.5
+				}
+				if = { # Primary heir will probably inherit the lands after the rulers death
+					limit = {
+						scope:recipient = { is_primary_heir_of = scope:actor }
+					}
+					divide = 4
+				}
+			}
+			desc = IS_CLAIMANT_TO_ACTORS_TITLES
+		}
+		#Actor has claims on recipient's titles.
+		modifier = {
+			scope:actor = {
+				any_claim = {
+					holder = scope:recipient
+				}
+			}
+			add = 25
+			desc = IS_CLAIMANT_TO_RECIPIENT_TITLES
+		}
+		modifier = {
+			scope:recipient = {
+				NOT = {
+					any_claim = {
+						holder = scope:actor
+					}
+				}
+			}
+			scope:recipient.house = scope:actor.house
+			add = 15
+			desc = IS_SAME_HOUSE_REASON
+		}
+		modifier = {
+			scope:recipient = {
+				has_opinion_modifier = {
+					target = scope:actor
+					modifier = declared_war
+				}
+			}
+			add = -100
+			desc = DECLARED_WAR_REASON
+		}
+	}
+	##照抄原版结束
+	ai_potential = {
+		is_at_war = no
+	}
+	
+	ai_targets = {
+		ai_recipients = neighboring_rulers
+		max = 30
+	}
+	
+	ai_frequency = 72
+	
+	ai_will_do = {
+		base = 0
+		
+		modifier = {
+	  	  	add = {
+				value = scope:recipient.max_military_strength
+				divide = { value = scope:actor.max_military_strength min = 1 }
+				subtract = 1.5
+				multiply = 50
+	  		}
+		}
+		modifier = {
+			scope:actor = {
+				primary_title.tier = tier_kingdom
+			}
+			add = 20
+		}
+		modifier = {
+			scope:actor = {
+				primary_title.tier = tier_empire
+			}
+			add = 30
+		}
+		modifier = {
+			scope:actor = {
+				has_realm_law = crown_authority_1
+			}
+			add = 5
+		}
+		modifier = {
+			scope:actor = {
+				has_realm_law = crown_authority_2
+			}
+			add = 10
+		}
+		modifier = {
+			scope:actor = {
+				has_realm_law = crown_authority_3
+			}
+			add = 20
+		}
+		modifier = {
+			scope:actor = {
+				prestige_level > 3
+			}
+			add = 10
+		}
+		modifier = {
+			scope:actor = {
+				dynasty.dynasty_prestige_level > 3
+			}
+			add = 10
+		}
+		modifier = {
+			scope:actor = {
+				sub_realm_size > 40
+			}
+			add = 10
+		}
+		modifier = {
+			scope:actor = {
+				diplomacy_lifestyle_perk > 10
+			}
+			add = 10
+		}
+		modifier = {
+			scope:actor = {
+				Sinic_trigger_ruler_is_01_trigger = yes
+			}
+			add = 25
+		}
+	}
+	
+}
+
+
+bride_request_tribute_interaction = {#贿赂其成为朝贡国
+	category = interaction_category_vassal
+	icon = icon_liege
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	
+
+	interface_priority = 60
+	desc = TributeSystem_demand_tribute_with_wealth_offer_desc
+	
+	greeting = positive
+	notification_text = TributeSystem_demand_tribute_with_wealth_offer_notification
+	
+	is_shown = {
+		scope:actor = {
+			TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = scope:recipient }
+		}
+		scope:recipient = {
+			TributeSystem_can_be_tributary_of_trigger = { SUZERAIN = scope:actor }
+		}
+	}
+	
+	is_valid_showing_failures_only = {
+		
+		scope:recipient = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		scope:actor = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		#scope:recipient = { is_available_for_activity_trigger = yes }
+
+		custom_description = {
+			text = "TributeSystem_allegiance_demand_has_been_rejected"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_opinion_modifier = {
+						modifier = demand_tribute_refused_opinion
+						target = scope:recipient
+					}
+				}
+			}
+		}
+		
+	}
+	
+	can_send = {
+		custom_description = { # Exploit prevention
+			text = "has_sent_interaction_already"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_pending_interaction_of_type = TributeSystem_demand_tribute_with_wealth_offer
+				}
+			}
+		}
+	}
+
+	on_auto_accept = {
+		scope:recipient = {
+			trigger_event = TributeSystem.1007
+		}
+	}
+
+	#Use hook
+	send_option = {
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = scope:recipient
+			}
+		}
+		flag = hook	
+		localization = GENERIC_SPEND_A_HOOK
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+
+	send_options_exclusive = no
+		
+	on_accept = {
+		scope:actor = {
+			trigger_event = TributeSystem.1008
+			make_tributary = {
+				TYPE = tributary_non_permanent
+				TRIBUTARY = scope:recipient
+				SUZERAIN = scope:actor
+			}
+			TributeSystem_pay_income_function_effect = {
+				ACTOR = scope:actor
+				TARGET = scope:recipient
+				THRESHOLD = 10
+				MONTHS = 24
+			}
+			stress_impact = {
+				shy = minor_stress_impact_gain
+			}
+
+			if = {
+				limit = { scope:hook = yes }
+				use_hook = scope:recipient
+			}
+		}
+	}
+	
+	on_decline = {
+		scope:actor = {
+			trigger_event = TributeSystem.1009
+		}
+		scope:actor = {
+			add_opinion = {
+				modifier = demand_tribute_refused_opinion
+				target = scope:recipient
+			}
+		}
+	}
+
+	auto_accept = yes
+
+	ai_potential = {
+		always = no
+	}
+	
+	ai_will_do = {
+		base = 0
+	}
+	
+}
+
+free_tributary_interaction = {#宗主国抛弃朝贡国
+	category = interaction_category_vassal
+	icon = icon_liege
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	
+
+	interface_priority = 60
+	desc = TributeSystem_suzerain_break_tribute_relation_desc
+	
+	greeting = positive
+	notification_text = TributeSystem_suzerain_break_tribute_relation_notification
+	
+	is_shown = {
+		scope:actor = { has_relation_tributary = scope:recipient }
+	}
+	
+	is_valid_showing_failures_only = {
+		
+		scope:recipient = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		scope:actor = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		#scope:recipient = { is_available_for_activity_trigger = yes }
+	}
+	
+	can_send = {
+		custom_description = { # Exploit prevention
+			text = "has_sent_interaction_already"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_pending_interaction_of_type = TributeSystem_suzerain_break_tribute_relation
+				}
+			}
+		}
+	}
+
+	on_auto_accept = {
+		scope:recipient = {
+			trigger_event = TributeSystem.1010
+		}
+	}
+
+	send_options_exclusive = no
+		
+	on_accept = {
+		scope:actor = {
+			trigger_event = TributeSystem.1011
+			free_tributary_effect = {
+				TRIBUTARY = scope:recipient
+				SUZERAIN = scope:actor
+			}
+
+			stress_impact = {
+				shy = minor_stress_impact_gain
+			}
+		}
+	}
+
+	auto_accept = yes
+
+	ai_potential = {
+		always = no
+	}
+	
+	ai_will_do = {
+		base = 0
+	}
+	
+}
+
+
+break_tributary_interaction = {#朝贡国提出终止朝贡
+	category = interaction_category_vassal
+	icon = icon_vassal
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	
+
+	interface_priority = 60
+	desc = TributeSystem_tributary_break_tribute_relation_desc
+	
+	greeting = positive
+	notification_text = TributeSystem_tributary_break_tribute_relation_notification
+	
+	is_shown = {
+		scope:actor = { has_relation_suzerain = scope:recipient }
+	}
+	
+	is_valid_showing_failures_only = {
+		
+		scope:recipient = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		scope:actor = {
+			is_landed = yes
+			is_at_war = no
+			is_imprisoned = no
+		}
+		
+		#scope:recipient = { is_available_for_activity_trigger = yes }
+	}
+	
+	can_send = {
+		custom_description = { # Exploit prevention
+			text = "has_sent_interaction_already"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_pending_interaction_of_type = TributeSystem_tributary_break_tribute_relation
+				}
+			}
+		}
+	}
+
+	on_auto_accept = {
+		scope:recipient = {
+			trigger_event = TributeSystem.1013
+		}
+	}
+
+	send_options_exclusive = no
+		
+	on_accept = {
+		scope:actor = {
+			trigger_event = TributeSystem.1014
+			free_tributary_effect = {
+				TRIBUTARY = scope:actor
+				SUZERAIN = scope:recipient
+			}
+
+			stress_impact = {
+				shy = minor_stress_impact_gain
+			}
+		}
+	}
+
+	auto_accept = yes
+
+	ai_potential = {
+		always = no
+	}
+	
+	ai_will_do = {
+		base = 0
+	}
+	
+}
+
+
+###################
+# Demand Payment
+# by Petter Vilberg
+###################
+demand_payment_interaction = {
+	category = interaction_category_vassal
+
+	auto_accept = yes
+	use_diplomatic_range = yes
+	icon = icon_liege
+	desc = demand_payment_interaction_desc
+
+	is_shown = {
+		scope:actor = {
+			OR = {
+				has_perk = golden_obligations_perk
+				AND = {
+					any_character_struggle = {
+						involvement = involved
+						has_struggle_phase_parameter = unlocks_demand_payments_for_all
+						is_secondary_character_involvement_either_trigger = {
+							CHAR = scope:recipient
+						}
+					}
+				}
+			}
+		}
+		scope:recipient = {
+			is_ai = yes
+		}
+		NOT = { scope:recipient = scope:actor }
+	}
+
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			is_physically_able_adult = yes
+			NOT = {
+				is_at_war_with = scope:recipient
+			}
+		}
+		scope:recipient = {
+			is_imprisoned = no
+		}
+		scope:recipient = {
+			custom_description = {
+				text = demand_payment_too_little_gold
+				gold >= 1
+			}
+		}
+	}
+
+	is_valid = {
+		scope:actor = {
+			has_usable_hook = scope:recipient
+		}
+	}
+
+	is_highlighted = {
+		scope:actor = {
+			has_usable_hook = scope:recipient
+		}
+	}
+
+	on_accept = {
+		if = {
+			limit = {
+				scope:recipient.gold < scope:recipient.golden_obligation_value
+			}
+			custom_tooltip = demand_payment_too_little_gold_tt
+		}
+		scope:actor = {
+			send_interface_toast = {
+				title = demand_payment_interaction_message
+				left_icon = scope:recipient
+
+				scope:actor = {
+					use_hook = scope:recipient
+				}
+				scope:recipient = {
+					if = {
+						pay_short_term_gold = {
+							target = scope:actor
+							gold = golden_obligation_value
+						}
+						limit = {
+							gold > golden_obligation_value
+						}
+					}
+					else = {
+						pay_short_term_gold = {
+							target = scope:actor
+							gold = {
+								value = scope:recipient.gold
+								floor = yes
+							}
+						}
+					}
+				}
+			}
+			stress_impact = {
+				generous = medium_stress_impact_gain
+			}
+		}
+	}
+	
+	ai_potential = {
+		NOT = {
+			has_trait = generous
+		}
+		OR = {
+			ai_greed >= low_positive_ai_value
+			is_at_war = yes
+		}
+	}
+	
+	ai_target_quick_trigger = {
+		adult = yes
+	}
+	
+	ai_targets = {
+		ai_recipients = hooked_characters
+	}
+	
+	ai_frequency = 36
+	
+	ai_will_do = {
+		base = 100
+
+		modifier = { #ai won't use the interaction if they'll get nothing out of it
+			factor = 0
+			scope:recipient.gold < 8
+		}
+		
+		modifier = {
+			factor = 0
+			scope:actor = {
+				OR = {
+					has_relation_friend = scope:recipient
+					has_relation_lover = scope:recipient
+					has_relation_best_friend = scope:recipient
+					has_relation_soulmate = scope:recipient
+				}
+			}
+		}
+	}
+}

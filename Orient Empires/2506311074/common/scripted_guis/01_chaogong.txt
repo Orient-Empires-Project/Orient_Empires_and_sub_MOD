@@ -1,79 +1,39 @@
-﻿#抄袭一下触手腐化
+﻿
 chaogong_map = {
 	effect = {
-		every_ruler = {
-			limit = { has_title = title:e_celestia	}
-			save_scope_as = celestia_emperor
-		}
-			
 		every_barony = { set_color_from_title = title:k_xia_east }
-		
-		every_ruler = {
-			limit = { has_relation_WLTDJ_suzerain = scope:celestia_emperor }
-			every_realm_county = {
-				every_county_province = {
-					barony = { set_color_from_title = title:e_persia }
-				}
-			}
-		}
-		every_ruler = {
-			limit = { 
-				NOT = { has_relation_WLTDJ_suzerain = scope:celestia_emperor }
-				OR = { 
-					is_allied_to = scope:celestia_emperor
-					#dynasty = { this = scope:celestia_emperor.dynasty } #大量报错
-				} 
-			}
-			every_realm_county = {
-				every_county_province = {
-					barony = { set_color_from_title = title:k_sapmi }
-				}
-			}
-		}
+
 		every_county = {
-			limit = {
-				OR = {
-					holder.top_liege = scope:celestia_emperor
-				}
-			}
-			every_county_province = {
-				barony = { set_color_from_title = title:e_celestia }
-			}
-		}
-		scope:celestia_emperor = {
-			every_neighboring_top_liege_realm_owner = {
+			if = {
 				limit = {
-					highest_held_title_tier = tier_kingdom
-					NOT = { is_allied_to = scope:celestia_emperor }
-					NOT = { has_relation_WLTDJ_suzerain = scope:celestia_emperor }
-					NOT = { dynasty = { this = scope:celestia_emperor.dynasty } }
-				}	
-				save_scope_as = neighboring_other
-				
-				every_realm_county = {
-					every_county_province = {
-						barony = { set_color_from_title = title:k_rajputana }
+					holder.top_liege = {
+						exists = var:my_suzerain
+						var:my_suzerain = {
+							is_alive = yes
+							is_independent_ruler = yes
+						}
 					}
 				}
-				
+				holder.top_liege.var:my_suzerain = { save_scope_as = suzerain }
+				every_county_province = { barony = { set_color_from_title = scope:suzerain.primary_title } }
 			}
-			every_neighboring_top_liege_realm_owner = {
+			else_if = {
 				limit = {
-					highest_held_title_tier > tier_kingdom
-					NOT = { is_allied_to = scope:celestia_emperor }
-					NOT = { has_relation_WLTDJ_suzerain = scope:celestia_emperor }
-					NOT = { dynasty = { this = scope:celestia_emperor.dynasty } }
-				}	
-				save_scope_as = neighboring_high_other
-				
-				every_realm_county = {
-					every_county_province = {
-						barony = { set_color_from_title = title:k_pagan }
+					AND = {
+						holder.top_liege.primary_title = {
+							any_in_de_facto_hierarchy = {
+								continue = { tier >= tier_duchy }
+								holder = { is_suzerain = yes }
+							}
+						}
+						holder.top_liege = {
+							exists = primary_title
+						}
 					}
 				}
-				
+				holder.top_liege = { save_scope_as = suzerain }
+				every_county_province = { barony = { set_color_from_title = scope:suzerain.primary_title } }
 			}
-			
 		}
 	}
 	is_shown = {
@@ -235,28 +195,6 @@ bureaucrat_houses = {
 			limit = { is_ai = no }
 			save_scope_as = bureaucrat_root
 		}
-#		every_ruler = {
-#			if = {
-#				limit = { is_oe_landed_bureaucrat_trigger = yes }
-#				if = {
-#					limit = {
-#						house.house_head = { is_landed = yes }
-#					}
-#					house.house_head = { primary_title = { save_temporary_scope_as = color_titles } }
-#				}
-#				else = {
-#					primary_title = { save_temporary_scope_as = color_titles }
-#				}
-#				every_sub_realm_county = {
-#					every_county_province = {
-#						barony = { set_color_from_title = scope:color_titles }
-#					}
-#				}
-#			}
-#			#else = {
-#				#every_sub_realm_barony = { set_color_from_title = title:e_persia }
-#			#}
-#		}
 		every_ruler = {
 			limit = {
 				dynasty = scope:bureaucrat_root.dynasty

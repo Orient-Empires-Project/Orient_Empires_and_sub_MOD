@@ -144,103 +144,201 @@ window = {
 				# }
 			}
 
-			### Jailor / Imprisoner / Imprisoned by
+			expand = {}
 
-			
-			##宫相
-			container = {
-				name = "great_misit"
-				#blockoverride "portrait_datamodel" {
-					#datamodel = #"[CharacterWindow.GetRelationsOfType( #GetRelation( 'shiyuezhe' ) )]"
-				#}
-				datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation('great_misit') )]"
-				visible = "[GreaterThan_int32(GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation('great_misit') )), '(int32)0' ))]"
-				parentanchor = bottom|right
-				widgetanchor = top|left
-				position = { -105 -250 }
-				allow_outside = yes	
-				using = Animation_Character_Window_Refresh
-				
-				item = {
+			hbox = {
+				margin_top = 50
+				layoutpolicy_horizontal = expanding
+				expand = {}
+
+				### Jailor / Imprisoner / Imprisoned by
+				vbox = {
+					name = "imprisoned_by"
+					datacontext = "[CharacterWindow.GetCharacter.GetImprisonedBy]"
 					visible = "[Character.IsValid]"
-					
+
+					margin_right = 20
+					layoutpolicy_vertical = expanding
+					using = Animation_Character_Window_Refresh
+
 					portrait_head_small = {
 						blockoverride "portrait_transformation"
 						{
 							portrait_scale = { -1 1 }
 							portrait_offset = { 1 0 }
 						}
-						text_label_center = {
-							text = "[great_misit|E]"
-							parentanchor = top|hcenter
-							position = { 0 85 }
-						}
 					}
+
+					text_label_center = {
+						text = "IMPRISONED_BY"
+					}
+					expand = {}
 				}
-				
 
-			}
-
-######往来天地间（开始）
-			container = {
-				name = "WLTDJ_suzerain"
-				datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation('WLTDJ_suzerain') )]"
-				visible = "[EqualTo_int32(GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation('WLTDJ_suzerain') )), '(int32)1' ))]"
-				parentanchor = bottom|right
-				widgetanchor = top|left
-				position = { -105 -250 }
-				allow_outside = yes	
-				using = Animation_Character_Window_Refresh
-				
-				item = {
+				### Hostage Home Court
+				vbox = {
+					name = "hostage_home_court"
+					datacontext = "[CharacterWindow.GetCharacter.GetHomeCourt]"
 					visible = "[Character.IsValid]"
-					
+
+					margin_right = 20
+					layoutpolicy_vertical = expanding
+					using = Animation_Character_Window_Refresh
+
 					portrait_head_small = {
 						blockoverride "portrait_transformation"
 						{
 							portrait_scale = { -1 1 }
 							portrait_offset = { 1 0 }
 						}
-						text_label_center = {
-							text = WLTDJ_suzerain #"[WLTDJ_suzerain|E]"
-							parentanchor = top|hcenter
-							position = { 0 85 }
-						}
 					}
-				}
-			}
-######往来天地间（结束）
 
-			container = {
-				name = "imprisoned_by"
-				datacontext = "[CharacterWindow.GetCharacter.GetImprisonedBy]"
-				visible = "[Character.IsValid]"
-				parentanchor = bottom|right
-				widgetanchor = top|left
-				position = { -195 -250 }
-
-				using = Animation_Character_Window_Refresh
-
-				portrait_head_small = {
-					blockoverride "portrait_transformation"
-					{
-						portrait_scale = { -1 1 }
-						portrait_offset = { 1 0 }
+					text_label_center = {
+						text = "[home_court|E]"
 					}
+					expand = {}
 				}
-
-				text_label_center = {
-					parentanchor = top|hcenter
-					position = { 0 85 }
-					text = "IMPRISONED_BY"
-				}
-			}
 
 			### Liege
+				vbox = {
+					name = "liege"
+					datacontext = "[CharacterWindow.GetCharacter.GetLiegeEvenWhenDead]"
+					visible = "[CharacterWindow.HasLiegeEvenWhenDead]"
+					allow_outside = yes
+
+					margin_right = 20
+					layoutpolicy_vertical = expanding
+					using = Animation_Character_Window_Refresh
+
+					portrait_head_small = {
+						blockoverride "portrait_transformation"
+						{
+							portrait_scale = { -1 1 }
+							portrait_offset = { 1 0 }
+						}
+
+						blockoverride "coa" {
+							coa_realm_tiny = {
+								visible = "[And(CharacterWindow.GetCharacter.IsAlive, CharacterWindow.HasLiegeTitleEvenWhenDead)]"
+								parentanchor = bottom|left
+								position = { 3 -2 }
+								scale = 0.85
+							}
+
+							coa_title_tiny = {
+								visible = "[And(Not(CharacterWindow.GetCharacter.IsAlive), CharacterWindow.HasLiegeTitleEvenWhenDead)]"
+								datacontext = "[CharacterWindow.GetCharacter.GetLiegeTitleEvenWhenDead]"
+								parentanchor = bottom|left
+								position = { 3 -2 }
+								scale = 0.85
+							}
+						}
+					}
+
+					hbox = {
+						spacing = 3
+
+						text_label_center = {
+							datacontext = "[CharacterWindow.GetCharacter]"
+							visible = "[Character.IsHostage]"
+							text = "WARDEN_OF"
+						}
+
+						text_label_center = {
+							datacontext = "[CharacterWindow.GetCharacter]"
+							visible = "[Not( Character.IsHostage )]"
+							text = "[liege|E]"
+						}
+
+						icon = {
+							datacontext = "[CharacterWindow.GetCharacter]"
+							name = "non_dejure_liege"
+							visible = "[Not( Character.GetVassalContract.IsRightfulLiege )]"
+							size = { 30 30 }
+							texture = "gfx/interface/icons/levy_tax_reduction.dds"
+
+							using = tooltip_ws
+							tooltip = "MRW_TT_NOT_RIGHTFUL_LIEGE"
+						}
+					}
+
+
+					portrait_opinion = {
+						name = "liege_opinion"
+
+						datacontext = "[CharacterWindow.GetCharacter]"
+						visible = "[And( Character.GetLiege.IsValid, And( Character.IsAlive, Not(Character.IsLocalPlayer ) ) )]"
+
+						blockoverride "dread_logic" {
+							visible = "[Character.ShouldShowDreadEffectIconFor( Character.GetLiege )]"
+							frame = "[Character.GetDreadEffectIconFrameFor( Character.GetLiege )]"
+							tooltip = "[Character.GetDreadEffectTooltipFor( Character.GetLiege )]"
+						}
+
+						blockoverride "opinion_text"
+						{
+							text = "[Character.GetOpinionOf( Character.GetLiege )|=]"
+							fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.GetLiege )]"
+						}
+
+						blockoverride "ott_heading_text"
+						{
+							text = "[Character.GetOpinionHeadingText( CharacterWindow.GetCharacter.GetLiege )]"
+						}
+
+						blockoverride "ott_opinion_value_text"
+						{
+							text = "[Character.GetOpinionOf( Character.GetLiege )|=]"
+							fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.GetLiege )]"
+						}
+
+						blockoverride "ott_opinion_breakdown_text"
+						{
+							text = "[Character.GetOpinionBreakdownText( CharacterWindow.GetCharacter.GetLiege )]"
+						}
+					}
+					expand = {}
+				}
+			}
+
+			##宫相
+				container = {
+					name = "great_misit"
+					#blockoverride "portrait_datamodel" {
+						#datamodel = #"[CharacterWindow.GetRelationsOfType( #GetRelation( 'shiyuezhe' ) )]"
+					#}
+					datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation('great_misit') )]"
+					visible = "[GreaterThan_int32(GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation('great_misit') )), '(int32)0' ))]"
+					parentanchor = bottom|right
+					widgetanchor = top|left
+					position = { -105 -250 }
+					allow_outside = yes	
+					using = Animation_Character_Window_Refresh
+					
+					item = {
+						visible = "[Character.IsValid]"
+
+						portrait_head_small = {
+							blockoverride "portrait_transformation"
+							{
+								portrait_scale = { -1 1 }
+								portrait_offset = { 1 0 }
+							}
+							text_label_center = {
+								text = "[great_misit|E]"
+								parentanchor = top|hcenter
+								position = { 0 85 }
+							}
+						}
+					}		
+				}
+
+	######往来天地间（开始）
 			container = {
-				name = "liege"
-				datacontext = "[CharacterWindow.GetCharacter.GetLiegeEvenWhenDead]"
-				visible = "[CharacterWindow.HasLiegeEvenWhenDead]"
+				name = "suzerain"
+				datacontext = "[CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter]"
+				#visible = false
+				visible = "[And(CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').IsSet, CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter.IsAlive)]"
 				parentanchor = bottom|right
 				widgetanchor = top|left
 				position = { -105 -250 }
@@ -276,26 +374,12 @@ window = {
 				text_label_center = {
 					parentanchor = top|hcenter
 					position = { 0 85 }
-					text = "[liege|E]"
+					text = "suzerain"
 					allow_outside = yes
-
-					icon = {
-						name = "non_dejure_liege"
-						datacontext = "[CharacterWindow.GetCharacter]"
-						visible = "[Not( Character.GetVassalContract.IsRightfulLiege )]"
-						position = { 3 0 }
-						parentanchor = right
-						widgetanchor = left
-						size = { 30 30 }
-						texture = "gfx/interface/icons/levy_tax_reduction.dds"
-
-						using = tooltip_ws
-						tooltip = "MRW_TT_NOT_RIGHTFUL_LIEGE"
-					}
 				}
 
 				portrait_opinion = {
-					name = "liege_opinion"
+					name = "suzerain_opinion"
 					parentanchor = top|hcenter
 					position = { 0 110 }
 
@@ -303,34 +387,35 @@ window = {
 					visible = "[And( Character.GetLiege.IsValid, And( Character.IsAlive, Not(Character.IsLocalPlayer ) ) )]"
 
 					blockoverride "dread_logic" {
-						visible = "[Character.ShouldShowDreadEffectIconFor( Character.GetLiege )]"
-						frame = "[Character.GetDreadEffectIconFrameFor( Character.GetLiege )]"
-						tooltip = "[Character.GetDreadEffectTooltipFor( Character.GetLiege )]"
+						visible = "[Character.ShouldShowDreadEffectIconFor( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
+						frame = "[Character.GetDreadEffectIconFrameFor( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
+						tooltip = "[Character.GetDreadEffectTooltipFor( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
 					}
 
 					blockoverride "opinion_text"
 					{
-						text = "[Character.GetOpinionOf( Character.GetLiege )|=]"
-						fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.GetLiege )]"
+						text = "[Character.GetOpinionOf( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )|=]"
+						fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
 					}
 
 					blockoverride "ott_heading_text"
 					{
-						text = "[Character.GetOpinionHeadingText( CharacterWindow.GetCharacter.GetLiege )]"
+						text = "[Character.GetOpinionHeadingText( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
 					}
 
 					blockoverride "ott_opinion_value_text"
 					{
-						text = "[Character.GetOpinionOf( Character.GetLiege )|=]"
-						fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.GetLiege )]"
+						text = "[Character.GetOpinionOf( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )|=]"
+						fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
 					}
 
 					blockoverride "ott_opinion_breakdown_text"
 					{
-						text = "[Character.GetOpinionBreakdownText( CharacterWindow.GetCharacter.GetLiege )]"
+						text = "[Character.GetOpinionBreakdownText( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
 					}
 				}
 			}
+	######往来天地间（结束）
 
 			### Host
 			container = {
@@ -618,7 +703,7 @@ window = {
 					visible = "[Character.CanCustomizePortrait]"
 
 					size = { 35 35 }
-					datacontext = "[Character]"
+					datacontext = "[CharacterWindow.AccessCharacter]"
 					tooltip = "CV_CUSTOMIZE_PORTRAIT"
 					using = tooltip_ne
 
@@ -628,9 +713,9 @@ window = {
 					}
 
 					button_barbershop = {
-						#visible = "[Character.CanCustomizePortrait]"
+						visible = "[Character.CanCustomizePortrait]"
 						onclick = "[Character.OnCustomizePortrait]"
-						onclick = "[CharacterInteractionMenuWindow.Close]"
+						onclick = "[CloseGameView( 'character_interaction_menu' )]"
 						size = { 25 25 }
 						parentanchor = center
 					}
@@ -2298,54 +2383,54 @@ window = {
 
 ############往来天地间（开始）
 								vbox_character_row_item = {
-									name = "WLTDJ_suzerain"
-									visible = "[And(CharacterWindow.GetCharacter.IsRuler,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' )))]"
+									name = "suzerain"
+									visible = "[And(CharacterWindow.GetCharacter.IsRuler,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )))]"
 									layoutpolicy_vertical = expanding
 
 									blockoverride "portrait_datamodel" {
-										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'WLTDJ_suzerain' ), '(int32)1' )]"
+										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'suzerain' ), '(int32)1' )]"
 									}
 
 									blockoverride "header_text"
 									{
-										text = "WLTDJ_suzerain_LABEL"
+										text = "suzerain_LABEL"
 									}
 
 									blockoverride "remaining_items"
 									{
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' ))]"
-										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' )|=]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' ))]"
+										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )|=]"
 									}
 
 									blockoverride "expand_button_inside" {
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' )]"
-										onclick = "[CharacterWindow.ToggleExpandedRelation( 'WLTDJ_suzerain' )]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )]"
+										onclick = "[CharacterWindow.ToggleExpandedRelation( 'suzerain' )]"
 									}
 								}
 
 								vbox_character_row_item = {
-									name = "WLTDJ_suzerain_contracted"
-									visible = "[And(CharacterWindow.GetCharacter.IsRuler,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' ))]"
+									name = "suzerain_contracted"
+									visible = "[And(CharacterWindow.GetCharacter.IsRuler,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' ))]"
 									layoutpolicy_vertical = expanding
 
 									blockoverride "portrait_datamodel" {
-										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'WLTDJ_suzerain' ), '(int32)1' )]"
+										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'suzerain' ), '(int32)1' )]"
 									}
 
 									blockoverride "header_text"
 									{
-										text = "WLTDJ_suzerain_LABEL"
+										text = "suzerain_LABEL"
 									}
 
 									blockoverride "remaining_items"
 									{
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' ))]"
-										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' )|=]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' ))]"
+										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )|=]"
 									}
 
 									blockoverride "expand_button_inside" {
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )), '(int32)1' )]"
-										onclick = "[CharacterWindow.ToggleExpandedRelation( 'WLTDJ_suzerain' )]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )]"
+										onclick = "[CharacterWindow.ToggleExpandedRelation( 'suzerain' )]"
 									}
 
 									blockoverride "gridbox"
@@ -2354,7 +2439,7 @@ window = {
 											size = { 80 0 }
 
 											block "portrait_datamodel" {
-												datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'WLTDJ_tributary' ), '(int32)1' )]"
+												datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
 											}
 
 											item = {
@@ -2370,55 +2455,55 @@ window = {
 									}
 								}
 								vbox_character_row_item = {
-									name = "WLTDJ_tributary"
+									name = "tributary"
 									layoutpolicy_vertical = expanding
-									visible = "[And(CharacterWindow.GetCharacter.IsRuler,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' )))]"
+									visible = "[And(CharacterWindow.GetCharacter.IsRuler,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )))]"
 									layoutpolicy_vertical = expanding
 
 									blockoverride "portrait_datamodel" {
-										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'WLTDJ_tributary' ), '(int32)1' )]"
+										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
 									}
 
 									blockoverride "header_text"
 									{
-										text = "WLTDJ_tributary_LABEL"
+										text = "tributary_LABEL"
 									}
 
 									blockoverride "remaining_items"
 									{
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' ))]"
-										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' )|=]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' ))]"
+										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )|=]"
 									}
 
 									blockoverride "expand_button_inside" {
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' )]"
-										onclick = "[CharacterWindow.ToggleExpandedRelation( 'WLTDJ_tributary' )]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )]"
+										onclick = "[CharacterWindow.ToggleExpandedRelation( 'tributary' )]"
 									}
 								}
 
 								vbox_character_row_item = {
-									name = "WLTDJ_tributary_contracted"
-									visible = "[And(CharacterWindow.GetCharacter.IsRuler,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' ))]"
+									name = "tributary_contracted"
+									visible = "[And(CharacterWindow.GetCharacter.IsRuler,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' ))]"
 									layoutpolicy_vertical = expanding
 
 									blockoverride "portrait_datamodel" {
-										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'WLTDJ_tributary' ), '(int32)1' )]"
+										datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
 									}
 
 									blockoverride "header_text"
 									{
-										text = "WLTDJ_tributary_LABEL"
+										text = "tributary_LABEL"
 									}
 
 									blockoverride "remaining_items"
 									{
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' ))]"
-										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' )|=]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' ))]"
+										text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )|=]"
 									}
 
 									blockoverride "expand_button_inside" {
-										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )), '(int32)1' )]"
-										onclick = "[CharacterWindow.ToggleExpandedRelation( 'WLTDJ_tributary' )]"
+										visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )]"
+										onclick = "[CharacterWindow.ToggleExpandedRelation( 'tributary' )]"
 									}
 
 									blockoverride "gridbox"
@@ -2427,7 +2512,7 @@ window = {
 											size = { 80 0 }
 
 											block "portrait_datamodel" {
-												datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'WLTDJ_tributary' ), '(int32)1' )]"
+												datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
 											}
 
 											item = {
@@ -3092,29 +3177,29 @@ window = {
 					}
 
 					scrollbox = {
-						name = "WLTDJ_suzerain_expanded"
-						visible = "[CharacterWindow.IsRelationExpanded( 'WLTDJ_suzerain' )]"
+						name = "suzerain_expanded"
+						visible = "[CharacterWindow.IsRelationExpanded( 'suzerain' )]"
 						size = { 100% 100% }
 
 						blockoverride "scrollbox_replace_vbox" {
 							vbox_character_row_item = {
-								name = "WLTDJ_suzerain"
+								name = "suzerain"
 								margin_top = 10
 								spacing = 5
 
 
 								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_suzerain' ) )]"
+									datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )]"
 								}
 
 								blockoverride "header_text"
 								{
-									text = "WLTDJ_suzerain_LABEL"
+									text = "suzerain_LABEL"
 								}
 
 								blockoverride "expand_button_inside" {
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'WLTDJ_suzerain' )]"
-									down = "[CharacterWindow.IsRelationExpanded( 'WLTDJ_suzerain' )]"
+									onclick = "[CharacterWindow.ToggleExpandedRelation( 'suzerain' )]"
+									down = "[CharacterWindow.IsRelationExpanded( 'suzerain' )]"
 								}
 
 								blockoverride "gridbox_slots" {}
@@ -3123,29 +3208,29 @@ window = {
 					}
 
 					scrollbox = {
-						name = "WLTDJ_tributary_expanded"
-						visible = "[CharacterWindow.IsRelationExpanded( 'WLTDJ_tributary' )]"
+						name = "tributary_expanded"
+						visible = "[CharacterWindow.IsRelationExpanded( 'tributary' )]"
 						size = { 100% 100% }
 
 						blockoverride "scrollbox_replace_vbox" {
 							vbox_character_row_item = {
-								name = "WLTDJ_tributary"
+								name = "tributary"
 								margin_top = 10
 								spacing = 5
 
 
 								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation( 'WLTDJ_tributary' ) )]"
+									datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )]"
 								}
 
 								blockoverride "header_text"
 								{
-									text = "WLTDJ_tributary_LABEL"
+									text = "tributary_LABEL"
 								}
 
 								blockoverride "expand_button_inside" {
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'WLTDJ_tributary' )]"
-									down = "[CharacterWindow.IsRelationExpanded( 'WLTDJ_tributary' )]"
+									onclick = "[CharacterWindow.ToggleExpandedRelation( 'tributary' )]"
+									down = "[CharacterWindow.IsRelationExpanded( 'tributary' )]"
 								}
 
 								blockoverride "gridbox_slots" {}
@@ -3722,7 +3807,8 @@ window = {
 	window_character_filter = {
 		name = "court_character_filter_window"
 		datacontext = "[CharacterWindow.GetCourt]"
-		position = { 525 275 }
+		size = { 510 860 }
+		position = { 525 140 }
 
 		blockoverride "editbox_properties"
 		{
@@ -3782,9 +3868,19 @@ window = {
 				}
 			}
 
-			filter_item = {
+			vbox_filter_group = {
 				layoutpolicy_horizontal = expanding
-				datacontext = "[CharacterSelectionList.GetFilter('dynasty_filter')]"
+				datacontext = "[CharacterSelectionList.GetCategory('politics_filter_category')]"
+				blockoverride "filters" {
+					filter_item = {
+						layoutpolicy_horizontal = expanding
+						datacontext = "[CharacterSelectionList.GetFilter('dynasty_filter')]"
+					}
+					filter_item = {
+						layoutpolicy_horizontal = expanding
+						datacontext = "[CharacterSelectionList.GetFilter('hostage_filter')]"
+					}
+				}
 			}
 		}
 	}
@@ -3792,7 +3888,8 @@ window = {
 	window_character_filter = {
 		name = "vassal_filter_window"
 		datacontext = "[CharacterWindow.GetVassals]"
-		position = { 525 275 }
+		size = { 510 820 }
+		position = { 525 200 }
 
 		blockoverride "editbox_properties"
 		{
@@ -3848,9 +3945,19 @@ window = {
 				}
 			}
 
-			filter_item = {
+			vbox_filter_group = {
 				layoutpolicy_horizontal = expanding
-				datacontext = "[CharacterSelectionList.GetFilter('dynasty_filter')]"
+				datacontext = "[CharacterSelectionList.GetCategory('politics_filter_category')]"
+				blockoverride "filters" {
+					filter_item = {
+						layoutpolicy_horizontal = expanding
+						datacontext = "[CharacterSelectionList.GetFilter('dynasty_filter')]"
+					}
+					filter_item = {
+						layoutpolicy_horizontal = expanding
+						datacontext = "[CharacterSelectionList.GetFilter('hostage_filter')]"
+					}
+				}
 			}
 		}
 	}

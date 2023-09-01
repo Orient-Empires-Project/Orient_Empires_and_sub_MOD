@@ -1,0 +1,150 @@
+﻿############# TributeSystem_on_action
+# by 往来天地间 WangLaiTianDiJian
+# TributeSystem
+
+#WLTDJ20220116
+
+
+on_death = {
+	on_actions = {
+		TributeSystem_succession_effects
+	}
+}
+
+TributeSystem_succession_effects = {
+    effect = {
+        if = { #宗主国换代
+            limit = {
+				is_suzerain = yes
+            }
+			#Copy old Ruler tributaries list to his primary heir (on_death)
+			#Root is old ruler
+            every_in_list = {
+				list = permanent_tributaries
+				save_temporary_scope_as = permanent_tributaries
+				make_tributary = {
+					TRIBUTARY = scope:permanent_tributaries
+					SUZERAIN = root.primary_heir
+					TYPE = var:tributary_type
+				}		
+			}
+			every_in_list = {
+				list = non_permanent_tributaries
+				save_temporary_scope_as = non_permanent_tributaries
+				free_tributary_effect = {
+					TRIBUTARY = scope:non_permanent_tributaries
+					SUZERAIN = root
+				}
+				remove_variable = my_suzerain
+			}
+        }
+        if = { #朝贡国换代
+            limit = {
+                exists = var:my_suzerain
+            }
+            debug_log = "I passed my_suzerain"
+			#give the heir var:my_suzerain
+			#Root is old tributary
+            if = {
+                limit = {
+					exists = var:tributary_type
+					var:tributary_type = permanent_tributaries
+                }
+                debug_log = "I passed trib type check"
+
+				make_tributary = {
+					TRIBUTARY = root.primary_heir
+					SUZERAIN = var:my_suzerain
+					TYPE = var:tributary_type
+				}   
+            }
+            else_if = {
+				limit = {
+					exists = var:tributary_type
+					var:tributary_type = non_permanent_tributaries
+				}
+				free_tributary_effect = {
+					TRIBUTARY = root
+					SUZERAIN = var:my_suzerain
+				}
+				remove_variable = my_suzerain
+            }
+        }
+    }
+}
+
+on_title_lost = {
+    on_actions = {
+        TributeSystem_on_title_lost
+    }
+}
+
+TributeSystem_on_title_lost = {
+    effect = {
+		if = {
+			limit = { exists = var:my_suzerain } #朝贡国失国
+			free_tributary_effect = {
+				TRIBUTARY = root
+				SUZERAIN = var:my_suzerain
+			}
+			remove_variable = my_suzerain
+		}
+		if = {
+			limit = {
+				is_suzerain = yes
+				OR = {
+					is_landed = no
+					is_independent_ruler = no
+					liege = scope:new_holder
+				}
+			} #宗主国失国
+			every_in_list = {
+				list = all_tributaries
+				save_temporary_scope_as = all_tributaries
+			}
+			free_tributary_effect = {
+				TRIBUTARY = scope:all_tributaries
+				SUZERAIN = root
+			}
+		}
+    }
+}
+
+on_title_gain = {
+    on_actions = {
+        TributeSystem_on_gain_lost
+    }
+}
+
+TributeSystem_on_title_gain = {
+	trigger = {
+		scope:transfer_type = flag:swear_fealty
+	}
+    effect = {
+		if = {
+			limit = { exists = var:my_suzerain } #朝贡国失国
+			free_tributary_effect = {
+				TRIBUTARY = root
+				SUZERAIN = var:my_suzerain
+			}
+			remove_variable = my_suzerain
+		}
+		if = {
+			limit = {
+				is_suzerain = yes
+				OR = {
+					is_independent_ruler = no
+					this = scope:old_liege
+				}
+			} #宗主国失国
+			every_in_list = {
+				list = all_tributaries
+				save_temporary_scope_as = all_tributaries
+			}
+			free_tributary_effect = {
+				TRIBUTARY = scope:all_tributaries
+				SUZERAIN = root
+			}
+		}
+    }
+}
