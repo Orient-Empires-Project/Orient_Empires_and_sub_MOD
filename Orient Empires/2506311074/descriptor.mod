@@ -1,4 +1,4 @@
-version="1.9.*"
+version="1.10.*"
 tags={
 	"Graphics"
 	"Map"
@@ -11,5 +11,5 @@ tags={
 	"Bookmarks"
 }
 name="Developer Edition of Oriental Empires"
-supported_version="1.9.*"
+supported_version="1.10.*"
 remote_file_id="2930186367"

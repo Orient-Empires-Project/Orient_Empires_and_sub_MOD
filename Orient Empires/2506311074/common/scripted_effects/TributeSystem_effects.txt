@@ -5,61 +5,247 @@
 
 #UPDATE 20230827
 
-#flag:non_permanent
-#flag:permanent
+#tributary_non_permanent
+#tributary_permanent
 #TYPE = flag:china_tributary
 #flag:karling_tributary
 
 #通用架构
 make_tributary = {
-	$TYPE$ = {
-		TRIBUTARY = $TRIBUTARY$
-		SUZERAIN = $SUZERAIN$
+	if = {
+		limit = {
+			$TRIBUTARY$ = { is_independent_ruler = yes }
+		}
+		$TYPE$ = {
+			TRIBUTARY = $TRIBUTARY$
+			SUZERAIN = $SUZERAIN$
+		}
 	}
 }
 define_tributary = {
 	$TRIBUTARY$ = { 
-		if = {
-			limit = { exists = var:my_suzerain }
-			var:my_suzerain = {
-				free_tributary_effect = {
-					SUZERAIN = this 
-					TRIBUTARY = $TRIBUTARY$
-				}
-			}
-		}
 		set_relation_suzerain = $SUZERAIN$
 
 		set_variable = { name = my_suzerain value = $SUZERAIN$ }
-		set_variable = { name = tributary_type value = $TYPE$ } #设朝贡类型
-		set_variable = { name = tribute_count value = 0 }
+		set_variable = { name = tributary_type value = $TRIBUTARY_BASE_TYPE$ } #临时永久
+		#set_variable = { name = tributary_exp value = 10 } #朝贡得分
+		add_trait = tributary
 	}
+
 	$SUZERAIN$ = {
 		if = {
-			limit = { NOT = { has_variable = suzerain } }
-			set_variable = suzerain
+			limit = {
+				NOT = { has_trait = suzerain }
+			}
+			add_trait = suzerain
 		}
-		every_relation = {
-			type = tributary
-			limit = { var:tributary_type = tributary_permanent }
-			add_to_variable_list = {
-				name = permanent_tributaries
-				target = $TRIBUTARY$
-			}		
+
+		switch = {
+			trigger = $TRIBUTARY_BASE_TYPE$
+
+			flag:permanent = {
+				add_to_variable_list = {
+					name = permanent_tributaries
+					target = $TRIBUTARY$
+				}
+			}
+			flag:non_permanent = {
+				add_to_variable_list = {
+					name = non_permanent_tributaries
+					target = $TRIBUTARY$
+				}
+			}
 		}
+
+		#set_variable = { name = suzerain_exp value = 10 } #宗主得分
+		add_to_variable_list = {
+			name = all_tributaries
+			target = $TRIBUTARY$
+		}
+	}
+}
+
+#停止朝贡
+unset_tributary = {
+	$TRIBUTARY$ = {
+		var:my_suzerain = {
+						
+			if = {
+				limit = {
+					is_target_in_variable_list = { name = non_permanent_tributaries target = prev }
+				}
+				remove_list_variable = { name = non_permanent_tributaries target = prev }
+			}
+			if = {
+				limit = {
+					is_target_in_variable_list = { name = permanent_tributaries target = prev }
+				}
+				remove_list_variable = { name = permanent_tributaries target = prev }
+			}
+			remove_list_variable = { name = all_tributaries target = prev }
+
+		}
+		scope:suzerain = {
+			if = {
+				limit = {
+					has_tributaries = no
+					has_trait = suzerain
+				}
+				remove_trait = suzerain
+			}
+		}
+		remove_relation_suzerain = var:my_suzerain
+
+		remove_trait = tributary	
+		remove_variable = my_suzerain
+		remove_variable = tributary_type
+		#remove_variable = tributary_exp
+	}
+}
+
+#继承朝贡
+pass_tributary_type_to_heir = {
+	$SCOPE$ = {
+		switch = {
+			trigger = $TYPE$
+
+			flag:permanent = {
+				make_tributary = {
+					TYPE = tributary_permanent
+					TRIBUTARY = $TRIBUTARY$
+					SUZERAIN = $NEW_RULER$
+				}	
+			}
+		}
+	}
+}
+
+#夺取朝贡国
+replace_suzerain_effect = {
+	$TRIBUTARY$ = {
 		every_relation = {
-			type = tributary
-			limit = { var:tributary_type = tributary_non_permanent }
-			add_to_variable_list = {
-				name = non_permanent_tributaries
+			type = suzerain
+			$TRIBUTARY$ = { remove_relation_suzerain = this }
+			add_opinion = {
+				modifier = seize_tributary_opinion
+				target = $SUZERAIN$
+			}
+		}
+
+		#remove_variable = tributary_exp
+		remove_variable = my_suzerain
+
+		make_tributary = { SUZERAIN = $SUZERAIN$ TRIBUTARY = $TRIBUTARY$ TYPE = var:tributary_type }
+		add_opinion = {
+			modifier = forced_tributary_opinion
+			target = $SUZERAIN$
+		}
+	}
+}
+
+################
+
+tributary_opinion_effect = {
+	$SUZERAIN$ = {
+		add_trait = suzerain
+	}
+	$TRIBUTARY$ = {
+		add_trait = tributary
+	}
+	$TRIBUTARY$ = {
+		var:my_suzerain = {
+			add_opinion = {
+				modifier = stop_tributary_opinion
 				target = $TRIBUTARY$
 			}
 		}
-		every_relation = {
-			type = tributary
-			add_to_variable_list = {
-				name = all_tributaries
+		add_opinion = {
+			modifier = stop_tributary_opinion
+			target = var:my_suzerain
+		}
+	}
+}
+
+
+tributary_track_effect = {
+	if = {
+		limit = { $TRIBUTARY$ = { TributeSystem_is_civilized_tributary_of_trigger = yes } }
+		$SUZERAIN$ = {
+			add_trait = suzerain
+			add_trait_xp = {
+				trait = tributary
+				track = civilized_suzerain
+				value = var:suzerain_exp
+			}
+			add_opinion = {
+				modifier = tributary_opinion
 				target = $TRIBUTARY$
+			}
+		}
+		$TRIBUTARY$ = {
+			add_trait = tributary
+			add_trait_xp = {
+				trait = tributary
+				track = civilized
+				#value = var:tributary_exp
+			}
+			add_opinion = {
+				modifier = suzerain_opinion
+				target = $SUZERAIN$
+			}
+		}
+	}
+	else_if = {
+		limit = { $TRIBUTARY$ = { TributeSystem_is_league_tributary_of_trigger = yes } }
+		$SUZERAIN$ = {
+			add_trait = suzerain
+			add_trait_xp = {
+				trait = tributary
+				track = league_suzerain
+				value = var:suzerain_exp
+			}
+			add_opinion = {
+				modifier = tributary_opinion
+				target = $TRIBUTARY$
+			}
+		}
+		$TRIBUTARY$ = {
+			add_trait = tributary
+			add_trait_xp = {
+				trait = tributary
+				track = league
+				#value = var:tributary_exp
+			}
+			add_opinion = {
+				modifier = suzerain_opinion
+				target = $SUZERAIN$
+			}
+		}
+	}
+	else_if = {
+		limit = { $TRIBUTARY$ = { TributeSystem_is_hegemony_tributary_of_trigger = yes } }
+		$SUZERAIN$ = {
+			add_trait = suzerain
+			add_trait_xp = {
+				trait = tributary
+				track = hegemony_suzerain
+				value = var:suzerain_exp
+			}
+			add_opinion = {
+				modifier = tributary_opinion
+				target = $TRIBUTARY$
+			}
+		}
+		$TRIBUTARY$ = {
+			add_trait = tributary
+			add_trait_xp = {
+				trait = tributary
+				track = hegemony
+				#value = var:tributary_exp
+			}
+			add_opinion = {
+				modifier = suzerain_opinion
+				target = $SUZERAIN$
 			}
 		}
 	}
@@ -90,13 +276,16 @@ offer_tribute_effect = {
 		}
 	}
 }
-#更多入贡
-offer_once_tribute_effect = {
-	$SUZERAIN$ = {
-		
-	}
+#进贡
+pay_tribute_effect = {
 	$TRIBUTARY$ = { 
-		change_variable = {	name = tribute_count add = 1 }
+		#change_variable = {	name = tributary_exp add = 10 } #改为特质经验
+	}
+}
+#赏赐
+bestow_reward_effect = {
+	$TRIBUTARY$ = { 
+		#change_variable = {	name = tributary_exp add = 10 } #改为特质经验
 	}
 }
 
@@ -122,50 +311,6 @@ demand_tribute_effect = {
 				TRIBUTARY = scope:recipient
 				SUZERAIN = scope:actor
 			}					
-		}
-	}
-}
-
-#释放朝贡国
-free_tributary_effect = {
-	$TRIBUTARY$ = {
-		remove_relation_suzerain = $SUZERAIN$
-		add_opinion = {
-			modifier = free_tributary_opinion
-			target = $SUZERAIN$
-		}
-		remove_variable = my_suzerain
-		remove_variable = tribute_count
-		remove_variable = tributary_type
-		remove_trait = tributary
-	}
-	$SUZERAIN$ = {
-		add_opinion = {
-			modifier = free_tributary_opinion
-			target = $TRIBUTARY$
-		}
-	}
-}
-
-#夺取朝贡国
-replace_suzerain_effect = {
-	$TRIBUTARY$ = {
-		every_relation = {
-			type = suzerain
-			$TRIBUTARY$ = { remove_relation_suzerain = this }
-			add_opinion = {
-				modifier = seize_tributary_opinion
-				target = $SUZERAIN$
-			}
-		}
-
-		remove_variable = tribute_count
-		remove_variable = my_suzerain
-
-		make_tributary = { SUZERAIN = $SUZERAIN$ TRIBUTARY = $TRIBUTARY$ TYPE = var:tributary_type }
-		add_opinion = {
-			modifier = forced_tributary_opinion
-			target = $SUZERAIN$
 		}
 	}
 }
@@ -210,13 +355,7 @@ tributary_non_permanent = {
 	define_tributary = {
 		TRIBUTARY = $TRIBUTARY$
 		SUZERAIN = $SUZERAIN$
-		TYPE = flag:non_permanent
-	}
-	$SUZERAIN$ = {
-		suzerain_non_permanent_effect = yes
-	}
-	$TRIBUTARY$ = {
-
+		TRIBUTARY_BASE_TYPE = flag:non_permanent
 	}
 }
 
@@ -224,14 +363,7 @@ tributary_permanent = {
 	define_tributary = {
 		TRIBUTARY = $TRIBUTARY$
 		SUZERAIN = $SUZERAIN$
-		TYPE = flag:permanent
-	}
-
-	$TRIBUTARY$ = {
-		set_variable = {
-            name = possible_vasalisation_year
-            value = { value = current_year add = 20} 
-        }
+		TRIBUTARY_BASE_TYPE = flag:permanent
 	}
 }
 
@@ -240,60 +372,87 @@ tributary_permanent = {
 #flag:league 	 #互市同盟
 #flag:hegemony   #霸主仆从
 
-tributary_civilized = {
-	define_tributary = {
-		TRIBUTARY = $TRIBUTARY$
-		SUZERAIN = $SUZERAIN$
-		TYPE = flag:civilized_tributary
-	}
-	$SUZERAIN$ = {
-		add_opinion = {
-			modifier = tributary_opinion
-			target = $TRIBUTARY$
+#tributary_civilized = {
+#	define_tributary = {
+#		TRIBUTARY = $TRIBUTARY$
+#		SUZERAIN = $SUZERAIN$
+#		TYPE = flag:civilized_tributary
+#	}
+#}
+#
+#tributary_league = {
+#	define_tributary = {
+#		TRIBUTARY = $TRIBUTARY$
+#		SUZERAIN = $SUZERAIN$
+#		TYPE = flag:civilized_tributary
+#	}
+#}
+#
+#tributary_hegemony = {
+#	define_tributary = {
+#		TRIBUTARY = $TRIBUTARY$
+#		SUZERAIN = $SUZERAIN$
+#		TYPE = flag:civilized_tributary
+#	}
+#}
+
+
+#scope:first.culture = {
+#	change_cultural_acceptance = {
+#		target = scope:second.culture
+#		value = miniscule_cultural_acceptance_gain
+#		desc = pilgrimage_cultural_spread
+#	}
+#}
+
+
+TributeSystem_tribute_relation_validity_check_effect = {
+	if = {
+		limit = {
+			NAND = {
+				$SUZERAIN$ = { TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = $TRIBUTARY$ } }
+				$TRIBUTARY$ = { TributeSystem_can_be_tributary_of_trigger = { SUZERAIN = $SUZERAIN$ } }
+			}
 		}
-	}
-	$TRIBUTARY$ = {
-		add_trait = tributary
-		add_trait_xp = {
-			trait = tributary
-			track = civilized
-			value = medium_lifestyle_random_xp_high
+
+		$SUZERAIN$ = {
+			if = {
+                limit = {
+                    is_target_in_variable_list = { name = non_permanent_tributaries target = $TRIBUTARY$ }
+                }
+                remove_list_variable = { name = non_permanent_tributaries target = $TRIBUTARY$ }
+            }
+            if = {
+                limit = {
+                    is_target_in_variable_list = { name = permanent_tributaries target = $TRIBUTARY$ }
+                }
+                remove_list_variable = { name = permanent_tributaries target = $TRIBUTARY$ }
+            }
+            remove_list_variable = { name = all_tributaries target = $TRIBUTARY$ }
+			remove_trait = suzerain
+			send_interface_message = {
+				type = event_diplomacy_bad_with_text
+				left_icon = $SUZERAIN$
+				right_icon = $TRIBUTARY$
+				title = TributeSystem_relation_validity_check_01_desc.tt
+				desc = TributeSystem_relation_validity_check_01_desc
+			}
 		}
-		add_opinion = {
-			modifier = suzerain_opinion
-			target = $SUZERAIN$
+		$TRIBUTARY$ = {
+			remove_relation_suzerain = $SUZERAIN$
+			remove_variable = tributary_type
+			remove_variable = my_suzerain
+			remove_trait = tributary
+			send_interface_message = {
+				type = event_diplomacy_bad_with_text
+				left_icon = $SUZERAIN$
+				right_icon = $TRIBUTARY$
+				title = TributeSystem_relation_validity_check_02_desc.tt
+				desc = TributeSystem_relation_validity_check_02_desc
+			}
 		}
 	}
 }
 
-tributary_league = {
-	define_tributary = {
-		TRIBUTARY = $TRIBUTARY$
-		SUZERAIN = $SUZERAIN$
-		TYPE = flag:civilized_tributary
-	}
-	$TRIBUTARY$ = {
-		add_trait = tributary
-		add_trait_xp = {
-			trait = tributary
-			track = league
-			value = medium_lifestyle_random_xp_high
-		}
-	}
-}
 
-tributary_hegemony = {
-	define_tributary = {
-		TRIBUTARY = $TRIBUTARY$
-		SUZERAIN = $SUZERAIN$
-		TYPE = flag:civilized_tributary
-	}
-	$TRIBUTARY$ = {
-		add_trait = tributary
-		add_trait_xp = {
-			trait = tributary
-			track = hegemony
-			value = medium_lifestyle_random_xp_high
-		}
-	}
-}
+#更换礼服
