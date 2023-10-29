@@ -7,8 +7,6 @@
 
 #tributary_non_permanent
 #tributary_permanent
-#TYPE = flag:china_tributary
-#flag:karling_tributary
 
 #通用架构
 make_tributary = {
@@ -30,6 +28,7 @@ define_tributary = {
 		set_variable = { name = tributary_type value = $TRIBUTARY_BASE_TYPE$ } #临时永久
 		#set_variable = { name = tributary_exp value = 10 } #朝贡得分
 		add_trait = tributary
+		primary_title = { set_color_from_title = $SUZERAIN$.primary_title }
 	}
 
 	$SUZERAIN$ = {
@@ -93,13 +92,15 @@ unset_tributary = {
 				}
 				remove_trait = suzerain
 			}
+			remove_variable = suzerain_exp_gain
 		}
 		remove_relation_suzerain = var:my_suzerain
 
 		remove_trait = tributary	
 		remove_variable = my_suzerain
 		remove_variable = tributary_type
-		#remove_variable = tributary_exp
+		remove_variable = tributary_exp_gain
+		primary_title = { set_color_from_title = $TRIBUTARY$.primary_title.title_capital_county } #换成首都伯爵领颜色
 	}
 }
 
@@ -155,12 +156,12 @@ tributary_opinion_effect = {
 	$TRIBUTARY$ = {
 		var:my_suzerain = {
 			add_opinion = {
-				modifier = stop_tributary_opinion
+				modifier = tributary_opinion
 				target = $TRIBUTARY$
 			}
 		}
 		add_opinion = {
-			modifier = stop_tributary_opinion
+			modifier = tributary_opinion
 			target = var:my_suzerain
 		}
 	}
@@ -169,13 +170,13 @@ tributary_opinion_effect = {
 
 tributary_track_effect = {
 	if = {
-		limit = { $TRIBUTARY$ = { TributeSystem_is_civilized_tributary_of_trigger = yes } }
+		limit = { $SUZERAIN$ = { TributeSystem_suzerain_is_civilized_trigger = yes } }
 		$SUZERAIN$ = {
 			add_trait = suzerain
 			add_trait_xp = {
 				trait = tributary
 				track = civilized_suzerain
-				value = var:suzerain_exp
+				value = var:suzerain_exp_gain
 			}
 			add_opinion = {
 				modifier = tributary_opinion
@@ -187,7 +188,7 @@ tributary_track_effect = {
 			add_trait_xp = {
 				trait = tributary
 				track = civilized
-				#value = var:tributary_exp
+				#value = var:tributary_exp_gain
 			}
 			add_opinion = {
 				modifier = suzerain_opinion
@@ -196,13 +197,13 @@ tributary_track_effect = {
 		}
 	}
 	else_if = {
-		limit = { $TRIBUTARY$ = { TributeSystem_is_league_tributary_of_trigger = yes } }
+		limit = { $SUZERAIN$ = { TributeSystem_suzerain_is_league_trigger = yes } }
 		$SUZERAIN$ = {
 			add_trait = suzerain
 			add_trait_xp = {
 				trait = tributary
 				track = league_suzerain
-				value = var:suzerain_exp
+				value = var:suzerain_exp_gain
 			}
 			add_opinion = {
 				modifier = tributary_opinion
@@ -214,7 +215,7 @@ tributary_track_effect = {
 			add_trait_xp = {
 				trait = tributary
 				track = league
-				#value = var:tributary_exp
+				#value = var:tributary_exp_gain
 			}
 			add_opinion = {
 				modifier = suzerain_opinion
@@ -223,13 +224,13 @@ tributary_track_effect = {
 		}
 	}
 	else_if = {
-		limit = { $TRIBUTARY$ = { TributeSystem_is_hegemony_tributary_of_trigger = yes } }
+		limit = { $SUZERAIN$ = { TributeSystem_suzerain_is_hegemony_trigger = yes } }
 		$SUZERAIN$ = {
 			add_trait = suzerain
 			add_trait_xp = {
 				trait = tributary
 				track = hegemony_suzerain
-				value = var:suzerain_exp
+				value = var:suzerain_exp_gain
 			}
 			add_opinion = {
 				modifier = tributary_opinion
@@ -241,7 +242,7 @@ tributary_track_effect = {
 			add_trait_xp = {
 				trait = tributary
 				track = hegemony
-				#value = var:tributary_exp
+				#value = var:tributary_exp_gain
 			}
 			add_opinion = {
 				modifier = suzerain_opinion
@@ -249,6 +250,35 @@ tributary_track_effect = {
 			}
 		}
 	}
+}
+
+#宗主国增长点数
+suzerain_track_effect = {
+	if = {
+		limit = { TributeSystem_suzerain_is_civilized_trigger = yes }
+		add_trait_xp = {
+			trait = suzerain
+			track = civilized_suzerain
+			value = var:suzerain_exp_gain
+		}
+	}
+	else_if = {
+		limit = { TributeSystem_suzerain_is_league_trigger = yes }
+		add_trait_xp = {
+			trait = tributary
+			track = league_suzerain
+			value = var:suzerain_exp_gain
+		}
+	}
+	else_if = {
+		limit = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+		add_trait_xp = {
+			trait = tributary
+			track = hegemony_suzerain
+			value = var:suzerain_exp_gain
+		}
+	}
+	remove_variable = suzerain_exp_gain
 }
 
 #入贡
@@ -260,8 +290,8 @@ offer_tribute_effect = {
 			}
 			make_tributary = {
 				TYPE = tributary_non_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
+				TRIBUTARY = scope:actor
+				SUZERAIN = scope:recipient
 			}				
 		}	
 		if = {
@@ -270,48 +300,63 @@ offer_tribute_effect = {
 			}	
 			make_tributary = {
 				TYPE = tributary_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
+				TRIBUTARY = scope:actor
+				SUZERAIN = scope:recipient
 			}					
 		}
 	}
 }
+
+#要求入贡
+demand_tribute_effect = {
+	scope:recipient = {
+		if = {
+			limit = {
+				scope:non_permanent_trib = yes
+			}
+			make_tributary = {
+				TYPE = tributary_non_permanent
+				SUZERAIN = scope:actor
+				TRIBUTARY = scope:recipient
+			}
+		}
+		else_if = {
+			limit = {
+				scope:permanent_trib = yes
+			}
+			make_tributary = {
+				TYPE = tributary_permanent
+				SUZERAIN = scope:actor
+				TRIBUTARY = scope:recipient
+			}		
+		}
+	}
+}
+
 #进贡
 pay_tribute_effect = {
-	$TRIBUTARY$ = { 
-		#change_variable = {	name = tributary_exp add = 10 } #改为特质经验
+	#朝贡国
+	scope:actor = {
+		add_character_flag =  {
+			flag = payed_tribute
+			years = 3
+		}
+		reverse_add_opinion = {
+			target = scope:recipient
+			modifier = humbled_opinion
+			opinion = var:tributary_exp_gain
+		}
+		trigger_event = TributeSystem.1016  #选类型
+	}
+	#宗主国
+	scope:recipient = {
+		trigger_event = TributeSystem.1017 #选择赏赐规模，选择加点类型
 	}
 }
 #赏赐
 bestow_reward_effect = {
 	$TRIBUTARY$ = { 
 		#change_variable = {	name = tributary_exp add = 10 } #改为特质经验
-	}
-}
-
-#索贡
-demand_tribute_effect = {
-	scope:actor = {
-		if = {
-			limit = {
-				scope:permanent_trib = yes
-			}
-			make_tributary = {
-				TYPE = tributary_non_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
-			}				
-		}	
-		if = {
-			limit = {
-				scope:non_permanent_trib = yes
-			}	
-			make_tributary = {
-				TYPE = tributary_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
-			}					
-		}
 	}
 }
 
@@ -372,39 +417,6 @@ tributary_permanent = {
 #flag:league 	 #互市同盟
 #flag:hegemony   #霸主仆从
 
-#tributary_civilized = {
-#	define_tributary = {
-#		TRIBUTARY = $TRIBUTARY$
-#		SUZERAIN = $SUZERAIN$
-#		TYPE = flag:civilized_tributary
-#	}
-#}
-#
-#tributary_league = {
-#	define_tributary = {
-#		TRIBUTARY = $TRIBUTARY$
-#		SUZERAIN = $SUZERAIN$
-#		TYPE = flag:civilized_tributary
-#	}
-#}
-#
-#tributary_hegemony = {
-#	define_tributary = {
-#		TRIBUTARY = $TRIBUTARY$
-#		SUZERAIN = $SUZERAIN$
-#		TYPE = flag:civilized_tributary
-#	}
-#}
-
-
-#scope:first.culture = {
-#	change_cultural_acceptance = {
-#		target = scope:second.culture
-#		value = miniscule_cultural_acceptance_gain
-#		desc = pilgrimage_cultural_spread
-#	}
-#}
-
 
 TributeSystem_tribute_relation_validity_check_effect = {
 	if = {
@@ -431,7 +443,7 @@ TributeSystem_tribute_relation_validity_check_effect = {
             remove_list_variable = { name = all_tributaries target = $TRIBUTARY$ }
 			remove_trait = suzerain
 			send_interface_message = {
-				type = event_diplomacy_bad_with_text
+				type = event_toast_text_and_effect_bad
 				left_icon = $SUZERAIN$
 				right_icon = $TRIBUTARY$
 				title = TributeSystem_relation_validity_check_01_desc.tt
@@ -444,7 +456,7 @@ TributeSystem_tribute_relation_validity_check_effect = {
 			remove_variable = my_suzerain
 			remove_trait = tributary
 			send_interface_message = {
-				type = event_diplomacy_bad_with_text
+				type = event_toast_text_and_effect_bad
 				left_icon = $SUZERAIN$
 				right_icon = $TRIBUTARY$
 				title = TributeSystem_relation_validity_check_02_desc.tt
@@ -455,4 +467,336 @@ TributeSystem_tribute_relation_validity_check_effect = {
 }
 
 
+TributeSystem_suzerain_validity_check_effect = {
+	if = {
+		limit = {
+			has_trait = suzerain
+			is_suzerain = no
+		}
+		remove_trait = suzerain
+	}
+}
+###################################
+#互动花费点数通用效果
+
+#必须写 EXP = num
+change_tribute_exp_effect = {
+	scope:actor = {
+		#宗主国
+		if = {
+			limit = { is_suzerain = yes }
+			if = {
+				limit = { TributeSystem_suzerain_is_civilized_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = civilized_suzerain
+					value = $EXP$
+				}
+			}
+			else_if = {
+				limit = { TributeSystem_suzerain_is_league_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = league_suzerain
+					value = $EXP$
+				}
+			}
+			else_if = {
+				limit = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = hegemony_suzerain
+					value = $EXP$
+				}	
+			}
+		}
+		#朝贡国
+		if = {
+			limit = { is_tributary = yes }
+			if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = civilized
+					value = $EXP$
+				}
+			}
+			else_if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_league_trigger = yes }
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = league
+					value = $EXP$
+				}
+			}
+			else_if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = hegemony
+					value = $EXP$
+				}		
+			}
+		}
+	}
+}
+
+#获取点数  注意用在 scope:actor  tribute_exp_gain 已赋值
+gain_tribute_exp_effect = {
+	scope:actor = {
+		#宗主国
+		if = {
+			limit = { is_suzerain = yes }
+			if = {
+				limit = { TributeSystem_suzerain_is_civilized_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = civilized_suzerain
+					value = tribute_exp_gain
+				}
+			}
+			else_if = {
+				limit = { TributeSystem_suzerain_is_league_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = league_suzerain
+					value = tribute_exp_gain
+				}
+			}
+			else_if = {
+				limit = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = hegemony_suzerain
+					value = tribute_exp_gain
+				}	
+			}
+		}
+		#朝贡国 只增长与宗主对称的点数
+		if = {
+			limit = { is_tributary = yes }
+			if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = civilized
+					value = tribute_exp_gain
+				}
+			}
+			else_if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_league_trigger = yes }
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = league
+					value = tribute_exp_gain
+				}
+			}
+			else_if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = hegemony
+					value = tribute_exp_gain
+				}		
+			}
+		}
+	}
+}
+
+#花费点数  注意用在 scope:actor  tribute_exp_loss 已赋值
+spend_tribute_exp_effect = {
+	scope:actor = {
+		#宗主国
+		if = {
+			limit = { is_suzerain = yes }
+			if = {
+				limit = { TributeSystem_suzerain_is_civilized_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = civilized_suzerain
+					value = tribute_exp_loss
+				}
+			}
+			else_if = {
+				limit = { TributeSystem_suzerain_is_league_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = league_suzerain
+					value = tribute_exp_loss
+				}
+			}
+			else_if = {
+				limit = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+				add_trait_xp = {
+					trait = suzerain
+					track = hegemony_suzerain
+					value = tribute_exp_loss
+				}	
+			}
+			else = {
+				spend_prestige_by_tier_effect = yes
+			}
+		}
+		#朝贡国
+		if = {
+			limit = { is_tributary = yes }
+			if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
+					has_trait_xp = {
+						trait = tributary
+						track = civilized
+						value >= tribute_exp_cost
+					}
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = civilized
+					value = tribute_exp_loss
+				}
+			}
+			else_if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_league_trigger = yes }
+					has_trait_xp = {
+						trait = tributary
+						track = league
+						value >= tribute_exp_cost
+					}
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = league
+					value = tribute_exp_loss
+				}
+			}
+			else_if = {
+				limit = {
+					var:my_suzerain = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+					has_trait_xp = {
+						trait = tributary
+						track = hegemony
+						value >= tribute_exp_cost
+					}
+				}
+				add_trait_xp = {
+					trait = tributary
+					track = hegemony
+					value = tribute_exp_loss
+				}		
+			}
+			else = {
+				spend_prestige_by_tier_effect = yes
+			}
+		}
+	}
+}
+
+spend_prestige_by_tier_effect = {
+	if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_county
+		}
+		add_prestige = minor_prestige_loss
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_duchy
+		}
+		add_prestige = medium_prestige_loss
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_kingdom
+		}
+		add_prestige = major_prestige_loss
+	}
+	else = {
+		add_prestige = massive_prestige_loss
+	}
+}
+
+call_triburary_or_suzerain_to_war = {
+	if = {
+		limit = {
+			exists = scope:target
+			scope:recipient = {
+				NOR = {
+					is_at_war_with = scope:target.primary_defender
+					is_at_war_with = scope:target.primary_attacker
+				}
+			}
+		}
+		scope:target = {
+			hidden_effect = {
+				set_called_to = scope:recipient
+			}
+			if = {
+				limit = {
+					is_attacker = scope:actor
+				}
+				add_attacker = scope:recipient
+			}
+			else = {
+				add_defender = scope:recipient
+			}
+		}				
+	}
+}
+
+swing_tribute_exp_guts_effect = {
+	# Prestige.
+	if = {
+		limit = { scope:swing_prestige = yes }
+		show_as_tooltip = {
+			add_prestige = {
+				value = swing_tribute_exp_prestige_cost_value
+				multiply = -1
+			}
+		}
+	}
+	# Piety.
+	else_if = {
+		limit = { scope:swing_piety = yes }
+		show_as_tooltip = {
+			add_piety = {
+				value = swing_tribute_exp_piety_cost_value
+				multiply = -1
+			}
+		}
+	}
+	# Cash.
+	else_if = {
+		limit = { scope:swing_gold = yes }
+		show_as_tooltip = {
+			pay_short_term_gold = {
+				target = scope:recipient
+				gold = swing_tribute_exp_cash_cost_value
+			}
+		}
+		# Scope:actor actually loses their gold when paying the admission price for the interaction, so we silently give scope:recipient gold from nowhere instead.
+		hidden_effect = {
+			scope:recipient = { add_gold = scope:actor.swing_tribute_exp_cash_cost_value }
+		}
+	}
+	# Hook.
+	else_if = {
+		limit = { scope:swing_hook = yes }
+		use_hook = scope:recipient
+	}
+}
+
 #更换礼服
+#取消帝国宣称

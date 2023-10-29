@@ -107,8 +107,8 @@ TributeSystem_succession_effects = {
 						is_permanent_tributary = yes
 					}
 					make_tributary = {
-						SUZERAIN = root
-						TRIBUTARY = scope:previous_holder.var:my_suzerain
+						SUZERAIN = scope:previous_holder.var:my_suzerain
+						TRIBUTARY = root
 						TYPE = tributary_permanent
 					}      
 				}
@@ -120,6 +120,7 @@ TributeSystem_succession_effects = {
 				#remove_trait = tributary
 			}
         }
+		TributeSystem_suzerain_validity_check_effect = yes
     }
 }
 
@@ -238,6 +239,7 @@ TributeSystem_on_title_lost = {
 				TRIBUTARY = scope:tributary
 			}
 		}
+		TributeSystem_suzerain_validity_check_effect = yes
     }
 }
 
@@ -278,6 +280,7 @@ TributeSystem_on_vassal_gained = {
 				}
 			}
 		}
+		TributeSystem_suzerain_validity_check_effect = yes
 	}
 }
 
@@ -326,14 +329,27 @@ TributeSystem_on_rank_change = {
 				TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = root TRIBUTARY = scope:tributary }
 			}
 		}
+		TributeSystem_suzerain_validity_check_effect = yes
 	}
 }
 
-#yearly_playable_pulse = {
-#	on_actions = {
-#		TributeSystem_all_at_year_start_on_action
-#	}
-#}
+yearly_playable_pulse = {
+	on_actions = {
+		TributeSystem_all_at_year_start_on_action
+	}
+}
+TributeSystem_all_at_year_start_on_action = {
+	effect = {
+		every_ruler = {
+			if = {
+				limit = {
+					has_character_modifier = offer_income_modifier
+				}
+				change_tribute_exp_effect = { EXP = var:offer_income }
+			}
+		}
+	}
+}
 #TributeSystem_all_at_year_start_on_action = {
 #	effect = {
 #		every_ruler = {
@@ -378,3 +394,53 @@ TributeSystem_on_rank_change = {
 #}
 #on_remove_relation_suzerain = {	
 #}
+
+petition_suzerain_ghosted = {
+	effect = {
+		if = {
+			limit = {
+				has_variable = petition_liege_scope 
+			}
+			trigger_event = petition_suzerain.0009
+		}
+	}
+}
+
+petition_suzerain_0101 = {
+	effect = {
+		if = {
+			limit = {
+				scope:petition_liege = {
+					is_alive = yes 
+					is_imprisoned = no
+				}
+				scope:petition_vassal = {
+					is_alive = yes
+					is_imprisoned = no
+				}
+			}
+			trigger_event = petition_suzerain.0101
+		}
+		else = {
+			trigger_event = petition_suzerain.0601
+		}
+	}
+}
+
+petition_liege_0201 = {
+	effect = {
+		if = {
+			limit = {
+				petition_suzerain_valid_trigger = yes
+			}
+			scope:petition_vassal = {
+				trigger_event = {
+					id = petition_suzerain.0201
+				}
+			}
+		}
+		else = {
+			trigger_event = petition_suzerain.0601
+		}
+	}
+}

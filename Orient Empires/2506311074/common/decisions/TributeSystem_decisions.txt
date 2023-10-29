@@ -1,0 +1,469 @@
+#朝贡请求
+petition_suzerain_decision = {
+	ai_check_interval = 0
+	picture = "gfx/interface/illustrations/decisions/decision_knight_kneeling.dds"
+	major = yes
+
+	cost = {
+		prestige = standard_activity_cost
+	}
+
+	cooldown = {
+		days = standard_petition_liege_cooldown_time
+	}
+
+	is_shown = {
+		is_independent_ruler = yes
+		is_tributary = yes
+		exists = var:my_suzerain
+	}
+
+	is_valid_showing_failures_only = {
+		is_available_adult = yes
+		liege = { is_available_adult = yes }
+		is_at_war_with_liege = no
+		custom_tooltip = {
+			text = petition_liege_council_no_petition_valid_tt
+			OR = {
+				# Pay Debt
+				gold <= -100
+				# War Aid
+				AND = {
+					petition_liege_war_aid_trigger = yes
+					petition_liege_war_aid_share_trigger = yes
+				}
+				# Bailiffs
+				any_held_title = { petition_liege_county_control_trigger = yes }
+				# Convert
+				AND = {
+					faith = var:my_suzerain.faith
+					any_held_title = { petition_liege_county_convert_trigger = yes }
+				}
+				# Opinions
+				any_held_title = { petition_liege_county_opinion_trigger = yes }
+				# Fortify
+				AND = {
+					any_held_title = { petition_liege_fortify_border_trigger = yes }
+					NOT = { var:my_suzerain.gold < 0 }
+				}
+				# Construct City
+				AND = {
+					culture = { has_innovation = innovation_city_planning }
+					var:my_suzerain.culture = { has_innovation = innovation_city_planning }
+					any_held_title = { petition_liege_construct_city_trigger = yes }
+					var:my_suzerain.gold > main_building_tier_1_cost
+				}
+				# Construct Temple
+				AND = {
+					culture = { has_innovation = innovation_city_planning }
+					var:my_suzerain.culture = { has_innovation = innovation_city_planning }
+					any_held_title = { petition_liege_construct_temple_trigger = yes }
+					var:my_suzerain.gold > main_building_tier_1_cost
+				}
+				# Development
+				var:my_suzerain.capital_province.county.development_level >= petitioner_development_difference_decision_value
+				# Innovation
+
+			}
+		}
+
+		trigger_if = {
+			limit = {
+				is_ai = no
+				has_royal_court = yes
+			}
+			has_spawned_court_events = no # should only be used for human players
+		}
+
+		trigger_if = { # Pay Debt
+			limit = { scope:petition_liege_pay_debt = yes }
+			custom_tooltip = {
+				text = petition_liege_pay_debt_me_tt
+				gold <= -100
+			}
+			custom_tooltip = {
+				text = petition_liege_pay_debt_liege_tt
+				var:my_suzerain.gold >= petitioner_debt_positivization_root_value
+			}
+		}
+		trigger_if = { # War Aid
+			limit = { scope:petition_liege_war_aid = yes }
+			custom_tooltip = { # Must not be in any war involving liege
+				text = petition_liege_war_aid_liege_tt
+				petition_liege_war_aid_share_trigger = yes
+			}
+			custom_tooltip = { # Losing an external war
+				text = petition_liege_war_aid_tt
+				petition_liege_war_aid_trigger = yes
+			}
+			custom_tooltip = { # Liege not at war themselves
+				text = petition_liege_internal_war_aid_tt
+				petition_war_aid_liege_ally_value >= petition_war_aid_rebels_value
+			}
+			custom_tooltip = { # Liege not at war themselves
+				text = petition_liege_external_war_aid_tt
+				petition_liege_war_liege_involvement_trigger = yes
+			}
+		}
+		trigger_if = { # Bailiffs
+			limit = { scope:petition_liege_county_control = yes }
+			custom_tooltip = {
+				text = petition_liege_county_control_tt
+				any_held_title = { petition_liege_county_control_trigger = yes }
+			}
+		}
+		trigger_if = { # Convert
+			limit = { scope:petition_liege_county_convert = yes }
+			faith = var:my_suzerain.faith
+			custom_tooltip = {
+				text = petition_liege_county_convert_tt
+				any_held_title = { petition_liege_county_convert_trigger = yes }
+			}
+		}
+		trigger_if = { # Opinion
+			limit = { scope:petition_liege_county_opinion = yes }
+			custom_tooltip = {
+				text = petition_liege_county_opinion_tt
+				any_held_title = { petition_liege_county_opinion_trigger = yes }
+			}
+		}
+		trigger_if = { # Fortify
+			limit = { scope:petition_liege_fortify_border = yes }
+			custom_tooltip = {
+				text = petition_liege_fortify_border_tt
+				any_held_title = { petition_liege_fortify_border_trigger = yes }
+			}
+			custom_tooltip = {
+				text = petition_liege_debt_tt
+				NOT = { var:my_suzerain.gold < 0 }
+			}
+		}
+		trigger_if = { # Construct City
+			limit = { scope:petition_liege_construct_city = yes }
+			custom_tooltip = {
+				text = petition_liege_construct_city_tt
+				any_held_title = { petition_liege_construct_city_trigger = yes }
+			}
+			custom_tooltip = {
+				text = petition_liege_construct_city_liege_tt
+				var:my_suzerain.gold > main_building_tier_1_cost
+			}
+		}
+		trigger_if = { # Construct Temple
+			limit = { scope:petition_liege_construct_temple = yes }
+			custom_tooltip = {
+				text = petition_liege_construct_temple_tt
+				any_held_title = { petition_liege_construct_temple_trigger = yes }
+			}
+			custom_tooltip = {
+				text = petition_liege_construct_city_liege_tt
+				var:my_suzerain.gold > main_building_tier_1_cost
+			}
+		}
+		trigger_if = { # Development
+			limit = { scope:petition_liege_development = yes }
+			custom_tooltip = {
+				text = petition_liege_development_tt
+				var:my_suzerain.capital_province.county.development_level >= petitioner_development_difference_decision_value
+			}
+		}
+	}
+
+	widget = {
+		gui = "decision_view_widget_petition_liege"
+		controller = decision_option_list_controller
+		decision_has_second_step = yes
+		decision_custom_widget_container = "custom_widgets_container_step_two"
+		decision_to_second_step_button = "CHOOSE_PETITION_DECISION_NEXT_STEP_BUTTON"
+
+		### General
+		item = { # Debt
+			value = petition_liege_pay_debt
+			is_valid = {
+				custom_tooltip = { # In debt
+					text = petition_liege_pay_debt_me_tt
+					gold <= -100
+				}
+				custom_tooltip = { # Liege can afford your debt
+					text = petition_liege_pay_debt_liege_tt
+					var:my_suzerain.gold >= petitioner_debt_positivization_root_value
+				}
+			}
+			current_description = petition_suzerain_pay_debt_desc
+			localization = petition_suzerain_decision_effects_pay_debt
+			icon = "gfx/interface/icons/message_feed/steward_job.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		### Wars
+		item = { # War Aid
+			value = petition_liege_war_aid
+			is_valid = {
+				custom_tooltip = { # Must not be in any war involving liege
+					text = petition_liege_war_aid_liege_tt
+					petition_liege_war_aid_share_trigger = yes
+				}
+				custom_tooltip = { # Losing an external war
+					text = petition_liege_war_aid_tt
+					petition_liege_war_aid_trigger = yes
+				}
+				custom_tooltip = { # Liege not at war themselves
+					text = petition_liege_internal_war_aid_tt
+					petition_war_aid_liege_ally_value >= petition_war_aid_rebels_value
+				}
+				custom_tooltip = { # Liege not at war themselves
+					text = petition_liege_external_war_aid_tt
+					petition_liege_war_liege_involvement_trigger = yes
+				}
+			}
+			current_description = petition_suzerain_war_aid_desc
+			localization = petition_suzerain_decision_option_war_aid
+			icon = "gfx/interface/icons/message_feed/war.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		### Counties
+		item = { # Control
+			value = petition_liege_county_control
+			is_valid = {
+				custom_tooltip = {
+					text = petition_liege_county_control_tt
+					any_held_title = { petition_liege_county_control_trigger = yes }
+				}
+			}
+			current_description = petition_suzerain_county_control_desc
+			localization = petition_suzerain_decision_option_county_control
+			icon = "gfx/interface/icons/message_feed/control.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		item = { # Convert
+			value = petition_liege_county_convert
+			is_valid = {
+				custom_tooltip = {
+					text = petition_liege_faith_tt
+					faith = var:my_suzerain.faith
+				}
+				custom_tooltip = {
+					text = petition_liege_county_convert_tt
+					any_held_title = { petition_liege_county_convert_trigger = yes }
+				}
+			}
+			current_description = petition_suzerain_county_convert_desc
+			localization = petition_suzerain_decision_option_county_convert
+			icon = "gfx/interface/icons/message_feed/bishop.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		item = { # Opinion
+			value = petition_liege_county_opinion
+			is_valid = {
+				custom_tooltip = {
+					text = petition_liege_county_opinion_tt
+					any_held_title = { petition_liege_county_opinion_trigger = yes }
+				}
+			}
+			current_description = petition_suzerain_county_opinion_desc
+			localization = petition_suzerain_decision_option_county_opinion
+			icon = "gfx/interface/icons/message_feed/tier_up.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		### Construction/Development
+		item = { # Fortify
+			value = petition_liege_fortify_border
+			is_valid = {
+				custom_tooltip = {
+					text = petition_liege_fortify_border_tt
+					any_held_title = { petition_liege_fortify_border_trigger = yes }
+				}
+			}
+			current_description = petition_suzerain_fortify_border_desc
+			localization = petition_suzerain_decision_option_fortify_border
+			icon = "gfx/interface/icons/message_feed/marshal_job.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		item = { # Construct City
+			value = petition_liege_construct_city
+			is_valid = {
+				custom_tooltip = {
+					text = petition_liege_city_planning_innovation_tt
+					culture = { has_innovation = innovation_city_planning }
+					var:my_suzerain.culture = { has_innovation = innovation_city_planning }
+				}
+				custom_tooltip = {
+					text = petition_liege_construct_city_tt
+					any_held_title = { petition_liege_construct_city_trigger = yes }
+				}
+				custom_tooltip = {
+					text = petition_liege_holding_tt
+					var:my_suzerain.gold > main_building_tier_1_cost
+				}
+			}
+			current_description = petition_suzerain_construct_city_desc
+			localization = petition_suzerain_decision_option_construct_city
+			icon = "gfx/interface/icons/message_feed/building.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		item = { # Construct Temple
+			value = petition_liege_construct_temple
+			is_valid = {
+				custom_tooltip = {
+					text = petition_liege_city_planning_innovation_tt
+					culture = { has_innovation = innovation_city_planning }
+					var:my_suzerain.culture = { has_innovation = innovation_city_planning }
+				}
+				custom_tooltip = {
+					text = petition_liege_faith_tt
+					faith = var:my_suzerain.faith
+				}
+				custom_tooltip = {
+					text = petition_liege_construct_temple_tt
+					any_held_title = { petition_liege_construct_temple_trigger = yes }
+				}
+				custom_tooltip = {
+					text = petition_liege_holding_tt
+					var:my_suzerain.gold > main_building_tier_1_cost
+				}
+			}
+			current_description = petition_suzerain_construct_temple_desc
+			localization = petition_suzerain_decision_option_construct_temple
+			icon = "gfx/interface/icons/message_feed/religious.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+		item = { # Development
+			value = petition_liege_development
+			is_valid = {
+				custom_tooltip = {
+					text = petition_liege_development_tt
+					var:my_suzerain.capital_province.county.development_level >= petitioner_development_difference_decision_value
+				}
+			}
+			current_description = petition_suzerain_development_desc
+			localization = petition_suzerain_decision_option_development
+			icon = "gfx/interface/icons/message_feed/guest.dds"
+			ai_chance = { value = 0 } # Currently unused
+		}
+	}
+
+	effect = {
+		custom_tooltip = petition_liege_decision_effects
+		if = {
+			limit = {
+				liege = { is_ai = yes }
+			}
+			custom_description_no_bullet = { text = petition_liege_warning_effect }
+		}
+		show_as_tooltip = {
+			switch = {
+				trigger = has_trait 
+				shy = { add_stress = medium_stress_impact_gain }
+				arrogant = { add_stress = medium_stress_impact_gain }
+			}
+		}
+		if = { # Council
+			limit = { scope:petition_liege_council_seat = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:council_seat
+			}
+		}
+		else_if = { # Debt
+			limit = { scope:petition_liege_pay_debt = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:pay_debt
+			}
+		}
+		else_if = { # War Aid
+			limit = { scope:petition_liege_war_aid = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:war_aid
+			}
+		}
+		else_if = { # Vassal War
+			limit = { scope:petition_liege_vassal_war = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:vassal_war
+			}
+		}
+		else_if = { # Faction War
+			limit = { scope:petition_liege_faction_war = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:faction_war
+			}
+		}
+		else_if = { # County
+			limit = { scope:petition_liege_county_control = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:county_control
+			}
+		}
+		else_if = { # Convert
+			limit = { scope:petition_liege_county_convert = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:county_convert
+			}
+		}
+		else_if = { # Opinion
+			limit = { scope:petition_liege_county_opinion = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:county_opinion
+			}
+		}
+		else_if = { # Fortify
+			limit = { scope:petition_liege_fortify_border = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:fortify_border
+			}
+		}
+		else_if = { # Title Liege
+			limit = { scope:petition_liege_title_liege = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:title_liege
+			}
+		}
+		else_if = { # Title Vassal
+			limit = { scope:petition_liege_title_vassal = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:title_vassal
+			}
+		}
+		else_if = { # Construct City
+			limit = { scope:petition_liege_construct_city = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:construct_city
+			}
+		}
+		else_if = { # Construct Temple
+			limit = { scope:petition_liege_construct_temple = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:construct_temple
+			}
+		}
+		else_if = { # Development
+			limit = { scope:petition_liege_development = yes }
+			set_variable = {
+				name = petition_type
+				value = flag:development
+			}
+		}
+		start_travel_plan = {
+			destination = var:my_suzerain.capital_province
+			on_start_on_action = petition_liege_start
+			on_travel_planner_cancel_on_action = petition_liege_travel_planner_exit 
+			on_arrival_event = petition_suzerain.9000
+			on_arrival_destinations = all_but_last
+		}
+	}
+	
+	ai_potential = {
+		always = no # Only players can do this. AI vassals go through the normal court events/hold court activity.
+	}
+}
