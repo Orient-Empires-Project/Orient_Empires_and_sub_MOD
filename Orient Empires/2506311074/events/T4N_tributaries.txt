@@ -1,0 +1,402 @@
+﻿namespace = tributaries
+
+#Clear "Roadblocks"
+
+## Jamie-san: tributaries.1 and tributaries.2 now placed directly in on action to make sure that variable lists are removed from dead character before becoming invalid
+
+#Attacker may or may mot become new suzerain
+#Root = scope:tributaries_slash_suzerain_war_winner
+#scope:tributary_slash_suzerain_loser = scope:defender
+tributaries.3 = {
+	type = character_event
+	hidden = yes
+	
+	immediate = {
+		
+		scope:tributary_slash_suzerain_loser = {
+			if = {
+				limit = {
+					is_suzerain = yes
+					OR = {
+						is_independent_ruler = no
+						is_landed = no
+					}
+				}
+				every_in_list = {
+					variable = permanent_tributaries
+						
+					set_variable = { name = my_suzerain value = root }
+					root = {
+						add_to_variable_list = { name = permanent_tributaries target = prev }
+						add_to_variable_list = { name = all_tributaries target = prev }
+					}
+				}
+				clear_variable_list = permanent_tributaries
+				clear_variable_list = non_permanent_tributaries
+			}
+			else_if = {
+				limit = {
+					is_tributary = yes
+					OR = {
+						is_independent_ruler = no
+						is_landed = no
+					}
+				}
+				if = {
+					limit = {
+						is_permanent_tributary = {
+							SUZERAIN = var:my_suzerain
+							TRIBUTARY = scope:tributary_slash_suzerain_loser
+						}
+					}
+					unset_tributary = {
+						TRIBUTARY = scope:tributary_slash_suzerain_loser
+						TRIBUTARY_BASE_TYPE = flag:permanent
+					}
+				}	
+				else = {
+					unset_tributary = {
+						TRIBUTARY = scope:tributary_slash_suzerain_loser
+						TRIBUTARY_BASE_TYPE = flag:non_permanent
+					}
+				}
+			}
+		}
+	}
+}
+
+#Suzerain no longer have any tributaries
+#on_monthly_tribute
+#Root is suzerain
+tributaries.4 = {
+	type = character_event
+	hidden = yes
+
+	trigger = {
+		NOR = {
+			is_suzerain = yes
+			has_tributaries = yes
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					has_permanent_tributaries = yes
+				}
+			}
+			clear_variable_list = permanent_tributaries
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_non_permanent_tributaries = yes
+				}
+			}
+			clear_variable_list = non_permanent_tributaries
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_tributaries = yes
+				}
+			}
+			clear_variable_list = permanent_tributaries
+			clear_variable_list = non_permanent_tributaries
+		}
+	}
+}
+
+
+#Monthly income from tributes
+#on_monthly_tribute
+#Root is suzerain
+tributaries.5 = {
+	type = character_event
+	hidden = yes
+
+	immediate = {
+		#reset everything to 0
+		set_variable = {
+			name = cash_display
+			value = 0
+		}
+		set_variable = {
+			name = prestige_display
+			value = 0
+		}
+		set_variable = {
+			name = piety_display
+			value = 0
+		}
+		if = {
+			limit = {
+				has_non_permanent_tributaries = yes
+			}
+			every_in_list = {
+				variable = non_permanent_tributaries
+				pay_long_term_gold = { target = prev gold = { value = monthly_character_income  multiply = var:tribute_gold_percent }}
+				add_prestige = var:monthly_prestige_tributary
+				add_piety = var:monthly_piety_tributary
+				root = {
+					add_prestige = prev.var:monthly_prestige_suzerain
+					add_piety = prev.var:monthly_piety_suzerain
+					change_variable = {
+						name = cash_display
+						add = { value = prev.monthly_character_income multiply = prev.var:tribute_gold_percent }
+					}
+					change_variable = {
+						name = prestige_display
+						add = prev.var:monthly_prestige_suzerain
+					}
+					change_variable = {
+						name = piety_display
+						add = prev.var:monthly_piety_suzerain
+					}
+				}
+				
+			}
+		}
+		if = {
+			limit = {
+				has_permanent_tributaries = yes
+			}
+			every_in_list = {
+				variable = permanent_tributaries
+
+				pay_long_term_gold = { target = prev gold = { value = monthly_character_income  multiply = var:tribute_gold_percent }}
+				add_prestige = var:monthly_prestige_tributary
+				add_piety = var:monthly_piety_tributary
+				root = {
+					add_prestige = prev.var:monthly_prestige_suzerain
+					add_piety = prev.var:monthly_piety_suzerain
+					change_variable = {
+						name = cash_display
+						add = { value = prev.monthly_character_income multiply = prev.var:tribute_gold_percent }
+					}
+					change_variable = {
+						name = prestige_display
+						add = prev.var:monthly_prestige_suzerain
+					}
+					change_variable = {
+						name = piety_display
+						add = prev.var:monthly_piety_suzerain
+					}
+				}		
+
+			}
+		}
+	}
+}
+
+#Suzerain is called to permanent tributary war
+#on_war_started
+#Root is suzerain
+#call_to_arms_tribute is defender
+#UNUSED RN to readd in 1.2.1
+tributaries.6 = {
+	type = letter_event
+	opening = {
+		desc = tributary_6_tit
+	}
+	desc = tributary_6_desc
+	sender = {
+		character = scope:call_to_arms_tribute
+		animation = war_defender
+	}
+
+	option = {
+		name = suzerain_joins_the_war
+		add_piety = minor_piety_value
+		scope:call_to_arms_tribute = {
+			if = {
+				limit = {
+					root = {
+						NOR = {
+							is_at_war_as_defender = yes
+							is_at_war_with = scope:call_to_arms_tribute
+						}
+					}
+				}
+				if = {
+					limit = {
+						scope:call_to_arms_tribute = {
+							is_at_war_as_attacker = yes
+						}
+					}
+					add_attacker = root
+				}
+				else_if = {
+					limit = {
+						scope:call_to_arms_tribute = {
+							is_at_war_as_defender = yes
+						}
+					}
+					add_defender = root
+				}
+				else = {
+					debug_log = "Something broke, report to typical"
+				}
+			}
+			trigger_event = { id = tributaries.8 } #tributary gets a positive response
+		}	
+	}
+
+	option = {
+		name = suzerain_refuses_to_join_war
+		add_prestige = major_prestige_loss
+		save_scope_as = former_suzerain
+		scope:call_to_arms_tribute = {
+			trigger_event = { id = tributaries.7 } #tributary gets a negative response
+		}
+	}
+}
+
+#Tribute gets negative a response from suzerain
+#root is defender and former tribute
+tributaries.7 = {
+	type = letter_event
+	opening = {
+		desc = tributary_7_tit
+	}
+	desc = tributary_7_desc
+	sender = {
+		character = scope:former_suzerain
+		animation = personality_dishonorable
+	}
+
+	option = { #stop paying tribute
+		name = tribute_stop_war
+		scope:former_suzerain = {
+			remove_list_variable = { name = permanent_tributaries target = prev }
+			remove_list_variable = { name = all_tributaries target = prev }
+		}
+		remove_variable = my_suzerain
+	}
+}
+
+#Tributary is informed that it no longer needs to pay tribute
+tributaries.8 = {
+	type = letter_event
+	opening = {
+		desc = tributaries.8_opening
+	}
+	desc = tributaries.8_desc
+	sender = scope:actor
+
+	immediate = {
+		custom_tooltip = stops_paying_tribute
+	}
+
+	option = {
+		name = nice
+	}	
+}
+
+#Response from new trib
+#Root is suzerain
+tributaries.9 = {
+	type = letter_event
+	opening = {
+		desc = tributaries.9_opening
+	}
+	desc = tributaries.9_desc
+	sender = scope:recipient
+
+	immediate = {
+	}
+
+	option = {
+		name = nice
+	}
+}	
+
+#Response from new suzerain
+#Root is new trib
+tributaries.10 = {
+	type = letter_event
+	opening = {
+		desc = tributaries.10_opening
+	}
+	desc = tributaries.10_desc
+	sender = scope:my_suzerain_evt
+
+	immediate = {
+		custom_tooltip = becomes_a_trib
+	}
+
+	option = {
+		name = nice
+	}
+}	
+
+#Response from ruler
+#Root is suzerain
+tributaries.11 = {
+	type = letter_event
+	opening = {
+		desc = tributaries.11_opening
+	}
+	desc = tributaries.11_desc
+	sender = scope:not_trib
+
+	option = {
+		name = no_trib_sad
+	}
+}
+
+#Response from Ruler
+#Root is nearly tributary
+tributaries.12 = {
+	type = letter_event
+	opening = {
+		desc = tributaries.12_opening
+	}
+	desc = tributaries.12_desc
+	sender = scope:not_suzerain
+
+	option = {
+		name = tribute_denied
+	}
+}	
+
+#Call to arms recived from suzerain
+#Root is tributary
+#UNUSED RN to readd in 1.2.1
+tributaries.13 = {
+	type = letter_event
+	opening = {
+		desc = tributaries.13_opening
+	}
+	desc = tributaries.13_opening
+	sender = scope:suzerain_cta_caller
+
+	option = {
+		name = join_suzerain_war
+		scope:suzerain_cta_caller = {
+			ordered_character_war = {
+				if = {
+					limit = {
+						prev = {
+							is_attacker_in_war = prev
+						}
+					}
+					add_attacker = root
+				}
+				if = {
+					limit = {
+						prev = {
+							is_defender_in_war = prev
+						}
+					}
+					add_defender = root
+				}
+			}
+		}
+	}
+
+	option = {
+		name = do_not_join_suzerain_war
+	}
+}
