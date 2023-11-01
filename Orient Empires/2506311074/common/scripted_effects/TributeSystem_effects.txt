@@ -5,10 +5,6 @@
 
 #UPDATE 20230827
 
-#tributary_non_permanent
-#tributary_permanent
-#TYPE = flag:china_tributary
-#flag:karling_tributary
 
 #通用架构
 make_tributary = {
@@ -22,6 +18,24 @@ make_tributary = {
 		}
 	}
 }
+######################################
+#Base Types
+tributary_non_permanent = {
+	define_tributary = {
+		TRIBUTARY = $TRIBUTARY$
+		SUZERAIN = $SUZERAIN$
+		TRIBUTARY_BASE_TYPE = flag:non_permanent
+	}
+}
+
+tributary_permanent = {
+	define_tributary = {
+		TRIBUTARY = $TRIBUTARY$
+		SUZERAIN = $SUZERAIN$
+		TRIBUTARY_BASE_TYPE = flag:permanent
+	}
+}
+######################################
 define_tributary = {
 	$TRIBUTARY$ = { 
 		set_relation_suzerain = $SUZERAIN$
@@ -30,6 +44,7 @@ define_tributary = {
 		set_variable = { name = tributary_type value = $TRIBUTARY_BASE_TYPE$ } #临时永久
 		#set_variable = { name = tributary_exp value = 10 } #朝贡得分
 		add_trait = tributary
+		primary_title = { set_color_from_title = $SUZERAIN$.primary_title }
 	}
 
 	$SUZERAIN$ = {
@@ -93,13 +108,18 @@ unset_tributary = {
 				}
 				remove_trait = suzerain
 			}
+			remove_variable = suzerain_exp_gain
 		}
 		remove_relation_suzerain = var:my_suzerain
 
 		remove_trait = tributary	
 		remove_variable = my_suzerain
 		remove_variable = tributary_type
-		#remove_variable = tributary_exp
+		remove_variable = tributary_exp_gain
+		primary_title = {
+			if = { limit = { is_titular = no } }
+			set_color_from_title = $TRIBUTARY$.primary_title.title_capital_county 
+		} #换成首都伯爵领颜色
 	}
 }
 
@@ -119,6 +139,56 @@ pass_tributary_type_to_heir = {
 		}
 	}
 }
+
+
+#入贡
+offer_tribute_effect = {
+	if = {
+		limit = {
+			scope:permanent_trib = yes
+		}
+		make_tributary = {
+			TYPE = tributary_non_permanent
+			TRIBUTARY = scope:actor
+			SUZERAIN = scope:recipient
+		}				
+	}	
+	if = {
+		limit = {
+			scope:non_permanent_trib = yes
+		}	
+		make_tributary = {
+			TYPE = tributary_permanent
+			TRIBUTARY = scope:actor
+			SUZERAIN = scope:recipient
+		}					
+	}
+}
+
+#要求入贡
+demand_tribute_effect = {
+	if = {
+		limit = {
+			scope:non_permanent_trib = yes
+		}
+		make_tributary = {
+			TYPE = tributary_non_permanent
+			SUZERAIN = scope:actor
+			TRIBUTARY = scope:recipient
+		}
+	}
+	else_if = {
+		limit = {
+			scope:permanent_trib = yes
+		}
+		make_tributary = {
+			TYPE = tributary_permanent
+			SUZERAIN = scope:actor
+			TRIBUTARY = scope:recipient
+		}		
+	}
+}
+
 
 #夺取朝贡国
 replace_suzerain_effect = {
@@ -143,268 +213,26 @@ replace_suzerain_effect = {
 	}
 }
 
-################
-
-tributary_opinion_effect = {
-	$SUZERAIN$ = {
-		add_trait = suzerain
-	}
-	$TRIBUTARY$ = {
-		add_trait = tributary
-	}
-	$TRIBUTARY$ = {
-		var:my_suzerain = {
-			add_opinion = {
-				modifier = stop_tributary_opinion
-				target = $TRIBUTARY$
-			}
-		}
-		add_opinion = {
-			modifier = stop_tributary_opinion
-			target = var:my_suzerain
-		}
-	}
-}
-
-
-tributary_track_effect = {
-	if = {
-		limit = { $TRIBUTARY$ = { TributeSystem_is_civilized_tributary_of_trigger = yes } }
-		$SUZERAIN$ = {
-			add_trait = suzerain
-			add_trait_xp = {
-				trait = tributary
-				track = civilized_suzerain
-				value = var:suzerain_exp
-			}
-			add_opinion = {
-				modifier = tributary_opinion
-				target = $TRIBUTARY$
-			}
-		}
-		$TRIBUTARY$ = {
-			add_trait = tributary
-			add_trait_xp = {
-				trait = tributary
-				track = civilized
-				#value = var:tributary_exp
-			}
-			add_opinion = {
-				modifier = suzerain_opinion
-				target = $SUZERAIN$
-			}
-		}
-	}
-	else_if = {
-		limit = { $TRIBUTARY$ = { TributeSystem_is_league_tributary_of_trigger = yes } }
-		$SUZERAIN$ = {
-			add_trait = suzerain
-			add_trait_xp = {
-				trait = tributary
-				track = league_suzerain
-				value = var:suzerain_exp
-			}
-			add_opinion = {
-				modifier = tributary_opinion
-				target = $TRIBUTARY$
-			}
-		}
-		$TRIBUTARY$ = {
-			add_trait = tributary
-			add_trait_xp = {
-				trait = tributary
-				track = league
-				#value = var:tributary_exp
-			}
-			add_opinion = {
-				modifier = suzerain_opinion
-				target = $SUZERAIN$
-			}
-		}
-	}
-	else_if = {
-		limit = { $TRIBUTARY$ = { TributeSystem_is_hegemony_tributary_of_trigger = yes } }
-		$SUZERAIN$ = {
-			add_trait = suzerain
-			add_trait_xp = {
-				trait = tributary
-				track = hegemony_suzerain
-				value = var:suzerain_exp
-			}
-			add_opinion = {
-				modifier = tributary_opinion
-				target = $TRIBUTARY$
-			}
-		}
-		$TRIBUTARY$ = {
-			add_trait = tributary
-			add_trait_xp = {
-				trait = tributary
-				track = hegemony
-				#value = var:tributary_exp
-			}
-			add_opinion = {
-				modifier = suzerain_opinion
-				target = $SUZERAIN$
-			}
-		}
-	}
-}
-
-#入贡
-offer_tribute_effect = {
-	scope:recipient = {
-		if = {
-			limit = {
-				scope:permanent_trib = yes
-			}
-			make_tributary = {
-				TYPE = tributary_non_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
-			}				
-		}	
-		if = {
-			limit = {
-				scope:non_permanent_trib = yes
-			}	
-			make_tributary = {
-				TYPE = tributary_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
-			}					
-		}
-	}
-}
 #进贡
 pay_tribute_effect = {
-	$TRIBUTARY$ = { 
-		#change_variable = {	name = tributary_exp add = 10 } #改为特质经验
-	}
-}
-#赏赐
-bestow_reward_effect = {
-	$TRIBUTARY$ = { 
-		#change_variable = {	name = tributary_exp add = 10 } #改为特质经验
-	}
-}
-
-#索贡
-demand_tribute_effect = {
+	#朝贡国
 	scope:actor = {
-		if = {
-			limit = {
-				scope:permanent_trib = yes
-			}
-			make_tributary = {
-				TYPE = tributary_non_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
-			}				
-		}	
-		if = {
-			limit = {
-				scope:non_permanent_trib = yes
-			}	
-			make_tributary = {
-				TYPE = tributary_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
-			}					
+		add_character_flag =  {
+			flag = payed_tribute
+			years = 3
 		}
-	}
-}
-
-#赏赐岁币？
-TributeSystem_pay_income_function_effect = {
-	$ACTOR$ = {
-		if = {
-			limit = { $TARGET$.monthly_character_income > $THRESHOLD$ }
-			$ACTOR$ = {
-				save_temporary_scope_value_as = {
-					name = temp_gold
-					value = { value = $TARGET$.monthly_character_income multiply = $MONTHS$ }
-				}
-				pay_short_term_gold = {
-					target = $TARGET$
-					gold = scope:temp_gold
-				}
-				
-			}
+		reverse_add_opinion = {
+			target = scope:recipient
+			modifier = humbled_opinion
+			opinion = var:tributary_exp_gain
 		}
-		else = {
-			$ACTOR$ = {
-				save_temporary_scope_value_as = {
-					name = temp_gold
-					value = { value = $THRESHOLD$ multiply = $MONTHS$ }
-				}
-				pay_short_term_gold = {
-					target = $TARGET$
-					gold = scope:temp_gold
-				}
-			}
-		}
+		trigger_event = TributeSystem.1016  #选类型
+	}
+	#宗主国
+	scope:recipient = {
+		trigger_event = TributeSystem.1017 #选择赏赐规模，选择加点类型
 	}
 }
-
-
-
-######################################
-#Base Types
-tributary_non_permanent = {
-	define_tributary = {
-		TRIBUTARY = $TRIBUTARY$
-		SUZERAIN = $SUZERAIN$
-		TRIBUTARY_BASE_TYPE = flag:non_permanent
-	}
-}
-
-tributary_permanent = {
-	define_tributary = {
-		TRIBUTARY = $TRIBUTARY$
-		SUZERAIN = $SUZERAIN$
-		TRIBUTARY_BASE_TYPE = flag:permanent
-	}
-}
-
-#Types
-#flag:civilized  #上国教化
-#flag:league 	 #互市同盟
-#flag:hegemony   #霸主仆从
-
-#tributary_civilized = {
-#	define_tributary = {
-#		TRIBUTARY = $TRIBUTARY$
-#		SUZERAIN = $SUZERAIN$
-#		TYPE = flag:civilized_tributary
-#	}
-#}
-#
-#tributary_league = {
-#	define_tributary = {
-#		TRIBUTARY = $TRIBUTARY$
-#		SUZERAIN = $SUZERAIN$
-#		TYPE = flag:civilized_tributary
-#	}
-#}
-#
-#tributary_hegemony = {
-#	define_tributary = {
-#		TRIBUTARY = $TRIBUTARY$
-#		SUZERAIN = $SUZERAIN$
-#		TYPE = flag:civilized_tributary
-#	}
-#}
-
-
-#scope:first.culture = {
-#	change_cultural_acceptance = {
-#		target = scope:second.culture
-#		value = miniscule_cultural_acceptance_gain
-#		desc = pilgrimage_cultural_spread
-#	}
-#}
-
 
 TributeSystem_tribute_relation_validity_check_effect = {
 	if = {
@@ -431,7 +259,7 @@ TributeSystem_tribute_relation_validity_check_effect = {
             remove_list_variable = { name = all_tributaries target = $TRIBUTARY$ }
 			remove_trait = suzerain
 			send_interface_message = {
-				type = event_diplomacy_bad_with_text
+				type = event_toast_text_and_effect_bad
 				left_icon = $SUZERAIN$
 				right_icon = $TRIBUTARY$
 				title = TributeSystem_relation_validity_check_01_desc.tt
@@ -444,7 +272,7 @@ TributeSystem_tribute_relation_validity_check_effect = {
 			remove_variable = my_suzerain
 			remove_trait = tributary
 			send_interface_message = {
-				type = event_diplomacy_bad_with_text
+				type = event_toast_text_and_effect_bad
 				left_icon = $SUZERAIN$
 				right_icon = $TRIBUTARY$
 				title = TributeSystem_relation_validity_check_02_desc.tt
@@ -455,4 +283,12 @@ TributeSystem_tribute_relation_validity_check_effect = {
 }
 
 
-#更换礼服
+TributeSystem_suzerain_validity_check_effect = {
+	if = {
+		limit = {
+			has_trait = suzerain
+			is_suzerain = no
+		}
+		remove_trait = suzerain
+	}
+}
