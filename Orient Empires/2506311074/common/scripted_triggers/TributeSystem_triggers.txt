@@ -70,7 +70,7 @@ TributeSystem_can_be_tributary_of_trigger = {#可以成为其朝贡国
 	NOT = { is_vassal_or_below_of = $SUZERAIN$ } 
 	NOT = { is_liege_or_above_of = $SUZERAIN$ }
 	NOT = { this = $SUZERAIN$ }
-	#highest_held_title_tier.tier < $SUZERAIN$.highest_held_title_tier
+
 	tier_difference = {
 		target = $SUZERAIN$
 		value < 0
@@ -96,7 +96,6 @@ TributeSystem_can_be_suzerain_of_trigger = {#可以成为其宗主国
 	NOT = { is_vassal_or_below_of = $TRIBUTARY$ } 
 	NOT = { is_liege_or_above_of = $TRIBUTARY$ }
 	NOT = { this = $TRIBUTARY$ }
-	#highest_held_title_tier > $TRIBUTARY$.phighest_held_title_tier
 	tier_difference = {
 		target = $TRIBUTARY$
 		value > 0
@@ -132,345 +131,37 @@ TributeSystem_is_same_heritage_tributary_of_trigger = {
 	}
 
 }
-#怀柔宗主国
-TributeSystem_suzerain_is_civilized_trigger = {
-	is_suzerain = yes
-	has_royal_court = yes
-	OR = {
-		has_court_type = court_scholarly
-		has_court_type = court_diplomatic
-	}
-}
-#会盟宗主国
-TributeSystem_suzerain_is_league_trigger = {
-	is_suzerain = yes
-	OR = {
-		has_court_type = court_administrative
-		has_government = republic_government
-	}
-}
-#霸主宗主国
-TributeSystem_suzerain_is_hegemony_trigger = {
-	is_suzerain = yes
-	has_royal_court = yes
-	OR = {
-		has_court_type = court_intrigue
-		has_court_type = court_tribal
-		has_court_type = court_warlike
-	}
-}
-
-#宗主国等级最小经验值
-TributeSystem_suzerain_EXP_MIN_trigger = {
-	is_suzerain = yes
-	OR = {
-		has_trait_xp = {
-			trait = suzerain
-			track = civilized_suzerain
-			value >= $MIN$
-		}
-		has_trait_xp = {
-			trait = suzerain
-			track = league_suzerain
-			value >= $MIN$
-		}
-		has_trait_xp = {
-			trait = suzerain
-			track = hegemony_suzerain
-			value >= $MIN$
-		}
-	}
-}
-
-#二级宗主国
-TributeSystem_level_2_suzerain_trigger = {
-	TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 30 }
-}
-#三级宗主国
-TributeSystem_level_2_suzerain_trigger = {
-	TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 60 }
-}
-#四级宗主国
-TributeSystem_level_4_suzerain_trigger = {
-	TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 100 }
-}
-
-##############################
-#不完全分类，朝贡页面用
 #王化朝贡国
-TributeSystem_civilized_tributary_trigger = {
-	is_tributary = yes
-	OR = {
-		AND = {
-			has_trait_xp = {
-				trait = tributary
-				track = civilized
-				value >= 30
-			}
-			has_trait_xp = {
-				trait = tributary
-				track = league
-				value < 30
-			}
-			has_trait_xp = {
-				trait = tributary
-				track = hegemony
-				value < 30
-			}
-		}
-		has_trait_xp = {
-			trait = tributary
-			track = civilized
-			value >= 60
+TributeSystem_is_civilized_tributary_of_trigger = {
+	has_relation_suzerain = $SUZERAIN$
+	$SUZERAIN$ = {
+		has_royal_court = yes
+		OR = {
+			has_court_type = court_scholarly
+			has_court_type = court_diplomatic
 		}
 	}
 }
 #互市朝贡国
-TributeSystem_league_tributary_trigger = {
-	is_tributary = yes
-	OR = {
-		AND = {
-			has_trait_xp = {
-				trait = tributary
-				track = civilized
-				value < 30
-			}
-			has_trait_xp = {
-				trait = tributary
-				track = league
-				value >= 30
-			}
-			has_trait_xp = {
-				trait = tributary
-				track = hegemony
-				value < 30
-			}
-		}
-		has_trait_xp = {
-			trait = tributary
-			track = league
-			value >= 60
-		}
-	}
-}
-#臣道朝贡国
-TributeSystem_hegemony_tributary_trigger = {
-	is_tributary = yes
-	OR = {
-		AND = {
-			has_trait_xp = {
-				trait = tributary
-				track = civilized
-				value < 30
-			}
-			has_trait_xp = {
-				trait = tributary
-				track = league
-				value < 30
-			}
-			has_trait_xp = {
-				trait = tributary
-				track = hegemony
-				value >= 30
-			}
-		}
-		has_trait_xp = {
-			trait = tributary
-			track = hegemony
-			value >= 60
-		}
-	}
-}
-
-##############################
-
-#对等宗藩 经验值最小值
-TributeSystem_true_tributary_EXP_MIN_trigger = {
-	is_tributary = yes
-	OR = {
-		AND = {
-			var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
-			has_trait_xp = {
-				trait = tributary
-				track = civilized
-				value >= $MIN$
-			}
-		}
-		AND = {
-			var:my_suzerain = { TributeSystem_suzerain_is_league_trigger = yes }
-			has_trait_xp = {
-				trait = tributary
-				track = league
-				value >= $MIN$
-			}
-		}
-		AND = {
-			var:my_suzerain = { TributeSystem_suzerain_is_hegemony_trigger = yes }
-			has_trait_xp = {
-				trait = tributary
-				track = hegemony
-				value >= $MIN$
-			}
-		}
-	}
-}
-
-#对等宗藩 二级朝贡国
-TributeSystem_true_level_2_tributary_trigger = {
-	TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 30 }
-}
-
-#对等宗藩 三级朝贡国
-TributeSystem_true_level_3_tributary_trigger = {
-	TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 60 }
-}
-
-#对等宗藩 四级朝贡国
-TributeSystem_true_level_4_tributary_trigger = {
-	TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 100 }
-}
-
-
-#一般朝贡国 第一级以下
-TributeSystem_general_tributary_trigger = {
-	is_tributary = yes
-	NOR = {
-		has_trait_xp = {
-			trait = tributary
-			track = civilized
-			value >= 30
-		}
-		has_trait_xp = {
-			trait = tributary
-			track = league
-			value >= 30
-		}
-		has_trait_xp = {
-			trait = tributary
-			track = hegemony
-			value >= 30
-		}
-	}
-}
-
-#朝贡国等级最小经验值
-TributeSystem_tributary_EXP_MIN_trigger = {
-	is_tributary = yes
-	OR = {
-		has_trait_xp = {
-			trait = tributary
-			track = civilized
-			value >= $MIN$
-		}
-		has_trait_xp = {
-			trait = tributary
-			track = league
-			value >= $MIN$
-		}
-		has_trait_xp = {
-			trait = tributary
-			track = hegemony
-			value >= $MIN$
-		}
-	}
-}
-
-#二级朝贡国
-TributeSystem_level_2_tributary_trigger = {
-	TributeSystem_tributary_EXP_MIN_trigger = { MIN = 30 }
-}
-
-#三级朝贡国
-TributeSystem_level_3_tributary_trigger = {
-	TributeSystem_tributary_EXP_MIN_trigger = { MIN = 60 }
-}
-
-#四级朝贡国 - 可合邦
-TributeSystem_level_4_tributary_trigger = {
-	TributeSystem_tributary_EXP_MIN_trigger = { MIN = 100 }
-}
-
-#合邦条件 朝贡国侧 双方满级
-TributeSystem_can_annex_tributary_trigger = {
-	is_tributary = yes
-	OR = {
-		AND = { #永久朝贡国
-			is_permanent_tributary = yes
-			TributeSystem_level_4_tributary_trigger = yes
-		}
-		TributeSystem_true_level_4_tributary_trigger = yes
-	}
-}
-
-#宗主国低级索取：霸主任意、互市二级、王化二级
-TributeSystem_suzerain_can_demand_medium_trigger = {
-	OR = {
-		custom_description = {
-			text = trait_track_hegemony_suzerain
-			TributeSystem_suzerain_is_hegemony_trigger = yes
-		}
-		AND = {
-			custom_description = {
-				text = trait_track_league_suzerain
-				TributeSystem_suzerain_is_league_trigger = yes
-			}
-			custom_description = {
-				text = is_level_2_suezerain
-				TributeSystem_level_2_suezerain_trigger = yes
-			}
-		}
-		AND = {
-			custom_description = {
-				text = trait_track_civilized_suzerain
-				TributeSystem_suzerain_is_civilized_trigger = yes
-			}
-			custom_description = {
-				text = is_level_2_suezerain
-				TributeSystem_level_2_suezerain_trigger = yes
-			}				
-		}
-	}
-}
-
-#宗主国高级索取：霸主任意、互市二级、王化三级
-TributeSystem_suzerain_can_demand_high_trigger = {
-	OR = {
-		custom_description = {
-			text = trait_track_hegemony_suzerain
-			TributeSystem_suzerain_is_hegemony_trigger = yes
-		}
-		AND = {
-			custom_description = {
-				text = trait_track_league_suzerain
-				TributeSystem_suzerain_is_league_trigger = yes
-			}
-			custom_description = {
-				text = is_level_2_suezerain
-				TributeSystem_level_2_suezerain_trigger = yes
-			}
-		}
-		AND = {
-			custom_description = {
-				text = trait_track_civilized_suzerain
-				TributeSystem_suzerain_is_civilized_trigger = yes
-			}
-			custom_description = {
-				text = is_level_3_suezerain
-				TributeSystem_level_3_suezerain_trigger = yes
-			}				
-		}
-	}
-}
-
-
-
-# Petition is still valid
-petition_suzerain_valid_trigger = {
-	is_alive = yes
-	is_imprisoned = no
-	has_variable = my_suzerain
-	var:my_suzerain = {
-		is_imprisoned = no
+TributeSystem_is_league_tributary_of_trigger = {
+	has_relation_suzerain = $SUZERAIN$
+	$SUZERAIN$ = {
 		has_royal_court = yes
+		OR = {
+			has_court_type = court_administrative
+		}
 	}
 }
+#臣服朝贡国
+TributeSystem_is_hegemony_tributary_of_trigger = {
+	has_relation_suzerain = $SUZERAIN$
+	$SUZERAIN$ = {
+		has_royal_court = yes
+		OR = {
+			has_court_type = court_intrigue
+			has_court_type = court_tribal
+			has_court_type = court_warlike
+		}
+	}
+}
+
