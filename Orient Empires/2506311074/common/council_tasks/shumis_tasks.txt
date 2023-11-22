@@ -161,6 +161,255 @@
 	}
 }
 
+councillor_shumishi_2 = {
+	position = councillor_shumishi
+
+	task_type = task_type_general
+	task_progress = task_progress_infinite
+	
+	effect_desc = {
+		desc = task_manage_guards_knights_desc
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			desc = task_manage_guards_erudition_bonus_knights
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_manage_guards_family_business_bonus_knights
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			desc = task_manage_guards_consulted_house_bonus_knights
+		}
+		desc = task_manage_guards_scheme_desc
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			desc = task_manage_guards_erudition_bonus_scheme
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_manage_guards_family_business_bonus_scheme
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			desc = task_manage_guards_consulted_house_bonus_scheme
+		}
+
+		desc = {
+			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					martial > mediocre_skill_rating
+				}
+				desc = task_manage_guards_knight_improved
+			}
+			triggered_desc = {
+				trigger = {
+					martial > mediocre_skill_rating
+				}
+				desc = task_manage_guards_scheme_disrupted
+			}
+			triggered_desc = {
+				trigger = {
+					martial < high_skill_rating
+				}
+				desc = task_manage_guards_knight_wounded
+			}
+			triggered_desc = {
+				trigger = {
+					martial < high_skill_rating
+				}
+				desc = task_manage_guards_disorganized
+			}
+		}
+	}
+
+	is_shown = {
+		has_dlc_feature = royal_court
+	}
+
+	council_owner_modifier = {
+		name = task_manage_guards_knight_modifier
+		knight_effectiveness_mult = 1
+		scale = {
+			value = marshal_overtime_boost_scale
+			divide = 100
+		}
+	}
+	council_owner_modifier = {
+		name = task_manage_guards_scheme_modifier
+		enemy_hostile_scheme_success_chance_add = -1
+		scale = {
+			value = marshal_overtime_decrease_scale
+		}
+	}
+	
+	is_valid_showing_failures_only = {
+		scope:councillor_liege = {
+			court_grandeur_current_level >= 3
+		}
+	}
+
+	on_start_task = {
+		liege = {
+			set_variable = { 
+				name = marshal_overtime_boost
+				value = 0 
+			}
+			set_variable = { 
+				name = marshal_overtime_decrease
+				value = 0 
+			}
+		}
+	}
+
+	on_cancel_task = {
+		liege = {
+			remove_variable = marshal_overtime_boost
+			remove_variable = marshal_overtime_decrease
+		}
+	}
+
+	monthly_on_action = manage_guards_marshal_task_side_effects
+
+	on_monthly = {
+		if = {
+			limit = {
+				liege = { is_ai = no }
+			}
+			if = {
+				limit = {
+					liege = {
+						has_variable = marshal_overtime_boost
+						var:marshal_overtime_boost < marshal_overtime_boost_max
+					}
+				}
+				liege = {
+					change_variable = {
+						name = marshal_overtime_boost
+						add = root.marshal_overtime_boost_monthly_increase
+					}
+				}
+			}
+			if = {
+				limit = {
+					liege = {
+						has_variable = marshal_overtime_decrease
+						var:marshal_overtime_decrease > marshal_overtime_decrease_max
+					}
+				}
+				liege = {
+					change_variable = {
+						name = marshal_overtime_decrease
+						add = root.marshal_overtime_decrease_monthly_increase
+					}
+				}
+			}
+		}
+		else = {
+			liege = {
+				set_variable = {
+					name = marshal_overtime_boost
+					value = root.marshal_overtime_boost_monthly_increase
+				}
+				set_variable = {
+					name = marshal_overtime_decrease
+					value = root.marshal_overtime_decrease_monthly_increase
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+
+		#AI is more likely to do it the higher the court grandeur level
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 3
+				}
+			}
+			add = 1
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 4
+				}
+			}
+			add = 5
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 5
+				}
+			}
+			add = 10
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 6
+				}
+			}
+			add = 15
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 7
+				}
+			}
+			add = 20
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 8
+				}
+			}
+			add = 25
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 9
+				}
+			}
+			add = 30
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					court_grandeur_current_level = 10
+				}
+			}
+			add = 35
+		}
+
+		#AI keeps doing it once it started
+		if = {
+			limit = {
+				is_performing_council_task = task_manage_guards
+			}
+			add = martial
+		}
+	}
+}
 
 councillor_shumishi_3 = {
 	position = councillor_shumishi
@@ -310,6 +559,15 @@ councillor_shumishi_3 = {
 		}
 		if = {
 			limit = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_consulted_house_bonus_monthly_change
+				desc = CONSULTED_HOUSE_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
 				scope:councillor = { has_character_modifier = event_bonus_to_county_control }
 			}
 			add = {
@@ -330,7 +588,7 @@ councillor_shumishi_3 = {
 				scope:county = { has_county_modifier = petition_liege_county_control_modifier }
 			}
 			add = {
-				value = scope:councillor.petition_liege_county_convert_modifier_value
+				value = scope:councillor.petition_liege_county_control_modifier_value
 				desc = MARSHAL_INCREASE_CONTROL_LOCAL_COUNTY_MODIFIERS
 			}
 		}
@@ -405,203 +663,6 @@ councillor_shumishi_3 = {
 				}
 			}
 			add = -1000
-		}
-	}
-}
-
-councillor_shumishi_2 = {
-	position = councillor_shumishi
-
-	task_type = task_type_general
-	task_progress = task_progress_infinite
-	
-	effect_desc = {
-		desc = task_manage_guards_knights_desc
-		desc = task_manage_guards_scheme_desc
-		triggered_desc = {
-			trigger = {
-				councillor_liege_has_erudition_legacy_5_perk = yes
-			}
-			desc = task_manage_guards_erudition_bonus_desc
-		}
-		triggered_desc = {
-			trigger = {
-				councillor_liege_has_family_business_bonus = yes
-			}
-			desc = task_manage_guards_family_business_bonus_desc
-		}
-
-		desc = {
-			desc = council_task_possible_side_effects
-			triggered_desc = {
-				trigger = {
-					martial > mediocre_skill_rating
-				}
-				desc = task_manage_guards_knight_improved
-			}
-			triggered_desc = {
-				trigger = {
-					martial > mediocre_skill_rating
-				}
-				desc = task_manage_guards_scheme_disrupted
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_manage_guards_knight_wounded
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_manage_guards_disorganized
-			}
-		}
-	}
-
-	is_shown = {
-		has_dlc_feature = royal_court
-	}
-
-	council_owner_modifier = {
-		name = task_manage_guards_knight_modifier
-		knight_effectiveness_mult = 1
-		scale = {
-			value = marshal_knights_overtime_boost_scale
-			divide = 100
-		}
-	}
-	council_owner_modifier = {
-		name = task_manage_guards_scheme_modifier
-		enemy_hostile_scheme_success_chance_add = -1
-		scale = {
-			value = marshal_scheme_overtime_boost_scale
-		}
-	}
-	
-	is_valid_showing_failures_only = {
-		scope:councillor_liege = {
-			court_grandeur_current_level >= 3
-		}
-	}
-
-	on_start_task = {
-		set_variable = { 
-			name = marshal_overtime_boost
-			value = 0 
-		}
-		set_variable = { 
-			name = marshal_overtime_decrease
-			value = 0 
-		}
-	}
-
-	on_cancel_task = {
-		remove_variable = marshal_overtime_boost
-		remove_variable = marshal_overtime_decrease
-	}
-
-	monthly_on_action = manage_guards_marshal_task_side_effects
-
-	on_monthly = {
-		if = {
-			limit = {
-				has_variable = marshal_overtime_boost
-				var:marshal_overtime_boost < marshal_knight_overtime_boost_max
-			}
-			change_variable = {
-				name = marshal_overtime_boost
-				add = marshal_knight_overtime_boost_monthly_increase
-			}
-		}
-		if = {
-			limit = {
-				has_variable = marshal_overtime_decrease
-				var:marshal_overtime_decrease > marshal_scheme_overtime_boost_max
-			}
-			change_variable = {
-				name = marshal_overtime_decrease
-				add = marshal_scheme_overtime_boost_monthly_increase
-			}
-		}
-	}
-
-	ai_will_do = {
-		value = 0
-
-		#AI is more likely to do it the higher the court grandeur level
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 3
-				}
-			}
-			add = 1
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 4
-				}
-			}
-			add = 5
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 5
-				}
-			}
-			add = 10
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 6
-				}
-			}
-			add = 15
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 7
-				}
-			}
-			add = 20
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 8
-				}
-			}
-			add = 25
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 9
-				}
-			}
-			add = 30
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = {
-					court_grandeur_current_level = 10
-				}
-			}
-			add = 35
-		}
-
-		#AI keeps doing it once it started
-		if = {
-			limit = {
-				is_performing_council_task = task_manage_guards
-			}
-			add = martial
 		}
 	}
 }

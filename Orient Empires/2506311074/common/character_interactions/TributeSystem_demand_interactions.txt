@@ -20,17 +20,18 @@ demand_tribute_payment_interaction = {
 	desc = demand_payment_interaction_desc
 
 	is_shown = {
-		scope:actor = {	has_relation_tributary = scope:recipient }
 		NOT = { scope:recipient = scope:actor }
-		OR = {
-			AND = {
-				TributeSystem_suzerain_can_demand_high_trigger = yes
-				has_relation_tributary = scope:recipient
-			}
-			AND = {
-				has_relation_suzerain = scope:recipient
-				TributeSystem_true_level_3_tributary_trigger = yes
-				is_ai = no
+		scope:actor = {
+			OR = {
+				AND = {
+					TributeSystem_suzerain_can_demand_high_trigger = yes
+					has_relation_tributary = scope:recipient
+				}
+				AND = {
+					has_relation_suzerain = scope:recipient
+					TributeSystem_true_level_3_tributary_trigger = yes
+					is_ai = no
+				}
 			}
 		}
 	}
@@ -42,9 +43,7 @@ demand_tribute_payment_interaction = {
 				is_at_war_with = scope:recipient
 			}
 		}
-		scope:recipient = {
-			is_imprisoned = no
-		}
+		scope:recipient = { is_available_for_activity_trigger = yes }
 		scope:recipient = {
 			custom_description = {
 				text = demand_payment_too_little_gold
@@ -54,6 +53,7 @@ demand_tribute_payment_interaction = {
 	}
 
 	is_valid = {
+
 	}
 
 	is_highlighted = {
@@ -121,6 +121,7 @@ demand_tribute_payment_interaction = {
 				}
 			}
 		}
+		demand_cost_tribute_exp_effect = { EXP = medium_tribute_exp_value }
 	}
 	
 	on_decline = {
@@ -137,13 +138,8 @@ demand_tribute_payment_interaction = {
 		}
 	}
 	
-	ai_target_quick_trigger = {
-		adult = yes
-	}
-	
-	ai_targets = {
-		ai_recipients = hooked_characters
-	}
+	ai_target_quick_trigger = { adult = yes }
+	ai_targets = { ai_recipients = neighboring_rulers }
 	
 	ai_frequency = 24
 	
@@ -236,6 +232,7 @@ demand_courtier_beauty_interaction = {
 			is_imprisoned = no
 			is_incapable = no
 		}
+		scope:recipient = { is_available_for_activity_trigger = yes }
 	}
 
 	can_send = {
@@ -256,7 +253,9 @@ demand_courtier_beauty_interaction = {
 	}
 
 	send_option = {
-		is_shown = { TributeSystem_suzerain_EXP_MIN_trigger = { MIN = tribute_courtier_beauty_value } }
+		is_shown = {
+			scope:actor = { TributeSystem_suzerain_EXP_MIN_trigger = { MIN = tribute_courtier_beauty_value } }
+		}
 		is_valid = { }
 		flag = tributary_exp
 		localization = GENERIC_SPEND_TRIBUTARY_EXP
@@ -317,6 +316,20 @@ demand_courtier_beauty_interaction = {
 
 	on_accept = {
 		if = {
+			limit = { scope:tributary_exp = yes }
+			scope:actor = {
+				set_variable = {
+					name = tribute_exp_loss
+					value = {
+						value = tribute_courtier_beauty_value #评定侍臣价值
+						multiply = -1
+					}
+				}
+				spend_tribute_exp_effect = yes
+				remove_variable = tribute_exp_loss
+			}
+		}
+		if = {
 			limit = { scope:gold = yes }
 			send_interface_toast = {
 				title = demand_payment_interaction_message
@@ -345,20 +358,6 @@ demand_courtier_beauty_interaction = {
 			}
 		}
 		if = {
-			limit = { scope:tributary_exp = yes }
-			scope:actor = {
-				set_variable = {
-					name = tribute_exp_loss
-					value = {
-						value = tribute_courtier_beauty_value #评定侍臣价值
-						multiply = -1
-					}
-				}
-				spend_tribute_exp_effect = yes
-				remove_variable = tribute_exp_loss
-			}
-		}
-		if = {
 			limit = { scope:hook = yes }
 			scope:actor = {
 				use_hook = scope:recipient
@@ -366,8 +365,14 @@ demand_courtier_beauty_interaction = {
 		}
 		scope:secondary_actor = { add_character_flag = offered_courtier }
 		scope:actor = {
-			show_as_tooltip = {
-				add_courtier = scope:secondary_actor
+			send_interface_toast = {
+				type = event_generic_neutral
+				title = demand_payment_interaction_message
+				left_icon = scope:recipient
+				
+				show_as_tooltip = {
+					add_courtier = scope:secondary_actor
+				}
 			}
 		}
 		if = { # Struggle Catalyst
@@ -394,6 +399,7 @@ demand_courtier_beauty_interaction = {
 				}
 			}
 		}
+		demand_cost_tribute_exp_effect = { EXP = massive_tribute_exp_value }
 	}
 	on_decline = {
 		scope:recipient = {
@@ -644,17 +650,6 @@ demand_tribute_artifact_interaction = {
 	answer_accept_key = DEMAND_ARTIFACT_ACCEPT
 	answer_reject_key = DEMAND_ARTIFACT_REJECT
 
-	ai_targets = {
-		ai_recipients = scripted_relations
-	}
-	ai_targets = {
-		ai_recipients = neighboring_rulers
-		ai_recipients = peer_vassals
-		max = 10
-	}
-	ai_target_quick_trigger = {
-		adult = yes
-	}
 	ai_frequency = 60
 
 	is_shown = {
@@ -682,7 +677,7 @@ demand_tribute_artifact_interaction = {
 
 	is_valid_showing_failures_only = {
 
-		scope:recipient = { is_busy_in_events_localised = yes }
+		scope:recipient = { is_available_for_activity_trigger = yes }
 		
 		scope:actor = {
 			NOT = {
@@ -814,6 +809,7 @@ demand_tribute_artifact_interaction = {
 				}
 			}
 		}
+		demand_cost_tribute_exp_effect = { EXP = massive_tribute_exp_value }
 	}
 
 	auto_accept = {
@@ -915,7 +911,9 @@ demand_tribute_artifact_interaction = {
 			desc = SCHEME_WEAK_HOOK_USED
 		}
 	}
-	
+
+	ai_target_quick_trigger = { adult = yes }
+	ai_targets = { ai_recipients = neighboring_rulers }
 	ai_potential = {
 		is_adult = yes
 		is_at_war = no
@@ -1477,7 +1475,7 @@ call_suzerain_to_war = {
 		localization = GENERIC_SPEND_PRESTIGE
 	}
 	is_valid_showing_failures_only = {
-		
+		scope:recipient = { is_available_for_activity_trigger = yes }
 		scope:recipient = {
 			is_ruler = yes
 		}
@@ -1712,6 +1710,7 @@ call_suzerain_to_war = {
 				}
 			}
 		}
+		demand_cost_tribute_exp_effect = { EXP = massive_tribute_exp_value }
 	}
 
 	on_decline = {
@@ -2531,6 +2530,7 @@ call_tributary_to_war = {
 				}
 			}
 		}
+		demand_cost_tribute_exp_effect = { EXP = massive_tribute_exp_value }
 	}
 
 	on_decline = {
@@ -3129,6 +3129,7 @@ tribute_join_war_interaction = {
 	}
 
 	is_valid_showing_failures_only = {
+		scope:recipient = { is_available_for_activity_trigger = yes }
 	}
 	
 	can_be_picked = {
@@ -3406,6 +3407,7 @@ tribute_join_war_interaction = {
 				}
 			}
 		}
+		demand_cost_tribute_exp_effect = { EXP = massive_tribute_exp_value }
 	}
 
 	on_decline = {
@@ -3464,6 +3466,7 @@ stop_attacker_tributary_war_interaction = {
 	}
 
 	is_valid_showing_failures_only = {
+		scope:recipient = { is_available_for_activity_trigger = yes }
 		custom_description = {
 			text = cannot_stop_war_when_already_fighting
 			object = scope:recipient
@@ -3556,6 +3559,7 @@ stop_defender_tributary_war_interaction = {
 	}
 
 	is_valid_showing_failures_only = {
+		scope:recipient = { is_available_for_activity_trigger = yes }
 		custom_description = {
 			text = cannot_stop_war_when_already_fighting
 			object = scope:recipient
@@ -4209,6 +4213,7 @@ TributeSystem_buy_claim_interaction = {
 	}
 	
 	is_valid_showing_failures_only = {
+		scope:recipient = { is_available_for_activity_trigger = yes }
 		trigger_if = { # Can't request on titles you already have a claim on
 			limit = {
 				exists = scope:target
@@ -4399,7 +4404,7 @@ TributeSystem_buy_innovation_interaction = {
 	}
 	
 	is_valid_showing_failures_only = {
-		scope:recipient = { is_busy_in_events_localised = yes }
+		scope:recipient = { is_available_for_activity_trigger = yes }
 	}
 	
 	auto_accept = yes
@@ -4410,7 +4415,7 @@ TributeSystem_buy_innovation_interaction = {
 				title = TributeSystem_buy_innovation_interaction.message
 				left_icon = scope:actor
 				right_icon = scope:recipient
-				change_tribute_exp_effect = { MIN = tribute_exp_loss }
+				change_tribute_exp_effect = { EXP = tribute_exp_loss }
 			}
 			culture = {
 				get_random_innovation_from = scope:recipient.culture

@@ -75,6 +75,20 @@ oe_incite_revolts_interaction = {
 			}
 		}
 	}
+	
+	can_send = {
+		custom_tooltip = {
+			text = must_select_an_investment
+			OR = {
+				scope:actor = { is_ai = yes } # Temporary until we get a code fix
+				scope:small_investment_in_revolt = yes
+				scope:medium_investment_in_revolt = yes
+				scope:high_investment_in_revolt = yes
+			}
+		}
+	}
+
+	send_options_exclusive = yes
 
 	# Small investment
 	send_option = {
@@ -172,7 +186,7 @@ oe_incite_revolts_interaction = {
 			}
 		}
 
-		# SP1 Polish (Hugo)
+		# FP3 Polish (Hugo)
 		scope:actor = {
 			duel = {
 				skill = intrigue
@@ -305,12 +319,24 @@ oe_incite_revolts_interaction = {
 				}
 			}
 		}
+		
+		# TO DO POLISH: add a chance to be discovered depending on target's intrigue: leads to opinion loss and progress towards Rivalry
+
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = medium_unity_loss
+			DESC = clan_unity_forment_revolt.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	ai_frequency = 60
 
 	ai_potential = {
 		any_character_struggle = {
+			has_struggle_phase_parameter = unlocks_incite_revolts_interaction
 			involvement = involved
 			is_struggle_type = tartaria_struggle
 			OR = {
@@ -527,6 +553,20 @@ oe_contract_assistance_interaction = {
 		# Recipient is war leader in chosen war
 		scope:target = {
 			is_war_leader = scope:recipient
+			# Cannot contract against allies
+			trigger_if = {
+				limit = {
+					any_war_attacker = { this = scope:recipient }
+				}
+				NOT = {
+					any_war_defender = { is_allied_to = scope:actor }
+				}
+			}
+			trigger_else = {
+				NOT = {
+					any_war_attacker = { is_allied_to = scope:actor }
+				}
+			}
 			# not already in target war
 			custom_description = {
 				text = join_war_interaction_already_in_target_war
@@ -611,11 +651,29 @@ oe_contract_assistance_interaction = {
 				}
 			}
 		}
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = medium_unity_loss
+			DESC = clan_unity_contract_assistance.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	on_decline = {
 		# Refusal notification
 		scope:actor = { trigger_event = char_interaction.0236 }
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:recipient
+			TARGET = scope:actor
+			VALUE = minor_unity_gain
+			DESC = clan_unity_contract_assistance_decline.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 	
 	ai_accept = {
@@ -1016,7 +1074,22 @@ oe_request_contract_assistance_interaction = {
 			# Cannot demand gold from allies
 			NOT = { is_allied_to = scope:actor }
 		}
-
+		scope:target = {
+			# Cannot contract against allies
+			trigger_if = {
+				limit = {
+					any_war_attacker = { this = scope:recipient }
+				}
+				NOT = {
+					any_war_defender = { is_allied_to = scope:actor }
+				}
+			}
+			trigger_else = {
+				NOT = {
+					any_war_attacker = { is_allied_to = scope:actor }
+				}
+			}
+		}
 		# Actor is not in (any) war against Recipient's liege(s)
 		trigger_if = {
 			limit = { exists = scope:recipient.liege }
@@ -1132,11 +1205,29 @@ oe_request_contract_assistance_interaction = {
 				}
 			}
 		}
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = medium_unity_loss
+			DESC = clan_unity_request_assistance.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	on_decline = {
 		# Refusal notification
 		scope:actor = { trigger_event = char_interaction.0236 }
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:recipient
+			TARGET = scope:actor
+			VALUE = minor_unity_gain
+			DESC = clan_unity_request_assistance_decline.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	ai_accept = {
@@ -1438,6 +1529,8 @@ oe_enforce_truce_interaction = {
 						any_character_struggle = {
 							involvement = involved
 							is_struggle_type = tartaria_struggle
+							has_struggle_phase_parameter = unlocks_enforce_truces_interaction
+							is_secondary_character_involvement_involved_trigger = { CHAR = scope:recipient }
 						}
 					}
 				}
@@ -1659,11 +1752,29 @@ oe_enforce_truce_interaction = {
 
 			}
 		}
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = medium_unity_gain
+			DESC = clan_unity_enforce_truce.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	on_decline = {
 		# Refusal notification
 		scope:actor = { trigger_event = char_interaction.0236 }
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:recipient
+			TARGET = scope:actor
+			VALUE = medium_unity_loss
+			DESC = clan_unity_enforce_truce_decline.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	ai_accept = {
@@ -1954,11 +2065,29 @@ oe_bargain_fealty_interaction = {
 				}
 			}
 		}
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = medium_unity_gain
+			DESC = clan_unity_bargained_fealty.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	on_decline = {
 		# Refusal notification
 		scope:actor = { trigger_event = char_interaction.0236 }
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:recipient
+			TARGET = scope:actor
+			VALUE = minor_unity_loss
+			DESC = clan_unity_bargain_fealty_refusal.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	ai_accept = {
@@ -2073,7 +2202,6 @@ oe_bargain_fealty_interaction = {
 	ai_frequency = 36
 }
 
-
 incite_revolts_interaction = {
 	interface_priority = 30
 	category = interaction_category_hostile
@@ -2107,20 +2235,35 @@ incite_revolts_interaction = {
 	}
 
 	is_shown = {
-		has_dlc_feature = the_fate_of_iberia
 		NOT = { scope:recipient = scope:actor }
-		# Only available during Opportunity, Hostility and Tension phases
-		scope:actor = {
-			any_character_struggle = {
-				involvement = involved
-				is_struggle_type = iberian_struggle
-				has_struggle_phase_parameter = unlocks_incite_revolts_interaction
+		OR = {
+			AND = {
+				has_dlc_feature = the_fate_of_iberia
+				# Only available during Opportunity, Hostility and Tension phases
+				scope:actor = {
+					any_character_struggle = {
+						involvement = involved
+						has_struggle_phase_parameter = unlocks_incite_revolts_interaction
+						# Can only target involved
+						is_secondary_character_involvement_involved_trigger = { CHAR = scope:recipient }
+					}
+				}
 			}
-		}
-		# Can only target involved
-		scope:recipient = {
-			any_character_struggle = {
-				involvement = involved
+			AND = {
+				has_fp3_dlc_trigger = yes
+				scope:actor = {
+					has_trait = fp3_struggle_detractor
+					any_character_struggle = {
+						involvement = involved
+						is_struggle_type = persian_struggle
+					}
+				}
+				scope:recipient = {
+					any_character_struggle = {
+						is_struggle_type = persian_struggle
+						involvement = involved
+					}
+				}
 			}
 		}
 	}
@@ -2143,6 +2286,20 @@ incite_revolts_interaction = {
 			}
 		}
 	}
+
+	can_send = {
+		custom_tooltip = {
+			text = must_select_an_investment
+			OR = {
+				scope:actor = { is_ai = yes } # Temporary until we get a code fix
+				scope:small_investment_in_revolt = yes
+				scope:medium_investment_in_revolt = yes
+				scope:high_investment_in_revolt = yes
+			}
+		}
+	}
+
+	send_options_exclusive = yes
 
 	# Small investment
 	send_option = {
@@ -2240,7 +2397,7 @@ incite_revolts_interaction = {
 			}
 		}
 
-		# SP1 Polish (Hugo)
+		# FP3 Polish (Hugo)
 		scope:actor = {
 			duel = {
 				skill = intrigue
@@ -2373,17 +2530,35 @@ incite_revolts_interaction = {
 				}
 			}
 		}
+
+		# TO DO POLISH: add a chance to be discovered depending on target's intrigue: leads to opinion loss and progress towards Rivalry
+
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = medium_unity_loss
+			DESC = clan_unity_forment_revolt.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	ai_frequency = 60
 
 	ai_potential = {
-		any_character_struggle = {
-			involvement = involved
-			is_struggle_type = iberian_struggle
-			OR = {
-				is_struggle_phase = struggle_iberia_phase_opportunity
-				is_struggle_phase = struggle_iberia_phase_hostility
+		OR = {
+			any_character_struggle = {
+				has_struggle_phase_parameter = unlocks_incite_revolts_interaction
+				involvement = involved
+				is_struggle_type = iberia_struggle
+				OR = {
+					is_struggle_phase = struggle_iberia_phase_opportunity
+					is_struggle_phase = struggle_iberia_phase_hostility
+				}
+			}
+			any_character_struggle = {
+				is_struggle_type = persian_struggle
+				involvement = involved
 			}
 		}
 		short_term_gold >= medium_gold_value

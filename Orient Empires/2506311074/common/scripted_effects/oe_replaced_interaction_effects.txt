@@ -1,162 +1,4 @@
-﻿war_for_revoke_effect = {
-	scope:recipient = {
-		save_scope_value_as = {
-			name = war_for_revocation_flavour
-			value = yes
-		}
-		start_war = {
-			casus_belli = refused_liege_demand_war
-			target = scope:actor
-		}
-	}
-	if = {
-		limit = {
-			scope:actor = { NOT = { has_revoke_title_reason = scope:recipient } }
-		}
-		scope:actor = {
-			every_vassal = { #Vassals joining the rebel.
-				limit = {
-					NOR = {
-						this = scope:recipient
-						is_ai = no
-						has_trait = incapable
-						is_imprisoned = yes
-						dread_modified_ai_boldness = { #Too scared to do anything.
-							dreaded_character = scope:actor
-							value <= -50
-						}
-						is_at_war_with = scope:recipient
-						is_at_war_with = scope:actor
-					}
-					highest_held_title_tier > tier_barony
-					OR = {
-						#Lovers and friends always back rebel (unless also lovers/friends of the liege)
-						AND = {
-							OR = {
-								has_relation_lover = scope:recipient
-								has_relation_friend = scope:recipient
-							}
-							NOR = {
-								has_relation_lover = scope:actor
-								has_relation_friend = scope:actor
-							}
-						}
-						#Vassals that either like recipient or have high honor will rally if the liege is being tyrannical.
-						AND = {
-							# If they can't join a faction against the liege they should not revolt
-							NOR = {
-								has_relation_lover = scope:actor
-								has_relation_friend = scope:actor
-								is_allied_to = scope:actor
-								is_primary_heir_of = scope:actor
-								scope:actor = { has_strong_hook = prev }
-								has_dread_level_towards = {
-									target = scope:actor
-									level = 2
-								}								
-							}						
-							OR = {
-								ai_honor >= 25
-								opinion = {
-									target = scope:recipient
-									value >= 40
-								}
-							}
-							NOR = {
-								scope:actor = {
-									has_revoke_title_reason = scope:recipient
-								}
-								scope:actor = {
-									has_claim_on = scope:landed_title
-								}
-								faith = {								
-									faith_hostility_level = {
-										target = scope:recipient.faith
-										value >= faith_hostile_level
-									}
-								}
-							}
-						}
-						#And finally, vassals that really hate their liege will join regardless (provided that they also do not hate recipient).
-						AND = {
-							opinion = {
-								target = scope:recipient
-								value >= -25
-							}
-							OR = {
-								#default threshold
-								opinion = {
-									target = scope:actor
-									value <= -50
-								}
-								#If tyrannical, the default threshold will be reached if at this level
-								AND = {
-									scope:actor = { title_revocation_is_tyrannical_trigger = yes }
-									opinion = {
-										target = scope:actor
-										value <= -30 #revoke_title_tyranny_gain adds -20
-									}
-								}
-							}
-						}
-					}
-				}
-				save_scope_as = joining_vassal
-				custom_tooltip = tooltip_fellow_vassal_joins_war #The war has not started when viewing the interaction screen.
-				hidden_effect = {
-					scope:recipient = {
-						every_character_war = {
-							limit = {
-								using_cb = refused_liege_demand_war
-								casus_belli = {
-									primary_attacker = scope:recipient
-									primary_defender = scope:actor
-								}
-							}
-								add_to_list = war_to_join
-						}
-					}
-					every_in_list = {
-						list = war_to_join
-						limit = {
-							NOT = { is_defender = prev }
-						}
-						hidden_effect = {
-							set_called_to = prev
-						}
-						add_attacker = prev
-					}
-				}
-				hidden_effect = {
-					scope:actor = {
-						add_opinion = {
-							target = prev
-							modifier = rebellious_vassal_opinion
-						}
-					}
-				}
-			}
-			every_vassal = {
-				limit = {
-					is_ai = no
-					NOT = { this = scope:recipient }
-					is_imprisoned = no
-				}
-				trigger_event = char_interaction.0232
-			}
-		}
-	}
-	scope:recipient = {
-		add_opinion = {
-			target = scope:actor
-			modifier = attempted_arrest_opinion
-		}
-	}
-}
-
-
-
-offer_vassalization_interaction_effect = {
+﻿offer_vassalization_interaction_effect = {
 	create_title_and_vassal_change = {
 		type = swear_fealty
 		save_scope_as = change
@@ -211,22 +53,12 @@ offer_vassalization_interaction_effect = {
 						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
 						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
 						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 1 }
-						if = {
-							limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
-							vassal_contract_set_obligation_level = { type = jizya_special_rights level = 1 }
-						}
-						else = {
-							vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
-						}
+						vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
 					}
 				}
 				custom_tooltip = normal_obligations_taxes
 				custom_tooltip = low_obligations_levies
-				if = {
-					limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
-					custom_tooltip = jizya_religious_protection_tt
-				}
-				else = { custom_tooltip = religious_protection_tt }
+				custom_tooltip = religious_protection_tt
 			}
 			else = {
 				hidden_effect = {
@@ -234,11 +66,11 @@ offer_vassalization_interaction_effect = {
 						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
 						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
 						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 2 }
-					}		
+					}
 				}
 				custom_tooltip = normal_obligations_taxes
 				custom_tooltip = normal_obligations_levies
-			}		
+			}
 		}
 		else_if = {
 			limit = {
@@ -248,20 +80,10 @@ offer_vassalization_interaction_effect = {
 			hidden_effect = {
 				if = {
 					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
-					if = {
-						limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
-						vassal_contract_set_obligation_level = { type = jizya_special_rights level = 1 }
-					}
-					else = {
-						vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
-					}
+					vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
 				}
 			}
-			if = {
-				limit = { scope:actor.faith = { has_doctrine_parameter = unlock_jizya_contract } }
-				custom_tooltip = jizya_religious_protection_tt
-			}
-			else = { custom_tooltip = religious_protection_tt }
+			custom_tooltip = religious_protection_tt
 		}
 		else_if = {
 			limit = {
@@ -274,6 +96,14 @@ offer_vassalization_interaction_effect = {
 					vassal_contract_set_obligation_level = { type = special_imperial_legion level = 3 }
 				}
 			}
+		}
+	}
+
+	# Struggle catalysts.
+	hidden_effect = {
+		fp3_struggle_apply_independent_vassalage_catalyst_effect = {
+			NEW_LIEGE = scope:actor
+			NEW_VASSAL = scope:recipient
 		}
 	}
 }
