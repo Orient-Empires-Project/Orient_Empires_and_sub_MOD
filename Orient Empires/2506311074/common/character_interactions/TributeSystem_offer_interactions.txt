@@ -135,11 +135,7 @@ offer_tribute_interaction = { #请求成为朝贡国
 	
 	ai_accept = { # Similar to Negotiate Alliance, but without modifiers for Liege, being an heir, etc.
 		base = -20
-		modifier = {
-			add = -1000
-			TributeSystem_chinese_tributary_trigger = yes
-			desc = will_not_make_tributary_in_china
-		}
+
 		modifier = { # 永久朝贡国
 			add = 50			
 			scope:permanent_trib = yes
@@ -424,20 +420,27 @@ offer_tribute_interaction = { #请求成为朝贡国
 	ai_potential = {
 		is_at_war = no
 		any_ally = {
-			count < 2
+			count < 5
 		}
 	}
 	
+
+	ai_target_quick_trigger = { adult = yes }
 	ai_targets = {
 		ai_recipients = neighboring_rulers
 		max = 3
 	}
 	
-	ai_frequency = 72
+	ai_frequency = 36
 	
 	ai_will_do = {
 		base = 0
 		
+		modifier = {
+			add = -100
+			TributeSystem_chinese_tributary_trigger = yes
+			desc = will_not_make_tributary_in_china
+		}
 		modifier = {
 	  	  	add = {
 				value = scope:recipient.max_military_strength
@@ -617,11 +620,6 @@ demand_tribute_interaction = {#要求成为朝贡国
 	ai_accept = { # Similar to Negotiate Alliance, but without modifiers for Liege, being an heir, etc.
 		base = -50
 
-		modifier = {
-			add = -1000
-			TributeSystem_chinese_tributary_trigger = yes
-			desc = will_not_make_tributary_in_china
-		}
 		modifier = { # 永久朝贡国
 			add = -50
 			scope:permanent_trib = yes
@@ -1006,14 +1004,19 @@ demand_tribute_interaction = {#要求成为朝贡国
 	
 	ai_targets = {
 		ai_recipients = neighboring_rulers
-		max = 30
+		max = 10
 	}
 	
 	ai_frequency = 72
 	
 	ai_will_do = {
 		base = 0
-		
+
+		modifier = {
+			add = -100
+			TributeSystem_chinese_tributary_trigger = yes
+			desc = will_not_make_tributary_in_china
+		}
 		modifier = {
 	  	  	add = {
 				value = scope:recipient.max_military_strength
@@ -1108,14 +1111,6 @@ bride_request_tribute_interaction = {#贿赂其成为朝贡国
 	}
 	
 	is_valid_showing_failures_only = {
-		
-		scope:recipient = {
-			is_oe_available = yes
-		}
-		
-		scope:actor = {
-			is_oe_available = yes
-		}
 		
 		scope:recipient = { is_available_for_activity_trigger = yes }
 
@@ -1244,15 +1239,6 @@ free_tributary_interaction = {#宗主国抛弃朝贡国
 	}
 	
 	is_valid_showing_failures_only = {
-		
-		scope:recipient = {
-			is_oe_available = yes
-		}
-		
-		scope:actor = {
-			is_oe_available = yes
-		}
-		
 		scope:recipient = { is_available_for_activity_trigger = yes }
 	}
 	
@@ -1328,15 +1314,6 @@ break_tributary_interaction = {#朝贡国提出终止朝贡
 	}
 	
 	is_valid_showing_failures_only = {
-		
-		scope:recipient = {
-			is_oe_available = yes
-		}
-
-		scope:actor = {
-			is_oe_available = yes
-		}
-
 		scope:recipient = { is_available_for_activity_trigger = yes }
 	}
 	
@@ -1434,7 +1411,7 @@ turn_non_perma_tributary_to_perma = {
 				scope:actor = {
 					unset_tributary = {
 						TRIBUTARY = scope:recipient
-						TRIBUTARY_BASE_TYPE = flag:non_permanent
+						#TRIBUTARY_BASE_TYPE = flag:non_permanent
 					}
 					#TODO:MAKE SOME KIND OF EFFECT/S + TRIGGER/S THAT WOULD AUTOMATICALLY ASSIGN CORRECT PERMA TRIB TYPE BASED ON THE NON PERMA TRIB TYPE ~ T.
 					make_tributary = {
@@ -2749,6 +2726,296 @@ colorize_tributary = {
 #朝贡点数互动
 ###################
 
+
+#AI朝贡
+ai_offer_tribute_interaction = { #ai 朝贡
+	category = interaction_category_tribute
+	icon = icon_vassal
+	use_diplomatic_range = yes
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	interface_priority = 60
+	desc = TributeSystem_offer_tribute_desc	
+	greeting = positive
+	notification_text = offer_gold_tribute_interaction
+	cooldown = { years = 2 }
+
+	is_shown = {
+		scope:actor = { has_relation_suzerain = scope:recipient }
+		scope:actor = { is_ai = yes }
+	}
+	is_valid = {
+		scope:actor = { has_relation_suzerain = scope:recipient }
+	}
+	
+	is_valid_showing_failures_only = {
+		
+		scope:recipient = { is_available_for_activity_trigger = yes }
+
+		custom_description = {
+			text = "TributeSystem_allegiance_offer_has_been_rejected"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_opinion_modifier = {
+						modifier = offer_tribute_refused_opinion
+						target = scope:recipient
+					}
+				}
+			}
+		}
+		
+	}
+
+	#send_option
+	
+	can_send = {
+		custom_description = { # Exploit prevention
+			text = "has_sent_interaction_already"
+			subject = scope:recipient
+			scope:actor = {
+				NOT = {
+					has_pending_interaction_of_type = offer_tribute_interaction
+				}
+			}
+		}
+	}
+
+	send_options_exclusive = yes
+
+	can_send_despite_rejection = yes
+
+	on_auto_accept = {
+		scope:recipient = {
+			trigger_event = TributeSystem.1001
+		}
+	}
+		
+	on_accept = {
+		scope:recipient = {
+			# Verify that they could become friend
+			if = {
+				limit = {
+					NAND = {
+						has_relation_friend = scope:actor
+						has_relation_lover = scope:actor
+						has_relation_soulmate = scope:actor
+						has_relation_best_friend = scope:actor
+					}
+				}
+				gifting_leads_towards_friendship_effect = yes
+			}
+		}
+		# Warning for multiple gifts
+		if = {
+			limit = {
+				scope:recipient = {
+					has_opinion_modifier = {
+						target = scope:actor
+						modifier = gift_opinion
+					}
+				}
+			}
+			custom_tooltip = ALREADY_SENT_GIFT_WARNING
+		}
+		else = { # Struggle Catalyst
+			limit = {
+				scope:actor = {
+					any_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							CATALYST = catalyst_tribute_important 
+							CHAR = scope:recipient
+						}
+					}
+				}
+			}
+			hidden_effect = {
+				scope:actor = {
+					every_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst = {
+							catalyst = catalyst_tribute_important 
+							character = scope:actor
+						}
+					}
+				}
+			}
+		}
+		scope:recipient = {
+			add_opinion = {
+				target = scope:actor
+				modifier = gift_opinion
+				opinion = send_gift_opinion
+			}
+		}
+		#进贡数额
+		if = {
+			limit = {
+				scope:recipient = { is_ai = yes }
+			}
+			random = {
+				chance = 33
+				modifier = {}
+				scope:actor = {
+					tributary_change_tribute_exp_effect = { EXP = minor_tribute_exp_value }
+				}
+			}
+			random = {
+				chance = 33
+				modifier = {}
+				scope:actor = {
+					tributary_change_tribute_exp_effect = { EXP = medium_tribute_exp_value }
+				}
+			}
+			random = {
+				chance = 33
+				modifier = {}
+				scope:actor = {
+					tributary_change_tribute_exp_effect = { EXP = major_tribute_exp_value }
+				}
+			}
+			scope:recipient = {
+				suzerain_change_tribute_exp_effect = { EXP = minor_tribute_exp_value }
+			}
+		}
+		else_if = {
+			scope:recipient = { is_ai = no }
+			random = {
+				chance = 25
+				send_interface_toast = {
+					title = offer_gold_tribute_interaction_notification
+					right_icon = scope:recipient
+				}
+				scope:actor = {
+					tributary_change_tribute_exp_effect = { EXP = minor_tribute_exp_value }
+				}
+				scope:recipient = { add_gold = scope:actor.minor_gold_value } 
+			}
+			random = {
+				chance = 25
+				send_interface_toast = {
+					title = offer_gold_tribute_interaction_notification
+					right_icon = scope:recipient
+				}
+				scope:actor = {
+					tributary_change_tribute_exp_effect = { EXP = medium_tribute_exp_value }
+				}
+				scope:recipient = { add_gold = scope:actor.medium_gold_value } 
+			}
+			random = {
+				chance = 25
+				send_interface_toast = {
+					title = offer_gold_tribute_interaction_notification
+					right_icon = scope:recipient
+				}
+				scope:actor = {
+					tributary_change_tribute_exp_effect = { EXP = major_tribute_exp_value }
+				}
+				scope:recipient = { add_gold = scope:actor.major_gold_value }
+			}
+			random = {
+				chance = 25
+				send_interface_toast = {
+					title = offer_prestige_tribute_interaction_notification
+					right_icon = scope:recipient
+				}
+				scope:actor = {
+					tributary_change_tribute_exp_effect = { EXP = medium_tribute_exp_value }
+				}
+				scope:recipient = { add_prestige = scope:actor.medium_prestige_value }
+			}
+			scope:recipient = {
+				trigger_event = TributeSystem.1017 #选择赏赐规模，选择加点类型		
+			}
+		}
+	}
+
+	on_decline = {
+		scope:actor = {
+			trigger_event = TributeSystem.1003
+		}
+		scope:actor = {
+			add_opinion = {
+				modifier = offer_tribute_refused_opinion
+				target = scope:recipient
+			}
+		}
+	}
+
+	auto_accept = yes
+	
+	# 照抄原版结束
+	ai_potential = {
+		is_at_war = no
+	}
+	
+
+	ai_target_quick_trigger = { adult = yes }
+	ai_targets = {
+		ai_recipients = neighboring_rulers
+		max = 3
+	}
+	
+	ai_frequency = 12
+	
+	ai_will_do = {
+		base = 0
+		
+		modifier = {
+			add = -100
+			TributeSystem_chinese_tributary_trigger = yes
+			desc = will_not_make_tributary_in_china
+		}
+		modifier = {
+	  	  	add = {
+				value = scope:recipient.max_military_strength
+				divide = { value = scope:actor.max_military_strength min = 1 }
+				subtract = 1.5
+				multiply = 50
+	  		}
+		}
+		modifier = {
+			scope:recipient.realm_size > scope:actor.realm_size
+			add = 20
+		}
+		modifier = {
+			scope:recipient.realm_size < scope:actor.realm_size
+			factor = 0
+		}
+		modifier = {
+			scope:recipient.realm_size > scope:actor.realm_size
+			add = 20
+		}
+		modifier = {
+			scope:recipient.realm_size < scope:actor.realm_size
+			factor = 0
+		}
+		modifier = {
+			scope:actor = {
+				OR = {
+					has_trait = craven
+					has_trait = trusting
+					has_trait = lazy
+				}
+			}
+			add = 40
+		}
+		modifier = {
+			scope:actor = {
+				OR = {
+					has_trait = brave
+					has_trait = paranoid
+					has_trait = diligent
+				}
+			}
+			add = -60
+		}
+	}
+	
+}
+
+
 #金钱进贡
 offer_gold_tribute_interaction = {
 	category = interaction_category_tribute
@@ -2760,12 +3027,6 @@ offer_gold_tribute_interaction = {
 	desc = gift_interaction_desc
 	greeting = positive
 	notification_text = SEND_GIFT_PROPOSAL
-	ai_targets = {
-		ai_recipients = neighboring_rulers
-	}
-	ai_targets = {
-		ai_recipients = scripted_relations
-	}
 
 	is_shown = {
 		scope:actor = { has_relation_suzerain = scope:recipient }
@@ -3086,9 +3347,9 @@ offer_gold_tribute_interaction = {
 	ai_potential = {
 		is_available_at_peace_ai_adult = yes
 		ai_greed < medium_positive_ai_value
-		short_term_gold >= gift_interaction_cutoff
+		gold >= gift_interaction_cutoff
 	}
-	
+		
 	auto_accept = {
 		custom_description = {
 			text = auto_accept_interaction_ai	
@@ -3099,7 +3360,7 @@ offer_gold_tribute_interaction = {
 		}
 	}
 	ai_will_do = {
-		base = 100
+		base = 50
 		
 		modifier = {
 			add = 20
@@ -3112,7 +3373,7 @@ offer_gold_tribute_interaction = {
 		modifier = {
 			add = 5
 			scope:major_gold_value = yes
-		}
+		}		
 		modifier = {
 	  	  	add = {
 				value = scope:recipient.max_military_strength
@@ -3137,26 +3398,21 @@ offer_gold_tribute_interaction = {
 	
 }
 
-#金钱进贡
+#威望进贡
 offer_prestige_tribute_interaction = {
 	category = interaction_category_tribute
-	icon = icon_gold
+	icon = icon_prestige
 	use_diplomatic_range = yes
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
 	interface_priority = 120
-	desc = gift_interaction_desc
+	desc = offer_prestige_tribute_interaction_desc
 	greeting = positive
 	notification_text = SEND_GIFT_PROPOSAL
-	ai_targets = {
-		ai_recipients = neighboring_rulers
-	}
-	ai_targets = {
-		ai_recipients = scripted_relations
-	}
 
 	is_shown = {
 		scope:actor = { has_relation_suzerain = scope:recipient }
+		scope:actor = { is_ai = no }
 	}
 	is_valid = {
 	}
@@ -3172,11 +3428,11 @@ offer_prestige_tribute_interaction = {
 			text = has_no_option_selected
 			switch = {
 				trigger = yes 
-				scope:minor_gold_value = {
+				scope:minor_prestige_value = {
 				} 
-				scope:medium_gold_value = {
+				scope:medium_prestige_value = {
 				} 
-				scope:major_gold_value = {
+				scope:major_prestige_value = {
 				} 
 			}
 		}
@@ -3217,11 +3473,11 @@ offer_prestige_tribute_interaction = {
 	cost = {
 		prestige = {
 			if = {
-				limit = { always = minor_prestige_value }
+				limit = { always = scope:minor_prestige_value }
 				add = scope:actor.minor_prestige_value
 			}
 			if = {
-				limit = { always = medium_prestige_value }
+				limit = { always = scope:medium_prestige_value }
 				add = scope:actor.medium_prestige_value
 			}
 			if = {
@@ -3325,7 +3581,7 @@ offer_prestige_tribute_interaction = {
 		}
 		if = {
 			limit = {
-				scope:medium_gold_value = yes
+				scope:medium_prestige_value = yes
 			}
 			scope:actor = {
 				set_variable = {
@@ -3334,7 +3590,7 @@ offer_prestige_tribute_interaction = {
 				}
 				send_interface_message = {
 					type = event_toast_effect_neutral
-					title = offer_gold_tribute_interaction_notification
+					title = offer_prestige_tribute_interaction_notification
 					right_icon = scope:recipient
 
 					stress_impact = {
@@ -3424,30 +3680,22 @@ offer_prestige_tribute_interaction = {
 		}
 	}
 	
+	ai_target_quick_trigger = { adult = yes }
+	ai_targets = { ai_recipients = neighboring_rulers }
 	ai_frequency = 24
 
 	ai_potential = {
-		ai_honor < medium_positive_ai_value
-
+		any_relation = {
+			type = suzerain
+			count >= 1
+		}
 	}
-	
+
 	auto_accept = yes
 
 	ai_will_do = {
 		base = 100
 		
-		modifier = {
-			add = 20
-			scope:minor_gold_value = yes
-		}
-		modifier = {
-			add = 10
-			scope:medium_gold_value = yes	
-		}
-		modifier = {
-			add = 5
-			scope:major_gold_value = yes
-		}
 		modifier = {
 	  	  	add = {
 				value = scope:recipient.max_military_strength
@@ -3580,18 +3828,9 @@ offer_tribute_artifact_interaction = {
 
 	answer_accept_key = GIFT_ARTIFACT_ACCEPT
 	answer_reject_key = GIFT_ARTIFACT_REJECT
-	
-	ai_targets = {
-		ai_recipients = scripted_relations
-	}
 
-	ai_targets = {
-		ai_recipients = neighboring_rulers
-		max = 30
-	}
-	ai_target_quick_trigger = {
-		adult = yes
-	}
+	#ai_targets = { ai_recipients = neighboring_rulers max = 3 }
+	#ai_target_quick_trigger = { adult = yes }
 	ai_frequency = 50
 
 	can_be_picked_artifact = {
@@ -3621,6 +3860,7 @@ offer_tribute_artifact_interaction = {
 		scope:actor = {
 			has_any_artifact = yes
 			has_relation_suzerain = scope:recipient
+			scope:actor = { is_ai = no }
 		}
 	}
 
@@ -3670,7 +3910,7 @@ offer_tribute_artifact_interaction = {
 			custom_tooltip = ALREADY_SENT_GIFT_WARNING
 		}
 		# Struggle Catalyst
-		else_if = { # Struggle Catalyst
+		else = { # Struggle Catalyst
 			limit = {
 				scope:actor = {
 					any_character_struggle = {
@@ -4276,6 +4516,10 @@ offer_tribute_artifact_interaction = {
 	}
 	
 	ai_potential = {
+		any_relation = {
+			type = suzerain
+			count >= 1
+		}
 		trigger_if = {
 			limit = {
 				exists = scope:target.var:banner_dynasty
@@ -4704,17 +4948,12 @@ negotiate_currency_treaty_interaction = {
 	ai_maybe = yes
 	cooldown = { years = 5 }
 
-	ai_targets = {
-		ai_recipients = neighboring_rulers
-	}
-	ai_targets = {
-		ai_recipients = scripted_relations
-	}
 	is_shown = {
 		OR = {
 			scope:actor = { has_relation_suzerain = scope:recipient }
 			scope:actor = { has_relation_tributary = scope:recipient }
 		}
+		scope:actor = { is_ai = no }
 	}
 	is_valid = {
 	}
@@ -5024,15 +5263,11 @@ negotiate_currency_treaty_interaction = {
 		}
 	}
 
+	#ai_targets = { ai_recipients = neighboring_rulers }
 	ai_frequency = 52
 
 	ai_potential = {
 		is_available_at_peace_ai_adult = yes
-		ai_greed < medium_positive_ai_value
-		short_term_gold >= gift_interaction_cutoff
-		NOT = {
-			has_trait = greedy
-		}
 	}
 	
 	auto_accept = {
@@ -5094,17 +5329,12 @@ bestow_gold_interaction = {
 	greeting = positive
 	notification_text = SEND_GIFT_PROPOSAL
 	cooldown = {
-		years = 3
-	}
-	ai_targets = {
-		ai_recipients = neighboring_rulers
-	}
-	ai_targets = {
-		ai_recipients = scripted_relations
+		years = 2
 	}
 
 	is_shown = {
 		scope:actor = { has_relation_tributary = scope:recipient }
+		scope:actor = { is_ai = no }
 	}
 	is_valid = {
 	}
@@ -5400,12 +5630,12 @@ bestow_gold_interaction = {
 		}
 	}
 
+	#ai_targets = { ai_recipients = neighboring_rulers }
+	
 	ai_frequency = 24
 
 	ai_potential = {
-		#is_available_at_peace_ai_adult = yes
-		#ai_greed < medium_positive_ai_value
-		short_term_gold >= gift_interaction_cutoff
+		TributeSystem_suzerain_is_civilized_trigger = yes
 	}
 	
 	auto_accept = {
@@ -5475,6 +5705,7 @@ swing_tribute_exp_currency_interaction = {
 				scope:recipient = { TributeSystem_level_3_tributary_trigger = yes }
 			}					
 		}
+		scope:actor = { is_ai = no }
 	}
 
 	is_valid_showing_failures_only = {
@@ -5591,12 +5822,12 @@ swing_tribute_exp_currency_interaction = {
 				type = msg_mandate_results_bad_effect
 				title = swing_tribute_exp_interaction
 				right_icon = scope:actor
-				change_tribute_exp_effect = {
-					EXP = medium_sop_swing_liege_gain #负数
-				}
-				scope:actor = {
-					swing_tribute_exp_guts_effect = yes
-				}
+			}
+			change_tribute_exp_effect = {
+				EXP = medium_sop_swing_liege_gain #负数
+			}
+			scope:actor = {
+				swing_tribute_exp_guts_effect = yes
 			}
 		}
 
@@ -5605,12 +5836,9 @@ swing_tribute_exp_currency_interaction = {
 				type = msg_mandate_results_good_effect
 				title = swing_tribute_exp_interaction
 				right_icon = scope:actor
-
-				scope:actor = {
-					change_tribute_exp_effect = {
-						EXP = medium_sop_swing_diarch_gain #正数
-					}
-				}
+			}
+			change_tribute_exp_effect = {
+				EXP = medium_sop_swing_diarch_gain #正数
 			}
 		}
 

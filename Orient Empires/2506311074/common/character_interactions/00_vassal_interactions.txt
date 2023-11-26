@@ -195,11 +195,63 @@ grant_vassal_interaction = {
 				}
 			}
 		}
+
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = miniscule_unity_gain
+			DESC = clan_unity_grant_vassal.desc
+			REVERSE_NON_HOUSE_TARGET = yes
+		}
+
+		hidden_effect = {
+			# Struggle catalyst
+			if = {
+				limit = {
+					fp3_struggle_involves_one_supporter_and_one_detractor = {
+						FIRST = scope:actor
+						SECOND = scope:recipient
+					}
+					scope:actor = {
+						any_character_struggle	 = {
+							involvement = involved
+							phase_has_catalyst = catalyst_grants_vassal_to_de_jure_liege_supporter_detractor
+							is_secondary_character_involvement_involved_trigger = {
+								CHAR = scope:recipient
+							}
+						}
+					}
+					scope:recipient.primary_title = {
+						any_this_title_or_de_jure_above = {
+							holder = scope:secondary_actor
+						}
+					}
+				}
+				every_character_struggle = {
+					involvement = involved
+					activate_struggle_catalyst = {
+						catalyst = catalyst_grants_vassal_to_de_jure_liege_supporter_detractor
+						character = scope:actor
+					}
+					log_debug_variable_for_persian_struggle_effect = { VAR = concession_catalyst_grants_vassal_to_de_jure_liege_supporter_detractor }
+				}
+			}
+		}
 	}
 
 	on_decline = {
 		scope:actor = {
 			trigger_event = char_interaction.0211
+		}
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:recipient
+			TARGET = scope:actor
+			VALUE = miniscule_unity_loss
+			DESC = clan_unity_grant_vassal_decline.desc
+			REVERSE_NON_HOUSE_TARGET = no
 		}
 	}
 	
@@ -937,8 +989,6 @@ retract_vassal_interaction = {
 start_independence_faction_interaction = {
 	icon = independence
 	category = interaction_category_vassal
-
-
 	desc = start_independence_faction_interaction_desc
 
 	is_shown = {
@@ -996,8 +1046,6 @@ start_independence_faction_interaction = {
 join_independence_faction_interaction = {
 	icon = independence
 	category = interaction_category_vassal
-
-
 	desc = join_independence_faction_interaction_desc
 
 	is_shown = {
@@ -1308,6 +1356,17 @@ invite_to_council_position_interaction = {
 				}
 			}
 		}
+		# If we're a clan this interaction affects unity
+		#if = {
+		#	limit = { scope:actor = { NOT = { has_character_flag = fp3_consulted_house } } }
+		#	add_clan_unity_interaction_effect = {
+		#		CHARACTER = scope:actor
+		#		TARGET = scope:recipient
+		#		VALUE = miniscule_unity_gain
+		#		DESC = clan_unity_council_position.desc
+		#		REVERSE_NON_HOUSE_TARGET = yes
+		#	}
+		#}
 	}
 
 	on_decline = {
@@ -1473,6 +1532,15 @@ force_onto_council = {
 				}
 				use_hook = scope:recipient
 			}
+		}
+		
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = medium_unity_loss
+			DESC = clan_unity_forced_unto_council.desc
+			REVERSE_NON_HOUSE_TARGET = no
 		}
 	}
 
@@ -1688,6 +1756,38 @@ stop_attacker_vassal_war_interaction = {
 				trigger_event = vassal_interaction.0001 #Starts "negotiations"
 			}
 		}
+
+		# If we're a clan this interaction affects unity - But we only show it in the tooltip, actual effect is applied in the respective follow-up events
+		show_as_tooltip = {
+			if = {
+				limit = { # If we are asking a non-house member to stop attacking a house member, gain unity
+					exists = scope:recipient.house
+					exists = scope:actor.house
+					NOT = { scope:recipient.house = scope:actor.house }
+				}
+				add_clan_unity_interaction_effect = {
+					CHARACTER = scope:actor
+					TARGET = scope:target.primary_defender
+					VALUE = medium_unity_gain
+					DESC = clan_unity_aided_in_war.desc
+					REVERSE_NON_HOUSE_TARGET = no
+				}
+			}
+			else_if = {
+				limit = { # If we are asking a house member to stop attacking a non-house member, lose unity
+					exists = scope:actor.house
+					exists = scope:target.primary_defender.house
+					NOT = { scope:target.primary_defender.house = scope:actor.house }
+				}
+				add_clan_unity_interaction_effect = {
+					CHARACTER = scope:actor
+					TARGET = scope:recipient
+					VALUE = medium_unity_loss
+					DESC = clan_unity_stopped_vassal_war.desc
+					REVERSE_NON_HOUSE_TARGET = no
+				}
+			}
+		}
 	}
 
 	auto_accept = yes
@@ -1779,6 +1879,38 @@ stop_defender_vassal_war_interaction = {
 		hidden_effect = {
 			scope:recipient = {
 				trigger_event = vassal_interaction.0011 #Starts "negotiations"
+			}
+		}
+
+		# If we're a clan this interaction affects unity - But we only show it in the tooltip, actual effect is applied in the respective follow-up events
+		show_as_tooltip = {
+			if = {
+				limit = { # If recipient is a house member and the attacker is not, lose unity
+					exists = scope:actor.house
+					exists = scope:target.primary_attacker.house
+					NOT = { scope:target.primary_attacker.house = scope:actor.house }
+				}
+				add_clan_unity_interaction_effect = {
+					CHARACTER = scope:actor
+					TARGET = scope:recipient
+					VALUE = medium_unity_loss
+					DESC = clan_unity_stop_defender_vassal_war.desc
+					REVERSE_NON_HOUSE_TARGET = no
+				}
+			}
+			else_if = {
+				limit = { # If recipient is a non-house member and the attacker is, gain unity
+					exists = scope:actor.house
+					exists = scope:recipient.house
+					NOT = { scope:recipient.house = scope:actor.house }
+				}
+				add_clan_unity_interaction_effect = {
+					CHARACTER = scope:actor
+					TARGET = scope:target.primary_attacker
+					VALUE = medium_unity_gain
+					DESC = clan_unity_aided_in_war.desc
+					REVERSE_NON_HOUSE_TARGET = no
+				}
 			}
 		}
 	}
@@ -1874,6 +2006,55 @@ ask_for_pardon_interaction = {
 		scope:actor = {
 			trigger_event = vassal_interaction.0030
 		}
+
+		scope:recipient = { #FP3 Addition. TODO FP3 CD: Find a way to test this. 
+			if = {
+				limit = {
+					culture = {
+						has_cultural_parameter = pardoning_gives_prestige
+					}
+				}
+				add_prestige = minor_prestige_gain
+			}
+		}
+
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = minor_unity_gain
+			DESC = clan_unity_pardon_granted.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
+
+		hidden_effect = {
+			# Struggle catalysts
+			if = {
+				limit = {
+					fp3_struggle_involves_one_supporter_and_one_detractor = {
+						FIRST = scope:actor
+						SECOND = scope:recipient
+					}
+					scope:recipient = {
+						any_character_struggle	 = {
+							involvement = involved
+							phase_has_catalyst = catalyst_grants_pardon_supporter_detractor
+							is_secondary_character_involvement_involved_trigger = {
+								CHAR = scope:actor
+							}
+						}
+					}
+				}
+				every_character_struggle = {
+					involvement = involved
+					activate_struggle_catalyst = {
+						catalyst = catalyst_grants_pardon_supporter_detractor
+						character = scope:recipient
+					}
+					log_debug_variable_for_persian_struggle_effect = { VAR = concession_catalyst_grants_pardon_supporter_detractor }
+				}
+			}
+		}
 	}
 
 	on_auto_accept = {
@@ -1890,6 +2071,15 @@ ask_for_pardon_interaction = {
 
 				custom_tooltip = ask_for_pardon_interaction_accept_decline
 			}
+		}
+
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:recipient
+			TARGET = scope:actor
+			VALUE = minor_unity_loss
+			DESC = clan_unity_refused_pardon.desc
+			REVERSE_NON_HOUSE_TARGET = no
 		}
 	}
 
@@ -1935,7 +2125,21 @@ pardon_interaction = {
 	category = interaction_category_friendly
 	icon = scroll_scales
 
-	desc = pardon_interaction_desc
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:actor = {
+						culture = {
+							has_cultural_parameter = pardoning_gives_prestige
+						}
+					}
+				}
+				desc = pardon_interaction_has_jirga_desc
+			}
+			desc = pardon_interaction_desc
+		}
+	}
 	
 	is_shown = {
 		scope:actor = {
@@ -1959,7 +2163,46 @@ pardon_interaction = {
 				forgiving =  medium_stress_loss
 			}
 		}
-		
+
+		scope:actor = {
+			if = {
+				limit = {
+					culture = {
+						has_cultural_parameter = pardoning_gives_prestige
+					}
+				}
+				add_prestige = minor_prestige_gain
+			}
+
+			hidden_effect = {
+			# Struggle catalysts
+				if = {
+					limit = {
+						fp3_struggle_involves_one_supporter_and_one_detractor = {
+							FIRST = scope:actor
+							SECOND = scope:recipient
+						}
+						scope:recipient = {
+							any_character_struggle	 = {
+								involvement = involved
+								phase_has_catalyst = catalyst_grants_pardon_supporter_detractor
+								is_secondary_character_involvement_involved_trigger = {
+									CHAR = scope:actor
+								}
+							}
+						}
+					}
+					every_character_struggle = {
+						involvement = involved
+						activate_struggle_catalyst = {
+							catalyst = catalyst_grants_pardon_supporter_detractor
+							character = scope:recipient
+						}
+						log_debug_variable_for_persian_struggle_effect = { VAR = concession_catalyst_grants_pardon_supporter_detractor }
+					}
+				}
+			}
+		}
 		
 		scope:recipient = {
 			if = {
@@ -2001,7 +2244,16 @@ pardon_interaction = {
 				title = pardon_interaction_toast
 				left_icon = scope:actor
             }			
-		}			
+		}
+
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = minor_unity_gain
+			DESC = clan_unity_forgiveness.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 	
 	ai_potential = {
@@ -2228,6 +2480,15 @@ vassal_claim_liege_title_interaction = {
 				vassal_claim_liege_title_interaction_effect = yes
 			}
 		}
+
+		# If we're a clan this interaction affects unity
+		add_clan_unity_interaction_effect = {
+			CHARACTER = scope:actor
+			TARGET = scope:recipient
+			VALUE = major_unity_loss
+			DESC = clan_unity_title_claim.desc
+			REVERSE_NON_HOUSE_TARGET = no
+		}
 	}
 
 	auto_accept = yes
@@ -2304,6 +2565,7 @@ vassal_claim_liege_title_interaction = {
 			scope:actor = {
 				any_character_struggle = {
 					involvement = involved
+					is_struggle_type = iberian_struggle
 				}
 			}
 			add = {
@@ -2312,7 +2574,7 @@ vassal_claim_liege_title_interaction = {
 					limit = {
 						scope:actor = {
 							any_character_struggle = {
-								phase_has_catalyst = catalyst_gain_claim_on_title
+								phase_has_catalyst = catalyst_gain_claim_on_title_fp2
 							}
 							has_character_flag = agenda_towards_escalation
 						}
@@ -2323,7 +2585,40 @@ vassal_claim_liege_title_interaction = {
 					limit = {
 						scope:actor = {
 							any_character_struggle = {
-								phase_has_catalyst = catalyst_gain_claim_on_title
+								phase_has_catalyst = catalyst_gain_claim_on_title_fp2
+							}
+						}
+					}
+					add = -100
+				}
+			}
+		}
+
+		modifier = {
+			scope:actor = {
+				any_character_struggle = {
+					involvement = involved
+					is_struggle_type = persian_struggle
+				}
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_gain_claim_on_title_fp3
+							}
+							has_trait = fp3_struggle_detractor
+						}
+					}
+					add = 200
+				}
+				else_if = {
+					limit = {
+						scope:actor = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_gain_claim_on_title_fp3
 							}
 						}
 					}

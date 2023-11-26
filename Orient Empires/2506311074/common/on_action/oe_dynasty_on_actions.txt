@@ -5,7 +5,6 @@
 }
 oe_dynasty_on_action = {
 	on_actions = {
-		#oe_dynasty_effects
 		oe_dynasty_effects2
 	}
 }
@@ -13,15 +12,18 @@ oe_dynasty_on_action = {
 oe_dynasty_effects2 = {
 	trigger = {
 		is_house_head = yes
-		culture = { has_cultural_pillar = heritage_chinese }
+		OR = {
+			culture = { has_cultural_pillar = heritage_chinese }
+			liege ?= { culture = { has_cultural_pillar = heritage_chinese } }
+		}
 	}
 	effect = {
-		every_ruler = {
+		root = {
 			if = {
 				limit = {
 					is_house_head = yes
 					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_family_member = {
+					any_close_or_extended_family_member = {
 						is_male = yes
 						is_adult = yes
 						is_alive = no
@@ -38,7 +40,7 @@ oe_dynasty_effects2 = {
 				limit = {
 					is_house_head = yes
 					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_family_member = {
+					any_close_or_extended_family_member = {
 						is_male = yes
 						is_adult = yes
 						is_alive = no
@@ -55,7 +57,7 @@ oe_dynasty_effects2 = {
 				limit = {
 					is_house_head = yes
 					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_family_member = {
+					any_close_or_extended_family_member = {
 						is_male = yes
 						is_adult = yes
 						is_alive = no
@@ -75,7 +77,7 @@ oe_dynasty_effects2 = {
 						culture = { has_cultural_pillar = heritage_chinese }
 						culture = { has_cultural_pillar = heritage_yamato }
 					}
-					any_close_family_member = {
+					any_close_or_extended_family_member = {
 						is_male = yes
 						is_adult = yes
 						is_alive = no
@@ -92,7 +94,7 @@ oe_dynasty_effects2 = {
 				limit = {
 					is_house_head = yes
 					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_family_member = {
+					any_close_or_extended_family_member = {
 						is_male = yes
 						is_adult = yes
 						is_alive = no
@@ -131,6 +133,83 @@ oe_dynasty_effects2 = {
 					add_dynasty_prestige_level = {
 						value = 2 max = 2
 					}
+				}
+			}
+		}
+	}
+}
+
+
+#大家族延续
+# Called from code once every five years for all characters.
+# Root is the character
+five_year_everyone_pulse = {
+	on_actions = {
+		great_dynasty_marriage
+	}
+}
+
+great_dynasty_marriage = {
+	effect = {
+		root = {
+			if = { # Non-lowborn Barons should marry and produce a family
+				limit = {
+					exists = dynasty
+					dynasty = { dynasty_prestige_level >= 3 }
+					is_adult = yes
+					is_married = no
+					can_marry_trigger = yes
+					is_concubine = no
+					is_ai = yes
+				}
+				
+				if = {
+					limit = {
+						exists = root.location
+						any_pool_character = {
+							province = location
+							can_have_children_with = { CHARACTER = root }
+							is_physically_able_adult = yes
+							age <= 40
+							is_married = no
+							can_marry_trigger = yes
+							is_concubine = no
+							is_claimant = no
+						}
+					}
+					random_pool_character = {
+						province = root.location
+						limit = {
+							can_have_children_with = { CHARACTER = root }
+							is_physically_able_adult = yes
+							age <= 40
+							is_married = no
+							can_marry_trigger = yes
+							is_concubine = no
+							is_claimant = no
+						}
+						save_temporary_scope_as = spouse
+					}
+				}
+				else = {
+					create_character = {
+						location = root.location
+						template = pool_repopulate_spouse
+						save_temporary_scope_as = spouse
+					}
+				}
+
+				if = {
+					limit = {
+						is_female = yes
+						scope:spouse = {
+							is_lowborn = yes
+						}
+					}
+					marry_matrilineal = scope:spouse
+				}
+				else = {
+					marry = scope:spouse
 				}
 			}
 		}

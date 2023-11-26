@@ -1,12 +1,12 @@
 ﻿task_tongpingzhang_1 = { #处理国内事务
 	default_task = yes
 	position = councillor_tongpingzhang
-
 	task_type = task_type_general
 	task_progress = task_progress_infinite
 
 	effect_desc = {
-		desc = task_domestic_affairs_effect_desc
+		# Direct Vassal Opinion
+		desc = task_domestic_affairs_direct_effect_desc
 		triggered_desc = {
 			trigger = {
 				liege = { has_perk = chains_of_loyalty_perk }
@@ -15,7 +15,7 @@
 		}
 		triggered_desc = {
 			trigger = {
-				councillor_liege_has_erudition_legacy_5_perk = yes	
+				councillor_liege_has_erudition_legacy_5_perk = yes
 			}
 			desc = task_domestic_affairs_bureaucrats_bonus_desc
 		}
@@ -25,6 +25,39 @@
 			}
 			desc = task_domestic_affairs_family_business_bonus_desc
 		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			desc = task_domestic_affairs_consulted_house_bonus_desc
+		}
+		# Parochial Vassal Opinion
+		desc = task_domestic_affairs_parochial_effect_desc
+		triggered_desc = {
+			trigger = {
+				liege = { has_perk = chains_of_loyalty_perk }
+			}
+			desc = task_domestic_affairs_chains_of_loyalty_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			desc = task_domestic_affairs_bureaucrats_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			desc = task_domestic_affairs_family_business_bonus_desc
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			desc = task_domestic_affairs_consulted_house_bonus_desc
+		}
+		# Tyranny Loss
 		desc = task_domestic_affairs_tyranny_effect_desc
 		triggered_desc = {
 			trigger = {
@@ -44,20 +77,26 @@
 			}
 			desc = task_domestic_affairs_tyranny_family_business_bonus_desc
 		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			desc = task_domestic_affairs_tyranny_consulted_house_bonus_desc
+		}
 		desc = {
 			desc = council_task_possible_side_effects
 			triggered_desc = {
 				trigger = {
-					stewardship > mediocre_skill_rating
+					diplomacy > mediocre_skill_rating
 				}
 				desc = task_increase_control_improved_vassal_opinion
 			}
 			triggered_desc = {
 				trigger = {
-					stewardship > mediocre_skill_rating
+					diplomacy > mediocre_skill_rating
 					liege = {
 						any_vassal = {
-							government_has_flag = government_is_celestial
+							government_has_flag = government_is_feudal
 							primary_title.tier > tier_barony
 						}
 					}
@@ -66,28 +105,28 @@
 			}
 			triggered_desc = {
 				trigger = {
-					stewardship > mediocre_skill_rating
+					diplomacy > mediocre_skill_rating
 				}
 				desc = task_increase_control_end_internal_war
 			}
 			triggered_desc = {
 				trigger = {
-					stewardship > mediocre_skill_rating
+					diplomacy > mediocre_skill_rating
 				}
 				desc = task_increase_control_force_vassal_partition
 			}
 			triggered_desc = {
 				trigger = {
-					stewardship < high_skill_rating
+					diplomacy < high_skill_rating
 				}
 				desc = task_increase_control_lose_vassal_opinion
 			}
 			triggered_desc = {
 				trigger = {
-					stewardship < high_skill_rating
+					diplomacy < high_skill_rating
 					liege = {
 						any_vassal = {
-							government_has_flag = government_is_celestial
+							government_has_flag = government_is_feudal
 							primary_title.tier > tier_barony
 						}
 					}
@@ -98,9 +137,11 @@
 	}
 
 	on_start_task = {
-		set_variable = {
-			name = chancellor_domestic_affairs_opinion_value
-			value = 0
+		liege = {
+			set_variable = {
+				name = chancellor_domestic_affairs_opinion_value
+				value = 0
+			}
 		}
 	}
 
@@ -115,21 +156,21 @@
 	}
 
 	council_owner_modifier = {
-		name = task_domestic_affairs_opinion_moidifier
+		name = task_domestic_affairs_opinion_modifier
 		direct_vassal_opinion = 1
 		scale = chancellor_domestic_affairs_opinion_scale
 	}
 
 	council_owner_modifier = {
-		name = task_domestic_affairs_parochial_opinion_moidifier
+		name = task_domestic_affairs_parochial_opinion_modifier
 		parochial_opinion = 1
 		scale = chancellor_domestic_affairs_opinion_scale
 	}
 
 	council_owner_modifier = {
-		name = task_domestic_affairs_opinion_moidifier
+		name = task_domestic_affairs_opinion_modifier
 		tyranny_loss_mult = 0.01
-		scale = chancellor_domestic_affairs_tyranny_base
+		scale = chancellor_domestic_affairs_tyranny_total
 	}
 
 	monthly_on_action = task_domestic_affairs_side_effects
@@ -217,8 +258,6 @@
 		}
 	}
 }
-
-
 
 task_tongpingzhang_2 = { #推广文化
 	position = councillor_tongpingzhang
@@ -412,6 +451,18 @@ task_tongpingzhang_2 = { #推广文化
 				desc = fp2_struggle_hostility_culture_conversion_task_desc
 			}
 		}
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					has_character_modifier = devoted_to_tradition_modifier
+				}
+			}
+			multiply = {
+				value = 1.25
+				desc = bp2_devoted_to_tradition_modifier_conversion_task_desc
+			}
+		}
+
 	}
 
 	potential_county = {
@@ -771,23 +822,6 @@ task_tongpingzhang_2 = { #推广文化
 			multiply = 0
 		}
 		if = {
-			# Don't do this too often
-			limit = {
-				scope:councillor_liege = {
-					has_character_flag = no_ai_culture_convert
-					NAND = { # ignore it if in Hostility with escalation
-						has_character_flag = agenda_towards_escalation
-						any_character_struggle = {
-							involvement = involved
-							is_struggle_type = tartaria_struggle
-							is_struggle_phase = struggle_tartaria_phase_hostility
-						}
-					}
-				}
-			}
-			multiply = 0
-		}
-		if = {
 			# Interrupt this task if you're bankrupt
 			limit = {
 				scope:councillor_liege = {
@@ -798,7 +832,6 @@ task_tongpingzhang_2 = { #推广文化
 		}
 	}
 }
-
 
 task_tongpingzhang_3 = { #游说法理领土
 	position = councillor_tongpingzhang
@@ -990,6 +1023,24 @@ task_tongpingzhang_3 = { #游说法理领土
 			add = {
 				value = steward_convince_dejure_erudition_bonus
 				desc = ERUDITION_DYNASTY_PERK_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			add = {
+				value = steward_convince_dejure_family_business_bonus
+				desc = FAMILY_BUSINESS_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			add = {
+				value = steward_convince_dejure_consulted_house_bonus
+				desc = CONSULTED_HOUSE_BONUS_VALUE
 			}
 		}
 	}
