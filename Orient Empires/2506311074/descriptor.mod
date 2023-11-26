@@ -1,4 +1,4 @@
-version="1.10.*"
+version="1.11.*"
 tags={
 	"Graphics"
 	"Map"
@@ -10,6 +10,6 @@ tags={
 	"Character Interactions"
 	"Bookmarks"
 }
-name="Developer Edition of Oriental Empires"
-supported_version="1.10.*"
-remote_file_id="2930186367"
+name="Oriental Empires"
+supported_version="1.11.*"
+remote_file_id="2506311074"
