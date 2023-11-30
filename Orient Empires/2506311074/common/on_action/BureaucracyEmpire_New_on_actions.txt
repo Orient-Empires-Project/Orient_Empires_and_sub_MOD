@@ -773,29 +773,35 @@ BureaucracyEmpire_on_title_gain_new = {
 			limit = { 
 				exists = scope:old_title
 			}
-			ordered_pool_character = {
-				limit = {
-					is_capable_adult = yes
-					is_imprisoned = no
-					is_available_at_peace = yes
-					dynasty = { dynasty_prestige_level > 2 }
-					culture = scope:base.top_liege.culture
-					OR = {
-						location = { province_owner.top_liege ?= scope:base.top_liege }
-						location = { province_owner ?= scope:base.top_liege }
-						location ?= scope:base.top_liege.capital_county.title_province
+			if = {
+				limit = { has_variable = oe_heir }
+				var:oe_heir = { save_scope_as = lucky }
+			}
+			else = {
+				ordered_pool_character = {
+					limit = {
+						is_capable_adult = yes
+						is_imprisoned = no
+						is_available_at_peace = yes
+						dynasty = { dynasty_prestige_level > 2 }
+						culture = scope:base.top_liege.culture
+						OR = {
+							location = { province_owner.top_liege ?= scope:base.top_liege }
+							location = { province_owner ?= scope:base.top_liege }
+							location ?= scope:base.top_liege.capital_county.title_province
+						}
+						OR = {
+							has_trait = lifestyle_bureaucrat
+							has_trait = jinshi
+						}
+					}			
+					order_by = {
+						value = bureaucracy_exp_value
+						add = age
+						add = learning
 					}
-					OR = {
-						has_trait = lifestyle_bureaucrat
-						has_trait = jinshi
-					}
-				}			
-				order_by = {
-					value = bureaucracy_exp_value
-					add = age
-					add = learning
+					save_scope_as = lucky
 				}
-				save_scope_as = lucky
 			}
 			#如果找到合适的人选的话……
 			if = {
@@ -944,7 +950,10 @@ on_death = {
 }
 BureaucracyEmpire_succession_pulse = {
 	trigger = {
-		has_realm_law = player_official_succession_law
+		OR = {
+			has_realm_law = player_official_succession_law
+			is_oe_landed_bureaucrat_trigger = yes
+		}
 	}
 	effect = {
 		add_character_flag = { flag = about_to_die_but_not_dead_yet_flag } # Used in perk calc

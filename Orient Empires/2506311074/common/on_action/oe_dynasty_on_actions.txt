@@ -155,30 +155,44 @@ great_dynasty_marriage = {
 			if = { # Non-lowborn Barons should marry and produce a family
 				limit = {
 					exists = dynasty
-					dynasty = { dynasty_prestige_level >= 3 }
+					culture = { has_cultural_pillar = heritage_chinese }
+					dynasty = { dynasty_prestige_level >= 2 }	
 					is_adult = yes
 					is_married = no
 					can_marry_trigger = yes
+					patrilinear_betrothal = no
+					matrilinear_betrothal = no
 					is_concubine = no
 					is_ai = yes
+					is_ruler = no
+					NAND = {
+						exists = matchmaker
+						matchmaker = {
+							OR = {
+								is_ai = no
+								this = liege
+								highest_held_title_tier >= tier_county
+							}
+						}
+					}
 				}
 				
 				if = {
 					limit = {
 						exists = root.location
 						any_pool_character = {
-							province = location
+							province.kingdom = location.kingdom
 							can_have_children_with = { CHARACTER = root }
 							is_physically_able_adult = yes
 							age <= 40
 							is_married = no
 							can_marry_trigger = yes
 							is_concubine = no
-							is_claimant = no
+							culture = root.culture
 						}
 					}
 					random_pool_character = {
-						province = root.location
+						province.kingdom = root.location.kingdom
 						limit = {
 							can_have_children_with = { CHARACTER = root }
 							is_physically_able_adult = yes
@@ -186,7 +200,7 @@ great_dynasty_marriage = {
 							is_married = no
 							can_marry_trigger = yes
 							is_concubine = no
-							is_claimant = no
+							culture = root.culture
 						}
 						save_temporary_scope_as = spouse
 					}
@@ -194,6 +208,7 @@ great_dynasty_marriage = {
 				else = {
 					create_character = {
 						location = root.location
+						culture = root.culture
 						template = pool_repopulate_spouse
 						save_temporary_scope_as = spouse
 					}

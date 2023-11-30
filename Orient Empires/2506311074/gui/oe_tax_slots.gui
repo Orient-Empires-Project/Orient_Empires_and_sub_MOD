@@ -1,0 +1,150 @@
+widget = {
+	name = "oe_ingame_topbar"
+	visible = "[InGameTopbar.ShouldBeVisible]"
+	size = { 100% 100% }
+	layer = hud_layer
+
+	### Main Tabs
+	widget = {
+		name = "main_tabs"
+		visible = "[And(And( Not( IsPauseMenuShown ), And(Or(Not(IsObserver), GetPlayer.IsValid), IsDefaultGUIMode)), Not(IsGameViewOpen('struggle')))]"
+		parentanchor = top|right
+		position = { 0 540 }
+		size = { 50 0 }
+		allow_outside = yes
+
+		using = Animation_ShowHide_Quick
+
+		vbox = {
+			alwaystransparent = no
+			filter_mouse = all
+			visible = "[Not(IsGameViewOpen('barbershop'))]"
+			margin = { 5 10 }
+
+			Background = {
+				visible = "[And(Not(IsRightWindowOpen) , Not(IsGameViewOpen('barbershop')) )]"
+				texture = "gfx/interface/skinned/hud_maintab_bg_middle.dds"
+				spriteType = CorneredTiled
+				texture_density = 1
+				margin = { 5 -40 }
+			}
+
+			Background = {
+				visible = "[And(Not(IsRightWindowOpen) , Not(IsGameViewOpen('barbershop')) )]"
+				spriteType = CorneredStretched
+				spriteborder_top = 100
+				parentanchor = top|right
+				texture_density = 3
+				size = { 250 100 }
+				texture = "gfx/interface/skinned/hud_maintab_bg_top.dds"
+			}
+
+			Background = {
+				visible = "[And(Not(IsRightWindowOpen) , Not(IsGameViewOpen('barbershop')) )]"
+				spriteType = CorneredStretched
+				spriteborder_bottom = 50
+				parentanchor = top|right
+				texture_density = 2
+				size = { 150 100 }
+				texture = "gfx/interface/skinned/hud_maintab_bg_bottom.dds"
+			}
+
+			widget_hud_main_tab = {
+				name = "oe_tax_jurisdiction"
+				datacontext = "[GetPlayer]"
+				enabled = "[Character.HasTaxSlots]"
+				tooltip = "天朝帝国"#
+				visible = "[GetScriptedGui('is_china_government').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+				#visible = "[GetPlayer.GetGovernment.IsType( 'celestial_government' )]"
+
+				blockoverride "maintab_button"
+				{
+					texture = "gfx/interface/skinned/hud_maintab/maintab_tax_jurisdictions.dds"
+
+					onclick = "[ToggleGameViewData('manage_tax_slots', GetPlayer.GetID)]"
+					down = "[IsGameViewOpen('manage_tax_slots')]"
+
+					using = tooltip_ws
+					tooltipwidget = {
+						tax_jurisdictions_button_tooltip = {}
+					}
+
+					icon = {
+						size = { 100% 100% }
+						visible = "[GreaterThan_int32( GetPlayer.GetUnassignedVassalsCount, '(int32)0' )]"
+						texture = "gfx/interface/skinned/hud_maintab/maintab_tax_jurisdictions.dds"
+
+						glow = {
+							glow_radius = 8
+							using = Glow_Standard
+							using = Color_Red
+						}
+						state = {
+							name = a
+							next = b
+							alpha = 0.3
+							trigger_on_create = yes
+							duration = 1.2
+							using = Animation_Curve_Default
+						}
+
+						state = {
+							name = b
+							next = a
+							alpha = 0.5
+							duration = 0.6
+							using = Animation_Curve_Default
+						}
+					}
+
+#					icon = {
+#						visible = "[GreaterThan_int32( GetPlayer.GetUnassignedVassalsCount, '(int32)0' )]"
+#						size = { 25 25 }
+#						position = { -5 5}
+#						texture = "gfx/interface/icons/symbols/icon_warning.dds"
+#
+#						icon = {
+#							size = { 100% 100% }
+#							alwaystransparent = yes
+#							texture = "gfx/interface/icons/symbols/icon_warning.dds"
+#
+#							modify_texture = {
+#								texture = "gfx/interface/icons/focuses/hud_icon_mask.dds"
+#								blend_mode = alphamultiply
+#							}
+#
+#							modify_texture = {
+#								texture = "gfx/interface/colors/red.dds"
+#								blend_mode = colordodge
+#							}
+#
+#							state = {
+#								name = a
+#								next = b
+#								alpha = 0
+#								trigger_on_create = yes
+#								duration = 1.2
+#								using = Animation_Curve_Default
+#							}
+#
+#							state = {
+#								name = b
+#								next = a
+#								alpha = 0.8
+#								duration = 0.6
+#								using = Animation_Curve_Default
+#							}
+#						}
+#					}
+				}
+			}
+		}
+		# Invisible button to ensure that these shortcuts don't get hidden
+		button = {
+			size = { 0 0 }
+			onclick = "[ToggleGameViewData( 'character', GetPlayer.GetID )]"
+			shortcut = "character_window"
+		}
+	}
+	widget_stress_sounds = {}
+}
