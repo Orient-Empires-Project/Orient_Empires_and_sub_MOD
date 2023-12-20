@@ -164,6 +164,7 @@ on_shihao_effect = {
 on_title_gain = {
 	on_actions = {
 		guohao_effects
+		kingdom_guohao_effects
 		yamato_on_title_gain_effects
 		zunhao_effects
 		goryeo_effects
@@ -197,7 +198,7 @@ guohao_effects = {
 					add_trait = miaohao_trait_gaozu 
 				}
 			}
-			add_trait = founding_monarch
+				#add_trait = founding_monarch
 
 			#异族特色盾徽
 			if = {
@@ -1321,20 +1322,20 @@ guohao_effects = {
 					title:e_celestia = { set_coa = title:k_zhao }
 					title:e_celestia = { set_color_from_title = title:d_xingci }
 				}
-	#			else_if = {
-	#				limit = {
-	#					dynasty = dynasty:1000049854
-	#				}
-	#				if = {
-	#					limit = { royal_members_trigger = no } ##非皇族
-	#					house = {
-	#						add_house_modifier = k_jin #晋皇族
-	#					}
-	#				}
-	#				title:e_celestia = { set_title_name = k_jin }
-	#				title:e_celestia = { set_coa = title:k_jin }
-	#				title:e_celestia = { set_color_from_title = title:k_jin }
-	#			}
+		#			else_if = {
+		#				limit = {
+		#					dynasty = dynasty:1000049854
+		#				}
+		#				if = {
+		#					limit = { royal_members_trigger = no } ##非皇族
+		#					house = {
+		#						add_house_modifier = k_jin #晋皇族
+		#					}
+		#				}
+		#				title:e_celestia = { set_title_name = k_jin }
+		#				title:e_celestia = { set_coa = title:k_jin }
+		#				title:e_celestia = { set_color_from_title = title:k_jin }
+		#			}
 	
 				else_if = {
 					limit = {
@@ -1564,57 +1565,44 @@ guohao_effects = {
 	}
 }
 
-
-
-#下克上
-yamato_on_title_gain_effects = {
-	effect = {		
-		if = { #非继承获得头衔
+kingdom_guohao_effects = {
+	effect = {
+		#魏赵
+		if = {
 			limit = {
-				#current_date >= 900.1.1
-				exists = capital_province
-				capital_province = { geographical_region = world_asia_japan }
-				top_liege = { has_title = title:k_yamato }
-				NOT = { has_title = title:d_gosho }
-				NOT = { government_has_flag = government_is_celestial }
-				highest_held_title_tier < tier_kingdom
-				liege = {
+				scope:title.tier >= tier_kingdom
+				OR = {
+					AND = {
+						exists = scope:previous_holder
+						NOR = {					
+							scope:transfer_type = flag:inheritance
+							root.house = scope:previous_holder.house
+						}
+					}
+					scope:transfer_type = flag:created
+				}
+			}
+			if = {
+				limit = {
 					OR = {
-						government_has_flag = government_is_feudal
-						government_has_flag = government_is_celestial
-						government_has_flag = government_is_legion
+						scope:title = title:k_zhao
+						scope:title = title:k_liang
+					}
+					OR = {
+						root.capital_province.duchy = title:d_weibo
+						dynasty = dynasty:1000049455
 					}
 				}
-				#NOT = { scope:title = title:k_yamato }				
-				NOT = {
-					root.house = scope:previous_holder.house
-				}
-				NOR = {
-					scope:transfer_type = flag:created
-					scope:transfer_type = flag:inheritance
-					scope:transfer_type = flag:revoked
-					scope:transfer_type = flag:granted
-				}
-				NOT = { has_trait = founding_monarch }
-				NOT = { government_has_flag = government_is_legion }
+				scope:title = { set_title_name = k_wei }
+				scope:title = { set_coa = title:k_wei }
+				#scope:title = { set_color_from_title = title:k_wei }
 			}
-			change_government = legion_government
 		}
-		#摄政/宫廷头衔
-		#if = {
-			#limit = {
-				#OR = {
-					#has_title = title:d_sekke
-					##has_title = title:d_confucius
-				#}
-			#}
-			#change_government = celestial_government
-		#}
 		#吴齐
 		if = {
 			limit = {
-				current_date >= 936.1.1
-				#current_date <= 956.1.1
+				start_date >= 936.1.1
+				start_date <= 956.1.1
 				has_title = title:k_wu
 				is_independent_ruler = yes
 				scope:title.tier >= tier_kingdom
@@ -1661,6 +1649,54 @@ yamato_on_title_gain_effects = {
 				#}
 			#}
 			#destroy_title = scope:title
+		#}
+	}
+}
+
+
+#下克上
+yamato_on_title_gain_effects = {
+	effect = {		
+		if = { #非继承获得头衔
+			limit = {
+				#current_date >= 900.1.1
+				exists = capital_province
+				capital_province = { geographical_region = world_asia_japan }
+				top_liege = { has_title = title:k_yamato }
+				NOT = { has_title = title:d_gosho }
+				NOT = { government_has_flag = government_is_celestial }
+				highest_held_title_tier < tier_kingdom
+				liege = {
+					OR = {
+						government_has_flag = government_is_feudal
+						government_has_flag = government_is_celestial
+						government_has_flag = government_is_legion
+					}
+				}
+				#NOT = { scope:title = title:k_yamato }				
+				NOT = {
+					root.house = scope:previous_holder.house
+				}
+				NOR = {
+					scope:transfer_type = flag:created
+					scope:transfer_type = flag:inheritance
+					scope:transfer_type = flag:revoked
+					scope:transfer_type = flag:granted
+				}
+				NOT = { has_trait = founding_monarch }
+				NOT = { government_has_flag = government_is_legion }
+			}
+			change_government = legion_government
+		}
+		#摄政/宫廷头衔
+		#if = {
+			#limit = {
+				#OR = {
+					#has_title = title:d_sekke
+					##has_title = title:d_confucius
+				#}
+			#}
+			#change_government = celestial_government
 		#}
 		#院政
 		if = {

@@ -86,7 +86,11 @@ TributeSystem_succession_effects = {
 					   #value = this
 					#}
 					if = {
-						exists = scope:tributary_succ_var
+						limit = {
+							exists = scope:tributary_succ_var
+							root = { TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = scope:tributary_succ_var } }						
+							NOT = { root = { has_relation_tributary = scope:tributary_succ_var } }
+						}
 						make_tributary = {
 							SUZERAIN = root
 							TRIBUTARY = scope:tributary_succ_var
@@ -166,7 +170,7 @@ TributeSystem_on_title_lost = {
 	}
     effect = {
 		if = {
-			limit = { exists = var:my_suzerain } #朝贡国失国
+			limit = { exists = var:my_suzerain var:my_suzerain = { is_alive = yes } } #朝贡国失国
 			var:my_suzerain = { save_scope_as = suzerain }
 			remove_relation_suzerain = scope:suzerain	
 			unset_tributary = {
@@ -260,7 +264,6 @@ TributeSystem_on_rank_change = {
 			}
 			var:my_suzerain = { save_scope_as = my_suzerain }
 			unset_tributary = { TRIBUTARY = root }
-			TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:my_suzerain TRIBUTARY = root }
 		}
 		#宗主国等级变化
 		if = {
@@ -281,7 +284,6 @@ TributeSystem_on_rank_change = {
 					}
 				}
 				unset_tributary = { TRIBUTARY = scope:tributary }
-				TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = root TRIBUTARY = scope:tributary }
 			}
 		}
 		TributeSystem_suzerain_validity_check_effect = yes

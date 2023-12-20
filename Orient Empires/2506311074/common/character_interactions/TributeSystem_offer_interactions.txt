@@ -1102,6 +1102,7 @@ bride_request_tribute_interaction = {#贿赂其成为朝贡国
 	notification_text = TributeSystem_demand_tribute_with_wealth_offer_notification
 	
 	is_shown = {
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
 			TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = scope:recipient }
 		}
@@ -1390,7 +1391,7 @@ turn_non_perma_tributary_to_perma = {
 	is_valid = {
 		custom_description = {
 			text = TRUE_TRIBUTARY_LEVEL_2
-			scope:recipient = { TributeSystem_true_tributary_EXP_MIN_trigger = { MIN >= 30 } }
+			scope:recipient = { TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 30 } }
 		}
 		
 	}
@@ -1817,7 +1818,7 @@ vassalize_tributary = {
 	is_valid = {
 		custom_description = {
 			text = TRUE_TRIBUTARY_LEVEL_3
-			scope:recipient = { TributeSystem_true_tributary_EXP_MIN_trigger = { MIN >= 60 } }
+			scope:recipient = { TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 60 } }
 		}
 		
 	}
@@ -5227,6 +5228,27 @@ negotiate_currency_treaty_interaction = {
 			scope:life_income = yes
 		}
 
+		modifier = {
+	  	  	add = {
+				value = scope:recipient.max_military_strength
+				divide = { value = scope:actor.max_military_strength min = 1 }
+				subtract = 1.5
+				multiply = 50
+	  		}
+		}
+		modifier = {
+			scope:recipient.realm_size > scope:actor.realm_size
+			add = 30
+		}
+		modifier = {
+			scope:recipient.max_military_strength < scope:actor.max_military_strength
+			factor = 0
+		}
+		modifier = {
+			scope:recipient.realm_size < scope:actor.realm_size
+			factor = 0
+		}
+		
 		# Struggle motive
 		modifier = {
 			desc = AI_STRUGGLE_INTENT
@@ -5294,26 +5316,7 @@ negotiate_currency_treaty_interaction = {
 			add = 5
 			scope:major_gold_value = yes
 		}
-		modifier = {
-	  	  	add = {
-				value = scope:recipient.max_military_strength
-				divide = { value = scope:actor.max_military_strength min = 1 }
-				subtract = 1.5
-				multiply = 50
-	  		}
-		}
-		modifier = {
-			scope:recipient.realm_size > scope:actor.realm_size
-			add = 30
-		}
-		modifier = {
-			scope:recipient.max_military_strength < scope:actor.max_military_strength
-			factor = 0
-		}
-		modifier = {
-			scope:recipient.realm_size < scope:actor.realm_size
-			factor = 0
-		}
+
 	}
 }
 
@@ -5711,7 +5714,7 @@ swing_tribute_exp_currency_interaction = {
 	is_valid_showing_failures_only = {
 		custom_tooltip = {
 			text = swing_tribute_exp_currency_interaction.tt.scales_max_swung
-			OR = {
+			NOR = {
 				scope:recipient = { TributeSystem_tributary_EXP_MIN_trigger = { MIN = 1 } }
 				scope:recipient = { TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 1 } }
 			}		

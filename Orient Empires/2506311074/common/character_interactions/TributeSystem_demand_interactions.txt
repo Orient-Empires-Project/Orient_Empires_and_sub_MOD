@@ -204,6 +204,7 @@ demand_courtier_beauty_interaction = {
 	}
 	
 	is_shown = {
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
 			OR = {
 				AND = {
@@ -457,7 +458,7 @@ demand_courtier_beauty_interaction = {
 		}
 		opinion_modifier = { # Opinion Factor
 			who = scope:recipient
-			opinion_target = scope:secondary_recipient
+			opinion_target = scope:secondary_actor
 			multiplier = -0.1
 			desc = AI_OPINION_REASON
 		}
@@ -492,7 +493,7 @@ demand_courtier_beauty_interaction = {
 		######### HOSTAGE IMPORTANCE
 		
 		modifier = {
-			exists = scope:secondary_recipient
+			exists = scope:secondary_actor
 			add = interaction_recipient_hostage_value
 			desc = HOSTAGE_VALUE_RECIPIENT_REASON
 		}
@@ -653,9 +654,7 @@ demand_tribute_artifact_interaction = {
 	ai_frequency = 60
 
 	is_shown = {
-		NOT = {
-			scope:recipient = scope:actor
-		}
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
 			OR = {
 				AND = {
@@ -1408,6 +1407,7 @@ call_suzerain_to_war = {
 	notification_text = CALL_ALLY_NOTIFICATION
 
 	is_shown = {
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = { #put here every tributary type which should be able to call suzerain
 			is_at_war = yes
 			is_tributary = yes
@@ -2296,6 +2296,7 @@ call_tributary_to_war = {
 	greeting = positive
 	notification_text = CALL_ALLY_NOTIFICATION
 	is_shown = {
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
 			is_suzerain = yes
 			is_at_war = yes
@@ -3116,6 +3117,7 @@ tribute_join_war_interaction = {
 	notification_text = join_war_interaction_notification
 
 	is_shown = {
+		NOT = { scope:recipient = scope:actor }
 		scope:recipient = {
 			is_at_war = yes
 			NOR = {
@@ -4046,7 +4048,6 @@ TributeSystem_purchase_truce_interaction = {
 	ai_target_quick_trigger = { adult = yes }
 	ai_targets = {
 		ai_recipients = neighboring_rulers
-		ai_recipients = peer_vassals
 		max = 10
 	}
 	## Frequency
@@ -4202,6 +4203,7 @@ TributeSystem_buy_claim_interaction = {
 	ignores_pending_interaction_block = yes
 
 	is_shown = {
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
 			TributeSystem_true_level_3_tributary_trigger = yes
 			var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
@@ -4386,6 +4388,7 @@ TributeSystem_buy_innovation_interaction = {
 	ignores_pending_interaction_block = yes
 
 	is_shown = {
+		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
 			OR = {
 				AND = {
@@ -4433,3 +4436,335 @@ TributeSystem_buy_innovation_interaction = {
 }
 
 
+
+#要求岁币
+demand_currency_treaty_interaction = {
+	category = interaction_category_tribute
+	icon = icon_gold
+	use_diplomatic_range = yes
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	interface_priority = 60
+	desc = demand_currency_treaty_interaction_desc
+	greeting = positive
+	notification_text = SEND_GIFT_PROPOSAL
+	ai_maybe = yes
+	cooldown = { years = 5 }
+
+	is_shown = {
+		scope:actor = { has_relation_suzerain = scope:recipient }
+		scope:actor = { is_ai = no }
+	}
+	is_valid = {
+	}
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			is_imprisoned = no
+			is_incapable = no
+		}
+	}
+	
+	can_send = {
+		custom_description = { #only if an option is selected
+			text = has_no_option_selected
+			switch = {
+				trigger = yes
+				scope:short_income = {
+				}
+				scope:long_income = {
+				}
+				scope:life_income = {
+				} 
+			}
+		}
+	}
+
+
+	#三年收入
+	send_option = {										
+		starts_enabled = { 
+			scope:recipient.monthly_character_income > 0
+		}
+		flag = short_income	
+		localization = short_income
+		starts_enabled = { always = yes	}		
+
+	}
+	#十年收入
+	send_option = {										
+		starts_enabled = {
+			scope:recipient.monthly_character_income > 0
+		}
+		flag = long_income		
+		localization = long_income		
+
+	}
+	#终生收入
+	send_option = {
+		starts_enabled = { 
+			scope:recipient.monthly_character_income > 0
+		}
+		flag = life_income
+		localization = life_income 
+	}
+
+	send_options_exclusive = yes
+
+	can_send_despite_rejection = yes
+
+	on_accept = {
+
+		scope:recipient = {
+			set_variable = {
+				name = yearly_income_recipient
+				value = scope:actor
+			}
+		}
+		#进贡数额
+		if = {
+			limit = {
+				scope:short_income = yes
+			}
+			scope:recipient = {
+				TributeSystem_yearly_income_treaty_effect = { YEARS = 3 MONTHS = 2 }
+				set_variable = {
+					name = offer_income
+					value = 2
+				}
+				send_interface_message = {
+					type = event_toast_effect_neutral
+					title = offer_gold_tribute_interaction_notification
+					right_icon = scope:recipient
+					
+					stress_impact = {
+						greedy = medium_stress_impact_gain
+					}
+					if = {
+						limit = {
+							scope:recipient = {
+								NOT = {
+									is_heir_of = scope:actor
+								}
+							}
+						}
+						stress_impact = {
+							generous = medium_stress_impact_loss
+						}
+					}
+					scope:actor = {
+						add_opinion = {
+							target = scope:recipient
+							modifier = gift_opinion
+							opinion = send_gift_opinion
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:long_income = yes
+			}
+			scope:recipient = {
+				TributeSystem_yearly_income_treaty_effect = { YEARS = 10 MONTHS = 2 }
+				set_variable = {
+					name = offer_income
+					value = 3
+				}
+				send_interface_message = {
+					type = event_toast_effect_neutral
+					title = offer_gold_tribute_interaction_notification
+					right_icon = scope:recipient
+					
+					stress_impact = {
+						greedy = major_stress_impact_gain
+					}
+					if = {
+						limit = {
+							scope:recipient = {
+								NOT = {
+									is_heir_of = scope:actor
+								}
+							}
+						}
+						stress_impact = {
+							generous = major_stress_impact_loss
+						}
+					}
+					scope:actor = {
+						add_opinion = {
+							target = scope:recipient
+							modifier = gift_opinion
+							opinion = send_gift_opinion
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:life_income = yes
+			}
+			scope:recipient = {
+				TributeSystem_yearly_income_treaty_effect = { YEARS = 100 MONTHS = 2 }
+				set_variable = {
+					name = offer_income
+					value = 4
+				}
+				send_interface_message = {
+					type = event_toast_effect_neutral
+					title = offer_gold_tribute_interaction_notification					
+					right_icon = scope:recipient
+					
+					stress_impact = {
+						greedy = massive_stress_impact_gain
+					}
+					if = {
+						limit = {
+							scope:recipient = {
+								NOT = {
+									is_heir_of = scope:actor
+								}
+							}
+						}
+						stress_impact = {
+							generous = massive_stress_impact_loss
+						}
+					}
+					scope:actor = {
+						add_opinion = {
+							target = scope:recipient
+							modifier = gift_opinion
+							opinion = send_gift_opinion
+						}
+					}
+				}
+			}
+		}
+		#点数增长用action TributeSystem_all_at_year_start_on_action
+		#if = {
+			#limit = { scope:actor = { has_relation_suzerain = scope:recipient } }
+			#scope:recipient = { trigger_event = TributeSystem.1017 }
+		#}
+	}
+
+	on_decline = {
+		scope:actor = {
+			trigger_event = TributeSystem.1003
+		}
+		scope:recipient = {
+			add_opinion = {
+				modifier = offer_tribute_refused_opinion
+				target = scope:recipient
+			}
+		}
+	}
+	
+	ai_accept = {
+		base = 0
+		modifier = {
+			add = 50
+			desc = GOLD_REASON
+		}
+		modifier = {
+			add = 30
+			desc = GOLD_REASON
+			scope:long_income = yes	
+		}
+		modifier = {
+			add = 20
+			desc = GOLD_REASON
+			scope:life_income = yes
+		}
+
+		modifier = {
+			scope:recipient.realm_size > scope:actor.realm_size
+			add = 30
+		}
+		modifier = {
+			scope:recipient.max_military_strength > scope:actor.max_military_strength
+			factor = 0
+		}
+		modifier = {
+			scope:recipient.realm_size > scope:actor.realm_size
+			factor = 0
+		}
+
+		# Struggle motive
+		modifier = {
+			desc = AI_STRUGGLE_INTENT
+			scope:recipient = {
+				is_independent_ruler = yes
+				any_character_struggle = {
+					involvement = involved
+				}
+			}
+			add = {
+				value = 0
+				if = {
+					limit = {
+						scope:recipient = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_gift_independent_ruler
+							}
+							has_character_flag = agenda_towards_escalation
+						}
+					}
+					add = -100
+				}
+				else_if = {
+					limit = {
+						scope:recipient = {
+							any_character_struggle = {
+								phase_has_catalyst = catalyst_gift_independent_ruler
+							}
+						}
+					}
+					add = 200
+				}
+			}
+		}
+	}
+
+	#ai_targets = { ai_recipients = neighboring_rulers }
+	ai_frequency = 52
+
+	ai_potential = {
+		is_available_at_peace_ai_adult = yes
+	}
+	
+	auto_accept = {
+		custom_description = {
+			text = auto_accept_interaction_ai	
+			object = scope:recipient
+			scope:recipient = {
+				is_ai = yes
+			}
+		}
+	}
+	ai_will_do = {
+		base = 50
+		
+		modifier = {
+			add = 5
+			scope:minor_gold_value = yes
+		}
+		modifier = {
+			add = 10
+			scope:medium_gold_value = yes	
+		}
+		modifier = {
+			add = 20
+			scope:major_gold_value = yes
+		}
+		modifier = {
+	  	  	add = {
+				value = scope:recipient.max_military_strength
+				divide = { value = scope:actor.max_military_strength min = 1 }
+				subtract = 1.5
+				multiply = 50
+	  		}
+		}
+
+	}
+}
