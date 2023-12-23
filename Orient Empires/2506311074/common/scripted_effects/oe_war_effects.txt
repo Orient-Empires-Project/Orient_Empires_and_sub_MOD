@@ -333,3 +333,141 @@ oe_migration_01_effect = { #大迁徙把地扔干净
 	}
 	resolve_title_and_vassal_change = scope:change
 }
+
+
+
+
+#民粹派系男性
+setup_populist_leader_effect = {
+	save_scope_as = faction
+
+	random_faction_county_member = {
+		save_scope_as = peasant_county
+	}
+
+	# Runs the scripted effect to find the best title to target for the rebellion.
+	get_popular_revolt_target_effect = { FACTION = this }
+
+	# Find or create a leader for the populist faction.
+	scope:target_title = {
+		# Look to see if there are any displaced characters who are legitimate claimants to the target title that the populists might support.
+		random_claimant = {
+			limit = {
+				# Checks the 'is_character_valid' and 'can_character_join' triggers above, plus the faction hard/soft blocks in 00_rules.txt
+				can_join_faction = scope:faction
+				can_join_or_create_faction_against = scope:faction.faction_target
+
+				# Must share a faith & culture with the revolting county.
+				faith = scope:peasant_county.faith
+				culture = scope:peasant_county.culture
+
+				# Must be allowed to rule in their faith.
+				trigger_if = {
+					limit = {
+						faith = { has_doctrine = doctrine_gender_male_dominated }
+					}
+					is_male = yes
+				}
+				trigger_else_if = {
+					limit = {
+						faith = { has_doctrine = doctrine_gender_female_dominated }
+					}
+					is_female = yes
+				}
+				trigger_else = {
+					always = yes
+				}
+
+				# Must not already be a landed ruler, or set to inheirit a landed title.
+				AND = {
+					is_ruler = no
+					is_landed = no
+					NOT = {
+						any_heir_title = {
+							exists = this
+						}
+					}
+				}
+			}
+
+			save_scope_as = peasant_leader
+			add_character_flag = peasant_faction_claimant_without_title
+		}
+	}
+
+	# If we can't find any, then generate a new character to be the populist leader of the revolt.
+	if = {
+		limit = {
+			NOT = { exists = scope:peasant_leader }
+		}
+		create_character = {
+			location = scope:peasant_county.title_province
+			template = populist_faction_leader_template
+			faith = scope:peasant_county.faith
+			culture = scope:peasant_county.culture
+			gender_female_chance = {
+				if = {
+					limit = { scope:peasant_county.faith = { has_doctrine = doctrine_gender_male_dominated } }
+					add = 0
+				}
+				else_if = {
+					limit = { scope:peasant_county.faith = { has_doctrine = doctrine_gender_female_dominated } }
+					add = 50
+				}
+				else = {
+					add = 10
+				}
+			}
+			save_scope_as = peasant_leader
+		}
+		scope:peasant_leader = {
+			add_character_flag = peasant_faction_random_peasant
+		}
+	}
+
+	# Create a new title for the peasant.
+	create_dynamic_title = {
+		tier = duchy
+		name = FACTION_POPULIST_REVOLT_TITLE_NAME
+	}
+	create_title_and_vassal_change = {
+		type = created
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	scope:new_title = {
+		set_capital_county = scope:peasant_county
+		set_landless_title = yes
+		set_destroy_on_succession = yes
+		set_delete_on_destroy = yes
+		set_no_automatic_claims = yes
+		set_definitive_form = yes
+		set_can_be_named_after_dynasty = no
+		change_title_holder = {
+			holder = scope:peasant_leader
+			change = scope:change
+		}
+		set_variable = {
+			name = faction
+			value = scope:faction
+		}
+	}
+	resolve_title_and_vassal_change = scope:change
+	scope:peasant_leader = {
+		set_variable = {
+			name = peasant_title
+			value = scope:new_title
+		}
+	}
+	scope:new_title = { generate_coa = factions }
+
+	# Set the peasant leader as the head of the faction.
+	scope:peasant_leader = {
+		set_variable = {
+			name = rebel_leader_peasants
+			value = scope:faction
+		}
+		join_faction_skip_check = scope:faction
+	}
+	set_special_character = scope:peasant_leader
+}

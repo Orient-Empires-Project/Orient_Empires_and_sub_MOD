@@ -225,8 +225,11 @@ TributeSystem_on_vassal_gained = {
 					limit = { exists = var:my_suzerain }
 					save_scope_as = tributary
 				}
-				unset_tributary = {
-					TRIBUTARY = scope:tributary
+				if = {
+					limit = { exists = scope:tributary }
+					unset_tributary = {
+						TRIBUTARY = scope:tributary
+					}
 				}
 			}
 		}
@@ -292,10 +295,11 @@ TributeSystem_on_rank_change = {
 
 yearly_global_pulse = {
 	on_actions = {
+		TributeSystem_yearly_tribute_on_action
 		TributeSystem_all_at_year_start_on_action
 	}
 }
-TributeSystem_all_at_year_start_on_action = {
+TributeSystem_yearly_tribute_on_action = {
 	effect = {
 		every_ruler = {
 			if = {
@@ -317,16 +321,14 @@ TributeSystem_all_at_year_start_on_action = {
 					}
 				}				
 			}
-		}
-		every_ruler = {
 			if = {
 				limit = {
 					exists = var:suzerain
 					is_ai = yes
 					var:suzerain = { is_ai = yes }
 				}
-				save_temporary_scope_as = tributary
-
+				#save_temporary_scope_as = tributary
+	
 				random = {
 					chance = 50
 					change_tribute_exp_effect = { EXP = 2 }
@@ -342,8 +344,8 @@ TributeSystem_all_at_year_start_on_action = {
 				every_relation = {
 					type = suzerain
 					limit = { is_ai = yes }
-					save_temporary_scope_as = suzerain
-					TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
+					#save_temporary_scope_as = suzerain
+					
 					random = {
 						chance = 70
 						change_tribute_exp_effect = { EXP = 2 }
@@ -357,42 +359,45 @@ TributeSystem_all_at_year_start_on_action = {
 						change_tribute_exp_effect = { EXP = -3 }
 					}	
 				}
+	
+				TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
 			}
 		}
 	}
 }
-#TributeSystem_all_at_year_start_on_action = {
-#	effect = {
-#		every_ruler = {
-#			if = {
-#				limit = {
-#					is_tributary = yes
-#					can_be_tributary_trigger = yes
-#				}
-#				save_temporary_scope_as = tributary
-#				every_relation = {
-#					type = suzerain
-#					limit = { can_be_suzerain_trigger = yes }
-#					save_temporary_scope_as = suzerain
-#					TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
-#				}
-#			}
-#			else_if = {
-#				limit = {
-#					is_suzerain = yes
-#					can_be_suzerain_trigger = yes
-#				}
-#				save_temporary_scope_as = suzerain
-#				every_relation = {
-#					type = tributary
-#					limit = { can_be_tributary_trigger = yes }
-#					save_temporary_scope_as = tributary
-#					TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
-#				}
-#			}
-#		}
-#	}
-#}
+
+TributeSystem_all_at_year_start_on_action = {
+	effect = {
+		every_ruler = {
+			if = {
+				limit = {
+					is_tributary = yes
+					#can_be_tributary_trigger = yes
+				}
+				save_temporary_scope_as = tributary
+				every_relation = {
+					type = suzerain
+					#limit = { can_be_suzerain_trigger = yes }
+					save_temporary_scope_as = suzerain
+					TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
+				}
+			}
+			else_if = {
+				limit = {
+					is_suzerain = yes
+					#can_be_suzerain_trigger = yes
+				}
+				save_temporary_scope_as = suzerain
+				every_relation = {
+					type = tributary
+					#limit = { can_be_tributary_trigger = yes }
+					save_temporary_scope_as = tributary
+					TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
+				}
+			}
+		}
+	}
+}
 
 #The initiator is ROOT, the other character is scope:target.
 #For two-way relations, the on-action only fires on the initiator. Including if the corresponding relation is a different one (E.G., mentor vs. student)
@@ -446,7 +451,10 @@ TributeSystem_on_war_started = {
 				limit = {
 					scope:attacker = { has_character_modifier = offer_income_modifier }
 				}
-				scope:attacker = { remove_character_modifier = offer_income_modifier }
+				scope:attacker = {
+					remove_character_modifier = offer_income_modifier
+					remove_variable = offer_income
+				}
 			}
 			if = {
 				limit = {
@@ -456,7 +464,10 @@ TributeSystem_on_war_started = {
 						var:receive_income_from = scope:attacker
 					}
 				}
-				scope:defender = { remove_character_modifier = receive_income_modifier }
+				scope:defender = {
+					remove_character_modifier = receive_income_modifier
+					remove_variable = receive_income_from
+				}
 			}
 			if = {
 				limit = {
@@ -466,7 +477,10 @@ TributeSystem_on_war_started = {
 						var:receive_income_from = scope:defender
 					}
 				}
-				scope:attacker = { remove_character_modifier = receive_income_modifier }
+				scope:attacker = {
+					remove_character_modifier = receive_income_modifier
+					remove_variable = receive_income_from
+				}
 			}
 		}
 	}

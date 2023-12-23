@@ -212,7 +212,7 @@ BureaucracyEmpire_jinshi_pulse = {
 #				}
 #			}
 #			random_ruler = {
-#				limit = { is_oe_imperial_official_trigger = yes }
+#				limit = { is_oe_imperial_court_trigger = yes }
 #				save_scope_as = temp_liege
 #			}
 #			move_to_pool_at = scope:temp_liege.capital_county.title_province
@@ -486,7 +486,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 			if = {
 				limit = {
 					is_oe_landed_bureaucrat_trigger = yes #天朝流官
-					is_available = yes
+					is_oe_available_ai_at_peace = yes
 				}
 				if = {
 					limit = {
@@ -778,28 +778,41 @@ BureaucracyEmpire_on_title_gain_new = {
 				limit = { has_variable = oe_heir }
 				var:oe_heir = { save_scope_as = lucky }
 			}
-			else = {
-				ordered_pool_character = {
+			else_if = {
+				limit = {
+					any_pool_character = {
+						province = scope.old_title.title_province
+						is_capable_adult = yes
+						is_imprisoned = no
+						is_oe_available_ai_at_peace = yes
+						has_trait = lifestyle_bureaucrat
+					}
+				}
+				random_pool_character = {
+					province = scope.old_title.title_province
 					limit = {
 						is_capable_adult = yes
 						is_imprisoned = no
-						is_available_at_peace = yes
-						dynasty = { dynasty_prestige_level > 2 }
-						culture = scope:base.top_liege.culture
-						OR = {
-							location = { province_owner.top_liege ?= scope:base.top_liege }
-							location = { province_owner ?= scope:base.top_liege }
-							location ?= scope:base.top_liege.capital_county.title_province
-						}
+						is_oe_available_ai_at_peace = yes
+						has_trait = lifestyle_bureaucrat
+					}
+					save_scope_as = lucky
+				}
+			}
+			else = {
+				random_pool_character = {
+					province = root.top_liege.capital_county.title_province
+					limit = {
+						is_landed = no
+						is_capable_adult = yes
+						is_imprisoned = no
+						is_oe_available_ai_at_peace = yes
+						NOT = { dynasty = root.top_liege.dynasty }
 						OR = {
 							has_trait = lifestyle_bureaucrat
 							has_trait = jinshi
 						}
-					}			
-					order_by = {
-						value = bureaucracy_exp_value
-						add = age
-						add = learning
+						is_male = yes
 					}
 					save_scope_as = lucky
 				}
@@ -1025,6 +1038,7 @@ BureaucracyEmpire_ai_succession_pulse = {
 	trigger = {
 		scope:title.tier > tier_barony
 		is_oe_landed_bureaucrat_trigger = yes #暂时接班的ai
+		is_oe_available = yes
 		is_ai = yes
 		OR = {
 			scope:transfer_type = flag:inheritance #继承
@@ -1076,7 +1090,7 @@ BureaucracyEmpire_ai_succession_pulse = {
 #BureaucracyEmpire_family_pulse = {
 #	trigger = {
 #		culture = { has_cultural_tradition = tradition_chinese_succession }	
-#		NOT = { is_oe_imperial_official_trigger = yes }
+#		NOT = { is_oe_imperial_court_trigger = yes }
 #	}
 #	effect = {
 #		if = {
