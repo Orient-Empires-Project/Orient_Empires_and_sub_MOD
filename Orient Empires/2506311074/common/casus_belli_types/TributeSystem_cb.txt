@@ -13,13 +13,12 @@
         scope:attacker = { can_be_suzerain_trigger = yes  }
     }
     allowed_against_character = {
+        scope:attacker = { can_be_suzerain_of = { TARGET = scope:defender }  }
         custom_description = {
             text = not_a_tributary
-            subject = scope:defender
-            NOT = {
-                scope:attacker = {
-                    is_target_in_variable_list = { name = all_tributaries target = scope:defender }
-                }
+            NOR = {
+                scope:attacker = { has_relation_tributary = scope:defender }
+                scope:attacker = { has_relation_suzerain = scope:defender }
             }
         }
         custom_description = {
@@ -53,16 +52,18 @@
 
     on_victory = {
         if = {
-            limit = { scope:defender = { exists = var:my_suzerain } }
+            limit = { scope:defender = { is_tributary = yes } }
             replace_suzerain_effect = {
                 TRIBUTARY = scope:defender
-                SUZERAIN = scope:defender.var:my_suzerain
+                SUZERAIN = scope:attacker
             }
         }
-        make_tributary = {
-            TYPE = tributary_non_permanent
-            SUZERAIN = scope:attacker
-            TRIBUTARY = scope:defender
+        else = {
+            make_tributary = {
+                TYPE = tributary_non_permanent
+                SUZERAIN = scope:attacker
+                TRIBUTARY = scope:defender
+            }
         }
     }
 
@@ -131,18 +132,16 @@ permament_tributary_war_cb = {
         scope:attacker = { can_be_suzerain_trigger = yes  }
     }
     allowed_against_character = {
-
+        scope:attacker = { can_be_suzerain_of = { TARGET = scope:defender }  }
         custom_description = {
             text = not_a_tributary
-            subject = scope:defender
-            NOT = {
-                scope:attacker = {
-                    is_target_in_variable_list = { name = all_tributaries target = scope:defender }
-                }
+            NOR = {
+                scope:attacker = { has_relation_tributary = scope:defender }
+                scope:attacker = { has_relation_suzerain = scope:defender }
             }
         }
         custom_description = {
-            text = will_not_make_tributary_in_china          
+            text = will_not_make_tributary_in_china        
             trigger_if = {
                 limit = { scope:defender = { capital_province = { geographical_region = world_asia_china } } }
                 scope:attacker = { NOT = { culture = { has_cultural_tradition = tradition_chinese_succession } } }
@@ -172,16 +171,18 @@ permament_tributary_war_cb = {
 
     on_victory = {
         if = {
-            limit = { scope:defender = { exists = var:my_suzerain } }
+            limit = { scope:defender = { is_tributary = yes } }
             replace_suzerain_effect = {
                 TRIBUTARY = scope:defender
-                SUZERAIN = scope:defender.var:my_suzerain
+                SUZERAIN = scope:attacker
             }
         }
-        make_tributary = {
-            TYPE = tributary_permanent
-            SUZERAIN = scope:attacker
-            TRIBUTARY = scope:defender
+        else = {
+            make_tributary = {
+                TYPE = tributary_permanent
+                SUZERAIN = scope:attacker
+                TRIBUTARY = scope:defender
+            }
         }
     }
 
@@ -275,23 +276,8 @@ free_from_tributary_cb = {
 	}
 
     on_victory = {
-        scope:attacker = {
-            if = {
-                limit = {
-                    is_permanent_tributary = yes
-                    var:my_suzerain = scope:defender
-                }
-                unset_tributary = {
-                    TRIBUTARY = scope:attacker
-                    #TRIBUTARY_BASE_TYPE = flag:permanent
-                }                
-            }
-            else = {
-                unset_tributary = {
-                    TRIBUTARY = scope:attacker
-                    #TRIBUTARY_BASE_TYPE = flag:non_permanent
-                }
-            }
+        unset_tributary = {
+            TRIBUTARY = scope:attacker
         }
     }
 

@@ -4,53 +4,6 @@
 
 #WLTDJ20220116
 
-on_game_start_after_lobby = {
-    on_actions = {
-		TributeSystem_check_effects
-    }
-}
-
-TributeSystem_check_effects = {
-	effect = {
-		every_ruler = {
-			if = {
-            	limit = {
-					exists = var:my_suzerain
-					exists = var:tributary_type
-            	}
-            	if = {
-                	limit = {
-                    	is_permanent_tributary = yes
-                	}
-					var:my_suzerain = {
-						add_to_variable_list = {
-							name = permanent_tributaries
-							target = prev
-						}
-					}       
-            	}
-            	else_if = {
-                	limit = {
-                    	is_non_permanent_tributary = yes
-                	}
-					var:my_suzerain = {
-						add_to_variable_list = {
-							name = non_permanent_tributaries
-							target = prev
-						}
-					}       
-            	}
-				var:my_suzerain = {
-					add_to_variable_list = {
-						name = all_tributaries
-						target = prev
-					}
-				}
-        	}
-		}
-    }
-}
-
 on_title_gain_inheritance = {
 	on_actions = {
 		TributeSystem_succession_effects
@@ -64,98 +17,63 @@ TributeSystem_succession_effects = {
 			scope:transfer_type = flag:usurped #篡夺头衔
 		}
 		scope:title = primary_title
+		NOT = { root = scope:previous_holder }
 	}
     effect = {
         if = { #宗主国换代
             limit = {
 				scope:previous_holder = {
-					has_tributaries = yes
+					is_suzerain = yes
 				}
             }
-			#Copy old Ruler tributaries list to his primary heir (on_death)
-			#Root is old ruler
 			scope:previous_holder = {
-				every_in_list = {
-					variable = permanent_tributaries
-					if = {
-						limit = { is_alive = yes }
-						save_scope_as = tributary_succ_var
+				every_relation = {
+					type = tributary
+					limit = {
+						is_permanent_tributary = yes
 					}
-					#set_variable = { 
-					   #name = tributary_succ_var
-					   #value = this
-					#}
-					if = {
-						limit = {
-							exists = scope:tributary_succ_var
-							root = { TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = scope:tributary_succ_var } }						
-							NOT = { root = { has_relation_tributary = scope:tributary_succ_var } }
-						}
-						make_tributary = {
-							SUZERAIN = root
-							TRIBUTARY = scope:tributary_succ_var
-							TYPE = tributary_permanent
-						}
-					}
-					#remove_variable = tributary_succ_var
-				}
-				every_in_list = {
-					variable = non_permanent_tributaries
-					if = {
-						limit = { is_alive = yes }
-						save_scope_as = scope:tributary_succ_var_np
-					}
-					#set_variable = { 
-						#name = tributary_succ_var_np
-						#value = this
-					#}
-					if = {
-						limit = { exists = scope:tributary_succ_var_np }
-						unset_tributary = {
-							TRIBUTARY = scope:tributary_succ_var_np
-						}
-					}
-					#remove_variable = tributary_succ_var_np
+					save_scope_as = tributary
 				}	
+			}
+			if = {
+				limit = { exists = scope:tributary }
+				make_tributary = {
+					SUZERAIN = root
+					TRIBUTARY = scope:tributary
+					TYPE = tributary_permanent
+				}
 			}
         }
         else_if = { #朝贡国换代
             limit = {
 				scope:previous_holder = {
-					exists = var:my_suzerain
+					is_tributary = yes
+					is_permanent_tributary = yes
 				}
             }
-			#give the heir var:my_suzerain
-			#Root is old tributary
 			scope:previous_holder = {
-				if = {
-					limit = {
-						is_permanent_tributary = yes
-					}
-					var:my_suzerain = { save_scope_as = suzerain }
-					make_tributary = {
-						SUZERAIN = scope:suzerain
-						TRIBUTARY = root
-						TYPE = tributary_permanent
-					}
+				every_relation = {
+					type = suzerain
+					save_scope_as = suzerain
+				}				
+			}
+			if = {
+				limit = { exists = scope:suzerain }
+				make_tributary = {
+					SUZERAIN = scope:suzerain
+					TRIBUTARY = root
+					TYPE = tributary_permanent
 				}
-				#else_if = {
-					#limit = {
-						#is_non_permanent_tributary = yes
-					#}
-					#unset_tributary = {
-						#TRIBUTARY = scope:previous_holder
-					#}
-				#}
 			}
         }
-		TributeSystem_suzerain_validity_check_effect = yes	
+		TributeSystem_suzerain_validity_check_effect = yes
+		TributeSystem_tributary_validity_check_effect = yes
     }
 }
 
 on_title_lost = {
     on_actions = {
-        TributeSystem_on_title_lost
+        #TributeSystem_on_title_lost
     }
 }
 
@@ -170,12 +88,8 @@ TributeSystem_on_title_lost = {
 	}
     effect = {
 		if = {
-			limit = { exists = var:my_suzerain var:my_suzerain = { is_alive = yes } } #朝贡国失国
-			var:my_suzerain = { save_scope_as = suzerain }
-			remove_relation_suzerain = scope:suzerain	
-			unset_tributary = {
-				TRIBUTARY = root
-			}
+			limit = { is_tributary = yes } #朝贡国失国
+			unset_tributary = { TRIBUTARY = root }
 		}
 		if = {
 			limit = { has_tributaries = yes } #宗主国失国
@@ -183,32 +97,28 @@ TributeSystem_on_title_lost = {
 				type = tributary
 				save_scope_as = tributary
 			}
-			if = {
-				limit = { exists = scope:tributary }
-				remove_relation_tributary = scope:tributary
-				unset_tributary = {
-					TRIBUTARY = scope:tributary
-				}
-			}
+			unset_tributary = { TRIBUTARY = scope:tributary }
 		}
 		TributeSystem_suzerain_validity_check_effect = yes
+		TributeSystem_tributary_validity_check_effect = yes
     }
 }
 
 on_vassal_gained = {
 	on_actions = {
-        TributeSystem_on_vassal_gained  #附庸解除朝贡
+        #TributeSystem_on_vassal_gained  #附庸解除朝贡
     }
 }
 TributeSystem_on_vassal_gained = {
+	trigger = {
+		NOT = { exists = scope:old_liege }
+	}
 	effect = {
 		#朝贡国被附庸
 		if = { 
-			limit = {
-				NOT = { exists = scope:old_liege }
-				scope:vassal = { exists = var:my_suzerain }
+			limit = {		
+				scope:vassal = { is_tributary = yes }
 			}
-			scope:vassal = { var:my_suzerain = { save_scope_as = my_suzerain } }
 			unset_tributary = {
 				TRIBUTARY = scope:vassal
 			}
@@ -216,56 +126,43 @@ TributeSystem_on_vassal_gained = {
 		#宗主国被附庸
 		if = { 
 			limit = {
-				NOT = { exists = scope:old_liege }
 				scope:vassal = { has_tributaries = yes }
 			}
 			scope:vassal = {
 				every_relation = {
 					type = tributary
-					limit = { exists = var:my_suzerain }
 					save_scope_as = tributary
 				}
-				if = {
-					limit = { exists = scope:tributary }
-					unset_tributary = {
-						TRIBUTARY = scope:tributary
-					}
-				}
 			}
+			unset_tributary = { TRIBUTARY = scope:tributary }
 		}
-		TributeSystem_suzerain_validity_check_effect = yes
 	}
 }
 
 
 on_rank_up = { # Will not fire during history execution or for dying characters
 	on_actions = {
-		TributeSystem_on_rank_change
+		#TributeSystem_on_rank_change
 	}
 }
 on_rank_down = { # Will not fire during history execution or for dying characters
 	on_actions = {
-		TributeSystem_on_rank_change
+		#TributeSystem_on_rank_change
 	}
 }
 TributeSystem_on_rank_change = {
-	trigger = {
-		OR = {
-			exists = var:my_suzerain
-			has_trait = suzerain
-		}
-	}
 	effect = {
 		#朝贡国等级变化
 		if = {
 			limit = {
 				exists = var:my_suzerain
-				tier_difference = {
-					target = var:my_suzerain
-					value >= 0
+				NOT = {
+					any_relation = {
+						type = suzerain
+						can_be_suzerain_of = { TARGET = root }
+					}
 				}
 			}
-			var:my_suzerain = { save_scope_as = my_suzerain }
 			unset_tributary = { TRIBUTARY = root }
 		}
 		#宗主国等级变化
@@ -275,30 +172,22 @@ TributeSystem_on_rank_change = {
 			}
 			every_relation = {
 				type = tributary
-				limit = { exists = this is_alive = yes }
+				limit = {
+					NOT = { can_be_tributary_of = { TARGET = root } }
+				}
 				save_scope_as = tributary
 			}
-			if = {
-				limit = {
-					exists = scope:tributary
-					tier_difference = {
-						target = scope:tributary
-						value < 0
-					}
-				}
-				unset_tributary = { TRIBUTARY = scope:tributary }
-			}
+			unset_tributary = { TRIBUTARY = scope:tributary }
 		}
-		TributeSystem_suzerain_validity_check_effect = yes
 	}
 }
 
 yearly_global_pulse = {
 	on_actions = {
-		TributeSystem_yearly_tribute_on_action
-		TributeSystem_all_at_year_start_on_action
+		TributeSystem_yearly_tribute_on_action #岁币和点数自然增长
 	}
 }
+
 TributeSystem_yearly_tribute_on_action = {
 	effect = {
 		every_ruler = {
@@ -323,46 +212,55 @@ TributeSystem_yearly_tribute_on_action = {
 			}
 			if = {
 				limit = {
-					exists = var:suzerain
+					is_tributary = yes
 					is_ai = yes
-					var:suzerain = { is_ai = yes }
 				}
-				#save_temporary_scope_as = tributary
-	
-				random = {
-					chance = 50
-					change_tribute_exp_effect = { EXP = 2 }
-				}
-				random = {
-					chance = 10
-					change_tribute_exp_effect = { EXP = 5 }
-				}
-				random = {
-					chance = 10
-					change_tribute_exp_effect = { EXP = -2 }
-				}
+				save_temporary_scope_as = tributary
 				every_relation = {
 					type = suzerain
 					limit = { is_ai = yes }
-					#save_temporary_scope_as = suzerain
-					
-					random = {
-						chance = 70
-						change_tribute_exp_effect = { EXP = 2 }
-					}
-					random = {
-						chance = 10
-						change_tribute_exp_effect = { EXP = 3 }
-					}
-					random = {
-						chance = 10
-						change_tribute_exp_effect = { EXP = -3 }
-					}	
+					save_temporary_scope_as = suzerain
 				}
-	
-				TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
+				random = {
+					chance = 50
+					tributary_change_tribute_exp_effect = { EXP = 5 }
+				}
+				random = {
+					chance = 50
+					tributary_change_tribute_exp_effect = { EXP = 10 }
+				}
+				random = {
+					chance = 10
+					tributary_change_tribute_exp_effect = { EXP = -2 }
+				}
+				if = {
+					limit = { exists = scope:suzerain }
+					scope:suzerain = {
+						random = {
+							chance = 60
+							change_tribute_exp_effect = { EXP = 1 }
+						}
+						random = {
+							chance = 30
+							change_tribute_exp_effect = { EXP = 3 }
+						}
+						random = {
+							chance = 10
+							suzerain_change_tribute_exp_effect = { EXP = -3 }
+						}	
+					}
+				}
+
+				#TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
 			}
+			
 		}
+	}
+}
+
+yearly_global_pulse = {
+	on_actions = {
+		TributeSystem_all_at_year_start_on_action #有效性校验
 	}
 }
 
@@ -395,6 +293,8 @@ TributeSystem_all_at_year_start_on_action = {
 					TributeSystem_tribute_relation_validity_check_effect = { SUZERAIN = scope:suzerain TRIBUTARY = scope:tributary }
 				}
 			}
+			TributeSystem_suzerain_validity_check_effect = yes
+			TributeSystem_tributary_validity_check_effect = yes
 		}
 	}
 }
@@ -402,14 +302,32 @@ TributeSystem_all_at_year_start_on_action = {
 #The initiator is ROOT, the other character is scope:target.
 #For two-way relations, the on-action only fires on the initiator. Including if the corresponding relation is a different one (E.G., mentor vs. student)
 
+#Each scripted relation has several associated on-actions:
+#- root = the relation owner ("source" of the relation)
+#- scope:target = the relation target
 #on_set_relation_tributary = {
 #}
-#on_set_relation_suzerain = {
-#}
+on_set_relation_suzerain = {
+	effect = {
+		root = {
+			set_variable  = {
+				name = my_suzerain
+				value = scope:target
+			}
+		}
+	}
+}
 #on_remove_relation_tributary = {
 #}
-#on_remove_relation_suzerain = {	
-#}
+on_remove_relation_suzerain = {
+	effect = {
+		TributeSystem_tributary_validity_check_effect = yes
+		scope:target = {
+			TributeSystem_suzerain_validity_check_effect = yes
+		}
+		change_color_back_effect = yes
+	}
+}
 
 on_war_started = {
 	on_actions = {
@@ -433,18 +351,14 @@ TributeSystem_on_war_started = {
 			}
 			if = {
 				limit = { scope:attacker = { has_relation_tributary = scope:defender } }
-				scope:attacker = {
-					unset_tributary = {
-						TRIBUTARY = scope:defender
-					}
+				unset_tributary = {
+					TRIBUTARY = scope:defender
 				}
 			}
-			if = {
+			else_if = {
 				limit = { scope:attacker = { has_relation_suzerain = scope:defender } }
-				scope:defender = {
-					unset_tributary = {
-						TRIBUTARY = scope:attacker
-					}
+				unset_tributary = {
+					TRIBUTARY = scope:attacker
 				}
 			}
 			if = {

@@ -38,8 +38,16 @@ define_tributary = {
 		set_variable = { name = my_suzerain value = $SUZERAIN$ }
 		set_variable = { name = tributary_type value = $TRIBUTARY_BASE_TYPE$ } #临时永久
 		add_trait = tributary
-		change_tribute_exp_effect = { EXP = 10 } #朝贡得分
+		change_tribute_exp_effect = { EXP = 5 } #朝贡得分
 		primary_title = { set_color_from_title = $SUZERAIN$.primary_title }
+
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = set_relation_suzerain
+			custom_tooltip = I_GAIN_A_SUZERAIN
+			left_icon = $SUZERAIN$
+			right_icon = $TRIBUTARY$
+		}
 	}
 
 	$SUZERAIN$ = {
@@ -50,28 +58,17 @@ define_tributary = {
 			add_trait = suzerain
 			change_tribute_exp_effect = { EXP = 10 } #朝贡得分
 		}
-
-		switch = {
-			trigger = $TRIBUTARY_BASE_TYPE$
-
-			flag:permanent = {
-				add_to_variable_list = {
-					name = permanent_tributaries
-					target = $TRIBUTARY$
-				}
-			}
-			flag:non_permanent = {
-				add_to_variable_list = {
-					name = non_permanent_tributaries
-					target = $TRIBUTARY$
-				}
-			}
+		add_truce_both_ways = {
+			character = $TRIBUTARY$
+			years = 5
+			name = GLOBAL_BECOME_TRIBUTARY
 		}
-
-		#set_variable = { name = suzerain_exp value = 10 } #宗主得分
-		add_to_variable_list = {
-			name = all_tributaries
-			target = $TRIBUTARY$
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = set_relation_tributary
+			custom_tooltip = I_GAIN_A_TRIBUTARY
+			left_icon = $SUZERAIN$
+			right_icon = $TRIBUTARY$
 		}
 	}
 }
@@ -81,47 +78,17 @@ unset_tributary = {
 	$TRIBUTARY$ = {
 		if = {
 			limit = {
-				has_variable = my_suzerain
-				exists = var:my_suzerain
-			}
-			var:my_suzerain = {
-				if = {
-					limit = {
-						is_target_in_variable_list = { name = non_permanent_tributaries target = prev }
-					}
-					remove_list_variable = { name = non_permanent_tributaries target = prev }
-				}
-				if = {
-					limit = {
-						is_target_in_variable_list = { name = permanent_tributaries target = prev }
-					}
-					remove_list_variable = { name = permanent_tributaries target = prev }
-				}
-				remove_list_variable = { name = all_tributaries target = prev }
-				#remove_relation_tributary = $TRIBUTARY$
-				if = {
-					limit = {
-						NOT = { has_tributaries = yes }
-						has_trait = suzerain
-					}
-					remove_trait = suzerain
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_relation = {
-					type = suzerain
-					exists = this
-				}
+				is_tributary = yes
 			}
 			every_relation = {
 				type = suzerain
+				save_temporary_scope_as = suzerain
 				remove_relation_tributary = $TRIBUTARY$
+				cancel_truce_both_ways = $TRIBUTARY$
 			}
 		}
-		#remove_relation_suzerain = var:my_suzerain
 		remove_trait = tributary
+
 		if = {
 			limit = { has_variable = my_suzerain }
 			remove_variable = my_suzerain
@@ -131,30 +98,36 @@ unset_tributary = {
 			remove_variable = tributary_type
 		}
 		if = {
-			limit = { has_variable = my_suzerain }
-			remove_variable = my_suzerain
-		}
-		if = {
 			limit = { has_variable = tributary_exp_gain }
 			remove_variable = tributary_exp_gain
 		}
 
-		send_interface_message = {
+		send_interface_toast = {
 			type = event_toast_text_and_effect_bad
-			left_icon = $SUZERAIN$
+			left_icon = scope:suzerain
 			right_icon = $TRIBUTARY$
 			title = TributeSystem_relation_validity_check_01_desc.tt
 			desc = TributeSystem_relation_validity_check_01_desc
 		}
 		
+		change_color_back_effect = yes
+	}
+}
+
+change_color_back_effect = {
+	if = {
+		limit = {
+			exists = primary_title
+			primary_title = { is_titular = no }
+		}
 		if = {
-			limit = {
-				exists = primary_title
-				exists = capital_county
-				primary_title = { is_titular = no }
-			}
-			primary_title = { set_color_from_title = $TRIBUTARY$.capital_county }
-		}		
+			limit = { primary_title = { tier > tier_county } }
+			primary_title = { set_color_from_title = this.title_capital_county }
+		}
+		else_if = {
+			limit = { primary_title = { tier = tier_county } }
+			primary_title = { set_color_from_title = holder.capital_barony }
+		}
 	}
 }
 
@@ -240,7 +213,16 @@ replace_suzerain_effect = {
 		#remove_variable = tributary_exp
 		remove_variable = my_suzerain
 
-		make_tributary = { SUZERAIN = $SUZERAIN$ TRIBUTARY = $TRIBUTARY$ TYPE = var:tributary_type }
+		switch = {
+			trigger = var:tributary_type
+
+			flag:permanent = {
+				make_tributary = { SUZERAIN = $SUZERAIN$ TRIBUTARY = $TRIBUTARY$ TYPE = tributary_permanent }
+			}
+			flag:non_permanent = {
+				make_tributary = { SUZERAIN = $SUZERAIN$ TRIBUTARY = $TRIBUTARY$ TYPE = tributary_non_permanent }
+			}
+		}
 		add_opinion = {
 			modifier = forced_tributary_opinion
 			target = $SUZERAIN$
@@ -273,49 +255,12 @@ TributeSystem_tribute_relation_validity_check_effect = {
 	if = {
 		limit = {
 			OR = {
-				$SUZERAIN$.highest_held_title_tier <= $TRIBUTARY$.highest_held_title_tier
-				$SUZERAIN$ = { can_be_suzerain_trigger = no }
-				$TRIBUTARY$ = { can_be_tributary_trigger = no }
+				NOT = { $SUZERAIN$ = { can_be_suzerain_of = { TARGET = $TRIBUTARY$ } } }
+				#NOT = { $TRIBUTARY$ = { can_be_tributary_of = { TARGET = $SUZERAIN$ } } }
 			}
 		}
 		unset_tributary = { TRIBUTARY = $TRIBUTARY$ }
 		$SUZERAIN$ = { TributeSystem_suzerain_validity_check_effect = yes }
-		#$SUZERAIN$ = {
-			#if = {
-                #limit = {
-                    #is_target_in_variable_list = { name = non_permanent_tributaries target = $TRIBUTARY$ }
-                #}
-                #remove_list_variable = { name = non_permanent_tributaries target = $TRIBUTARY$ }
-            #}
-            #if = {
-                #limit = {
-                    #is_target_in_variable_list = { name = permanent_tributaries target = $TRIBUTARY$ }
-                #}
-                #remove_list_variable = { name = permanent_tributaries target = $TRIBUTARY$ }
-            #}
-            #remove_list_variable = { name = all_tributaries target = $TRIBUTARY$ }
-			#remove_trait = suzerain
-			#send_interface_message = {
-				#type = event_toast_text_and_effect_bad
-				#left_icon = $SUZERAIN$
-				#right_icon = $TRIBUTARY$
-				#title = TributeSystem_relation_validity_check_01_desc.tt
-				#desc = TributeSystem_relation_validity_check_01_desc
-			#}
-		#}
-		#$TRIBUTARY$ = {
-			#remove_relation_suzerain = $SUZERAIN$
-			#remove_variable = tributary_type
-			#remove_variable = my_suzerain
-			#remove_trait = tributary
-			#send_interface_message = {
-				#type = event_toast_text_and_effect_bad
-				#left_icon = $SUZERAIN$
-				#right_icon = $TRIBUTARY$
-				#title = TributeSystem_relation_validity_check_02_desc.tt
-				#desc = TributeSystem_relation_validity_check_02_desc
-			#}
-		#}
 	}
 }
 
@@ -327,5 +272,18 @@ TributeSystem_suzerain_validity_check_effect = {
 			has_tributaries = no
 		}
 		remove_trait = suzerain
+	}
+}
+TributeSystem_tributary_validity_check_effect = {
+	if = {
+		limit = {
+			has_trait = tributary
+			has_suzerain = no
+		}
+		remove_trait = tributary
+		if = {
+			limit = { has_variable = my_suzerain }
+			remove_variable = my_suzerain
+		}
 	}
 }
