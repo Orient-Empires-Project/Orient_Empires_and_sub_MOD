@@ -109,6 +109,24 @@ east_on_after_lobby_effects = {
 			}
 			if = {
 				limit = {
+					has_primary_title = title:k_yamato
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = male_only_law } }
+					add_realm_law_skip_effects = male_only_law
+				}
+			}
+			if = {
+				limit = {
+					has_realm_law = tradition_succession_law
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = male_only_law } }
+					add_realm_law_skip_effects = male_only_law
+				}
+			}
+			if = {
+				limit = {
 					has_primary_title = title:d_haripunjaya
 					is_female = yes
 				}
@@ -378,10 +396,11 @@ east_on_after_lobby_effects = {
 		}
 		#历史摄政
 		if = {
-			limit = { game_start_date = 975.1.1 }
+			limit = { game_start_date = 975.1.7 }
 			character:194330 = {
 				designate_diarch = character:1413617
 				start_diarchy = regency
+				set_diarchy_swing = 80
 				add_hook = {
 					type = predecessor_loyalty_hook
 					target = character:1413617
@@ -395,6 +414,7 @@ east_on_after_lobby_effects = {
 				add_courtier = character:huayang_liu_006
 				designate_diarch = character:huayang_liu_006
 				start_diarchy = regency
+				set_diarchy_swing = 60
 				add_hook = {
 					type = predecessor_loyalty_hook
 					target = character:huayang_liu_006
@@ -472,8 +492,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					OR = {
 						AND = {
 							scope:transfer_type = flag:created
-							is_royal_government_trigger = no
-							is_legion_government_trigger = no
+							is_bureau_government_trigger = yes
 						}
 						AND = {
 							is_ai = yes
@@ -673,89 +692,10 @@ east_on_title_gain_effects = { #by 糜三小姐
 				}
 			}
 
-			create_title_and_vassal_change = {
-				type = conquest
-				save_scope_as = change
-				add_claim_on_loss = yes
-			}
-			title:e_celestia = {
-				every_in_de_jure_hierarchy = {					
-					if = {
-						limit = {
-							tier > tier_barony
-							holder = scope:previous_holder
-						}
-						add_to_temporary_list = titles_taken
-					}
-				}
-				every_dejure_vassal_title_holder = {
-					if = {
-						limit = {
-							top_liege = scope:previous_holder
-						}
-						add_to_temporary_list = vassals_taken
-					}
-				}
 
-			}
-			every_in_list = {
-				list = titles_taken
-				change_title_holder = {
-					holder = scope:new_ruler
-					change = scope:change
-					take_baronies = no
-				}
-			}
-			every_in_list = {
-				list = vassals_taken
-				change_liege = {
-					liege = scope:new_ruler
-					change = scope:change
-				}
-			}	
-
-			resolve_title_and_vassal_change = scope:change
-
-			scope:previous_holder = {	
-				every_courtier = {
-					add_to_list = dynasty_arrest
-				}
-				every_close_or_extended_family_member = {
-					if = {
-						limit = {
-							OR = {
-								is_landed = no
-								AND = {
-									is_independent_ruler = no
-									top_liege = scope:new_ruler
-								}
-							}
-							is_imprisoned = no
-							NOT = { house = scope:new_ruler.house }
-							NOT = { is_close_family_of = scope:new_ruler }
-						}
-						add_to_list = dynasty_arrest
-					}
-				}
-			}
-
-			imprison = {
-				target = scope:previous_holder
-				type = house_arrest
-			}
-			every_in_list = {
-				list = dynasty_arrest
-				scope:new_ruler = {
-					imprison = {
-						target = prev
-						type = house_arrest
-					}
-				}
-			}
 
 			if = { #改朝换代
-				limit = {
-					#title:e_celestia.holder = { is_ai = yes }				
+				limit = {		
 					NOR = {
 						scope:transfer_type = flag:inheritance
 						scope:transfer_type = flag:abdication
@@ -764,6 +704,10 @@ east_on_title_gain_effects = { #by 糜三小姐
 						scope:transfer_type = flag:conquest_populist
 						scope:transfer_type = flag:usurped
 					}
+				}
+				#删除自动夺取直辖领地和封臣并囚禁所有皇族
+				hidden_effect = {
+					new_chinese_dynasty_took_all_effect = yes
 				}
 				#表态效忠		
 				title:e_celestia = {

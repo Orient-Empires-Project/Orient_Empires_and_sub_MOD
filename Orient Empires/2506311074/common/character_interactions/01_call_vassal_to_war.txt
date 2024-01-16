@@ -2,7 +2,7 @@
 	category = interaction_category_diplomacy
 	desc = call_vassal_to_war_interaction_desc
 	icon = scroll_scales
-	interface_priority = 80
+	interface_priority = 100
 	interface = call_ally
 	special_interaction = call_ally_interaction
 	popup_on_receive = yes
@@ -94,7 +94,9 @@
 		}
 		
 		scope:recipient = {
+			exists = this
 			is_ruler = yes
+			is_alive = yes
 		}
 
 		# Only War Leaders can call allies
@@ -773,15 +775,15 @@
 	ai_will_do = {
 		base = 100
 		
-		modifier = { # If the player is at war, do not bother them with offensive calls
-			scope:target.casus_belli.primary_attacker = scope:actor
-			scope:recipient = {
-				is_ai = no
-				any_character_war = {
-					primary_defender = scope:recipient
-				}
-			}
-			factor = 0
+		modifier = {
+			scope:target.casus_belli.primary_defender = scope:actor
+			scope:target.casus_belli.primary_attacker = { current_military_strength > scope:actor.current_military_strength }
+			add = 50
+		}
+
+		modifier = {
+			scope:recipient.current_military_strength >= scope:actor.current_military_strength
+			add = 50
 		}
 
 		modifier = {
@@ -789,6 +791,7 @@
 				OR = {
 					is_legion_government_trigger = yes
 					government_has_flag = government_is_celestial
+					has_trait = disloyal
 				}
 			}
 			scope:actor = {
@@ -797,7 +800,7 @@
 					value < 0
 				}
 			}
-			factor = 0
+			add = -20
 		}
 
 		modifier = {
@@ -810,9 +813,27 @@
 					value < -50
 				}
 			}
-			factor = 0
+			add = -20
+		}
+
+		modifier = {
+			scope:recipient = {
+				has_trait = loyal
+			}
+			add = 20
 		}
 		
+		modifier = { # If the player is at war, do not bother them with offensive calls
+			scope:target.casus_belli.primary_attacker = scope:actor
+			scope:recipient = {
+				is_ai = no
+				any_character_war = {
+					primary_defender = scope:recipient
+				}
+			}
+			factor = 0
+		}
+
 		modifier = { # Don't call players in against their heirs (they wouldn't accept the reverse situation... don't be a hypocrite)
 			exists = scope:recipient.player_heir
 			scope:recipient = {			
@@ -846,15 +867,14 @@
 			factor = 0
 		}
 		
-		modifier = { # Don't call brand-new allies into old wars, at least until some time has elapsed.
-			has_variable = delay_calling_recent_ally
-			var:delay_calling_recent_ally = scope:recipient
-			scope:target = {
-				war_days >= 30
-			}
-			factor = 0
-
-		}
+		#modifier = { # Don't call brand-new allies into old wars, at least until some time has elapsed.
+			#has_variable = delay_calling_recent_ally
+			#var:delay_calling_recent_ally = scope:recipient
+			#scope:target = {
+				#war_days >= 30
+			#}
+			#factor = 0
+		#}
 
 		modifier = { # If the recipient is allied to both the attacker and the defender, the attacker shouldn't call
 			scope:target.casus_belli.primary_attacker = scope:actor
@@ -870,10 +890,9 @@
 		max = 10
 	}
 	ai_potential = {
-		is_at_war = yes
-		
+		is_at_war = yes		
 	}
-	ai_frequency = 48
+	ai_frequency = 12
 	auto_accept = {
 		custom_description = {
 			text = "spending_hook"

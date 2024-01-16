@@ -1,5 +1,5 @@
 ﻿#称帝改元 
-create_chinese_empier_effect = {
+change_guohao_effect = {
 	title:e_celestia = { set_title_name = $TITLENAME$ }
 }
 
@@ -19,12 +19,12 @@ found_new_chinese_empire_effect = {
 	}
 	hidden_effect = {
 		title:e_celestia = {
-			every_in_de_jure_hierarchy = {
-				limit = { tier >= tier_duchy }
-				set_de_jure_liege_title = title:e_celestia
-			}
+			#every_in_de_jure_hierarchy = {
+				#limit = { tier >= tier_duchy }
+				#set_de_jure_liege_title = title:e_celestia
+			#}
 			set_color_from_title = scope:old_title 
-			set_capital_county = title:c_luoyang
+			#set_capital_county = title:c_luoyang
 		}
 	}
 	save_scope_as = founder
@@ -49,8 +49,33 @@ found_new_chinese_empire_effect = {
 		limit = {
 			NOT = { title:e_celestia.holder = scope:founder }
 		}
-
-		destroy_title = title:e_celestia
+		title:e_celestia.holder = {
+			save_scope_as = previous_holder
+			hidden_effect = {
+				primary_title = {
+					save_scope_as = old_title
+				}
+				create_dynamic_title = {
+					tier = empire
+					name = NEW_CREATED_TITLE_NAME
+				}
+				create_title_and_vassal_change = {
+					type = created
+					save_scope_as = change1
+					add_claim_on_loss = no
+				}
+				scope:new_title = {
+					change_title_holder = {
+						holder = scope:previous_holder
+						change = scope:change1
+					}
+					set_title_name = scope:old_title
+					set_coa = scope:old_title
+					set_color_from_title = scope:old_title
+				}
+				resolve_title_and_vassal_change = scope:change1
+			}
+		}
 
 		create_title_and_vassal_change = {
 			type = created
@@ -73,7 +98,6 @@ found_new_chinese_empire_effect = {
 		add_trait = founding_monarch
 		change_government = celestial_government
 		house = { add_house_modifier = cust_dynasty }
-		trigger_event = east_title.0004
 	}
 	trigger_event = major_decisions.1103
 
@@ -169,11 +193,101 @@ found_new_chinese_empire_effect = {
 		destroy_title = title:e_shu
 	}
 	if = {
-		limit = {
-			has_title = title:e_min
-		}
+		limit = { has_title = title:e_min }
 		destroy_title = title:e_min
-	}			
+	}
+	if = {
+		limit = { has_title = title:e_huang_qi }
+		destroy_title = title:e_huang_qi
+	}
+}
+
+#囚禁所有皇族 获得直辖领地
+new_chinese_dynasty_took_all_effect = {
+	if = {
+		limit = {
+			is_ai = yes
+			scope:previous_holder = { is_ai = yes }
+		}
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change
+				add_claim_on_loss = yes
+			}
+			title:e_celestia = {
+				every_in_de_jure_hierarchy = {					
+					if = {
+						limit = {
+							tier > tier_barony
+							holder = scope:previous_holder
+						}
+						add_to_temporary_list = titles_taken
+					}
+				}
+				every_dejure_vassal_title_holder = {
+					if = {
+						limit = {
+							top_liege = scope:previous_holder
+						}
+						add_to_temporary_list = vassals_taken
+					}
+				}
+
+			}
+			every_in_list = {
+				list = titles_taken
+				change_title_holder = {
+					holder = scope:new_ruler
+					change = scope:change
+					take_baronies = no
+				}
+			}
+			every_in_list = {
+				list = vassals_taken
+				change_liege = {
+					liege = scope:new_ruler
+					change = scope:change
+				}
+			}	
+
+			resolve_title_and_vassal_change = scope:change
+			scope:previous_holder = {	
+				every_courtier = {
+					add_to_list = dynasty_arrest
+				}
+				every_close_or_extended_family_member = {
+					if = {
+						limit = {
+							OR = {
+								is_landed = no
+								AND = {
+									is_independent_ruler = no
+									top_liege = scope:new_ruler
+								}
+							}
+							is_imprisoned = no
+							NOT = { house = scope:new_ruler.house }
+							NOT = { is_close_family_of = scope:new_ruler }
+						}
+						add_to_list = dynasty_arrest
+					}
+				}
+			}
+
+			imprison = {
+				target = scope:previous_holder
+				type = house_arrest
+			}
+			every_in_list = {
+				list = dynasty_arrest
+				scope:new_ruler = {
+					imprison = {
+						target = prev
+						type = house_arrest
+					}
+				}
+			}
+	}	
 }
 
 found_steppe_chinese_empire_effect = {

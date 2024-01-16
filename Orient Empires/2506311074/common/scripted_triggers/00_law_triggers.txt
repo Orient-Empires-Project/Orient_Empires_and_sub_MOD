@@ -1,4 +1,118 @@
 ﻿
+character_gender_can_rule_title_trigger = {
+	trigger_if = {
+		limit = {
+			$GENDER$ = { is_male = yes }
+			exists = $TITLE$
+			$TITLE$ = {
+				NOT = {
+					has_title_law = female_only_law
+				}
+			}
+		}
+		always = yes
+	}
+	trigger_else_if = {
+		limit = {
+			$GENDER$ = { is_female = yes }
+			exists = $TITLE$
+			$TITLE$ = {
+				NOT = {
+					has_title_law = male_only_law
+				}
+			}
+		}
+		always = yes
+	}
+	trigger_else = {
+		always = no
+	}
+}
+
+character_gender_can_inherit_from_trigger = {
+	save_temporary_scope_as = heir
+
+	trigger_if = {
+		limit = {
+			$CHARACTER$ = { exists = primary_title }
+		}
+		$CHARACTER$ = {
+			character_gender_can_rule_title_trigger = {
+				GENDER = scope:heir
+				TITLE = primary_title
+			}
+		}
+	}
+	trigger_else = {
+		always = no
+	}
+}
+
+has_partition_succession_realm_law_trigger = {
+	OR = {
+		has_realm_law = confederate_partition_succession_law
+		has_realm_law = partition_succession_law
+		has_realm_law = high_partition_succession_law
+		has_realm_law = clan_antagonistic_partition_succession_law
+		has_realm_law = clan_competitive_partition_succession_law
+		has_realm_law = clan_impassive_partition_succession_law
+		has_realm_law = clan_friendly_partition_succession_law
+		has_realm_law = clan_harmonious_partition_succession_law
+	}
+}
+
+realm_law_use_crown_authority = {
+	# We separate this out into a different trigger for moddability purposes, per community request: this allows more diverse authority laws to be easily modded in without needing to override 00_realm_laws.txt, and thus for greater inter-mod compatibility.
+	realm_law_use_tribal_authority = no
+}
+
+realm_law_use_tribal_authority = {
+	government_has_flag = government_is_tribal
+}
+
+can_have_confederate_partition_succession_law_trigger = {
+	OR = {
+		government_has_flag = government_is_feudal
+		government_has_flag = government_is_tribal
+	}
+}
+
+can_keep_partition_succession_law_trigger = {
+	# The 'can_keep' triggers are dependent on actually having the law. If they aren't, the trigger breakdown for the player breaks and shows incomplete information.
+	trigger_if = {
+		limit = {
+			has_realm_law = partition_succession_law
+		}
+		OR = {
+			can_have_partition_succession_law_trigger = yes
+
+			# Mongol Empires
+			has_title = title:e_mongol_empire
+			has_title = title:e_ilkhanate
+			has_title = title:e_golden_horde
+			has_title = title:e_chagatai
+			has_title = title:e_black_horde
+			has_title = title:e_white_horde
+			has_title = title:e_aarlud_khanate
+			has_title = title:e_togskol_khanate
+			has_title = title:e_baruun_khanate
+		}
+	}
+	NOT = { government_has_flag = government_is_clan }
+}
+
+can_have_partition_succession_law_trigger = {
+	culture = {
+		has_innovation = innovation_hereditary_rule
+	}
+	custom_description = {
+		text = succession_laws_must_have_organised_government_tooltip
+		OR = {
+			government_has_flag = government_is_feudal
+		}
+	}
+}
+
 can_keep_high_partition_succession_law_trigger = {
 	# The 'can_keep' triggers are dependent on actually having the law. If they aren't, the trigger breakdown for the player breaks and shows incomplete information.
 	trigger_if = {
@@ -92,6 +206,19 @@ can_have_single_heir_succession_law_trigger = {
 	}
 }
 
+can_keep_single_heir_youngest_succession_law_trigger = {
+	# The 'can_keep' triggers are dependent on actually having the law. If they aren't, the trigger breakdown for the player breaks and shows incomplete information.
+	trigger_if = {
+		limit = {
+			has_realm_law = single_heir_succession_law_youngest
+		}
+		OR = {
+			can_have_single_heir_youngest_succession_law_trigger = yes
+			historical_succession_access_single_heir_succession_law_youngest_trigger = yes
+		}
+	}
+}
+
 can_have_single_heir_youngest_succession_law_trigger = {
 	culture = {
 		has_innovation = innovation_primogeniture
@@ -103,6 +230,19 @@ can_have_single_heir_youngest_succession_law_trigger = {
 			government_has_flag = government_is_feudal
 			government_has_flag = government_is_clan
 			government_has_flag = government_is_ulus
+		}
+	}
+}
+
+can_keep_single_heir_dynasty_house_trigger = {
+	# The 'can_keep' triggers are dependent on actually having the law. If they aren't, the trigger breakdown for the player breaks and shows incomplete information.
+	trigger_if = {
+		limit = {
+			has_realm_law = single_heir_dynasty_house
+		}
+		OR = {
+			can_have_single_heir_dynasty_house_trigger = yes
+			historical_succession_access_single_heir_dynasty_house_trigger = yes
 		}
 	}
 }
@@ -147,6 +287,77 @@ can_have_single_heir_dynasty_house_trigger = {
 		}
 	}
 }
+
+can_have_bishop_theocratic_succession_law_trigger = {
+	OR = {
+		is_theocratic_lessee = yes
+		government_has_flag = government_is_theocracy
+	}
+}
+
+is_temporal_head_of_faith_trigger = {
+	is_head_of_faith = yes
+	holder.faith = { has_doctrine = doctrine_temporal_head }
+}
+
+can_title_have_law_general_trigger = {
+	tier >= tier_duchy
+	is_temporal_head_of_faith_trigger = no
+}
+
+can_have_holy_order_succession_law_trigger = {
+	government_has_flag = government_is_holy_order
+}
+
+can_have_mercenary_succession_law_trigger = {
+	government_has_flag = government_is_mercenary
+}
+
+can_have_city_succession_law_trigger = {
+	government_has_flag = government_is_republic
+}
+
+title_can_reduce_partition_law_trigger = {
+	OR = {
+		AND = {
+			has_title_law = single_heir_succession_law
+			holder = {
+				can_have_high_partition_succession_law_trigger = yes
+			}
+		}
+		AND = {
+			has_title_law = high_partition_succession_law
+			holder = {
+				can_have_high_partition_succession_law_trigger = yes
+			}
+		}
+		AND = {
+			has_title_law = partition_succession_law
+			holder = {
+				can_have_confederate_partition_succession_law_trigger = yes
+			}
+		}
+	}
+}
+
+can_pass_law_ca1_trigger = {
+	culture = { has_innovation = innovation_plenary_assemblies }
+}
+
+can_pass_law_ca2_trigger = {
+	OR = {
+		culture = { has_innovation = innovation_royal_prerogative }
+		culture = { has_cultural_pillar = heritage_chinese }
+	}
+}
+
+can_pass_law_ca3_trigger = {
+	OR = {
+		culture = { has_innovation = innovation_royal_prerogative }
+		culture = { has_cultural_pillar = heritage_chinese }
+	}
+}
+
 
 #流官制（与帝国官僚继承法接驳）
 can_have_official_succession_law_trigger = {
@@ -318,23 +529,5 @@ can_keep_official_succession_law_player_trigger = {
 			has_realm_law = player_official_succession_law
 		}
 		is_ai = no
-	}
-}
-
-#can_pass_law_ca1_trigger = {
-#	culture = { has_innovation = innovation_plenary_assemblies }
-#}
-
-can_pass_law_ca2_trigger = {
-	OR = {
-		culture = { has_innovation = innovation_royal_prerogative }
-		culture = { has_cultural_pillar = heritage_chinese }
-	}
-}
-
-can_pass_law_ca3_trigger = {
-	OR = {
-		culture = { has_innovation = innovation_royal_prerogative }
-		culture = { has_cultural_pillar = heritage_chinese }
 	}
 }
