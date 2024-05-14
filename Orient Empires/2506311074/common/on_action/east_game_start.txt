@@ -1,6 +1,11 @@
 ﻿on_game_start = { #by 糜三小姐
 	on_actions = {
 		east_on_game_start_effects
+
+		east_history_fix_action
+		celestia_game_start_on_action
+
+		Jingkang_Incident_action
 	}
 	events = {
 		historical_artifacts.2333  #东方宝物
@@ -65,7 +70,15 @@ east_on_after_lobby_effects = {
 					}
 				}
 				if = { 
-					limit = { NOR = { has_realm_law = official_succession_law has_realm_law = single_heir_succession_law has_realm_law = legion_succession_law } is_ai = yes }
+					limit = {
+						NOR = {
+							has_realm_law = official_succession_law
+							has_realm_law = single_heir_succession_law
+							has_realm_law = legion_succession_law
+							has_government = legion_government
+						}
+						is_ai = yes
+					}
 					add_realm_law_skip_effects = official_succession_law
 				}
 				if = { 
@@ -218,6 +231,23 @@ east_on_after_lobby_effects = {
 				limit = {
 					is_legion_government_trigger = yes
 				}
+				if = {
+					limit = { exists = vassal_contract_obligation_level:title_revocation_rights }
+					vassal_contract_set_obligation_level = {
+						type = title_revocation_rights
+						level = 1
+					}
+				}
+				if = {
+					limit = { 
+						exists = vassal_contract_obligation_level:fortification_rights 
+						liege.culture = { has_innovation = innovation_battlements }
+					}
+					vassal_contract_set_obligation_level = {
+						type = fortification_rights
+						level = 1
+					}
+				}
 				every_vassal = {
 					limit = { government_has_flag = government_is_celestial }
 					vassal_contract_set_obligation_level = {
@@ -226,7 +256,7 @@ east_on_after_lobby_effects = {
 					}
 					vassal_contract_set_obligation_level = {
 						type = special_imperial_legion
-						level = 0
+						level = 2
 					} 
 				}
 			}
@@ -394,38 +424,6 @@ east_on_after_lobby_effects = {
 			}
 			set_global_variable = flag_ming_clothing
 		}
-		#历史摄政
-		if = {
-			limit = { game_start_date = 975.1.7 }
-			character:194330 = {
-				designate_diarch = character:1413617
-				start_diarchy = regency
-				set_diarchy_swing = 80
-				add_hook = {
-					type = predecessor_loyalty_hook
-					target = character:1413617
-					years = historic_regent_loyal_after_death_hook_duration_years_char_214_value
-				}
-			}
-		}
-		if = {
-			limit = { game_start_date = 1032.10.26 }
-			character:217724 = {
-				add_courtier = character:huayang_liu_006
-				designate_diarch = character:huayang_liu_006
-				start_diarchy = regency
-				set_diarchy_swing = 60
-				add_hook = {
-					type = predecessor_loyalty_hook
-					target = character:huayang_liu_006
-					years = historic_regent_loyal_after_death_hook_duration_years_char_214_value
-				}
-			}
-			character:3096 = {
-				designate_diarch = character:additional_fatimids_1
-				start_diarchy = regency
-			}	
-		}
 	}
 }	
 
@@ -492,7 +490,9 @@ east_on_title_gain_effects = { #by 糜三小姐
 					OR = {
 						AND = {
 							scope:transfer_type = flag:created
-							is_bureau_government_trigger = yes
+							is_oe_landed_bureaucrat_trigger = yes
+							is_ai = yes
+							liege = { is_oe_imperial_court_trigger = yes }
 						}
 						AND = {
 							is_ai = yes
@@ -504,8 +504,8 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}
 				}
 				trigger_event = east_title.0007
-				scope:previous_holder = { trigger_event = east_title.0007 }
-				top_liege = { trigger_event = east_title.0007 }
+				#scope:previous_holder = { trigger_event = east_title.0007 }
+				#top_liege = { trigger_event = east_title.0007 }
 				create_title_and_vassal_change = {
 					type = usurped
 					save_scope_as = change
@@ -518,6 +518,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 					}
 				}
 				remove_claim = scope:title
+				add_legitimacy = 400
 				resolve_title_and_vassal_change = scope:change
 				if = { 
 					limit = { NOT = { has_realm_law = official_succession_law } }
@@ -726,6 +727,16 @@ east_on_title_gain_effects = { #by 糜三小姐
 							days = 5
 						}
 					}
+					every_vassal = {
+						if = {
+							limit = { has_trait = great_misit }
+							change_variable = {
+								name = misit_power
+								subtract = 100
+							}
+							remove_trait = great_misit
+						}
+					}
 				}
 			}
 
@@ -755,5 +766,203 @@ east_on_title_gain_effects = { #by 糜三小姐
 				destroy_title = title:e_huang_qi
 			}
 		}
+	}
+}
+
+
+celestia_game_start_on_action = {
+	trigger = {
+		exists = title:e_celestia.holder
+		OR = {
+			game_start_date = 1075.1.1
+			game_start_date = 1093.10.28
+			game_start_date = 1161.11.11
+			game_start_date = 1180.7.1
+		}
+	}
+	effect = {
+		#非行政区划消除
+		title:d_luling = { holder = { destroy_title = prev } }
+		title:d_chaoshan = { holder = { destroy_title = prev } }
+		title:d_hepu = { holder = { destroy_title = prev } }
+		title:d_yihai = { holder = { destroy_title = prev } }
+		title:d_denglai = { holder = { destroy_title = prev } }
+
+		title:e_celestia = {
+			#迁都
+			if = {
+				limit = {
+					game_start_date > 955.1.1
+				}
+				holder = { set_realm_capital = title:c_bianzhou }
+			}
+			#太后
+			if = {
+				limit = {
+					holder = { mother = { is_alive = yes } }
+				}
+				holder = { add_courtier = holder.mother }				
+			}
+			if = {
+				limit = {
+					holder = { father.primary_spouse = { is_alive = yes } }
+				}
+				holder = { add_courtier = father.primary_spouse }				
+			}
+			if = {
+				limit = {
+					holder = { father.father.primary_spouse = { is_alive = yes } }
+				}
+				holder = { add_courtier = father.father.primary_spouse }				
+			}
+
+			#纠正独立
+
+			every_in_de_jure_hierarchy = {		
+				limit = {
+					tier = tier_county
+					is_titular = no
+					is_title_created = yes		
+				}
+				if = {
+					limit = {
+						holder = {
+							culture = culture:han
+							is_independent_ruler = yes
+							highest_held_title_tier = tier_county
+							NOR = {
+								faith = faith:taiping
+								has_trait = peasant_leader
+							}						
+						}						
+					}
+					holder = {
+						add_to_list = wrong_independence
+					}
+				}
+
+				create_title_and_vassal_change = {
+					type = swear_fealty
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				every_in_list = {
+					list = wrong_independence
+					change_liege = {
+						liege = title:e_celestia.holder
+						change = scope:change
+					}
+				}
+
+				resolve_title_and_vassal_change = scope:change
+
+			}
+		}
+
+	}
+}
+
+
+#自动化无地角色修正
+east_history_fix_action = {
+	effect = {
+		every_ruler = {
+			if = {
+				limit = {
+					NOR = {
+						government_has_flag = government_is_theocracy
+						government_has_flag = government_is_mercenary
+						#government_has_flag = government_is_republic
+						government_has_flag = government_is_holy_order
+						has_title = title:d_yungdrung_bon
+					}
+					is_ruler = yes
+					exists = primary_title
+					primary_title = {
+						is_titular = no
+						exists = title_capital_county
+						tier > tier_county
+						is_mercenary_company = no
+						is_holy_order = no
+					}
+					is_theocratic_lessee = no
+					any_held_title = {
+						tier = tier_county
+						count = 0
+					}
+				}
+				save_temporary_scope_as = holder_fix
+				primary_title.title_capital_county = {
+					save_temporary_scope_as = capital_county_fix
+				}
+				if = {
+					limit = {
+						primary_title.title_capital_county.holder = {
+							OR = {
+								is_vassal_of = scope:holder_fix
+								highest_held_title_tier > scope:holder_fix.highest_held_title_tier  #改动
+							}
+						}
+					}
+					create_title_and_vassal_change = {
+						type = usurped
+						save_scope_as = change
+						add_claim_on_loss = yes
+					}
+					scope:capital_county_fix = {
+						change_title_holder_include_vassals = {
+							holder = scope:holder_fix
+							change = scope:change
+						}
+					}	
+					resolve_title_and_vassal_change = scope:change
+				}
+				else = {
+					destroy_title = primary_title
+				}
+			}
+		}
+		#消灭所有重复ID角色
+		every_living_character = {
+			if = {
+				limit = {
+					NOT = { has_trait = immortality }
+					age > 860
+				}
+				death = natural
+			}
+		}
+	}
+}
+
+#靖康之变
+Jingkang_Incident_action = {
+	trigger = {
+		game_start_date > 1127.6.2
+	}
+	effect = {
+		every_living_character = {
+			limit = {
+				OR = {
+					this = character:217728
+					father = character:217727
+					father = character:217728
+					is_close_family_of = character:217728
+					any_parent = { is_close_family_of = character:217728 }
+					any_child = { father = character:217728 }
+				}
+				NOR = {
+					this = character:zhuojun_zhao_292
+					is_child_of = character:zhuojun_zhao_292
+					is_ai = no
+				}
+			}
+			title:e_jurchen.holder = {
+				imprison = {
+					target = prev
+					type = house_arrest 
+				}
+			}
+		}		
 	}
 }

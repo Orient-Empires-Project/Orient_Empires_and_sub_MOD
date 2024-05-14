@@ -29,7 +29,7 @@ demand_tribute_payment_interaction = {
 				}
 				AND = {
 					has_relation_suzerain = scope:recipient
-					TributeSystem_true_level_3_tributary_trigger = yes
+					TributeSystem_true_level_2_tributary_trigger = yes
 					is_ai = no
 				}
 			}
@@ -670,16 +670,13 @@ demand_tribute_artifact_interaction = {
 			}
 			is_ai = no
 		}
+		scope:recipient = { has_any_artifact = yes }
 	}
 	
-	is_highlighted = {
-		always = yes
-	}
-
 	is_valid_showing_failures_only = {
 
 		scope:recipient = { is_available_for_activity_trigger = yes }
-		
+
 		scope:actor = {
 			NOT = {
 				is_at_war_with = scope:recipient
@@ -1400,6 +1397,7 @@ call_suzerain_to_war = {
 	category = interaction_category_tribute
 	use_diplomatic_range = no
 	interface_priority = 100
+	common_interaction = yes
 	interface = call_ally
 	special_interaction = call_ally_interaction
 	popup_on_receive = yes
@@ -1433,6 +1431,9 @@ call_suzerain_to_war = {
 				is_at_war_with = scope:actor
 			}
 		}
+	}
+	is_highlighted = {
+		always = yes
 	}
 	has_valid_target = {
 		exists = scope:target
@@ -1644,6 +1645,10 @@ call_suzerain_to_war = {
 			save_scope_value_as = {
 				name = call_ally_interaction
 				value = yes
+			}
+			add_prestige = {
+				value = -100
+				multiply = scope:recipient.highest_held_title_tier
 			}
 			scope:actor = {
 				hidden_effect = { #To nudge friendship
@@ -2174,6 +2179,7 @@ call_tributary_to_war = {
 	use_diplomatic_range = no
 	use_diplomatic_range = no
 	interface_priority = 100
+	common_interaction = yes
 	interface = call_ally
 	special_interaction = call_ally_interaction
 	popup_on_receive = yes
@@ -2188,6 +2194,9 @@ call_tributary_to_war = {
 			is_at_war = yes
 		}	
 		NOT = { is_at_war_with = scope:recipient }
+	}
+	is_highlighted = {
+		always = yes
 	}
 	has_valid_target = {
 		exists = scope:target
@@ -2341,6 +2350,10 @@ call_tributary_to_war = {
 				title = msg_call_triburary_to_war
 				left_icon = scope:actor
 				right_icon = scope:recipient
+			}
+			add_prestige = {
+				value = -50
+				multiply = scope:recipient.highest_held_title_tier
 			}
 			call_ally_interaction_effect = yes
 			save_scope_value_as = {
@@ -3388,7 +3401,7 @@ stop_defender_tributary_war_interaction = {
 TributeSystem_purchase_truce_interaction = {
 	interface_priority = 30
 	category = interaction_category_tribute
-	common_interaction = yes
+	#common_interaction = yes
 	desc = purchase_truce_interaction_desc
 	icon = icon_retreat
 
@@ -3975,8 +3988,9 @@ TributeSystem_buy_claim_interaction = {
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
+			has_relation_suzerain = scope:recipient
 			TributeSystem_true_level_3_tributary_trigger = yes
-			var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
+			scope:recipient = { TributeSystem_suzerain_is_civilized_trigger = yes }
 		}
 
 	}
@@ -4162,14 +4176,16 @@ TributeSystem_buy_innovation_interaction = {
 		scope:actor = {
 			OR = {
 				AND = {
+					has_relation_tributary = scope:recipient
 					TributeSystem_suzerain_is_league_trigger = yes
 					TributeSystem_level_2_suzerain_trigger = yes
 				}
 				AND = {
+					has_relation_suzerain = scope:recipient
 					TributeSystem_level_3_tributary_trigger = yes
 					OR = {
-						var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
-						var:my_suzerain = { TributeSystem_suzerain_is_league_trigger = yes }
+						scope:recipient = { TributeSystem_suzerain_is_civilized_trigger = yes }
+						scope:recipient = { TributeSystem_suzerain_is_league_trigger = yes }
 					}
 				}
 			}
@@ -4511,15 +4527,15 @@ demand_currency_treaty_interaction = {
 		is_available_at_peace_ai_adult = yes
 	}
 	
-	auto_accept = {
-		custom_description = {
-			text = auto_accept_interaction_ai	
-			object = scope:recipient
-			scope:recipient = {
-				is_ai = yes
-			}
-		}
-	}
+	#auto_accept = {
+		#custom_description = {
+			#text = auto_accept_interaction_ai	
+			#object = scope:recipient
+			#scope:recipient = {
+				#is_ai = yes
+			#}
+		#}
+	#}
 	ai_will_do = {
 		base = 50
 		

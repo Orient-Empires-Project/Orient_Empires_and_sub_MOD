@@ -1,4 +1,5 @@
 ﻿namespace = fengjue
+#给予自定义绰号
 fengjue.1 = {
 	type = character_event
 	title = fengjue.1.t
@@ -14,7 +15,7 @@ fengjue.1 = {
 	}
 
 	widget = {
-		gui = "event_window_widget_enter_text"
+		gui = "event_window_widget_enter_nickname"
 		container = "dynamic_birth_name"
 		controller = {
 			type = text
@@ -63,5 +64,392 @@ fengjue.1 = {
 			}
 		}
 		resolve_title_and_vassal_change = scope:change
+	}
+}
+
+
+#封爵荣誉头衔 有地望
+fengjue.2 = {
+	type = character_event
+	title = fengjue.2.t
+	desc = fengjue.2.desc
+	theme = crown
+	left_portrait = {
+		character = scope:actor
+	}
+	right_portrait = {
+		character = scope:recipient
+	}
+	immediate = {
+		scope:target = {
+			save_scope_as = old_title
+		}
+	}
+
+	option = {
+		name = grant_kingdom_guo
+
+		trigger = {
+			scope:kingdom = yes
+		}
+
+		scope:actor = {
+			create_kingdom_guo_effect = yes
+
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion = {
+				target = scope:actor
+				modifier = received_title_kingdom
+			}
+			if = {
+				limit = {
+					is_lowborn = yes
+				}
+				scope:actor = {
+					every_vassal = {
+						limit = {
+							has_vassal_stance = courtly
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = courtly_lowborn_grant_opinion
+							opinion = -50
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = grant_kingdom_jun
+
+		trigger = {
+			scope:kingdom = yes
+		}
+
+		scope:actor = {
+			create_kingdom_jun_effect = yes
+
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion = {
+				target = scope:actor
+				modifier = received_title_kingdom
+			}
+			if = {
+				limit = {
+					is_lowborn = yes
+				}
+				scope:actor = {
+					every_vassal = {
+						limit = {
+							has_vassal_stance = courtly
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = courtly_lowborn_grant_opinion
+							opinion = -50
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	option = {
+		name = grant_duchy_guo
+		trigger = {
+			NAND = {
+				scope:recipient.primary_title ?= { has_variable = titular_title }
+				scope:recipient.primary_title ?= { tier = tier_duchy }
+			}
+			scope:duchy = yes
+		}
+		scope:actor = {
+			create_duchy_guo_effect = yes
+
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion = {
+				target = scope:actor
+				modifier = received_title_duchy
+			}
+			if = {
+				limit = {
+					is_lowborn = yes
+				}
+				scope:actor = {
+					every_vassal = {
+						limit = {
+							has_vassal_stance = courtly
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = courtly_lowborn_grant_opinion
+							opinion = -50
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = grant_duchy_jun
+
+		trigger = {
+			NAND = {
+				scope:recipient.primary_title ?= { has_variable = titular_title }
+				scope:recipient.primary_title ?= { tier = tier_duchy }
+			}
+			scope:duchy = yes
+		}
+		scope:actor = {
+			create_duchy_jun_effect = yes
+
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion = {
+				target = scope:actor
+				modifier = received_title_duchy
+			}
+			if = {
+				limit = {
+					is_lowborn = yes
+				}
+				scope:actor = {
+					every_vassal = {
+						limit = {
+							has_vassal_stance = courtly
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = courtly_lowborn_grant_opinion
+							opinion = -50
+						}
+					}
+				}
+			}
+		}
+	}
+
+	#自定义
+	option = {
+		name = guohao.002.title
+		trigger = {
+			exists = scope:target
+		}
+		scope:recipient = {
+			save_scope_as = holder
+		}
+		scope:actor = {
+			hidden_effect = {
+				if = {
+					limit = {
+						scope:kingdom = yes
+					}
+					add_prestige = 500
+				}
+				else = {
+					add_prestige = 200
+				}
+				add_piety = {
+					value = 200
+				}
+			}
+			trigger_event = fengjue.3
+		}
+	}
+
+	option = {
+		name = cancel
+
+		scope:actor = {
+			hidden_effect = {
+				if = {
+					limit = {
+						scope:kingdom = yes
+					}
+					add_prestige = 500
+				}
+				else = {
+					add_prestige = 200
+				}
+				add_piety = {
+					value = 200
+				}
+			}
+		}
+	}
+
+	after = {
+		scope:recipient = { remove_character_flag = titular_holder }
+		
+	}
+
+}
+
+
+#自定义 荣誉王国、公国
+fengjue.3 = {
+	type = character_event
+	title = fengjue.4.t
+	desc = fengjue.4.desc
+
+	theme = crown
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:recipient = { save_scope_as = holder }
+		}
+		else = {
+			root = { save_scope_as = holder }
+		}
+	}
+
+	option = {
+		name = found_kingdom_decision
+		trigger_event = fengjue.5
+		add_prestige = -500
+		add_piety = -200
+	}
+	option = {
+		name = found_duchy_decision
+		trigger_event = fengjue.6
+		add_prestige = -200
+		add_piety = -200
+	}
+
+	option = { 
+		name = guohao.2.b
+
+		#hidden_effect = {
+			#if = {
+				#limit = {
+					#scope:kingdom = yes
+				#}
+				#add_prestige = 500
+			#}
+			#else = {
+				#add_prestige = 200
+			#}
+			#add_piety = {
+				#value = 200
+			#}
+		#}
+	}
+
+	after = {
+	}
+
+}
+
+
+#自定义王爵名
+fengjue.5 = {
+	type = character_event
+	title = fengjue.4.t
+	desc = fengjue.4.kingdom.desc
+	theme = crown
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+
+	immediate = {
+	}
+
+	widget = {
+		gui = "event_window_widget_enter_nickname"
+		container = "dynamic_birth_name"
+		controller = {
+			type = text
+			data = {
+				key = custom_guohao_new
+				default = {
+					localization_key = CUSTOM_GUOHAO
+				}
+			}
+		}
+		setup_scope = {
+			root = { save_scope_as = text_target }
+		}
+	}
+
+	option = { 
+		name = confirm
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_kingdom_decision
+				oe_create_titular_title_effect = { TIER = kingdom HOLDER = scope:holder }		
+			}
+		}	
+	}
+
+	option = { 
+		name = guohao.2.b
+	}
+}
+
+
+#自定义公爵名
+fengjue.6 = {
+	type = character_event
+	title = fengjue.4.t
+	desc = fengjue.4.duchy.desc
+	theme = crown
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+
+	immediate = {
+	}
+
+	widget = {
+		gui = "event_window_widget_enter_nickname"
+		container = "dynamic_birth_name"
+		controller = {
+			type = text
+			data = {
+				key = custom_guohao_new
+				default = {
+					localization_key = CUSTOM_GUOHAO
+				}
+			}
+		}
+		setup_scope = {
+			root = { save_scope_as = text_target }
+		}
+	}
+
+	option = { 
+		name = confirm
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_duchy_decision
+				oe_create_titular_title_effect = { TIER = duchy HOLDER = scope:holder }		
+			}
+		}
+	}
+
+	option = { 
+		name = guohao.2.b
 	}
 }

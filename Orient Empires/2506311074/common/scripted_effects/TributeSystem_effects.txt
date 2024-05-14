@@ -39,8 +39,12 @@ define_tributary = {
 		set_variable = { name = tributary_type value = $TRIBUTARY_BASE_TYPE$ } #临时永久
 		add_trait = tributary
 		change_tribute_exp_effect = { EXP = 5 } #朝贡得分
-		primary_title = { set_color_from_title = $SUZERAIN$.primary_title }
 
+		if = {
+			limit = { $SUZERAIN$ = { is_independent_ruler = yes } }
+			primary_title = { set_color_from_title = $SUZERAIN$.primary_title }
+		}
+		
 		send_interface_toast = {
 			type = event_toast_effect_good
 			title = set_relation_suzerain
@@ -58,6 +62,26 @@ define_tributary = {
 			add_trait = suzerain
 			change_tribute_exp_effect = { EXP = 2 } #朝贡得分
 		}
+		switch = {
+			trigger = $TRIBUTARY_BASE_TYPE$
+
+			flag:permanent = { 
+				add_to_variable_list = {
+					name = permanent_tributaries
+					target = $TRIBUTARY$
+				}
+			}
+			flag:non_permanent = { 
+				add_to_variable_list = {
+					name = non_permanent_tributaries
+					target = $TRIBUTARY$
+				}
+			}
+		}
+		add_to_variable_list = {
+			name = all_tributaries
+			target = $TRIBUTARY$
+		}
 		add_truce_both_ways = {
 			character = $TRIBUTARY$
 			years = 5
@@ -69,6 +93,25 @@ define_tributary = {
 			custom_tooltip = I_GAIN_A_TRIBUTARY
 			left_icon = $SUZERAIN$
 			right_icon = $TRIBUTARY$
+		}
+
+		if = {
+			limit = {
+				TributeSystem_suzerain_is_civilized_trigger = yes
+				is_valid_for_legitimacy_change = yes
+			}
+			send_interface_toast = {
+				type = event_toast_effect_good
+				title = legitimacy_gain_toast
+				left_icon = $TRIBUTARY$
+				right_icon = $SUZERAIN$
+				add_legitimacy = {
+					value = {
+						value = 5 #miniscule_legitimacy_gain
+						multiply = $TRIBUTARY$.highest_held_title_tier
+					}
+				}
+			}
 		}
 	}
 }
@@ -83,8 +126,28 @@ unset_tributary = {
 			every_relation = {
 				type = suzerain
 				save_temporary_scope_as = suzerain
-				remove_relation_tributary = $TRIBUTARY$
+				$TRIBUTARY$ = { remove_relation_suzerain = prev }
 				cancel_truce_both_ways = $TRIBUTARY$
+
+				if = {
+					limit = {
+						TributeSystem_suzerain_is_civilized_trigger = yes
+						is_valid_for_legitimacy_change = yes
+					}
+					send_interface_toast = {
+						type = event_toast_effect_good
+						title = legitimacy_gain_toast
+						left_icon = $TRIBUTARY$
+						right_icon = this
+						add_legitimacy = {
+							value = {
+								value = 10 #miniscule_legitimacy_gain
+								multiply = $TRIBUTARY$.highest_held_title_tier
+							}
+						}
+					}
+				}
+
 			}
 		}
 		remove_trait = tributary
@@ -102,8 +165,11 @@ unset_tributary = {
 			remove_variable = tributary_exp_gain
 		}
 
-		change_color_back_effect = yes
-		
+		if = {
+			limit = { exists = primary_title }
+			change_color_back_effect = yes
+		}
+				
 		send_interface_toast = {
 			type = event_toast_text_and_effect_bad
 			left_icon = scope:suzerain
@@ -116,13 +182,31 @@ unset_tributary = {
 
 change_color_back_effect = {
 	if = {
-		limit = { primary_title = { tier > tier_county } }
-		primary_title = { set_color_from_title = this.title_capital_county }
+		limit = {
+			highest_held_title_tier > tier_county
+		}
+		every_held_title = {
+			limit = {
+				tier > tier_county
+			}
+			set_color_from_title = title_capital_county
+		}
 	}
 	else_if = {
-		limit = { primary_title = { tier = tier_county } }
-		primary_title = {
-			set_color_from_title = this.duchy
+		limit = {
+			highest_held_title_tier = tier_county
+		}
+		every_held_title = {
+			limit = {
+				tier = tier_county
+			}
+			set_color_from_title = duchy
+		}
+		every_held_title = {
+			limit = {
+				tier = tier_barony
+			}
+			set_color_from_title = county
 		}
 	}
 }
@@ -199,7 +283,7 @@ replace_suzerain_effect = {
 	$TRIBUTARY$ = {
 		every_relation = {
 			type = suzerain
-			$TRIBUTARY$ = { remove_relation_suzerain = this }
+			$TRIBUTARY$ = { remove_relation_suzerain = prev }
 			add_opinion = {
 				modifier = seize_tributary_opinion
 				target = $SUZERAIN$
@@ -252,7 +336,7 @@ TributeSystem_tribute_relation_validity_check_effect = {
 		limit = {
 			OR = {
 				NOT = { $SUZERAIN$ = { can_be_suzerain_of = { TARGET = $TRIBUTARY$ } } }
-				#NOT = { $TRIBUTARY$ = { can_be_tributary_of = { TARGET = $SUZERAIN$ } } }
+				NOT = { $TRIBUTARY$ = { can_be_tributary_of = { TARGET = $SUZERAIN$ } } }
 			}
 		}
 		unset_tributary = { TRIBUTARY = $TRIBUTARY$ }
@@ -277,9 +361,12 @@ TributeSystem_tributary_validity_check_effect = {
 			has_suzerain = no
 		}
 		remove_trait = tributary
+		change_color_back_effect = yes
+
 		if = {
 			limit = { has_variable = my_suzerain }
 			remove_variable = my_suzerain
 		}
 	}
 }
+

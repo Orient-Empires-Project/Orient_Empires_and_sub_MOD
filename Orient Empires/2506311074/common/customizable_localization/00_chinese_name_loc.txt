@@ -49,6 +49,11 @@ GetUIchinaTitle = {
 		localization_key = Loc_GetUIchinaTitleEmperor
 		trigger = {
 			culture = { has_cultural_pillar = heritage_chinese }
+			any_close_family_member = {
+				even_if_dead = yes
+				exists = primary_title
+				primary_title = title:e_celestia
+			}
 			OR = {
 				has_miaohao_trigger = yes
 				has_shihao_trigger = yes
@@ -214,6 +219,8 @@ china_GetUINameNotMeNoTooltip = {
 	}
 }
 
+#庙号谥号
+
 #人物窗口
 OE_GetUINameNotMeNoTooltip = {
 	type = character
@@ -267,12 +274,12 @@ OE_GetUINameNotMeNoTooltip = {
 			has_trait = hoo
 		}
 	}
-	text = {
-		localization_key = Loc_OE_SekkeGetUINameNotMeNoTooltip
-		trigger = {
-			has_title = title:d_sekke
-		}
-	}
+	#text = {
+		#localization_key = Loc_OE_SekkeGetUINameNotMeNoTooltip
+		#trigger = {
+			#has_title = title:d_sekke
+		#}
+	#}
 	text = {
 		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Steppe
 		trigger = {
@@ -388,7 +395,10 @@ OE_GetUINameNotMeNoTooltip = {
 			OR = {
 				NOT = { exists = primary_spouse }
 				NOT = { exists = primary_spouse.primary_title }
-				primary_spouse.primary_title.tier <= tier_duchy
+				AND = {
+					exists = primary_spouse.primary_title
+					primary_spouse.primary_title.tier <= tier_duchy
+				}
 			}
 			# NOT = { primary_title = title:d_gosho }
 			#has_miaohao_trigger = no
@@ -403,9 +413,14 @@ OE_GetUINameNotMeNoTooltip = {
 			is_ruler = no
 			is_female = yes
 			OR = {
+				#AND = {
+					#culture = { has_cultural_pillar = heritage_yamato }
+					#dynasty = dynasty:10000420
+				#}
 				AND = {
-					culture = { has_cultural_pillar = heritage_yamato }
-					dynasty = dynasty:10000420
+					primary_spouse ?= { is_landed = yes }
+					primary_spouse ?= { has_title = title:d_gosho }
+					primary_spouse.primary_title ?= title:k_yamato
 				}
 				culture = { has_cultural_pillar = heritage_chinese }
 				culture = { has_cultural_pillar = heritage_goryeo }
@@ -432,7 +447,7 @@ OE_GetUINameNotMeNoTooltip = {
 			}
 			exists = primary_spouse
 			liege = primary_spouse
-			primary_spouse = { primary_spouse = root }
+			primary_spouse = { primary_spouse ?= root }
 			primary_spouse.primary_title.tier = tier_kingdom
 			liege = {
 				exists = primary_title
@@ -620,6 +635,7 @@ OE_GetUINameNotMeNoTooltip = {
 				culture = { has_name_list = name_list_tuyuhun }
 				culture = { has_name_list = name_list_shatuo }
 				culture = { has_name_list = name_list_tangut }
+				culture = culture:yao
 				AND = {
 					culture = { has_name_list = name_list_sogdian }
 					location ?= { geographical_region = world_asia_china }
@@ -655,6 +671,7 @@ OE_GetUINameNotMeNoTooltip = {
 				culture = { has_name_list = name_list_tuyuhun }
 				culture = { has_name_list = name_list_shatuo }
 				culture = { has_name_list = name_list_tangut }
+				culture = culture:yao
 				AND = {
 					culture = { has_name_list = name_list_sogdian }
 					location ?= { geographical_region = world_asia_china }
@@ -728,6 +745,7 @@ OE_GetUINameNotMeNoTooltip = {
 				culture = { has_name_list = name_list_shatuo }
 				culture = { has_name_list = name_list_tangut }
 				religion = religion:confucianism_religion
+				culture = culture:yao
 			}
 			NOT = { has_title = title:d_gosho }
 			has_miaohao_trigger = no
@@ -767,6 +785,7 @@ OE_GetUINameNotMeNoTooltip = {
 				culture = { has_name_list = name_list_balhae }
 				culture = { has_name_list = name_list_jiaozhi }
 				culture = { has_name_list = name_list_tuyuhun }
+				culture = culture:yao
 				AND = {
 					culture = { has_name_list = name_list_sogdian }
 					location ?= { geographical_region = world_asia_china }
@@ -961,6 +980,45 @@ OE_GetUINameNotMeNoTooltip = {
 	}
 	text = {
 		localization_key = Loc_OE_GetUINameNotMeNoTooltip_default
+		fallback = yes
+	}
+}
+
+OE_GetTitledFirstName = {
+	type = character
+	text = {
+		localization_key = Loc_GetTitledFirstName
+		trigger = {
+			exists = this
+			OR = {
+				culture = { has_cultural_pillar = heritage_yamato }
+				culture = { has_cultural_pillar = heritage_chinese }
+				culture = { has_cultural_pillar = heritage_goryeo }
+				culture = { has_cultural_pillar = heritage_qiangic }
+				culture = { has_cultural_pillar = heritage_hunic }
+				culture = { has_name_list = name_list_khitan }
+				culture = { has_name_list = name_list_jurchen }
+				culture = { has_name_list = name_list_shatuo }
+				culture = { has_name_list = name_list_tangut }
+				culture = { has_name_list = name_list_balhae }
+				culture = { has_name_list = name_list_jiaozhi }
+				culture = { has_name_list = name_list_tuyuhun }
+				AND = {
+					culture = { has_name_list = name_list_sogdian }
+					location ?= { geographical_region = world_asia_china }
+				}
+				AND = {
+					culture = { has_name_list = name_list_uyghur}
+					location ?= { geographical_region = world_asia_china }
+				}
+				culture = { has_name_list = name_list_bai }
+				
+
+			}
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetTitledFirstName_default
 		fallback = yes
 	}
 }
@@ -1274,4 +1332,61 @@ bureaucracy_title_rank_name = {
 		localization_key = bureaucracy_title_rank_7
 	}
 
+}
+
+GetEpidemicRulerName = {
+	scope = character
+	text = {
+		trigger = {
+			culture = {
+				OR = {
+					has_cultural_pillar = heritage_chinese
+					has_cultural_pillar = language_chinese
+				}
+			}
+		}
+		localization_key = epidemic_house_loc
+	}
+	text = {
+		fallback = yes
+		localization_key = epidemic_ruler_loc_defaut
+	}
+}
+
+GetEpidemicRulerName = {
+	scope = character
+	text = {
+		trigger = {
+			culture = {
+				OR = {
+					has_cultural_pillar = heritage_chinese
+					has_cultural_pillar = language_chinese
+				}
+			}
+		}
+		localization_key = epidemic_house_loc
+	}
+	text = {
+		fallback = yes
+		localization_key = epidemic_ruler_loc_defaut
+	}
+}
+
+GetEpidemicRulerName = {
+	scope = character
+	text = {
+		trigger = {
+			culture = {
+				OR = {
+					has_cultural_pillar = heritage_chinese
+					has_cultural_pillar = language_chinese
+				}
+			}
+		}
+		localization_key = epidemic_house_loc
+	}
+	text = {
+		fallback = yes
+		localization_key = epidemic_ruler_loc_defaut
+	}
 }

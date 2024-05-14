@@ -3954,6 +3954,36 @@ release_from_prison_interaction = {
 						DESC = clan_unity_released_from_own_prison.desc
 						REVERSE_NON_HOUSE_TARGET = no
 					}
+
+					# LEGITIMACY GAIN FROM RELEASING DUKES AND ABOVE
+					if = {
+						limit = {
+							exists = scope:recipient.primary_title
+							scope:recipient.primary_title.tier >= tier_duchy
+						}
+						# Minus 2, since we want Duchy to be 1, and it's normally 3
+						save_scope_value_as = {
+							name = title_tier_minus_2
+							value = {
+								value = scope:recipient.primary_title.tier
+								subtract = 2
+							}
+						}
+						scope:actor = {
+							send_interface_toast = {
+								type = event_toast_effect_good
+								title = legitimacy_gain_toast
+								left_icon = scope:actor
+								right_icon = scope:recipient
+								add_legitimacy = {
+									value = {
+										value = miniscule_legitimacy_gain
+										multiply = scope:title_tier_minus_2
+									}
+								}
+							}
+						}
+					}					
 				}
 				else = {
 					scope:actor = {

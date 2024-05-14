@@ -69,7 +69,7 @@ found_new_chinese_empire_effect = {
 						holder = scope:previous_holder
 						change = scope:change1
 					}
-					set_title_name = scope:old_title
+					#set_title_name = scope:old_title
 					set_coa = scope:old_title
 					set_color_from_title = scope:old_title
 				}
@@ -100,6 +100,19 @@ found_new_chinese_empire_effect = {
 		house = { add_house_modifier = cust_dynasty }
 	}
 	trigger_event = major_decisions.1103
+
+	if = {
+		limit = { has_dlc_feature = legends }
+		create_legend_seed = {
+			type = legitimizing
+			quality = illustrious
+			chronicle = new_title
+			properties = {
+				title = title:e_celestia
+				founder = root
+			}
+		}
+	}
 
 	every_player = {
 		if = {
@@ -275,7 +288,7 @@ new_chinese_dynasty_took_all_effect = {
 			}
 
 			imprison = {
-				target = scope:previous_holder
+				target = character:scope:previous_holder
 				type = house_arrest
 			}
 			every_in_list = {
@@ -307,25 +320,50 @@ found_steppe_chinese_empire_effect = {
 		primary_title = {
 			save_scope_as = old_title
 		}
-
-		create_dynamic_title = {
-			tier = empire
-			name = NEW_CREATED_TITLE_NAME
-		}
-		create_title_and_vassal_change = {
-			type = created
-			save_scope_as = change
-			add_claim_on_loss = no
-		}
-
-		scope:new_title = {
-			change_title_holder = {
-				holder = root
-				change = scope:change
+		if = {
+			limit = {
+				NOT =  { exists = title:e_cathay.holder }
+				scope:founder = {
+					OR = {
+						culture = culture:khitan
+						culture = culture:shatuo
+						culture = culture:jurchen
+					}
+				}
 			}
+			create_title_and_vassal_change = {
+				type = created
+				save_scope_as = change
+				add_claim_on_loss = no
+			}	
+			title:e_cathay = {
+				change_title_holder = {
+					holder = root
+					change = scope:change
+				}
+				save_scope_as = new_title
+			}	
+			resolve_title_and_vassal_change = scope:change
 		}
-
-		resolve_title_and_vassal_change = scope:change
+		else = {
+			create_dynamic_title = {
+				tier = empire
+				name = NEW_CREATED_TITLE_NAME
+			}
+			create_title_and_vassal_change = {
+				type = created
+				save_scope_as = change
+				add_claim_on_loss = no
+			}
+	
+			scope:new_title = {
+				change_title_holder = {
+					holder = root
+					change = scope:change
+				}
+			}	
+			resolve_title_and_vassal_change = scope:change
+		}
 
   		every_held_title = {
 			limit = {
@@ -479,6 +517,19 @@ found_steppe_chinese_empire_effect = {
 			location = capital_province
 		}
 	}
+
+	if = {
+		limit = { has_dlc_feature = legends }
+		create_legend_seed = {
+			type = legitimizing
+			quality = illustrious
+			chronicle = new_title
+			properties = {
+				title = root.primary_title
+				founder = root
+			}
+		}
+	}
 }
 
 
@@ -503,12 +554,26 @@ create_tang_empire_scripted_effect = {
 	set_primary_title_to = title:e_tang
 
 	title:e_tang = {
+		save_scope_as = new_title
 		set_title_name = e_tang
 		set_coa = title:e_tang
 		set_color_from_title = scope:old_title
 		set_capital_county = scope:old_title.title_capital_county
 		copy_title_history = scope:old_title
 		change_government = celestial_government 
+	}
+
+	if = {
+		limit = { has_dlc_feature = legends }
+		create_legend_seed = {
+			type = legitimizing
+			quality = illustrious
+			chronicle = new_title
+			properties = {
+				title = title:e_tang
+				founder = root
+			}
+		}
 	}
 
 	hidden_effect = {
@@ -597,12 +662,26 @@ build_han_empire_effect = {
 	set_primary_title_to = title:e_han
 
 	title:e_han = {
+		save_scope_as = new_title
 		set_coa = title:e_han
 		set_color_from_title = title:e_han
 		set_capital_county = scope:old_title.title_capital_county
 		copy_title_history = scope:old_title
 		change_government = celestial_government
 	}
+	if = {
+		limit = { has_dlc_feature = legends }
+		create_legend_seed = {
+			type = legitimizing
+			quality = illustrious
+			chronicle = new_title
+			properties = {
+				title = title:e_han
+				founder = root
+			}
+		}
+	}
+
 	if = {
 		limit = {
 			has_title = title:e_wu
@@ -790,6 +869,8 @@ found_min_kingdom_effect = {
 		set_primary_title_to = scope:new_title
 		
 		trigger_event = major_decisions.1101
+
+		#legend_seed_new_title_effect = yes
 		
 		every_player = {
 			if = {
@@ -1054,6 +1135,8 @@ found_wuyue_kingdom_effect = {
 			}
 		}
 	}
+
+	#legend_seed_new_title_effect = yes
 }
 
 replace_celestia_empire_effect = {
@@ -1295,6 +1378,8 @@ found_wei_kingdom_effect = {
 				}
 			}
 		}
+
+		#legend_seed_new_title_effect = yes
 	}
 }
 
@@ -1452,6 +1537,7 @@ found_han_kingdom_effect = {
 		}
 		
 		title:k_han = {
+			save_scope_as = new_title
 			#set_title_name = k_han
 			#set_coa = title:k_han
 			set_color_from_title = title:e_han
@@ -1516,6 +1602,7 @@ found_western_protectorate_effect = {
 	hidden_effect = {
 		set_global_variable = western_protectorate
 	}
+
 	every_held_title = { #Should shift all dejure of all Empires owned at the time.
 		limit = {
 			tier = tier_empire
@@ -1554,6 +1641,19 @@ found_western_protectorate_effect = {
 			}
 		}
 		resolve_title_and_vassal_change = scope:change
+	}
+
+	if = {
+		limit = { has_dlc_feature = legends }
+		create_legend_seed = {
+			type = legitimizing
+			quality = illustrious
+			chronicle = new_title
+			properties = {
+				title = title:e_longyou
+				founder = root
+			}
+		}
 	}
 }
 
@@ -1679,6 +1779,19 @@ found_xixia_kingdom_effect = {
 
 	}	
 
+	if = {
+		limit = { has_dlc_feature = legends }
+		create_legend_seed = {
+			type = legitimizing
+			quality = fame
+			chronicle = new_title
+			properties = {
+				title = title:k_xia
+				founder = root
+			}
+		}
+	}
+
 	root = {
 		add_trait = founding_monarch
 		add_prestige = 1000
@@ -1719,6 +1832,8 @@ found_steppe_empire_effect = {
 		set_capital_county = scope:old_title.title_capital_county
 	}
 	set_primary_title_to = scope:new_title
+
+	legend_seed_new_title_effect = yes
 
 	root = {
 		add_pressed_claim = title:e_mongolia
@@ -1800,6 +1915,10 @@ found_puppet_empire_effect = {
 			change_title_holder = {
 				holder = scope:puppet
 				change = scope:change
+			}
+			set_variable = {
+				name = puppet_overlord
+				value = root.primary_title
 			}
 		}
 		every_vassal = {
@@ -1939,7 +2058,7 @@ claim_fake_chinese_emperor_effect = {
 	}
 
 	scope:new_title = {
-		set_title_name = root.capital_province.kingdom
+		#set_title_name = root.capital_province.kingdom
 		set_coa = scope:old_title
 		set_color_from_title = scope:old_title
 		set_capital_county = scope:old_title.title_capital_county
@@ -1959,12 +2078,12 @@ found_fake_chinese_kingdom_effect = {
 			save_scope_as = old_title
 		}
 		capital_province.barony = {
-			save_scope_as = capital_title
+			change_title_name_duchy_effect = yes
 		}
 		
 		create_dynamic_title = {
 			tier = kingdom
-			name = NEW_CREATED_TITLE_NAME
+			name = KINGDOM_TITLE_NAME_FROM_CAPITAL_BARONY
 		}
 		create_title_and_vassal_change = {
 			type = created
@@ -1977,65 +2096,68 @@ found_fake_chinese_kingdom_effect = {
 				holder = root
 				change = scope:change
 			}
-		}
-		
+		}	
 		resolve_title_and_vassal_change = scope:change
-		
-		scope:new_title = {
-			set_coa = scope:old_title
-			set_color_from_title = scope:old_title
-			set_capital_county = scope:old_title.title_capital_county
-			copy_title_history = scope:old_title
-			set_title_name = scope:founder.capital_province.barony
+
+		capital_province.barony = {
+			reset_title_name = yes
 		}
-		set_primary_title_to = scope:new_title
-		
-		trigger_event = major_decisions.1101
-		
-		every_player = {
-			if = {
-				limit = {
-					top_liege = scope:founder
-					NOT = { this = root }
-				}
-				trigger_event = major_decisions.1102
+	}
+
+	scope:new_title = {
+		set_coa = scope:old_title
+		set_color_from_title = scope:old_title
+		set_capital_county = scope:old_title.title_capital_county
+		copy_title_history = scope:old_title
+	}
+
+	set_primary_title_to = scope:new_title
+
+	trigger_event = major_decisions.1101
+	
+	every_player = {
+		if = {
+			limit = {
+				top_liege = scope:founder
+				NOT = { this = root }
 			}
-			else_if = {
-				limit = {
-					exists = scope:send_notifications
-					NOT = { this = root }
-					NOT = { top_liege = scope:founder }
-					any_held_title = {
-						any_in_de_jure_hierarchy = {
-							continue = {
-								tier > tier_duchy
-							}
-							tier = tier_duchy
-							is_in_list = duchy_for_notification
-						}
-					}
-				}
-				every_held_title = {
-					every_in_de_jure_hierarchy = {
+			trigger_event = major_decisions.1102
+		}
+		else_if = {
+			limit = {
+				exists = scope:send_notifications
+				NOT = { this = root }
+				NOT = { top_liege = scope:founder }
+				any_held_title = {
+					any_in_de_jure_hierarchy = {
 						continue = {
 							tier > tier_duchy
 						}
-						limit = {
-							tier = tier_duchy
-							is_in_list = duchy_for_notification
-						}
-						add_to_list = notification_titles	
+						tier = tier_duchy
+						is_in_list = duchy_for_notification
 					}
-				}			
-				if = {
-					limit = {
-						any_in_list = {
-							list = notification_titles
-							count > 0
-						}
-					}
-					trigger_event = major_decisions.1105
 				}
+			}
+			every_held_title = {
+				every_in_de_jure_hierarchy = {
+					continue = {
+						tier > tier_duchy
+					}
+					limit = {
+						tier = tier_duchy
+						is_in_list = duchy_for_notification
+					}
+					add_to_list = notification_titles	
+				}
+			}			
+			if = {
+				limit = {
+					any_in_list = {
+						list = notification_titles
+						count > 0
+					}
+				}
+				trigger_event = major_decisions.1105
 			}
 		}
 	}

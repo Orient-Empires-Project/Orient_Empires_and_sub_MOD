@@ -1,5 +1,5 @@
 steppe_war = {
-	icon = invasion
+	icon = vassalization
 	group = subjugation
 	should_show_war_goal_subview = yes
 	combine_into_one = yes
@@ -43,7 +43,7 @@ steppe_war = {
 	}
 	allowed_against_character = {
 		OR = {
-			capital_province ?= { geographical_region = world_asia }
+			capital_province ?= { geographical_region = world_steppe_tartaria }
 			capital_province ?= { geographical_region = world_steppe }
 		}
 	}
@@ -158,44 +158,86 @@ steppe_war = {
 				}
 			}
 		}
-        triggered_desc = {
-			trigger = { scope:attacker = { is_local_player = yes } }
-			desc = subjugation_war_warning_desc
-		}
+        #triggered_desc = {
+			#trigger = { scope:attacker = { is_local_player = yes } }
+			#desc = subjugation_war_warning_desc
+		#}
 	}
 	
 	on_victory = {
 		scope:attacker = { show_pow_release_message_effect = yes }
-        #EP2 accolade glory gain for winning against higher ranked enemy
+
+		# Legitimacy
+		add_legitimacy_attacker_victory_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
 
 		create_title_and_vassal_change = {
-			type = conquest
+			type = swear_fealty
 			save_scope_as = change
-			add_claim_on_loss = yes
+			add_claim_on_loss = no
 		}
-		show_as_tooltip = {
-			every_in_list = {
-				list = target_titles
-				custom_tooltip = invasion_title_transfer_tt
-				custom_tooltip = invasion_title_transfer_2_tt
-				every_in_de_jure_hierarchy = {
-					limit = { holder.top_liege = scope:defender }
-					change_title_holder = {
-						holder = scope:attacker
-						change = scope:change
+		
+		if = {
+			limit = {
+				scope:defender.primary_title.tier < scope:attacker.primary_title.tier
+			}
+			scope:defender = {
+				change_liege = {
+					liege = scope:attacker
+					change = scope:change
+				}
+			}
+		}
+		else = {
+			scope:defender = {
+				every_held_title = {
+					if = {
+						limit = {
+							tier = scope:defender.primary_title.tier
+						}
+						change_title_holder = {
+							holder = scope:attacker
+							change = scope:change
+						}
+					}
+					else_if = {
+						limit = {
+							OR = {
+								NOT = { exists = scope:secondary_title }
+								tier > scope:secondary_title.tier
+							}
+						}
+						save_temporary_scope_as = secondary_title
 					}
 				}
 			}
+			
 			scope:defender = {
-				every_sub_realm_county = {
+				if = {
 					limit = {
-						county_controller = scope:attacker
+						exists = scope:secondary_title
 					}
-					change_title_holder = {
-						holder = scope:attacker
-						change = scope:change
+					every_vassal = {
+						limit = {
+							primary_title.tier >= scope:secondary_title.tier
+							NOT = {
+								primary_title.tier = tier_barony
+							}
+						}
+						change_liege = {
+							liege = scope:attacker
+							change = scope:change
+						}
 					}
+				}
+			}
+			
+			scope:defender = {
+				change_liege = {
+					liege = scope:attacker
+					change = scope:change
 				}
 			}
 		}
@@ -208,22 +250,34 @@ steppe_war = {
 				change = scope:change
 				take_occupied = yes
 			}
-			resolve_title_and_vassal_change = scope:change
 		}
-				
-		# Attacker gets Prestige Experience, Defender loses Prestige, all other participants gain Prestige based on their war contribution.
-		modify_all_participants_fame_values = {
-			WINNER = scope:attacker
-			LOSER = scope:defender
-			FAME_BASE = scope:cb_prestige_factor # Set by 'setup_invasion_cb'
-			IS_RELIGIOUS_WAR = no
-			WINNER_FAME_SCALE = 10
-			LOSER_FAME_SCALE = -10
-			WINNER_ALLY_FAME_SCALE = 10
-			LOSER_ALLY_FAME_SCALE = 10
+		resolve_title_and_vassal_change = scope:change
+
+		# Prestige level progress for the attacker
+		scope:attacker = {
+			add_prestige_experience = {
+				value = major_prestige_value
+			}
 		}
 
-        # Truce
+		# Prestige loss for the defender
+		scope:defender = {
+			add_prestige = {
+				value = major_prestige_value
+				multiply = -1.0
+			}
+		}
+
+		# Attacker gets Prestige Experience, Defender loses Prestige, all other participants gain Prestige based on their war contribution.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:attacker
+			FAME_BASE = major_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+		
+		# Truce
 		add_truce_attacker_victory_effect = yes
 
 		# FP1: note the victory for future memorialisation via stele (if applicable).
@@ -295,6 +349,9 @@ steppe_war = {
 	
 	on_defeat = {
 		scope:attacker = { show_pow_release_message_effect = yes }
+		
+		# Legitimacy
+		add_legitimacy_attacker_defeat_effect = yes
 
 		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:defender = { accolade_defender_war_end_glory_gain_high_effect = yes }
@@ -443,12 +500,15 @@ shatuo_unite_war = {
 			trigger_event = mandate.0004
 			if = {
 				limit = {
-					game_start_date = 936.9.1
+					game_start_date = 936.9.15
 					scope:attacker = { dynasty = dynasty:1000049854 }
 				}
 				trigger_event = mandate.0005
 			}
 		}
+
+		# Legitimacy
+		add_legitimacy_attacker_victory_effect = yes
 
         #EP2 accolade glory gain for winning against higher ranked enemy
 		scope:attacker = { accolade_attacker_war_end_glory_gain_med_effect = yes }
@@ -620,9 +680,12 @@ shatuo_unite_war = {
 	
 	on_defeat = {
 		scope:attacker = { show_pow_release_message_effect = yes }
+		
+		# Legitimacy
+		add_legitimacy_attacker_defeat_effect = yes
 
 		#EP2 accolade glory gain for winning against higher ranked enemy
-		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
+		scope:defender = { accolade_defender_war_end_glory_gain_med_effect = yes }
 		
 		# Prestige loss for the attacker
 		scope:attacker = {
