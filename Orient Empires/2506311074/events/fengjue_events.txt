@@ -92,33 +92,11 @@ fengjue.2 = {
 		trigger = {
 			scope:kingdom = yes
 		}
-
-		scope:actor = {
-			create_kingdom_guo_effect = yes
-
+		create_kingdom_guo_effect = yes
+		scope:recipient = {
 			add_realm_law_skip_effects = partition_succession_law
 
-			add_opinion = {
-				target = scope:actor
-				modifier = received_title_kingdom
-			}
-			if = {
-				limit = {
-					is_lowborn = yes
-				}
-				scope:actor = {
-					every_vassal = {
-						limit = {
-							has_vassal_stance = courtly
-						}
-						add_opinion = {
-							target = scope:actor
-							modifier = courtly_lowborn_grant_opinion
-							opinion = -50
-						}
-					}
-				}
-			}
+			add_opinion_to_actor_receive_kingdom = yes
 		}
 	}
 
@@ -129,32 +107,12 @@ fengjue.2 = {
 			scope:kingdom = yes
 		}
 
-		scope:actor = {
+		scope:recipient = {
 			create_kingdom_jun_effect = yes
 
 			add_realm_law_skip_effects = partition_succession_law
 
-			add_opinion = {
-				target = scope:actor
-				modifier = received_title_kingdom
-			}
-			if = {
-				limit = {
-					is_lowborn = yes
-				}
-				scope:actor = {
-					every_vassal = {
-						limit = {
-							has_vassal_stance = courtly
-						}
-						add_opinion = {
-							target = scope:actor
-							modifier = courtly_lowborn_grant_opinion
-							opinion = -50
-						}
-					}
-				}
-			}
+			add_opinion_to_actor_receive_kingdom = yes
 		}
 
 	}
@@ -168,32 +126,11 @@ fengjue.2 = {
 			}
 			scope:duchy = yes
 		}
-		scope:actor = {
-			create_duchy_guo_effect = yes
-
+		create_duchy_guo_effect = yes
+		scope:recipient = {
 			add_realm_law_skip_effects = partition_succession_law
 
-			add_opinion = {
-				target = scope:actor
-				modifier = received_title_duchy
-			}
-			if = {
-				limit = {
-					is_lowborn = yes
-				}
-				scope:actor = {
-					every_vassal = {
-						limit = {
-							has_vassal_stance = courtly
-						}
-						add_opinion = {
-							target = scope:actor
-							modifier = courtly_lowborn_grant_opinion
-							opinion = -50
-						}
-					}
-				}
-			}
+			add_opinion_to_actor_receive_duchy = yes
 		}
 	}
 
@@ -207,32 +144,11 @@ fengjue.2 = {
 			}
 			scope:duchy = yes
 		}
-		scope:actor = {
-			create_duchy_jun_effect = yes
-
+		create_duchy_jun_effect = yes
+		scope:recipient = {
 			add_realm_law_skip_effects = partition_succession_law
 
-			add_opinion = {
-				target = scope:actor
-				modifier = received_title_duchy
-			}
-			if = {
-				limit = {
-					is_lowborn = yes
-				}
-				scope:actor = {
-					every_vassal = {
-						limit = {
-							has_vassal_stance = courtly
-						}
-						add_opinion = {
-							target = scope:actor
-							modifier = courtly_lowborn_grant_opinion
-							opinion = -50
-						}
-					}
-				}
-			}
+			add_opinion_to_actor_receive_duchy = yes
 		}
 	}
 
@@ -305,6 +221,11 @@ fengjue.3 = {
 		animation = personality_bold
 	}
 
+	right_portrait = {
+		character = scope:holder
+		animation = personality_forgiving
+	}
+
 	immediate = {
 		if = {
 			limit = {
@@ -365,8 +286,13 @@ fengjue.5 = {
 		character = root
 		animation = personality_bold
 	}
+	right_portrait = {
+		character = scope:holder
+		animation = personality_forgiving
+	}
 
 	immediate = {
+		
 	}
 
 	widget = {
@@ -394,7 +320,10 @@ fengjue.5 = {
 			left_icon = root
 			custom_description = {
 				text = found_kingdom_decision
-				oe_create_titular_title_effect = { TIER = kingdom HOLDER = scope:holder }		
+				oe_create_titular_title_effect = { TIER = kingdom HOLDER = scope:holder }
+				#scope:holder.primary_title = {
+					#set_de_jure_liege_title = root.capital_province.empire
+				#}	
 			}
 		}	
 	}
@@ -402,8 +331,38 @@ fengjue.5 = {
 	option = { 
 		name = guohao.2.b
 	}
-}
 
+	after = {
+		scope:holder = {
+			change_government = celestial_government
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 #自定义公爵名
 fengjue.6 = {
@@ -415,8 +374,13 @@ fengjue.6 = {
 		character = root
 		animation = personality_bold
 	}
+	right_portrait = {
+		character = scope:holder
+		animation = personality_forgiving
+	}
 
 	immediate = {
+		
 	}
 
 	widget = {
@@ -444,12 +408,46 @@ fengjue.6 = {
 			left_icon = root
 			custom_description = {
 				text = found_duchy_decision
-				oe_create_titular_title_effect = { TIER = duchy HOLDER = scope:holder }		
+				oe_create_titular_title_effect = { TIER = duchy HOLDER = scope:holder }
+				#scope:holder.primary_title = {
+					#set_de_jure_liege_title = root.capital_province.kingdom
+				#}	
 			}
 		}
 	}
 
 	option = { 
 		name = guohao.2.b
+	}
+
+	after = {
+		scope:holder = {
+			change_government = celestial_government
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}	
 	}
 }

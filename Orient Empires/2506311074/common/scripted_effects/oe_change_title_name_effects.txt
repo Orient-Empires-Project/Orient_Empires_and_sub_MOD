@@ -1,43 +1,50 @@
 ﻿
-#必须设定 TIER
+#决议用  必须设定 TIER  有 root, 授予 recipient = holder  
 oe_create_titular_title_effect = {
-	create_dynamic_title = {
-		tier = $TIER$
-		name = CUSTOM_GUOHAO
-	}
-	create_title_and_vassal_change = {
-		type = created
-		save_scope_as = change
-		add_claim_on_loss = no
-	}
+	hidden_effect = {
+		create_dynamic_title = {
+			tier = $TIER$
+			name = CUSTOM_GUOHAO
+		}
+		create_title_and_vassal_change = {
+			type = created
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		
+		scope:new_title = {
+			set_no_automatic_claims = yes
+			set_can_be_named_after_dynasty = no
+			set_color_from_title = root.capital_county
+			set_capital_county = root.capital_county
+			set_landless_title = yes
+			change_title_holder = {
+				holder = $HOLDER$
+				change = scope:change
+			}
+			generate_coa = yes
+			set_variable = {
+				name = titular_title_nobase
+				value = root.capital_county
+			}
+		}
+		$HOLDER$ = {
+			change_liege = {
+				liege = root
+				change = scope:change
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
 	
-	scope:new_title = {
-		set_no_automatic_claims = yes
-		set_can_be_named_after_dynasty = no
-		set_delete_on_destroy = yes
-		set_color_from_title = $HOLDER$.capital_county
-		set_capital_county = $HOLDER$.capital_county
-		set_landless_title = yes
-		change_title_holder = {
-			holder = $HOLDER$
-			change = scope:change
+		$HOLDER$ = {
+			set_primary_title_to = scope:new_title
 		}
-		generate_coa = yes
-		set_variable = {
-			name = titular_title
-			value = $HOLDER$.capital_county
-		}
-	}
-	resolve_title_and_vassal_change = scope:change
-
-	$HOLDER$ = {
-		set_primary_title_to = scope:new_title
 	}
 }
 
-
+#互动用
 #仅针对 scope:recipient scope:target 注意修改
-create_title_change_title_name_effect = {
+create_title_basing_target_effect = {
 	hidden_effect = {
 		scope:target = {
 			change_title_name_$BASING_TIER$_effect = yes
@@ -55,7 +62,6 @@ create_title_change_title_name_effect = {
 		scope:new_title = {
 			set_no_automatic_claims = yes
 			set_can_be_named_after_dynasty = no
-			set_delete_on_destroy = yes
 			set_color_from_title = scope:target
 			set_capital_county = scope:target.title_capital_county
 			set_landless_title = yes
@@ -140,13 +146,8 @@ create_title_change_random_name_effect = {
 			reset_title_name = yes
 		}
 
-		if = {
-			limit = {
-				scope:new_title.holder = { highest_held_title_tier >= tier_county }
-			}
-			scope:new_title.holder = {
-				set_primary_title_to = scope:new_title
-			}
+		scope:recipient = {
+			set_primary_title_to = scope:new_title
 		}
 
 		scope:new_title = {
@@ -182,70 +183,33 @@ fengjue_death_man_effect = {
 
 #建立单字王爵
 create_kingdom_guo_effect = {
-	if = {
-		limit = { is_landed = yes }
-		create_title_change_title_name_effect = {		
-			NEW_TITLE_TIER = kingdom
-			BASING_TIER = duchy
-		}
-
-	}
-	else = {
-		create_title_change_random_name_effect = {
-			NEW_TITLE_TIER = kingdom
-			BASING_TIER = duchy
-		}
+	create_title_basing_target_effect = {		
+		NEW_TITLE_TIER = kingdom
+		BASING_TIER = duchy
 	}
 }
 
 #建立双字王爵
 create_kingdom_jun_effect = {
-	if = {
-		limit = { is_landed = yes }
-		create_title_change_title_name_effect = {			
-			NEW_TITLE_TIER = kingdom
-			BASING_TIER = county
-		}
-	}
-	else = {
-		create_title_change_random_name_effect = {		
-			NEW_TITLE_TIER = kingdom
-			BASING_TIER = county
-		}
+	create_title_basing_target_effect = {			
+		NEW_TITLE_TIER = kingdom
+		BASING_TIER = county
 	}
 }
 
 #建立单字公爵
 create_duchy_guo_effect = {
-	if = {
-		limit = { is_landed = yes }
-		create_title_change_title_name_effect = {			
-			NEW_TITLE_TIER = duchy
-			BASING_TIER = duchy
-		}
-	}
-	else = {
-		create_title_change_random_name_effect = {		
-			NEW_TITLE_TIER = duchy
-			BASING_TIER = duchy
-		}
+	create_title_basing_target_effect = {			
+		NEW_TITLE_TIER = duchy
+		BASING_TIER = duchy
 	}
 }
 
 #建立双字公爵 - 藩王契约显示 双字王
 create_duchy_jun_effect = {
-	if = {
-		limit = { is_landed = yes }
-		create_title_change_title_name_effect = {			
-			NEW_TITLE_TIER = duchy
-			BASING_TIER = county
-		}
-	}
-	else = {
-		create_title_change_random_name_effect = {		
-			NEW_TITLE_TIER = duchy
-			BASING_TIER = county
-		}
+	create_title_basing_target_effect = {			
+		NEW_TITLE_TIER = duchy
+		BASING_TIER = county
 	}
 }
 
@@ -3237,5 +3201,76 @@ change_title_name_random_county_effect = {
 		10 = { set_title_name = hanfan_wuda }
 		10 = { set_title_name = hanfan_huaiyang }
 		10 = { set_title_name = hanfan_pyongyang }
+	}
+}
+
+
+add_opinion_to_actor_receive_kingdom = {
+	add_opinion = {
+		target = scope:actor
+		modifier = received_title_kingdom
+	}
+	if = {
+		limit = {
+			is_lowborn = yes
+		}
+		scope:actor = {
+			every_vassal = {
+				limit = {
+					has_vassal_stance = courtly
+				}
+				add_opinion = {
+					target = scope:actor
+					modifier = courtly_lowborn_grant_opinion
+					opinion = -50
+				}
+			}
+		}
+	}
+	add_character_modifier = {
+		modifier = titular_title_vassal_modifier
+		years = 10
+	}
+
+	liege = {
+		add_character_modifier = {
+			modifier = titular_title_liege_modifier
+			years = 10
+		}
+	}
+}
+
+add_opinion_to_actor_receive_duchy = {
+	add_opinion = {
+		target = scope:actor
+		modifier = received_title_duchy
+	}
+	if = {
+		limit = {
+			is_lowborn = yes
+		}
+		scope:actor = {
+			every_vassal = {
+				limit = {
+					has_vassal_stance = courtly
+				}
+				add_opinion = {
+					target = scope:actor
+					modifier = courtly_lowborn_grant_opinion
+					opinion = -50
+				}
+			}
+		}
+	}
+	add_character_modifier = {
+		modifier = titular_title_vassal_modifier
+		years = 10
+	}
+	
+	liege = {
+		add_character_modifier = {
+			modifier = titular_title_liege_modifier
+			years = 10
+		}
 	}
 }
