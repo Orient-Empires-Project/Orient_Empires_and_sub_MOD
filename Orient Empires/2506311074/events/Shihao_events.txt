@@ -15,12 +15,7 @@ shihao.1 = {
 	}
 
 	immediate = {
-		if = {
-			limit = {
-				scope:death_man = { has_any_nickname = yes }
-			}
-			scope:death_man = { remove_nickname = yes }
-		}
+
 	}
 
 	widget = {
@@ -56,6 +51,12 @@ shihao.1 = {
 		name = shihao_custom_nickname.a
 		custom_tooltip = shihao_custom_nickname.a.tooltip
 		hidden_effect = {
+			if = {
+				limit = {
+					scope:death_man = { has_any_nickname = yes }
+				}
+				scope:death_man = { remove_nickname = yes }
+			}
 			scope:death_man = {
 				give_nickname = shihao_custom_nickname1
 			}
@@ -2783,16 +2784,15 @@ shihao.11 = {
 		trigger = {
 			scope:family = yes
 			scope:recipient = {
-				any_close_family_member = {
-					even_if_dead = yes
-					is_alive = no
+				any_close_or_extended_family_member = {
+					only_if_dead = yes
 				}
 			}
 		}
 		scope:recipient = {
-			random_close_family_member = {
-				even_if_dead = yes
-				limit = { is_alive = no }
+			random_close_or_extended_family_member = {
+				only_if_dead = yes
+				limit = { NOT = { has_dead_character_flag = shihao_changed } }
 				save_scope_as = death_man
 			}
 		}
@@ -2832,10 +2832,10 @@ shihao.11 = {
 		}
 		scope:recipient = {
 			random_spouse = {
-				even_if_dead = yes
+				only_if_dead = yes
 				limit = { 
 					NOT = { primary_spouse = scope:recipient }
-					is_alive = no
+					NOT = { has_dead_character_flag = shihao_changed }
 				}
 				save_scope_as = death_man
 			}
@@ -2895,17 +2895,84 @@ shihao.11 = {
 	}
 	#前任
 	option = {
-		name = option_past_holder
+		name = option_past_holder_100
 		trigger = {
 			scope:past_holder = yes
+			primary_title = {
+				any_past_holder = {
+					only_if_dead = yes
+					time_since_death = { years <= 100 }
+					NOT = { has_dead_character_flag = shihao_changed }
+				}
+			}
 		}
 		scope:recipient = {
 			primary_title = {
 				random_past_holder = {
-					even_if_dead = yes
+					only_if_dead = yes
 					limit = {
-						is_adult = yes
-						is_alive = no
+						time_since_death = { years <= 100 }
+						NOT = { has_dead_character_flag = shihao_changed }
+					}
+					save_scope_as = death_man
+				}
+			}
+		}
+		scope:actor = {
+			trigger_event = shihao.12
+		}
+	}
+	#前任
+	option = {
+		name = option_past_holder_200
+		trigger = {
+			scope:past_holder = yes
+			primary_title = {
+				any_past_holder = {
+					only_if_dead = yes
+					time_since_death = { years > 100 }
+					time_since_death = { years <= 200 }
+					NOT = { has_dead_character_flag = shihao_changed }
+				}
+			}
+		}
+		scope:recipient = {
+			primary_title = {
+				random_past_holder = {
+					only_if_dead = yes
+					limit = {
+						time_since_death = { years > 100 }
+						time_since_death = { years <= 200 }
+						NOT = { has_dead_character_flag = shihao_changed }
+					}
+					save_scope_as = death_man
+				}
+			}
+		}
+		scope:actor = {
+			trigger_event = shihao.12
+		}
+	}
+	#前任
+	option = {
+		name = option_past_holder_300
+		trigger = {
+			scope:past_holder = yes
+			primary_title = {
+				any_past_holder = {
+					only_if_dead = yes
+					time_since_death = { years > 200 }
+					NOT = { has_dead_character_flag = shihao_changed }
+				}
+			}
+		}
+		scope:recipient = {
+			primary_title = {
+				random_past_holder = {
+					only_if_dead = yes
+					limit = {
+						time_since_death = { years > 200 }
+						NOT = { has_dead_character_flag = shihao_changed }
 					}
 					save_scope_as = death_man
 				}
@@ -2968,12 +3035,7 @@ shihao.12 = {
 	}
 
 	immediate = {
-		if = {
-			limit = {
-				scope:death_man = { has_any_nickname = yes }
-			}
-			scope:death_man = { remove_nickname = yes }
-		}
+
 	}
 
 	widget = {
@@ -2999,8 +3061,16 @@ shihao.12 = {
 			title = shihao_custom_nickname.a.tooltip
 			left_icon = scope:death_man
 			scope:death_man = {
+				if = {
+					limit = { has_any_nickname = yes }
+					remove_nickname = yes
+				}
 				set_nickname_effect = {
 					NICKNAME = shihao_custom_nickname1
+				}
+				add_dead_character_flag = {
+					flag = shihao_changed
+					days = 10
 				}
 			}
 		}

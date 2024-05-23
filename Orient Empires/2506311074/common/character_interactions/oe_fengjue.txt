@@ -280,20 +280,31 @@ fengjue_dead_new_title_interaction = {
 		is_shown = {
 			scope:recipient = {
 				any_close_or_extended_family_member = {
-					even_if_dead = yes
-					is_alive = no
+					only_if_dead = yes
 				}
 			}
 		}
 		flag = family
 		localization = option_family
 	}
+	#send_option = {
+		#is_shown = {
+			#scope:recipient = {
+				#house ?= {
+					#any_house_member = {
+						#only_if_dead = yes
+					#}
+				#}
+			#}
+		#}
+		#flag = house
+		#localization = option_house
+	#}
 	send_option = {
 		is_shown = {
 			scope:recipient = {
 				any_spouse = {
-					even_if_dead = yes
-					is_alive = no
+					only_if_dead = yes
 				}
 			}
 		}
@@ -394,46 +405,26 @@ fengjue_nickname_interaction = {
 	greeting = positive
 
 	is_shown = {
+		scope:actor = {
+			highest_held_title_tier = tier_empire
+			government_has_flag = government_is_celestial
+			is_ai = no
+		}
 		scope:recipient = {
 			OR = {
 				is_vassal_or_below_of = scope:actor
 				is_courtier_of = scope:actor
 			}
-		}
-		scope:actor = {
-			highest_held_title_tier = tier_empire
-			government_has_flag = government_is_celestial
-			is_ai = no
+			OR = {
+				highest_held_title_tier = tier_kingdom
+				sino_royal_menber_of_actor_trigger = yes
+			}
 		}
 	}
 	
 	is_valid_showing_failures_only = {
 		scope:actor = {
 			is_adult = yes
-		}
-	}
-
-	populate_actor_list = {
-		scope:recipient = {
-			add_to_list = characters
-			every_close_family_member = {
-				add_to_list = characters
-			}
-		}
-	}
-	redirect = {
-		if = {
-			limit = {
-				scope:recipient = {
-					NOT = { house.house_head = this }
-				}
-			}
-			scope:recipient = {
-				save_scope_as = secondary_actor
-			}
-			scope:recipient.house.house_head = {
-				save_scope_as = recipient
-			}
 		}
 	}
 
@@ -477,7 +468,7 @@ fengjue_nickname_interaction = {
 	}
 
 	on_accept = {
-		scope:secondary_actor = {
+		scope:recipient = {
 			save_scope_as = death_man
 		}
 		scope:actor = {
