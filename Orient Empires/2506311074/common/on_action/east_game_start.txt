@@ -1,15 +1,14 @@
 ﻿on_game_start = { #by 糜三小姐
 	on_actions = {
 		east_on_game_start_effects
+		east_on_after_lobby_effects
 
 		east_history_fix_action
 		celestia_game_start_on_action
 
 		Jingkang_Incident_action
 	}
-	events = {
-		historical_artifacts.2333  #东方宝物
-	}
+
 }
 east_on_game_start_effects = {	
 	effect = {
@@ -40,9 +39,9 @@ east_on_game_start_effects = {
 		}
 	}
 }	
-on_game_start = { #by 糜三小姐
-	on_actions = {
-		east_on_after_lobby_effects
+on_game_start_after_lobby = { #by 糜三小姐
+	events = {
+		historical_artifacts.2333  #东方宝物
 	}
 }	
 	
@@ -100,6 +99,7 @@ east_on_after_lobby_effects = {
 						has_primary_title = title:d_yongping
 						has_primary_title = title:d_luzhou
 						has_primary_title = title:d_qiongya
+						has_primary_title = title:d_wuping
 					}
 				}
 				change_government = celestial_government
@@ -148,6 +148,7 @@ east_on_after_lobby_effects = {
 					add_realm_law_skip_effects = female_only_law
 				}
 			}
+			#晚唐藩镇
 			if = {
 				limit = { 
 					is_independent_ruler = no
@@ -220,6 +221,32 @@ east_on_after_lobby_effects = {
 						type = council_rights
 						level = 0
 					}
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = legion_succession_law } }
+					add_realm_law_skip_effects = legion_succession_law
+				}
+			}
+			#南宋藩镇
+			if = {
+				limit = {
+					game_start_date = 1134.5.26
+					OR = {
+						has_primary_title = title:d_eyue
+						has_primary_title = title:d_longnan
+						has_primary_title = title:d_huainan
+						has_primary_title = title:d_huaixi
+					}
+				}
+				if = { 
+					limit = { NOT = { has_realm_law = legion_succession_law } }
+					add_realm_law_skip_effects = legion_succession_law
+				}
+			}
+			if = {
+				limit = {
+					game_start_date = 1161.9.8
+					has_primary_title = title:d_longnan
 				}
 				if = { 
 					limit = { NOT = { has_realm_law = legion_succession_law } }
@@ -392,21 +419,6 @@ east_on_after_lobby_effects = {
 					add_realm_law_skip_effects = male_only_law
 				}
 			}
-			#if = { #北宋羁縻州
-			#	limit = { 
-			#		is_independent_ruler = no
-			#		liege = { has_title = title:e_celestia }
-			#		current_date > 960.1.1
-			#		current_date < 1125.1.1
-			#		OR = { 
-			#			has_primary_title = title:d_wuxi
-			#			has_primary_title = title:d_qianzhong
-			#			has_primary_title = title:d_ordos
-			#			has_primary_title = title:d_bozhou_qian
-			#		}
-			#	}
-			#	change_government = feudal_government
-			#}
 		}
 
 		#服装：宋
@@ -474,112 +486,6 @@ east_on_title_gain_effects = { #by 糜三小姐
 			if = { 
 				limit = { NOT = { has_realm_law = official_succession_law } is_ai = yes }
 				add_realm_law_skip_effects = official_succession_law
-			}
-		}
-		if = { 	# 获得藩王、剥夺文官王
-			limit = {
-				scope:title.tier = tier_kingdom
-				is_independent_ruler = no
-				top_liege ?= { is_oe_imperial_government_trigger = yes }
-				NOT = { culture = { has_innovation = innovation_court_officials } }
-				capital_province ?= { geographical_region = world_asia_china }
-				government_has_flag = government_is_celestial
-			}
-			if = {
-				limit = {
-					OR = {
-						AND = {
-							scope:transfer_type = flag:created
-							is_oe_landed_bureaucrat_trigger = yes
-							is_ai = yes
-							liege = { is_oe_imperial_court_trigger = yes is_ai = yes }
-						}
-						AND = {
-							is_ai = yes
-							scope:transfer_type = flag:granted
-							exists = scope:previous_holder
-							scope:previous_holder = { is_oe_imperial_court_trigger = yes is_ai = yes }
-							is_oe_landed_bureaucrat_trigger = yes
-						}
-					}
-				}
-				trigger_event = east_title.0007
-				scope:previous_holder = { trigger_event = east_title.0007 }
-				#top_liege = { trigger_event = east_title.0007 }
-				create_title_and_vassal_change = {
-					type = usurped
-					save_scope_as = change
-					add_claim_on_loss = no
-				}
-				scope:title = {
-					change_title_holder = {
-						holder = root.top_liege
-						change = scope:change
-					}
-				}
-				remove_claim = scope:title
-				add_legitimacy = 400
-				resolve_title_and_vassal_change = scope:change
-				if = { 
-					limit = { NOT = { has_realm_law = official_succession_law } }
-					add_realm_law_skip_effects = official_succession_law
-				}
-			}
-			else = {
-				#limit = {
-					#vassal_contract_set_obligation_level = {
-						#type = special_imperial_contract
-						#level = 2
-					#}
-					#vassal_contract_set_obligation_level = {
-						#type = special_imperial_royal
-						#level = 1
-					#}
-				#}
-				if = { 
-					limit = { NOT = { has_realm_law = partition_succession_law } }
-					add_realm_law_skip_effects = partition_succession_law
-				}
-				top_liege = {
-					#trigger_event = east_title.0007
-					add_opinion = {
-						target = root
-						modifier = dismissive_opinion
-						opinion = -100
-					}
-				}
-			}
-		}
-		if = { # 称王转律令
-			limit = {
-				is_independent_ruler = yes
-				OR = {
-					#government_has_flag = government_is_legion
-					government_has_flag = government_is_bureau
-				}			
-				highest_held_title_tier >= tier_kingdom
-				scope:title.tier >= tier_kingdom
-				NOT = { culture = { has_cultural_pillar = heritage_yamato } }
-				NAND = {
-					top_liege = { culture = { has_innovation = innovation_court_officials }	}
-					OR = {
-						is_royal_government_trigger = yes
-						is_bureau_government_trigger = yes
-					}
-				}
-				OR = {
-					scope:transfer_type = flag:created
-					scope:transfer_type = flag:usurped
-					scope:transfer_type = flag:granted
-					scope:transfer_type = flag:inheritance
-					scope:transfer_type = flag:abdication
-					scope:transfer_type = flag:faction_demand
-				}
-			}
-			change_government = celestial_government
-			if = { 
-				limit = { NOT = { has_realm_law = tradition_succession_law } }
-				add_realm_law_skip_effects = tradition_succession_law
 			}
 		}
 		if = { # 独立藩镇转军镇制
@@ -723,6 +629,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 							NOT = { top_liege = scope:new_ruler }
 							NOT = { this = scope:new_ruler }
 							NOT = { has_truce = scope:new_ruler }
+							highest_held_title_tier < tier_empire
 						}
 						trigger_event = {
 							id = east_title.0001
@@ -743,30 +650,30 @@ east_on_title_gain_effects = { #by 糜三小姐
 			}
 
 			#销毁多余帝国
-			if = {
-				limit = { has_primary_title = title:e_celestia has_title = title:e_shu }
-				destroy_title = title:e_shu
-			}
-			else_if = {
-				limit = { has_primary_title = title:e_celestia has_title = title:e_han }
-				destroy_title = title:e_han
-			}
-			else_if = {
-				limit = { has_primary_title = title:e_celestia has_title = title:e_wu }
-				destroy_title = title:e_wu
-			}
-			else_if = {
-				limit = { has_primary_title = title:e_celestia has_title = title:e_tang }
-				destroy_title = title:e_tang
-			}
-			else_if = {
-				limit = { has_primary_title = title:e_celestia has_title = title:e_song }
-				destroy_title = title:e_song
-			}
-			else_if = {
-				limit = { has_primary_title = title:e_celestia has_title = title:e_huang_qi }
-				destroy_title = title:e_huang_qi
-			}
+			#if = {
+				#limit = { is_ai = yes has_primary_title = title:e_celestia has_title = title:e_shu }
+				#destroy_title = title:e_shu
+			#}
+			#else_if = {
+				#limit = { is_ai = yes has_primary_title = title:e_celestia has_title = title:e_han }
+				#destroy_title = title:e_han
+			#}
+			#else_if = {
+				#limit = { is_ai = yes has_primary_title = title:e_celestia has_title = title:e_wu }
+				#destroy_title = title:e_wu
+			#}
+			#else_if = {
+				#limit = { is_ai = yes has_primary_title = title:e_celestia has_title = title:e_tang }
+				#destroy_title = title:e_tang
+			#}
+			#else_if = {
+				#limit = { is_ai = yes has_primary_title = title:e_celestia has_title = title:e_song }
+				#destroy_title = title:e_song
+			#}
+			#else_if = {
+				#limit = { is_ai = yes has_primary_title = title:e_celestia has_title = title:e_huang_qi }
+				#destroy_title = title:e_huang_qi
+			#}
 		}
 	}
 }
@@ -775,12 +682,7 @@ east_on_title_gain_effects = { #by 糜三小姐
 celestia_game_start_on_action = {
 	trigger = {
 		exists = title:e_celestia.holder
-		OR = {
-			game_start_date = 1075.1.1
-			game_start_date = 1093.10.28
-			game_start_date = 1161.11.11
-			game_start_date = 1180.7.1
-		}
+		game_start_date >= 955.1.1
 	}
 	effect = {
 		#非行政区划消除
@@ -792,12 +694,7 @@ celestia_game_start_on_action = {
 
 		title:e_celestia = {
 			#迁都
-			if = {
-				limit = {
-					game_start_date > 955.1.1
-				}
-				holder = { set_realm_capital = title:c_bianzhou }
-			}
+			holder = { set_realm_capital = title:c_bianzhou }
 			#太后
 			if = {
 				limit = {
@@ -820,44 +717,51 @@ celestia_game_start_on_action = {
 
 			#纠正独立
 
-			every_in_de_jure_hierarchy = {		
+			#every_in_de_jure_hierarchy = {		
+				#limit = {
+					#tier = tier_county
+					#is_titular = no
+					#is_title_created = yes		
+				#}
+				#if = {
+					#limit = {
+						#holder = {
+							#culture = culture:han
+							#is_independent_ruler = yes
+							#highest_held_title_tier = tier_county
+							#NOR = {
+								#faith = faith:taiping
+								#has_trait = peasant_leader
+							#}						
+						#}						
+					#}
+					#holder = {
+						#add_to_list = wrong_independence
+					#}
+				#}
+				#create_title_and_vassal_change = {
+					#type = swear_fealty
+					#save_scope_as = change
+					#add_claim_on_loss = no
+				#}
+				#every_in_list = {
+					#list = wrong_independence
+					#change_liege = {
+						#liege = title:e_celestia.holder
+						#change = scope:change
+					#}
+				#}
+				#resolve_title_and_vassal_change = scope:change
+			#}
+		}
+		title:d_ou = {
+			#迁都
+			if = {
 				limit = {
-					tier = tier_county
-					is_titular = no
-					is_title_created = yes		
+					game_start_date > 1095.1.1
+					exists = holder
 				}
-				if = {
-					limit = {
-						holder = {
-							culture = culture:han
-							is_independent_ruler = yes
-							highest_held_title_tier = tier_county
-							NOR = {
-								faith = faith:taiping
-								has_trait = peasant_leader
-							}						
-						}						
-					}
-					holder = {
-						add_to_list = wrong_independence
-					}
-				}
-
-				create_title_and_vassal_change = {
-					type = swear_fealty
-					save_scope_as = change
-					add_claim_on_loss = no
-				}
-				every_in_list = {
-					list = wrong_independence
-					change_liege = {
-						liege = title:e_celestia.holder
-						change = scope:change
-					}
-				}
-
-				resolve_title_and_vassal_change = scope:change
-
+				holder = { set_realm_capital = title:c_rikuchu }
 			}
 		}
 
@@ -941,6 +845,7 @@ east_history_fix_action = {
 Jingkang_Incident_action = {
 	trigger = {
 		game_start_date > 1127.6.2
+		game_start_date < 1135.6.2
 	}
 	effect = {
 		every_living_character = {

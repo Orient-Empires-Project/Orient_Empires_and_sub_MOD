@@ -1,0 +1,168 @@
+﻿#王朝腐败度  宗室赡养费
+number_of_unlanded_house_members_value = {
+	value = 0
+	every_house_member = {
+		limit = {
+			is_alive = yes
+			top_liege = house.house_head
+			OR = {
+				is_landed = no
+				NOT = { has_claim_on = house.house_head.primary_title }
+				NOT = { vassal_contract_has_flag = imperial_royal_1 }
+			}
+		}
+		add = 1
+		max = 200
+	}
+	desc = MODIFIER_DEFINITION_MAIN_DESC_HOUSE_UNLANDED
+}
+
+
+
+#律令制称王问题
+
+# Referenced in code, what % of a title's counties you need to own to create it
+# Note: First item with 'desc' is considered the base and will be shown as 'neutral'
+# root = creating character
+# scope:title = the title
+create_title_counties_percentage = {
+	scope:title = {
+		if = {
+			limit = {
+				OR = {
+					tier = tier_duchy
+					tier = tier_kingdom
+				}
+			}
+			add = {
+				value = 0.5
+				desc = CREATE_TITLE_PERCENTAGE_BASE_DUCHY_KINGDOM
+			}
+			if = {
+				limit = {
+					exists = root
+					root = {
+						is_oe_landed_bureaucrat_trigger = yes
+					}
+				}
+				add = {
+					value = 2
+					desc = CREATE_TITLE_PERCENTAGE_BUREAUCRAT_DUCHY_KINGDOM
+				}
+			}
+			if = {
+				limit = { # Do you have Legitimacy?
+					exists = root
+					root = {
+						legitimacy > 0
+					}
+				}
+				if = {
+					limit = {
+						root = {
+							has_legitimacy_flag = extra_reduced_title_creation_cost
+						}
+					}
+					add = {
+						value = -0.25 #25%
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_EXTRA_REDUCED
+					}
+				}
+				else_if = {
+					limit = {
+						root = { has_legitimacy_flag = very_reduced_title_creation_cost }
+					}
+					add = {
+						value = -0.20 #30%
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_VERY_REDUCED
+					}
+				}
+				else_if = {
+					limit = {
+						root = { has_legitimacy_flag = reduced_title_creation_cost }
+					}
+					add = {
+						value = -0.15 #35%
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_REDUCED
+					}
+				}
+				else = {
+					#If you're level 2/1/0 or don't have Legitimacy you get no discounts
+					add = {
+						value = 0.0
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_NONE
+					}
+				}
+			}
+			else = {
+				#If you're level 2/1/0 or don't have Legitimacy you get no discounts
+				add = {
+					# We add 0 with a 'desc', so we show up in the GUI and people understand legitimacy is a way to improve this
+					value = 0.0
+					desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_NONE
+				}
+			}
+		}
+		else_if = { #Smaller discounts for Empires
+			limit = {
+				tier = tier_empire
+			}
+			add = {
+				value = 0.8
+				desc = CREATE_TITLE_PERCENTAGE_BASE_EMPIRE
+			}
+			if = {
+				limit = { # Do you have Legitimacy?
+					exists = root
+					root = {
+						legitimacy > 0
+					}
+				}
+				if = {
+					limit = {
+						root = {
+							has_legitimacy_flag = extra_reduced_title_creation_cost
+						}
+					}
+					add = {
+						value = -0.15 #65%
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_EXTRA_REDUCED
+					}
+				}
+				else_if = {
+					limit = {
+						root = { has_legitimacy_flag = very_reduced_title_creation_cost }
+					}
+					add = {
+						value = -0.10 #70%
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_VERY_REDUCED
+					}
+				}
+				else_if = {
+					limit = {
+						root = { has_legitimacy_flag = reduced_title_creation_cost }
+					}
+					add = {
+						value = -0.05 #75%
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_REDUCED
+					}
+				}
+				else = {
+					#If you're level 1/0 or don't have Legitimacy you get no discounts
+					add = {
+						value = 0.0
+						desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_NONE
+					}
+				}
+			}
+			else = {
+				#If you're level 1/0 or don't have Legitimacy you get no discounts
+				add = {
+					# We add 0 with a 'desc', so we show up in the GUI and people understand legitimacy is a way to improve this
+					value = 0.0
+					desc = CREATE_TITLE_PERCENTAGE_LEGITIMACY_DISCOUNT_NONE
+				}
+			}
+		}
+	}
+}
