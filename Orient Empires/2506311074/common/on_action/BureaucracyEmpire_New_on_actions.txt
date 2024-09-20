@@ -968,6 +968,7 @@ on_death = {
 BureaucracyEmpire_succession_pulse = {
 	trigger = {
 		has_realm_law = player_official_succession_law
+		is_ai = no
 	}
 	effect = {
 		add_character_flag = { flag = about_to_die_but_not_dead_yet_flag } # Used in perk calc
@@ -978,7 +979,7 @@ BureaucracyEmpire_succession_pulse = {
 					is_landed = yes
 				}
 			}
-			set_designated_heir = player_heir
+			set_player_character = player_heir
 		}
 		else_if = {
 			limit = {
@@ -987,7 +988,7 @@ BureaucracyEmpire_succession_pulse = {
 					is_landed = yes
 				}
 			}
-			set_designated_heir = player_heir
+			set_player_character = primary_heir
 		}
 		else_if = {
 			limit = {
@@ -1318,7 +1319,7 @@ faith_scholastics_medium_effects = {
 			limit = {
 				holder = { has_trait = lifestyle_bureaucrat }
 				#NOT = { scope:old_faith = holder.top_liege.faith }
-				root.faith = holder.top_liege.faith
+				root.faith.religion = holder.top_liege.faith.religion
 			}
 			holder = {
 				add_trait_xp = {
@@ -1428,20 +1429,32 @@ lifestyle_bureaucrat_sociability_effects = {
 	}
 }
 
-#pilgrimage_return_events = {
-	#on_actions = {
-		#faith_scholastics_medium_effects
-	#}
-#}
 #Events that happen once you've returned home
 pilgrimage_return_events = {
 	on_actions = {
-		faith_scholastics_medium_effects
+		oe_pilgrimage_return_events
 	}
+}
+
+oe_pilgrimage_return_events = {
 	effect = {
 		if = {
 			limit = { exists = var:visited_cultures_list }
 			remove_variable = visited_cultures_list
+		}
+		if = {
+			limit = {
+				holder = { has_trait = lifestyle_bureaucrat }
+				#NOT = { scope:old_faith = holder.top_liege.faith }
+				root.faith.religion = holder.top_liege.faith.religion
+			}
+			holder = {
+				add_trait_xp = {
+					trait = lifestyle_bureaucrat
+					track = scholastics
+					value = { 8 15 }
+				}
+			}
 		}
 	}
 	random_events = {
