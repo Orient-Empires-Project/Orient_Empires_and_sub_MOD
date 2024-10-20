@@ -21,13 +21,6 @@ can_be_councillor_basics_trigger = {
 		limit = { culture = { has_clothing_gfx = yamato_clothing_gfx } }
 		NOT = { has_title = title:d_gosho }
 	}
-	trigger_if = {
-		limit = { liege ?= { is_oe_imperial_court_trigger = yes } }
-		NOR = {
-			is_legion_government_trigger = yes
-			government_has_flag = government_is_tribal
-		}
-	}
 }
 
 ######### TRAVELLING ##########################
@@ -42,7 +35,11 @@ eligible_for_fp2_dynasty_legacies_trigger = {
 				OR = {
 					any_character_struggle = {
 						involvement = involved
-						#is_struggle_type = iberian_struggle
+						is_struggle_type = tartaria_struggle
+					}
+					any_character_struggle = {
+						involvement = involved
+						is_struggle_type = iberian_struggle
 					}
 					culture = {
 						has_cultural_pillar = heritage_iberian
@@ -72,42 +69,42 @@ building_requirement_tribal_ulus = {
 	}
 }
 
-can_be_marshal_trigger = {
-	can_be_councillor_basics_trigger = yes
-	is_hostage = no	
-	NAND = {
-		has_council_position = councillor_court_chaplain
-		faith = { has_doctrine_parameter = clerical_appointment_fixed }
-	}
-	NOT = {
-		OR = { 
-			has_council_position = councillor_spouse
-			AND = {
-				this = liege.diarch
-				liege = { has_diarchy_active_parameter = diarchy_is_vizierate }
-			}
-		}
-	}
-	NAND = {
-		liege ?= { is_oe_imperial_government_trigger = yes }
-		is_legion_government_trigger = yes
-	}
-	OR = {
-		is_ruler = yes
-		AND = {
-			is_female = yes
-			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = male_dominated_council } }
-		}
-		AND = {
-			is_male = yes
-			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = female_dominated_council } }
-		}
-		AND = {
-			has_trait = shieldmaiden
-			$COURT_OWNER$.culture = { has_cultural_parameter = has_access_to_shieldmaidens }
-		}
-	}
-}
+#can_be_marshal_trigger = {
+#	can_be_councillor_basics_trigger = yes
+#	is_hostage = no	
+#	NAND = {
+#		has_council_position = councillor_court_chaplain
+#		faith = { has_doctrine_parameter = clerical_appointment_fixed }
+#	}
+#	NOT = {
+#		OR = { 
+#			has_council_position = councillor_spouse
+#			AND = {
+#				this = liege.diarch
+#				liege = { has_diarchy_active_parameter = diarchy_is_vizierate }
+#			}
+#		}
+#	}
+#	NAND = {
+#		liege ?= { is_oe_imperial_government_trigger = yes }
+#		is_legion_government_trigger = yes
+#	}
+#	OR = {
+#		is_ruler = yes
+#		AND = {
+#			is_female = yes
+#			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = male_dominated_council } }
+#		}
+#		AND = {
+#			is_male = yes
+#			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = female_dominated_council } }
+#		}
+#		AND = {
+#			has_trait = shieldmaiden
+#			$COURT_OWNER$.culture = { has_cultural_parameter = has_access_to_shieldmaidens }
+#		}
+#	}
+#}
 
 ######################################################################
 # interaction
@@ -115,18 +112,16 @@ can_be_marshal_trigger = {
 
 title_revocation_is_tyrannical_trigger = {
 	NOR = {
+		exists = scope:administrative_revocation
 		has_revoke_title_reason = scope:recipient
-		has_claim_on = scope:landed_title
-		AND = {
-			government_has_flag = government_is_celestial
-			has_primary_title = title:e_celestia
-			scope:recipient = {
-				is_bureau_government_trigger = yes
-			}
+		trigger_if = {
+			limit = { exists = scope:landed_title }
+			has_claim_on = scope:landed_title
 		}
+		title_revocation_is_admin_governor_trigger = { VASSAL = $VASSAL$ }
 		faith = {
 			scope:recipient = {
-				NOT = { vassal_contract_has_flag = religiously_protected }
+				NOT = { vassal_contract_has_flag = religiously_protected}
 			}
 			OR = {
 				AND = {								
@@ -145,12 +140,21 @@ title_revocation_is_tyrannical_trigger = {
 				}
 			}
 		}
+		oe_revocation_is_NOT_tyrannical_trigger = yes
 	}
 }
 
+
 vassal_revocation_is_tyrannical_trigger = {
 	NOR = {
-		has_revoke_title_reason = scope:recipient
+		exists = scope:administrative_revocation
+		AND = {
+			government_allows = administrative
+			$VASSAL$ = {
+			 	government_allows = administrative
+			}
+		}	
+		has_revoke_title_reason = $VASSAL$
 		faith = {
 			OR = {
 				AND = {								
@@ -169,31 +173,14 @@ vassal_revocation_is_tyrannical_trigger = {
 				}
 			}
 		}
-		AND = {
-			government_has_flag = government_is_celestial
-			has_primary_title = title:e_celestia
-			scope:recipient = {
-				is_bureau_government_trigger = yes
-			}
-		}
+		oe_revocation_is_NOT_tyrannical_trigger = yes
 	}
 }
 
 ### Legal trigger list
-
-can_change_single_heir_dynasty_house_succession_law_trigger = {
+#继承法，否则二级官僚制会改世袭
+can_change_succession_laws_realm_flag_trigger = {
 	trigger_if = {
-		limit = {
-			culture = { has_cultural_pillar = heritage_west_slavic }
-			NOT = {
-				has_realm_law_flag = can_change_succession_laws
-			}
-		}
-		culture = {
-			has_innovation = innovation_table_of_princes
-		}
-	}
-	trigger_else_if = {
 		limit = { realm_law_use_tribal_authority = yes }
 		custom_description = {
 			text = "has_tribal_law_allowing_succession_law_change"
@@ -201,39 +188,27 @@ can_change_single_heir_dynasty_house_succession_law_trigger = {
 		}
 	}
 	trigger_else_if = {
-		limit = { culture = { has_cultural_pillar = heritage_tunguse } }
-		culture = {
-			OR = {
-				has_innovation = innovation_world_cathay
-				has_cultural_parameter = unlock_maa_asia_tunguse_ss
-			}
+		limit = { realm_law_use_imperial_bureaucracy = yes }
+		custom_description = {
+			text = has_imperial_bureaucracy_law_allowing_succession_law_change
+			has_realm_law_flag = can_change_succession_laws
 		}
 	}
 	trigger_else = {
 		custom_description = {
 			text = "has_crown_law_allowing_succession_law_change"
-			has_realm_law_flag = can_change_succession_laws
+			has_realm_law_flag = can_change_succession_laws		
 		}
 	}
 	custom_description = {
-		text = "no_powerful_vassal_with_negative_opinion"
-		NOT = {
-			any_vassal = {
-				is_powerful_vassal = yes
-				opposes_succession_law_change_trigger = yes
-			}
-		}
+		text = "NOT_ACTOR_REFUSAL_IS_BUREAU"
+		NOT = { has_realm_law_flag = celestial_bureaucrat }
 	}
 }
 
 ######################################################################
 # contract_obligation
 ######################################################################
-
-# Creator content Triggers
-has_afr_dlc_trigger = {
-	has_dlc_feature = wards_and_wardens
-}
 
 building_tea_plantation_requirement_terrain = {
 	OR = {
@@ -264,8 +239,6 @@ building_spice_plantation_requirement_terrain = {
 }
 
 ### HUNT ###
-
-
 
 hunt_animal_tiger_trigger = {
 	OR = {
@@ -315,44 +288,6 @@ hunt_animal_steppe_trigger = { # Saiga/etc.
 		terrain = hills
 		terrain = desert
 		terrain = wetlands
-	}
-}
-
-title_revocation_is_tyrannical_trigger = {
-	NOR = {
-		has_revoke_title_reason = scope:recipient
-		has_claim_on = scope:landed_title
-		AND = {
-			scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
-			scope:actor = {
-				OR = {
-					is_independent_ruler = yes
-					is_oe_imperial_court_trigger = yes
-					has_strong_hook = scope:recipient
-				}
-			}
-		}
-		faith = {
-			scope:recipient = {
-				NOT = { vassal_contract_has_flag = religiously_protected}
-			}
-			OR = {
-				AND = {								
-					has_doctrine_parameter = pluralism_righteous_revocation_tyranny_reduced
-					faith_hostility_level = {
-						target = scope:recipient.faith
-						value = faith_evil_level
-					}
-				}
-				AND = {								
-					has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal
-					faith_hostility_level = {
-						target = scope:recipient.faith
-						value >= faith_hostile_level
-					}
-				}
-			}
-		}
 	}
 }
 

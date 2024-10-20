@@ -20,9 +20,14 @@ mongol_invasion.0001 = {
 		debug_log = "Mongols appeared!"
 		debug_log_date = yes
 		spawn_temujin_character_effect = yes
-		scope:temujin = {
-			save_scope_as = story_owner # Do I really need to do this? Isn't it set automatically?
-			create_story = story_mongol_invasion
+		if = {
+			limit = {
+				scope:temujin = { is_ai = yes }
+			}
+			scope:temujin = {
+				save_scope_as = story_owner # Do I really need to do this? Isn't it set automatically?
+				create_story = story_mongol_invasion
+			}
 		}
 	}
 }
@@ -146,9 +151,34 @@ mongol_invasion.1002 = {
 	}
 	theme = war
 	override_background = {
-		reference = wilderness_steppe
+		reference = ep2_travel_settlement_steppe
 	}
-	left_portrait = scope:temujin
+	left_portrait = {
+		character = scope:temujin
+		animation = personality_callous
+	}
+	right_portrait = {
+		character = scope:mongol_warrior
+		animation = marshal
+		hide_info = yes
+	}
+
+	immediate = {
+		#Add a warrior friend for the herd to look more menacing
+		scope:temujin = { save_scope_as = value_target }
+		create_character = {
+			location = scope:temujin.location
+			template = new_commander_character
+			trait = giant
+			faith = scope:temujin.faith
+			culture = scope:temujin.culture
+			gender_female_chance = scope_value_target_soldier_female_chance
+			save_scope_as = mongol_warrior
+		}
+		scope:mongol_warrior = {
+			add_character_flag = { flag = need_military_outfit }
+		}
+	}
 	
 	option = { # Option for characters in Mongolia
 		name = {
@@ -197,6 +227,10 @@ mongol_invasion.1002 = {
 			text = mongol_invasion.1002.c
 		}
 		custom_tooltip = mongol_invasion.1002.genghis_khan_tt
+	}
+	
+	after = {
+		scope:mongol_warrior = { silent_disappearance_effect = yes }
 	}
 }
 

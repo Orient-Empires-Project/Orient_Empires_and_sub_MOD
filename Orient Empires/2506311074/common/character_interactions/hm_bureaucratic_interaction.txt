@@ -1,5 +1,5 @@
 ﻿hm_replace_the_bureaucratic_interaction = {  #替换官员
-	category = interaction_category_vassal #interaction_category_imperial
+	category = interaction_category_admin
 	common_interaction = no
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -20,7 +20,7 @@
 			is_oe_imperial_court_trigger = yes
 			is_ai = no
 		}
-		scope:recipient = { 
+		scope:recipient = {
 			is_vassal_or_below_of = scope:actor
 			is_oe_landed_bureaucrat_trigger = yes
 		}
@@ -29,12 +29,11 @@
 	is_valid = {
 		scope:actor = {
 			culture = { has_innovation = innovation_centralization_of_authority }
-			has_realm_law = crown_authority_3	
+			has_realm_law = imperial_bureaucracy_2	
 		}
 		scope:recipient = { #卸任官
 			is_ai = yes
 			is_at_war = no
-			#is_available_at_peace = yes
 			custom_description = {
 				text = AI_REFUSAL_IS_BUREAU
 				is_oe_landed_bureaucrat_trigger = yes
@@ -101,7 +100,6 @@
 	}
 	is_valid_showing_failures_only = {
 		scope:recipient = { is_available_at_peace = yes }
-		scope:actor = { prestige_level >= 3 }
 	}
 	#Use hook
 	send_option = {
@@ -129,8 +127,110 @@
 		}
 	}
 	cost = {
-		prestige = {
-			value = 300
+		influence = {
+			value = 0
+			if = {
+				limit = { exists = scope:recipient }
+				scope:recipient ?= {
+					if = {
+						limit = {
+							any_held_title = {
+								tier = tier_kingdom
+								is_landless_type_title = no
+								is_noble_family_title = no
+							}
+						}
+						add = {
+							every_held_title = {
+								limit = {
+									tier = tier_kingdom
+									is_landless_type_title = no
+									is_noble_family_title = no
+								}
+								add = {
+									value = scope:recipient.massive_influence_value
+									multiply = 3
+								}
+							}
+							desc = GOVERNOR_RESIGNATION_KINGDOM_COST
+						}
+					}
+					else_if = {
+						limit = {
+							any_held_title = {
+								tier = tier_duchy
+								is_landless_type_title = no
+								is_noble_family_title = no
+							}
+						}
+						add = {
+							every_held_title = {
+								limit = {
+									tier = tier_duchy
+									is_landless_type_title = no
+									is_noble_family_title = no
+								}
+								add = scope:recipient.massive_influence_value
+							}
+							desc = GOVERNOR_RESIGNATION_DUCHY_COST
+						}
+					}
+					if = {
+						limit = { house ?= { is_powerful_family = yes } }
+						add = {
+							value = scope:recipient.massive_influence_value
+							desc = GOVERNOR_RESIGNATION_POWERFUL_COST
+						}
+					}
+					else_if = {
+						limit = { house ?= { is_dominant_family = yes } }
+						add = {
+							value = scope:recipient.monumental_influence_value
+							desc = GOVERNOR_RESIGNATION_DOMINANT_COST
+						}
+					}
+					if = {
+						limit = {
+							scope:actor = { is_ai = no } # This cost is only for players due to performance reasons
+						}
+						if = {
+							limit = {
+								scope:recipient.governor_efficiency != 1
+							}
+							add = {
+								value = -100
+								add = {
+									value = scope:recipient.governor_efficiency
+									multiply = 100
+								}
+								desc = GOVERNOR_RESIGNATION_EFFICIENCY_COST
+							}
+						}
+					}
+					if = {
+						limit = {
+							influence_level != 1
+						}
+						add = {
+							value = {
+								value = influence_level
+								subtract = 1
+							}
+							multiply = 50
+							desc = GOVERNOR_RESIGNATION_INFLUENCE_LEVEL_COST
+						}
+					}
+				}
+				scope:actor = {
+					if = {
+						limit = { has_revoke_title_reason = scope:recipient }
+						multiply = {
+							value = 0.5
+							desc = temporal_condemnation_got_revoke_reason # Reused loc
+						}
+					}
+				}
+			}
 		}
 	}
 	on_auto_accept = {
@@ -142,7 +242,7 @@
 	on_accept = {
 		if = {
 			limit = { scope:secondary_actor = { is_landed = yes } }
-			scope:secondary_actor = { depose = yes }
+			scope:secondary_actor = { oe_governor_resignation_title_transfer_effect = yes }
 		}
 		scope:recipient = {
 			save_east_contract_effect = yes
@@ -155,6 +255,8 @@
 				limit = {
 					tier < tier_empire
 					tier >= tier_county
+					is_noble_family_title = no
+					is_landless_type_title = no
 				}
 				change_title_holder = {
 					holder = scope:secondary_actor
@@ -171,6 +273,11 @@
 				}
 			}
 			resolve_title_and_vassal_change = scope:change
+
+			add_opinion = {
+				target = scope:actor
+				modifier = demanded_my_resignation_opinion
+			}
 		}
 		scope:actor = {
 			add_courtier = scope:recipient 
@@ -372,7 +479,7 @@
 			scope:actor = {
 				OR = {
 					NOT = {
-						title_revocation_is_tyrannical_trigger = yes
+						title_revocation_is_tyrannical_trigger = { VASSAL = scope:recipient }
 					}
 					AND = {
 						ai_rationality <= very_high_negative_ai_value
@@ -399,7 +506,7 @@
 					is_ai = no
 				}
 				scope:actor = {
-					title_revocation_is_tyrannical_trigger = yes
+					title_revocation_is_tyrannical_trigger = { VASSAL = scope:recipient }
 				}
 			}
 			add = 1000
@@ -508,7 +615,7 @@
 }
 
 hm_exchange_two_bannermen_interaction = {
-	category = interaction_category_vassal #interaction_category_imperial
+	category = interaction_category_admin
 	common_interaction = no
 
 	send_name = SEND_PROPOSAL
@@ -565,7 +672,7 @@ hm_exchange_two_bannermen_interaction = {
 	}
 	is_valid_showing_failures_only = {
 		scope:actor = {
-			has_realm_law = crown_authority_3
+			has_realm_law = imperial_bureaucracy_2
 			culture = { has_innovation = innovation_centralization_of_authority }
 		}
 		trigger_if = {
@@ -587,6 +694,10 @@ hm_exchange_two_bannermen_interaction = {
 		}
 		scope:secondary_recipient = {
 			every_held_title = {
+				limit = {
+					is_noble_family_title = no
+					is_landless_type_title = no
+				}
 				add_to_temporary_list = titles_recipient
 			}
 			every_vassal = {
@@ -595,6 +706,10 @@ hm_exchange_two_bannermen_interaction = {
 		}
 		scope:secondary_actor = {
 			every_held_title = {
+				limit = {
+					is_noble_family_title = no
+					is_landless_type_title = no
+				}
 				add_to_temporary_list = titles_actor
 			}
 			every_vassal = {
@@ -886,7 +1001,7 @@ hm_exchange_two_bannermen_interaction = {
 			scope:actor = {
 				OR = {
 					NOT = {
-						title_revocation_is_tyrannical_trigger = yes
+						title_revocation_is_tyrannical_trigger = { VASSAL = scope:recipient }
 					}
 					AND = {
 						ai_rationality <= very_high_negative_ai_value
@@ -913,7 +1028,7 @@ hm_exchange_two_bannermen_interaction = {
 					is_ai = no
 				}
 				scope:actor = {
-					title_revocation_is_tyrannical_trigger = yes
+					title_revocation_is_tyrannical_trigger = { VASSAL = scope:recipient }
 				}
 			}
 			add = 1000
@@ -1023,7 +1138,7 @@ hm_exchange_two_bannermen_interaction = {
 #####宰相人事权#####
 
 oe_chancellor_replace_the_bureaucratic_interaction = {
-	category = interaction_category_vassal #interaction_category_imperial
+	category = interaction_category_admin
 	common_interaction = no
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -1218,6 +1333,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		
 	on_accept = {
 		scope:recipient = {
+			#governor_resignation_title_transfer_effect
 			create_title_and_vassal_change = {
 				type = granted
 				save_scope_as = change
@@ -1225,6 +1341,8 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			}
 			every_held_title = {
 				limit = {
+					is_noble_family_title = no
+					is_landless_type_title = no
 					tier < tier_empire
 					tier >= tier_county
 				}
@@ -1448,7 +1566,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			scope:actor = {
 				OR = {
 					NOT = {
-						title_revocation_is_tyrannical_trigger = yes
+						title_revocation_is_tyrannical_trigger = { VASSAL = scope:recipient }
 					}
 					AND = {
 						ai_rationality <= very_high_negative_ai_value
@@ -1475,7 +1593,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 					is_ai = no
 				}
 				scope:actor = {
-					title_revocation_is_tyrannical_trigger = yes
+					title_revocation_is_tyrannical_trigger = { VASSAL = scope:recipient }
 				}
 			}
 			add = 1000

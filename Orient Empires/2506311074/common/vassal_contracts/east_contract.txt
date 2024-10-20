@@ -7,6 +7,8 @@
 			position = { 0 1 }
 			flag = imperial_contract_0
 			score = 0
+			icon = "gfx/interface/icons/theme_administration_types/icon_civilian_administration.dds"
+			color = { 0.2 0.2 0.7 1.0 }
 
 			levies_factor = -0.5
 
@@ -53,6 +55,9 @@
 			#parent = special_imperial_contract_0
 			position = { 0 2 }
 			score = 3
+			icon = "gfx/interface/icons/theme_administration_types/icon_military_administration.dds"
+			color = { 0.7 0.2 0.2 1.0 }
+
 			#flag = vassal_contract_war_override
 			tax_factor = -0.2
 			levies_factor = 0.3
@@ -122,6 +127,9 @@
 			#parent = special_imperial_contract_0
 			position = { 0 3 }
 			score = -3
+			icon = "gfx/interface/icons/theme_administration_types/icon_imperial_administration.dds"
+			color = { 0.7 0.0 0.7 1.0 }
+
 			tax_factor = 1 #专营专利
 			liege_modifier = {
 				tax_mult = -0.05 #藩王会减少国家收入修正系数
@@ -153,6 +161,11 @@ special_imperial_legion = {
 	}
 	obligation_levels = {
 		special_imperial_legion_0 = { #卫戍
+			is_shown = {
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_1 
+				}
+			}
 			default = yes
 			position = { 0 1 }
 			flag = imperial_legion_0
@@ -161,7 +174,7 @@ special_imperial_legion = {
 			ai_vassal_desire = 3
 		}
 		special_imperial_legion_1 = { #防御(禁军)
-			is_valid = {
+			is_shown = {
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_1 
 				}
@@ -190,7 +203,7 @@ special_imperial_legion = {
 			ai_vassal_desire = 2
 		}
 		special_imperial_legion_2 = { #藩镇
-			is_valid = {
+			is_shown = {
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_1 
 				}
@@ -225,13 +238,11 @@ special_imperial_legion = {
 				value = 0
 				if = {
 					limit = {
-						scope:vassal = {
-							OR = {
-								vassal_contract_has_flag =imperial_contract_1
-							}
+						scope:liege = {
+							ai_has_warlike_personality = yes
 						}
 					}
-					add = -10
+					add = 2
 				}
 			}
 			ai_vassal_desire = {
@@ -239,16 +250,28 @@ special_imperial_legion = {
 				if = {
 					limit = {
 						scope:vassal = {
+							is_ai = yes
 							OR = {
-								vassal_contract_has_flag =imperial_contract_1
+								has_trait = education_martial
+								martial >= very_high_skill_rating
+								primary_title = { any_owned_title_maa_regiment = { count > 4 } }
+								AND = { # Large inland themes are good for military
+									any_sub_realm_county = { count >= 5 }
+									any_sub_realm_county = { percent >= 0.95 is_coastal_county = no }
+								}
 							}
 						}
 					}
-					add = 10
+					add = 3
 				}
 			}
 		}
 		special_imperial_legion_3 = { #羁縻
+			is_shown = {
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_1 
+				}
+			}
 			is_valid = {
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_1
@@ -279,6 +302,11 @@ special_imperial_legion = {
 			ai_vassal_desire = 3
 		}
 		special_imperial_legion_4 = { #都护
+			is_shown = {
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_1 
+				}
+			}
 			is_valid = {
 				scope:vassal.primary_title.tier >= tier_duchy
 				scope:vassal = { 
@@ -302,7 +330,7 @@ special_imperial_legion = {
 				knight_limit = 3  #遣将指挥
 				men_at_arms_cap = 2 #都护驻军
 				men_at_arms_maintenance = -0.15 #朝廷军饷
-				monthly_dynasty_prestige = 0.35 #扬威异域
+				monthly_influence = 3 #扬威异域
 				monthly_county_control_growth_add = 0.5
 				different_culture_opinion = 15 #文化交流
 				different_faith_opinion = 15 #宗教交流
@@ -327,15 +355,19 @@ special_imperial_bureau = {
 			position = { 0 1 }
 			flag = imperial_bureau_0
 			score = 0
-			
+			is_shown = {
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_0
+				}
+			}			
 			ai_liege_desire = 4
 			ai_vassal_desire = 2
 		}
 		special_imperial_bureau_1 = { #升府
 			#parent = special_imperial_bureau_0
-			is_valid = {
+			is_shown = {
 				scope:vassal = { 
-					vassal_contract_has_flag = imperial_contract_0 
+					vassal_contract_has_flag = imperial_contract_0
 				}
 			}
 			position = { 0 2 }
@@ -357,6 +389,11 @@ special_imperial_bureau = {
 			ai_vassal_desire = 4
 		}
 		special_imperial_bureau_2 = {#榷司
+			is_shown = {
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_0
+				}
+			}		
 			is_valid = {
 				scope:vassal = {
 					vassal_contract_has_flag = imperial_contract_0 
@@ -394,8 +431,56 @@ special_imperial_bureau = {
 			}
 			flag = imperial_bureau_2
 			
-			ai_liege_desire = 1
-			ai_vassal_desire = 5
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:vassal = { is_ai = yes }
+					}
+					if = {
+						limit = { # Large coastal areas qualify as good naval themes
+							scope:vassal = {
+								any_sub_realm_county = {
+									count >= 3
+									is_coastal_county = yes
+								}
+							}
+							scope:liege = { # But don't go overboard with naval themes
+							any_vassal = {
+								percent < 0.15
+								vassal_contract_has_flag = special_imperial_bureau_2
+							}
+						}
+						}
+						add = 3
+					}
+					
+					if = {
+						limit = { # Islands are good naval candidates
+							scope:vassal = {
+								any_sub_realm_county = {
+									percent >= 0.95
+									is_coastal_county = yes
+									OR = {
+										any_neighboring_county = {
+											percent >= 0.95
+											holder = {
+												OR = {
+													this = scope:vassal
+													any_liege_or_above = { this = scope:vassal }
+												}
+											}
+										}
+										any_neighboring_county = { count < 1 }
+									}
+								}
+							}
+						}
+						add = 8
+					}
+				}
+			}
+			ai_vassal_desire = 0
 		}
 		special_imperial_bureau_3 = {#贵族自治
 			#parent = special_imperial_bureau_0
@@ -403,11 +488,11 @@ special_imperial_bureau = {
 			score = 2
 			tax_factor = -0.7 #庄园隐户
 			levies_factor = -0.5 #坞堡部曲
-			is_valid = {
+			is_shown = {
 				scope:vassal = { 
-					vassal_contract_has_flag = imperial_contract_0 
+					vassal_contract_has_flag = imperial_contract_0
 				}
-			}
+			}	
 			liege_modifier = {
 				development_growth_factor = 0.05 #庄园经济
 				county_opinion_add = 5 #士庶倾心
@@ -440,17 +525,23 @@ special_imperial_royal = {
 			position = { 0 1 }
 			score = 0
 			flag = imperial_royal_0
-
-			ai_liege_desire = 5
-			ai_vassal_desire = 1
+			is_shown = {
+				scope:vassal = { 
+					vassal_contract_has_flag = imperial_contract_2
+				}	
+			}
+			ai_liege_desire = {
+				value = 0
+			}
+			ai_vassal_desire = 0
 
 		}
 		special_imperial_royal_1 = {#藩王领
 			#parent = special_imperial_royal_0
-			is_valid = {
+			is_shown = {
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_2
-				}
+				}	
 			}
 			position = { 0 2 }
 			score = 3
@@ -462,6 +553,7 @@ special_imperial_royal = {
 				development_growth_factor = -0.1
 				monthly_income_mult = -0.02 #宗室俸禄
 				domain_limit = 0.5 #每个藩王提供0.5直辖
+				build_gold_cost = 0.01 #宗室腐化			
 			}
 			vassal_modifier = {
 				monthly_prestige_gain_mult = 0.1 #君临一方
@@ -479,20 +571,20 @@ special_imperial_royal = {
 				value = 0
 				if = {
 					limit = {
-						scope:vassal = {
-							dynasty = scope:liege.dynasty
-						}
+						exists = scope:liege.house
+						exists = scope:vassal.house
+						scope:liege.house = scope:vassal.house
 					}
-					add = 6
+					add = 4
 				}
 			}
 		}
 		special_imperial_royal_2 = {#林苑
 			#parent = special_imperial_royal_0
-			is_valid = {
+			is_shown = {
 				scope:vassal = { 
 					vassal_contract_has_flag = imperial_contract_2
-				}
+				}	
 			}
 			position = { 0 3 }
 			score = -3
@@ -512,8 +604,23 @@ special_imperial_royal = {
 			}
 			flag = imperial_royal_2
 			
-			ai_liege_desire = 5
-			ai_vassal_desire = 1
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:vassal = {
+							any_sub_realm_county = {
+								count >= 1
+								title_province = {
+									has_special_building_slot = yes
+								}
+							}
+						}
+					}
+					add = 5
+				}
+			}
+			ai_vassal_desire = 0
 		}
 	 }		
 }

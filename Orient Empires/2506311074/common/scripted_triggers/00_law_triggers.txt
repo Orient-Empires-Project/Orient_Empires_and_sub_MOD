@@ -64,10 +64,23 @@ has_partition_succession_realm_law_trigger = {
 realm_law_use_crown_authority = {
 	# We separate this out into a different trigger for moddability purposes, per community request: this allows more diverse authority laws to be easily modded in without needing to override 00_realm_laws.txt, and thus for greater inter-mod compatibility.
 	realm_law_use_tribal_authority = no
+	realm_law_use_camp_purpose = no
+	realm_law_use_imperial_bureaucracy = no
 }
 
 realm_law_use_tribal_authority = {
-	government_has_flag = government_is_tribal
+	OR = {
+		government_has_flag = government_is_tribal
+		government_has_flag = government_is_ulus
+	}
+}
+
+realm_law_use_camp_purpose = {
+	government_has_flag = government_is_landless_adventurer
+}
+
+realm_law_use_imperial_bureaucracy = {
+	allows_imperial_bureaucracy = yes
 }
 
 can_have_confederate_partition_succession_law_trigger = {
@@ -179,9 +192,23 @@ can_have_single_heir_succession_law_trigger = {
 	OR = {
 		culture = {
 			has_innovation = innovation_primogeniture
-		}		
+		}
+		# Non-tribals only
+		custom_description = {
+			text = succession_laws_must_have_organised_government_tooltip
+			OR = {
+				government_has_flag = government_is_feudal
+				government_has_flag = government_is_clan
+				AND = {
+					government_has_flag = government_is_celestial
+					is_independent_ruler = yes
+				}
+				government_has_flag = government_is_ulus
+				government_has_flag = government_is_legion
+			}
+		}	
 		AND = {
-			culture = { has_cultural_tradition = tradition_chinese_succession }  #宗法制 改为革新
+			culture = { has_cultural_parameter = patriarch_society }  #宗法制 改为革新
 			is_independent_ruler = yes
 		}
 		culture = {
@@ -189,21 +216,9 @@ can_have_single_heir_succession_law_trigger = {
 		}
 		has_title = title:d_tianshi
 		has_title = title:d_gosho
+
 	}
-	# Non-tribals only
-	custom_description = {
-		text = succession_laws_must_have_organised_government_tooltip
-		OR = {
-			government_has_flag = government_is_feudal
-			government_has_flag = government_is_clan
-			AND = {
-				government_has_flag = government_is_celestial
-				is_oe_landed_bureaucrat_trigger = no
-			}
-			government_has_flag = government_is_ulus
-			government_has_flag = government_is_legion
-		}
-	}
+	NOT = { government_has_flag = government_is_administrative }
 }
 
 can_keep_single_heir_youngest_succession_law_trigger = {
@@ -232,6 +247,7 @@ can_have_single_heir_youngest_succession_law_trigger = {
 			government_has_flag = government_is_ulus
 		}
 	}
+	NOT = { government_allows = administrative }
 }
 
 can_keep_single_heir_dynasty_house_trigger = {
@@ -288,6 +304,7 @@ can_have_single_heir_dynasty_house_trigger = {
 			government_has_flag = government_is_tribal
 		}
 	}
+	NOT = { government_allows = administrative }
 }
 
 can_have_bishop_theocratic_succession_law_trigger = {
@@ -349,37 +366,54 @@ can_pass_law_ca1_trigger = {
 can_pass_law_ca2_trigger = {
 	OR = {
 		culture = { has_innovation = innovation_royal_prerogative }
-		culture = { has_cultural_pillar = heritage_chinese }
+		culture = { has_cultural_parameter = patriarch_society } #宗法细化
 	}
 }
 
 can_pass_law_ca3_trigger = {
 	OR = {
 		culture = { has_innovation = innovation_royal_prerogative }
-		culture = { has_cultural_pillar = heritage_chinese }
+		culture = { has_cultural_parameter = patriarch_society } #宗法细化
 	}
+}
+
+can_have_acclamation_succession_law_trigger = {
+	has_ep3_dlc_trigger = yes
+	government_allows = administrative
+	is_independent_ruler = yes
+	NOT = { government_has_flag = government_is_celestial }
+}
+
+can_keep_acclamation_succession_law_trigger = {
+	has_ep3_dlc_trigger = yes
+	trigger_if = {
+		limit = {
+			has_realm_law = acclamation_succession_law 
+		}
+		OR = {
+			can_have_acclamation_succession_law_trigger = yes
+			has_title = title:e_byzantium
+		}
+	}
+}
+
+can_change_acclamation_succession_law_trigger = {
+	has_ep3_dlc_trigger = yes
 }
 
 
 #流官制（与帝国官僚继承法接驳）
 can_have_official_succession_law_trigger = {
+	government_has_flag = government_is_celestial
 	is_independent_ruler = no
+	highest_held_title_tier > tier_county
 	is_ai = yes
-	liege ?= {
-		OR = {
-			government_has_flag = government_is_celestial
-			government_has_flag = government_is_bureau
-		}
-	}
-	OR = {
-		government_has_flag = government_is_celestial
-		government_has_flag = government_is_bureau
-	}
 	NOR = {
 		vassal_contract_has_flag = imperial_legion_3
 		vassal_contract_has_flag = imperial_royal_1
 		vassal_contract_has_flag = heir_succession_rights_unlock
 		primary_title = { has_variable = titular_title }
+		has_title = title:d_gosho 
 	}
 }
 
@@ -400,12 +434,6 @@ can_keep_official_succession_law_trigger = {
 			culture = { has_innovation = innovation_court_officials }
 			top_liege = { culture = { has_innovation = innovation_court_officials } }
 		}
-	}
-	trigger_if = {
-		limit = {
-			highest_held_title_tier < tier_kingdom
-		}
-		NOT = { has_title = title:d_gosho }
 	}
 }
 
@@ -471,7 +499,7 @@ can_pass_legion_succession_law_trigger = {
 
 #科举制
 can_have_admin_succession_law_trigger = {
-	highest_held_title_tier = tier_barony
+	highest_held_title_tier <= tier_county
 	OR = {
 		government_has_flag = government_is_bureau
 		AND = {
@@ -534,4 +562,9 @@ can_keep_official_succession_law_player_trigger = {
 		}
 		is_ai = no
 	}
+}
+
+realm_law_use_celestial_bureaucracy = {
+	has_dlc_feature = roads_to_power
+	government_has_flag = government_is_celestial
 }

@@ -1,0 +1,114 @@
+﻿#替换行政制 重要
+allows_imperial_bureaucracy = {
+	OR = {
+		government_allows = administrative
+		government_has_flag = government_is_celestial
+	}
+}
+
+#替换 什么是总督
+# This trigger checks if a character is a governor in an admin realm (implying they are landed)
+is_governor = {
+	allows_imperial_bureaucracy = yes
+	is_landed = yes
+	highest_held_title_tier >= tier_duchy
+	is_independent_ruler = no
+}
+# Checks if a character is a landless house_head within an admin realm
+is_landless_administrative = {
+	allows_imperial_bureaucracy = yes
+	is_landed = no
+	is_house_head = yes
+	has_domicile = yes
+}
+
+
+is_competing_for_same_title_as = {
+	allows_imperial_bureaucracy = yes
+	any_heir_title = {
+		exists = this
+		is_noble_family_title = no
+		save_temporary_scope_as = temp_title
+	}
+	$CHARACTER$ = {
+		allows_imperial_bureaucracy = yes
+	}
+	scope:temp_title = {
+		any_title_heir = {
+			this = $CHARACTER$
+		}
+	}
+}
+
+valid_governor_contract_trigger = {
+	allows_imperial_bureaucracy = yes
+	is_alive = yes
+	is_adult = yes
+	is_incapable = no
+}
+
+
+is_appointment_valid_trigger = {
+	$CANDIDATE$ = {
+		trigger_if = {
+			limit = { # We check independence, not tier, to allow for admin kingdoms
+				exists = $TITLE$
+				NOT = { $CANDIDATE$.top_liege.highest_held_title_tier = $TITLE$.tier }
+			}
+			$CANDIDATE$ = { is_adult = yes }
+		}
+		trigger_if = {
+			limit = {
+				exists = $TITLE$
+				$CANDIDATE$ = {
+					any_held_title = { count >= 1 }
+				}
+			}
+			custom_tooltip = { # Only one province of highest rank
+				text = only_one_province_of_highest_rank_tt
+				NOT = {
+					$CANDIDATE$ = {
+						any_held_title = {
+							tier = $TITLE$.tier
+							is_landless_type_title = no
+							is_noble_family_title = no
+						}
+					}
+				}
+			}
+			custom_tooltip = {
+				text = promote_candidate_interaction_existing_holder_tt
+				this != $TITLE$.holder
+			}
+		}
+		custom_tooltip = {
+			text = can_be_appointed_interaction_tt
+			OR = {
+				can_be_granted_titles_by = { RULER = $TOP_LIEGE$ }
+				can_be_granted_theocratic_titles_by = { RULER = $TOP_LIEGE$ }
+				AND = {
+					is_diarch_of_target = $TOP_LIEGE$
+					$TOP_LIEGE$ = { has_diarchy_active_parameter = diarchy_is_co_rulership }
+				}
+			}
+		}
+		custom_tooltip = { # Only administrative
+			text = only_administrative_tt
+			trigger_if = {
+				limit = { is_landed = yes }
+				allows_imperial_bureaucracy = yes
+			}
+		}
+		is_clergy = no
+	}
+}
+
+ep3_admin_faction_trigger = {
+	trigger_if = { # Enabled for all admin realms with EP3
+		limit = { has_ep3_dlc_trigger = yes }
+		$FACTION_TARGET$ = { allows_imperial_bureaucracy = yes }
+	}
+	trigger_else = { # Enabled for Byzantium without EP3
+		$FACTION_TARGET$ = { has_title = title:e_byzantium }
+	}
+}

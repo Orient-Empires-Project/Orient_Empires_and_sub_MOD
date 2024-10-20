@@ -271,14 +271,47 @@ temple_01 = {
 	}
 	
 	can_construct = {
-		culture = {
-			has_innovation = innovation_city_planning
+		trigger_if = {
+			limit = {
+				NOR = {
+					scope:holder.culture = {
+						has_cultural_parameter = tribals_can_into_temples
+						has_cultural_parameter = temple_next_level
+					}
+				}
+			}
+			scope:holder.culture = {
+				has_innovation = innovation_city_planning
+			}
 		}
+		trigger_else = {
+			scope:holder.culture = {
+				OR = {
+					has_cultural_parameter = tribals_can_into_temples
+					has_cultural_parameter = temple_next_level
+				}
+			}
+		}
+		
 	}
 	
 	can_construct_showing_failures_only = {
-		building_requirement_tribal = no
-		building_requirement_tribal_holding_in_county = yes
+		trigger_if = {
+			limit = {
+				NOT = {
+					scope:holder.culture = {
+						has_cultural_parameter = tribals_can_into_temples
+					}
+				}
+			}
+			building_requirement_tribal = no
+			building_requirement_tribal_holding_in_county = yes
+		}
+		trigger_else = {
+			scope:holder.culture = {
+				has_cultural_parameter = tribals_can_into_temples
+			}
+		}
 	}
 	cost_gold = main_building_tier_1_cost
 	next_building = temple_02
@@ -370,6 +403,9 @@ temple_01 = {
 		if = {
 			limit = {
 				county.holder = { has_dlc_feature = legends }
+				county.holder = {
+					NOT = { has_game_rule = historical_legends_only }
+				}
 			}
 			random = {
 				chance = {
@@ -385,6 +421,7 @@ temple_01 = {
 				}
 				county.holder = {
 					send_interface_toast = {
+						type = msg_legend_seed_created
 						title = holy_seed_toast
 						left_icon = root.barony
 						create_legend_seed = {
@@ -776,10 +813,22 @@ temple_02 = {
 		building_requirement_tribal = no
 	}
 	can_construct = {
-		culture = {
-			OR = {
-				has_innovation = innovation_centralization_of_authority
+		trigger_if = {
+			limit = {
+				NOT = {
+					scope:holder.culture = {
+						has_cultural_parameter = temple_next_level
+					}
+				}
+			}
+			scope:holder.culture = {
 				has_innovation = innovation_manorialism
+			}
+		}
+		trigger_else = {
+			scope:holder.culture = {
+				has_cultural_parameter = temple_next_level
+				has_innovation = innovation_city_planning
 			}
 		}
 	}
@@ -891,11 +940,11 @@ temple_02 = {
 			scope:holder.capital_province = this
 		}
 		modifier = {
-			factor = 0.2
+			factor = 0.1
 			free_building_slots >= 1
 		}
 		modifier = {
-			factor = 0.2
+			factor = 0.1
 			combined_building_level <= 10
 			years_from_game_start >= 1
 		}
@@ -1167,10 +1216,22 @@ temple_03 = {
 		building_requirement_tribal = no
 	}
 	can_construct = {
-		culture = {
-			OR = {
-				has_innovation = innovation_centralization_of_authority
+		trigger_if = {
+			limit = {
+				NOT = {
+					scope:holder.culture = {
+						has_cultural_parameter = temple_next_level
+					}
+				}
+			}
+			scope:holder.culture = {
 				has_innovation = innovation_windmills
+			}
+		}
+		trigger_else = {
+			scope:holder.culture = {
+				has_cultural_parameter = temple_next_level
+				has_innovation = innovation_manorialism
 			}
 		}
 	}
@@ -1549,8 +1610,23 @@ temple_04 = {
 		building_requirement_tribal = no
 	}
 	can_construct = {
-		culture = {
-			has_innovation = innovation_cranes
+		trigger_if = {
+			limit = {
+				NOT = {
+					scope:holder.culture = {
+						has_cultural_parameter = temple_next_level
+					}
+				}
+			}
+			scope:holder.culture = {
+				has_innovation = innovation_cranes
+			}
+		}
+		trigger_else = {
+			scope:holder.culture = {
+				has_cultural_parameter = temple_next_level
+				has_innovation = innovation_windmills
+			}
 		}
 	}
 	cost_gold = main_building_tier_4_cost
@@ -2041,7 +2117,7 @@ monastic_schools_01 = {
 	}
 
 	can_construct_showing_failures_only = {
-		building_requirement_tribal = no
+		#building_requirement_tribal = no
 	}
 
 	cost_gold = normal_building_tier_1_cost
@@ -2051,10 +2127,20 @@ monastic_schools_01 = {
 	}
 	county_modifier = {
 		monthly_county_control_growth_add = 0.1
-		epidemic_resistance = 4
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_1
+		epidemic_resistance = 4
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.1
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 1
 	}
 	
 	next_building = monastic_schools_02
@@ -2064,6 +2150,7 @@ monastic_schools_01 = {
 	ai_value = {
 		base = 10
 		ai_tier_1_building_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = {
 			add = 500
 			scope:holder = {
@@ -2088,8 +2175,8 @@ monastic_schools_02 = {
 		has_building_or_higher = temple_01
 		culture = {
 			OR = {
-				has_innovation = innovation_centralization_of_authority
 				has_innovation = innovation_city_planning
+				has_cultural_parameter = next_level_monasteries
 			}
 		}
 	}
@@ -2104,11 +2191,23 @@ monastic_schools_02 = {
 		monthly_piety = 0.2
 	}
 	county_modifier = {
-		monthly_county_control_growth_add = 0.2
-		epidemic_resistance = 6
+		monthly_county_control_growth_add = 0.2	
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_2
+		epidemic_resistance = 6
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.1
+		learning = 1
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 1
+		martial = 1
 	}
 	
 	next_building = monastic_schools_03
@@ -2116,6 +2215,7 @@ monastic_schools_02 = {
 		base = 9
 		ai_general_building_modifier = yes
 		ai_economical_building_preference_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = { # Fill all building slots before going for upgrades
 			factor = 0
 			free_building_slots > 0
@@ -2127,12 +2227,27 @@ monastic_schools_03 = {
 	construction_time = standard_construction_time
 
 	can_construct = {
-		has_building_or_higher = temple_02
-		culture = {
-			OR = {
-				has_innovation = innovation_centralization_of_authority
+		trigger_if = {
+			limit = {
+				NOT = {
+					culture = {
+						has_cultural_parameter = next_level_monasteries
+					}
+				}
+			}
+			culture = {
 				has_innovation = innovation_manorialism
 			}
+			has_building_or_higher = temple_02
+		}
+		trigger_else = {
+			culture = {
+				has_innovation = innovation_city_planning
+			}
+			culture = {
+				has_cultural_parameter = next_level_monasteries
+			}
+			has_building_or_higher = temple_01
 		}
 	}
 
@@ -2146,11 +2261,23 @@ monastic_schools_03 = {
 		monthly_piety = 0.3
 	}
 	county_modifier = {
-		monthly_county_control_growth_add = 0.3
-		epidemic_resistance = 8
+		monthly_county_control_growth_add = 0.3		
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_3
+		epidemic_resistance = 8
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.2
+		learning = 1
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 2
+		martial = 1
 	}
 	
 	next_building = monastic_schools_04
@@ -2158,6 +2285,7 @@ monastic_schools_03 = {
 		base = 8
 		ai_general_building_modifier = yes
 		ai_economical_building_preference_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = { # Fill all building slots before going for upgrades
 			factor = 0
 			free_building_slots > 0
@@ -2169,9 +2297,27 @@ monastic_schools_04 = {
 	construction_time = standard_construction_time
 
 	can_construct = {
-		has_building_or_higher = temple_02
-		culture = {
-			has_innovation = innovation_manorialism
+		trigger_if = {
+			limit = {
+				NOT = {
+					culture = {
+						has_cultural_parameter = next_level_monasteries
+					}
+				}
+			}
+			culture = {
+				has_innovation = innovation_manorialism
+			}
+			has_building_or_higher = temple_02
+		}
+		trigger_else = {
+			culture = {
+				has_innovation = innovation_city_planning
+			}
+			culture = {
+				has_cultural_parameter = next_level_monasteries
+			}
+			has_building_or_higher = temple_01
 		}
 	}
 
@@ -2185,11 +2331,23 @@ monastic_schools_04 = {
 		monthly_piety = 0.4
 	}
 	county_modifier = {
-		monthly_county_control_growth_add = 0.4
-		epidemic_resistance = 10
+		monthly_county_control_growth_add = 0.4		
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_4
+		epidemic_resistance = 10
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.2
+		learning = 2
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 2
+		martial = 2
 	}
 	
 	next_building = monastic_schools_05
@@ -2197,6 +2355,7 @@ monastic_schools_04 = {
 		base = 7
 		ai_general_building_modifier = yes
 		ai_economical_building_preference_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = { # Fill all building slots before going for upgrades
 			factor = 0
 			free_building_slots > 0
@@ -2208,12 +2367,27 @@ monastic_schools_05 = {
 	construction_time = standard_construction_time
 
 	can_construct = {
-		has_building_or_higher = temple_03
-		culture = {
-			OR = {
-				has_innovation = innovation_centralization_of_authority
+		trigger_if = {
+			limit = {
+				NOT = {
+					culture = {
+						has_cultural_parameter = next_level_monasteries
+					}
+				}
+			}
+			culture = {
 				has_innovation = innovation_windmills
 			}
+			has_building_or_higher = temple_03
+		}
+		trigger_else = {
+			culture = {
+				has_innovation = innovation_city_planning
+			}
+			culture = {
+				has_cultural_parameter = next_level_monasteries
+			}
+			has_building_or_higher = temple_02
 		}
 	}
 
@@ -2227,11 +2401,23 @@ monastic_schools_05 = {
 		monthly_piety = 0.5
 	}
 	county_modifier = {
-		monthly_county_control_growth_add = 0.5
-		epidemic_resistance = 12
+		monthly_county_control_growth_add = 0.5	
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_5
+		epidemic_resistance = 12
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.3
+		learning = 2
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 3
+		martial = 2
 	}
 	
 	next_building = monastic_schools_06
@@ -2239,6 +2425,7 @@ monastic_schools_05 = {
 		base = 6
 		ai_general_building_modifier = yes
 		ai_economical_building_preference_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = { # Fill all building slots before going for upgrades
 			factor = 0
 			free_building_slots > 0
@@ -2250,12 +2437,27 @@ monastic_schools_06 = {
 	construction_time = standard_construction_time
 
 	can_construct = {
-		has_building_or_higher = temple_03
-		culture = {
-			OR = {
-				has_innovation = innovation_centralization_of_authority
+		trigger_if = {
+			limit = {
+				NOT = {
+					culture = {
+						has_cultural_parameter = next_level_monasteries
+					}
+				}
+			}
+			culture = {
 				has_innovation = innovation_windmills
 			}
+			has_building_or_higher = temple_03
+		}
+		trigger_else = {
+			culture = {
+				has_innovation = innovation_manorialism
+			}
+			culture = {
+				has_cultural_parameter = next_level_monasteries
+			}
+			has_building_or_higher = temple_02
 		}
 	}
 
@@ -2269,11 +2471,23 @@ monastic_schools_06 = {
 		monthly_piety = 0.6
 	}
 	county_modifier = {
-		monthly_county_control_growth_add = 0.6
-		epidemic_resistance = 14
+		monthly_county_control_growth_add = 0.6		
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_6
+		epidemic_resistance = 14
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.3
+		learning = 3
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 3
+		martial = 3
 	}
 	
 	next_building = monastic_schools_07
@@ -2281,6 +2495,7 @@ monastic_schools_06 = {
 		base = 5
 		ai_general_building_modifier = yes
 		ai_economical_building_preference_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = { # Fill all building slots before going for upgrades
 			factor = 0
 			free_building_slots > 0
@@ -2292,9 +2507,27 @@ monastic_schools_07 = {
 	construction_time = standard_construction_time
 
 	can_construct = {
-		has_building_or_higher = temple_04
-		culture = {
-			has_innovation = innovation_cranes
+		trigger_if = {
+			limit = {
+				NOT = {
+					culture = {
+						has_cultural_parameter = next_level_monasteries
+					}
+				}
+			}
+			culture = {
+				has_innovation = innovation_cranes
+			}
+			has_building_or_higher = temple_04
+		}
+		trigger_else = {
+			culture = {
+				has_innovation = innovation_windmills
+			}
+			culture = {
+				has_cultural_parameter = next_level_monasteries
+			}
+			has_building_or_higher = temple_03
 		}
 	}
 
@@ -2308,11 +2541,23 @@ monastic_schools_07 = {
 		monthly_piety = 0.7
 	}
 	county_modifier = {
-		monthly_county_control_growth_add = 0.7
-		epidemic_resistance = 16
+		monthly_county_control_growth_add = 0.7	
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_7
+		epidemic_resistance = 16
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.4
+		learning = 3
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 4
+		martial = 3
 	}
 	
 	next_building = monastic_schools_08
@@ -2320,6 +2565,7 @@ monastic_schools_07 = {
 		base = 4
 		ai_general_building_modifier = yes
 		ai_economical_building_preference_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = { # Fill all building slots before going for upgrades
 			factor = 0
 			free_building_slots > 0
@@ -2331,9 +2577,27 @@ monastic_schools_08 = {
 	construction_time = standard_construction_time
 
 	can_construct = {
-		has_building_or_higher = temple_04
-		culture = {
-			has_innovation = innovation_cranes
+		trigger_if = {
+			limit = {
+				NOT = {
+					culture = {
+						has_cultural_parameter = next_level_monasteries
+					}
+				}
+			}
+			culture = {
+				has_innovation = innovation_cranes
+			}
+			has_building_or_higher = temple_04
+		}
+		trigger_else = {
+			culture = {
+				has_innovation = innovation_windmills
+			}
+			culture = {
+				has_cultural_parameter = next_level_monasteries
+			}
+			has_building_or_higher = temple_03
 		}
 	}
 
@@ -2347,17 +2611,30 @@ monastic_schools_08 = {
 		monthly_piety = 0.8
 	}
 	county_modifier = {
-		monthly_county_control_growth_add = 0.8
-		epidemic_resistance = 18
+		monthly_county_control_growth_add = 0.8		
 	}
 	province_modifier = {
 		monthly_income = poor_building_tax_tier_8
+		epidemic_resistance = 18
+	}
+
+	character_culture_modifier = {
+		parameter = monastic_monastery_learning_bonus
+		monthly_learning_lifestyle_xp_gain_mult = 0.4
+		learning = 4
+	}
+
+	character_culture_modifier = {
+		parameter = monastery_prowess_martial_bonus
+		prowess = 4
+		martial = 4
 	}
 	
 	ai_value = {
 		base = 3
 		ai_general_building_modifier = yes
 		ai_economical_building_preference_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = { # Fill all building slots before going for upgrades
 			factor = 0
 			free_building_slots > 0
@@ -2409,6 +2686,7 @@ megalith_01 = {
 	ai_value = {
 		base = 10
 		ai_tier_1_building_modifier = yes
+		directive_to_build_economy_modifier = yes
 		modifier = {
 			add = 500
 			scope:holder = {
@@ -2462,6 +2740,7 @@ megalith_02 = {
 	next_building = megalith_03
 	ai_value = {
 		base = 9
+		directive_to_build_economy_modifier = yes
 	}
 }
 
@@ -2503,7 +2782,8 @@ megalith_03 = {
 	
 	next_building = megalith_04
 	ai_value = {
-		base = 9
+		base = 8
+		directive_to_build_economy_modifier = yes
 	}
 }
 
@@ -2546,7 +2826,8 @@ megalith_04 = {
 	
 	next_building = megalith_05
 	ai_value = {
-		base = 9
+		base = 7
+		directive_to_build_economy_modifier = yes
 	}
 }
 
@@ -2590,7 +2871,8 @@ megalith_05 = {
 	
 	next_building = megalith_06
 	ai_value = {
-		base = 9
+		base = 6
+		directive_to_build_economy_modifier = yes
 	}
 }
 
@@ -2634,7 +2916,8 @@ megalith_06 = {
 	
 	next_building = megalith_07
 	ai_value = {
-		base = 9
+		base = 5
+		directive_to_build_economy_modifier = yes
 	}
 }
 
@@ -2678,7 +2961,8 @@ megalith_07 = {
 	
 	next_building = megalith_08
 	ai_value = {
-		base = 9
+		base = 4
+		directive_to_build_economy_modifier = yes
 	}
 }
 
@@ -2721,6 +3005,7 @@ megalith_08 = {
 	}
 	
 	ai_value = {
-		base = 9
+		base = 3
+		directive_to_build_economy_modifier = yes
 	}
 }

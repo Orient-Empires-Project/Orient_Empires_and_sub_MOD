@@ -1,0 +1,246 @@
+﻿create_cadet_branch_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_dynasty_house.dds"
+	}
+
+	decision_group_type = major
+	ai_check_interval = 60
+
+	is_shown = {
+		is_playable_character = yes
+		exists = house
+		exists = house.house_head
+		is_house_head = no
+		primary_title.tier > tier_barony
+		NOR = {
+			government_has_flag = government_is_holy_order
+			government_has_flag = government_is_theocracy
+			AND = {
+				faith = { has_doctrine = doctrine_theocracy_temporal }
+				has_council_position = councillor_court_chaplain
+			}
+		}
+	}
+
+	is_valid = {
+		government_allows = create_cadet_branches
+		
+		# If you are Clan, you cannot be in the same realm as your House Head. For simplicity, we'll just force you to be independent.
+		trigger_if = {
+			limit = {
+				government_has_flag = government_is_clan
+			}
+			is_independent_ruler = yes
+		}
+		# If you are Administrative, we let the player create a new House much easier, as to have easy access to their own Family Title and Estate.
+		trigger_else_if = {
+			limit = {
+				allows_imperial_bureaucracy = yes
+			}
+			trigger_if = {
+				limit = {
+					is_ai = yes # We don't want the AI to create cadet branches willy nilly, so they have additional restrictions.
+					top_liege = house.house_head.top_liege # But we do want the AI to create a cadet branch ASAP if the house head is in a different realm
+				}
+				NOT = { is_close_or_extended_family_of = house.house_head }
+				custom_description = {
+					text = create_cadet_branch_decision_succession_line
+					house.house_head = {
+						NOT = {
+							any_held_title = {
+								place_in_line_of_succession = {
+									target = root
+									value <=3
+								}
+							}
+						}
+					}
+				}
+			}
+			# No triggers for players.
+		}
+		# For everyone else, you cannot be too close in the line of succession.
+		trigger_else = {
+			custom_description = {
+				text = create_cadet_branch_decision_succession_line
+				house.house_head = {
+					NOT = {
+						any_held_title = {
+							place_in_line_of_succession = {
+								target = root
+								value <=3
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		# No living ancestors should belong to your house.
+		custom_description = {
+			text = create_cadet_branch_decision_ancestor_in_house
+			NOT = {
+				any_ancestor = {
+					house = root.house
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				is_married = yes
+				is_male = yes
+			}
+			patrilinear_marriage = yes
+		}
+		trigger_if = {
+			limit = {
+				is_married = yes
+				is_female = yes
+			}
+			matrilinear_marriage = yes
+		}
+		trigger_if = { #Males of female-dominated faith must already be patrilineally married before taking this decision.
+			limit = {
+				is_married = no
+				is_female = no
+				faith = {
+					has_doctrine = doctrine_gender_female_dominated
+				}
+			}
+			patrilinear_marriage = yes
+		}
+		trigger_if = { #Females of male-dominated faith must already be matrilineally married before taking this decision.
+			limit = {
+				is_married = no
+				is_female = yes
+				faith = {
+					has_doctrine = doctrine_gender_male_dominated
+				}
+			}
+			matrilinear_marriage = yes
+		}
+		trigger_if = {
+			limit = {
+				has_trait = devoted
+			}
+			NOT = {
+				has_trait = devoted
+			}
+		}
+		trigger_if = {
+			limit = {
+				has_trait = bastard
+			}
+			NOT = {
+				has_trait = bastard
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		is_available_adult = yes
+		is_playable_character = yes
+	}
+
+	effect = {
+		found_cadet_house_decision_effect = {
+			CHARACTER = root
+			PRESTIGE = major_prestige_gain
+		}
+		if = {
+			limit = {
+				allows_imperial_bureaucracy = yes
+				highest_held_title_tier >= tier_duchy
+			}
+			create_noble_family_effect = yes
+			change_influence = major_influence_gain
+		}
+	}
+	
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 30
+		
+		modifier = {
+			add = 70
+			exists = primary_title
+			primary_title.tier > tier_county
+		}
+
+		modifier = {
+			add = -50
+			is_independent_ruler = no
+			any_liege_or_above = {
+				dynasty = root.dynasty
+			}
+		}
+		
+		modifier = {
+			factor = 0
+			any_child = {
+				is_alive = yes
+				count < 3
+			}
+		}
+		
+		modifier = {
+			factor = 0
+			any_player = {
+				OR = {
+					any_child = {
+						OR = {
+							is_child_of = root
+							is_grandchild_of = root
+							is_great_grandchild_of = root
+						}
+					}
+					any_child = {
+						even_if_dead = yes
+						any_child = {
+							OR = {
+								is_child_of = root
+								is_grandchild_of = root
+								is_great_grandchild_of = root
+							}
+						}
+					}
+					any_child = {
+						even_if_dead = yes
+						any_child = {
+							even_if_dead = yes
+							any_child = {
+								OR = {
+									is_child_of = root
+									is_grandchild_of = root
+									is_great_grandchild_of = root
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		# we don't want AI to split from their House unless they dislike their house head
+		modifier = {
+			factor = 0
+			government_has_flag = government_is_clan
+			opinion = {
+				target = house.house_head
+				value >= -50
+			}
+		}
+		
+		# If an admin top liege ever ends up having their house head in a different realm, they should create a cadet branch ASAP
+		modifier = {
+			add = 1000
+			government_has_flag = government_is_administrative
+			is_independent_ruler = yes
+			this != house.house_head.top_liege
+		}
+	}
+}

@@ -141,6 +141,7 @@ bureaucracy_exp_value = {
 	add = Bureaucrat_any_heir_title_value
 	add = Bureaucrat_piety_level_value
 	add = Bureaucrat_prestige_level_value
+	add = Bureaucrat_influence_value
 	add = Bureaucrat_dynasty_prestige_level_value
 	add = Bureaucrat_diplomacy_value
 	add = Bureaucrat_stewardship_lifestyle_perk_points_value
@@ -149,11 +150,6 @@ bureaucracy_exp_value = {
 	add = Bureaucrat_county_opinion_value
 	add = Bureaucrat_physically_value
 	add = Bureaucrat_illegal_criminal_value
-
-	if = {
-		limit = { is_oe_landed_bureaucrat_trigger = no }
-		multiply = 0
-	}
 }
 
 bureaucracy_exp_value_levelup = {
@@ -204,7 +200,7 @@ Bureaucrat_development_level_value = {
 	value = 0
 	if = {
 		limit = { is_landed = yes }
-		add = 6
+		add = capital_county.development_level  #6
 	}
 	desc = Bureaucrat_development_level_value_desc
 }
@@ -212,7 +208,7 @@ Bureaucrat_combined_building_level_value = {
 	value = 0
 	if = {
 		limit = { is_landed = yes }
-		add = 6
+		add = capital_province.combined_building_level #6
 	}
 	desc = Bureaucrat_combined_building_level_value_desc
 }
@@ -364,6 +360,12 @@ Bureaucrat_county_opinion_value = {
 	desc = Bureaucrat_county_opinion_value
 }
 
+Bureaucrat_influence_value = {
+	value = influence_level
+	factor = 3
+	desc = "[influence_level|E]"
+}
+
 Bureaucrat_physically_value = {
 	value = 0
 	if = {
@@ -401,11 +403,12 @@ bureaucrat_title_score = { #root = temp_holder
 		multiply = primary_title.tier
 	}
 	add = capital_county.development_level
-	add = capital_county.county_opinion
-	subtract = { value = CorruptionSystem_distance_value divide = 100 }
+	add = capital_county.county_opinion #？
+	subtract = { value = CorruptionSystem_distance_value divide = 50 }
 
 	if = {
 		limit = {
+			exists = capital_county
 			NOT = { capital_county.culture = top_liege.culture }
 		}
 		desc = "They're a different culture from me"
@@ -426,31 +429,31 @@ bureaucrat_level_value = {
 		limit = {
 			lifestyle_bureaucrat_5_trigger = yes
 		}
-		add = 50
+		add = 5
 	}
 	else_if = {
 		limit = {
 			lifestyle_bureaucrat_4_trigger = yes
 		}
-		add = 40
+		add = 4
 	}
 	else_if = {
 		limit = {
 			lifestyle_bureaucrat_3_trigger = yes
 		}
-		add = 30
+		add = 3
 	}
 	else_if = {
 		limit = {
 			lifestyle_bureaucrat_2_trigger = yes
 		}
-		add = 20
+		add = 2
 	}
 	else_if = {
 		limit = {
 			lifestyle_bureaucrat_1_trigger = yes
 		}
-		add = 10
+		add = 1
 	}
 }
 
@@ -631,4 +634,25 @@ bureaucracy_exp_rank = {
 	}
 }
 
-#考绩  改写为流官继承分
+#原考绩的效率化
+bureaucrat_efficiency = {
+	value = bureaucracy_exp_value
+	subtract = 50
+	divide = 100
+}
+
+#总督效率 governor_efficiency
+
+#考绩加分
+bureaucrat_xp_add_min = {
+	value = 10
+	factor = bureaucrat_efficiency
+}
+bureaucrat_xp_add_medium = {
+	value = 20
+	factor = bureaucrat_efficiency
+}
+bureaucrat_xp_add_max = {
+	value = 50
+	factor = bureaucrat_efficiency
+}

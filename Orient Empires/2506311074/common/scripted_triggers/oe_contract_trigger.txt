@@ -18,6 +18,7 @@ is_bureau_government_trigger = { #什么是文官制
 }
 is_oe_imperial_government_trigger = { #什么是中华皇帝
 	exists = this
+	is_landed = yes
 	is_independent_ruler = yes
 	OR = {
 		has_title = title:e_celestia
@@ -158,35 +159,25 @@ is_oe_court_fashion_level_5_trigger = { #宫廷奢侈礼服
 
 is_oe_imperial_court_trigger = { #什么是朝廷
 	exists = this
+	is_landed = yes
 	is_independent_ruler = yes
 	OR = {
 		is_oe_imperial_government_trigger = yes
 		AND = {
 			government_has_flag = government_is_celestial
 			highest_held_title_tier >= tier_kingdom
-			#OR = {
-				#culture = { has_cultural_pillar = heritage_chinese }
-				#culture = { has_cultural_pillar = heritage_goryeo }
-				#culture = { has_cultural_pillar = heritage_mongolic }
-				#culture = { has_cultural_pillar = heritage_turkic }
-				#culture = { has_cultural_pillar = heritage_tunguse }
-				#culture = { has_cultural_pillar = heritage_yamato }
-			#}
 		}
 	}
 }
 
 is_oe_imperial_official_trigger = { #不一定独立的朝廷
 	exists = this
+	is_landed = yes
 	OR = {
 		is_oe_imperial_government_trigger = yes
 		AND = {
 			government_has_flag = government_is_celestial
 			highest_held_title_tier >= tier_kingdom
-			#OR = {
-				#culture = { has_cultural_pillar = heritage_chinese }
-				#culture = { has_cultural_pillar = heritage_goryeo }
-			#}
 		}
 	}
 }
@@ -223,26 +214,55 @@ is_oe_imperial_shangshu_trigger = { #什么是尚书
 
 is_oe_landed_bureaucrat_trigger = { #什么是在职流官
 	is_independent_ruler = no
-	#exists = top_liege
-	#top_liege = { is_oe_imperial_court_trigger = yes }
 	OR = {
-		government_has_flag = government_is_celestial
 		government_has_flag = government_is_bureau
+		government_has_flag = government_is_celestial
 	}
 	#所有流官继承头衔
 	OR = {
+		has_realm_law_flag = celestial_bureaucrat
 		has_realm_law = official_succession_law
 		has_realm_law = player_official_succession_law
-		government_has_flag = government_is_bureau
-	}
-	has_realm_law_flag = celestial_bureaucrat
+		has_realm_law = admin_succession_law
+	}	
 	#伯爵级以上
 	#highest_held_title_tier >= tier_county
 	#highest_held_title_tier <= tier_kingdom
-	#is_legion_government_trigger = no #藩镇不迁
-	#NOT = { vassal_contract_has_flag = vassal_contract_cannot_revoke_titles }
-	NOT = { vassal_contract_has_flag = heir_succession_rights_unlock }
 	NOT = { has_trait = great_misit	}
+	NOR = {
+		vassal_contract_has_flag = imperial_legion_3
+		vassal_contract_has_flag = imperial_royal_1
+		vassal_contract_has_flag = heir_succession_rights_unlock
+		primary_title ?= { has_variable = titular_title }
+	}
+}
+
+is_prefect = { #什么是知州
+	is_independent_ruler = no
+	government_has_flag = government_is_celestial
+	highest_held_title_tier = tier_county
+}
+
+is_jiedushi = { #什么是节度使  is_governor
+	is_independent_ruler = no
+	government_has_flag = government_is_celestial
+	highest_held_title_tier = tier_duchy
+	#vassal_contract_has_flag = imperial_legion_2
+}
+
+oe_revocation_is_NOT_tyrannical_trigger = { #无暴政剥夺流官
+	scope:recipient = {
+		is_oe_landed_bureaucrat_trigger = yes
+		NOT = { vassal_contract_has_flag = vassal_contract_cannot_revoke_titles }
+		is_legion_government_trigger = no #藩镇不迁
+	}
+	scope:actor = {
+		OR = {
+			is_independent_ruler = yes
+			is_oe_imperial_court_trigger = yes
+			has_strong_hook = scope:recipient
+		}
+	}
 }
 
 #众所周知的罪行
@@ -545,10 +565,12 @@ bureaucrat_title_rank_3 = {
 }
 bureaucrat_title_rank_4 = {
 	highest_held_title_tier = tier_duchy
+	is_landed = yes
 	bureaucrat_title_score < 180
 }
 bureaucrat_title_rank_5 = {
 	highest_held_title_tier = tier_duchy
+	is_landed = yes
 	bureaucrat_title_score >= 180
 }
 bureaucrat_title_rank_6 = {

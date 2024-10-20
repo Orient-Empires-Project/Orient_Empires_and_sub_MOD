@@ -166,17 +166,11 @@ oe_dynasty_on_action = {
 			#}
 		}
 
-		#宗族威望等级
+		#宗族威望等级+创建家族头衔庄园
 		root = {
 			if = {
 				limit = {
-					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_or_extended_family_member = {
-						is_male = yes
-						is_adult = yes
-						is_alive = no
-						count > 200
-					}
+					house.house_power_score > 500
 				}
 				dynasty = {
 					add_dynasty_prestige_level = {
@@ -186,13 +180,7 @@ oe_dynasty_on_action = {
 			}
 			else_if = {
 				limit = {
-					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_or_extended_family_member = {
-						is_male = yes
-						is_adult = yes
-						is_alive = no
-						count > 80
-					}
+					house.house_power_score > 300
 				}
 				dynasty = {
 					add_dynasty_prestige_level = {
@@ -202,13 +190,7 @@ oe_dynasty_on_action = {
 			}
 			else_if = {
 				limit = {
-					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_or_extended_family_member = {
-						is_male = yes
-						is_adult = yes
-						is_alive = no
-						count > 30
-					}
+					house.house_power_score > 200
 				}
 				dynasty = {
 					add_dynasty_prestige_level = {
@@ -218,16 +200,7 @@ oe_dynasty_on_action = {
 			}
 			else_if = {
 				limit = {
-					OR = {
-						culture = { has_cultural_pillar = heritage_chinese }
-						culture = { has_cultural_pillar = heritage_yamato }
-					}
-					any_close_or_extended_family_member = {
-						is_male = yes
-						is_adult = yes
-						is_alive = no
-						count > 10
-					}
+					house.house_power_score > 100
 				}
 				dynasty = {
 					add_dynasty_prestige_level = {
@@ -237,13 +210,7 @@ oe_dynasty_on_action = {
 			}
 			else_if = {
 				limit = {
-					culture = { has_cultural_pillar = heritage_chinese }
-					any_close_or_extended_family_member = {
-						is_male = yes
-						is_adult = yes
-						is_alive = no
-						count >= 2
-					}
+					house.house_power_score > 80
 				}
 				dynasty = {
 					add_dynasty_prestige_level = {
@@ -251,32 +218,29 @@ oe_dynasty_on_action = {
 					}
 				}
 			}
-			else_if = {
+
+			# Note: anything that should be run after creation can go in on_noble_family_title_created
+			if = {
 				limit = {
-					OR = {
-						culture = { has_cultural_pillar = heritage_chinese }
-						culture = { has_name_list = name_list_khitan }
-						culture = { has_name_list = name_list_yughur }
-						culture = { has_name_list = name_list_uyghur }
-						AND = {
-							culture = { has_name_list = name_list_sogdian }
-							exists = capital_province
-							capital_province = { geographical_region = world_asia_china }
+					#dynasty.dynasty_prestige_level >= 2
+					highest_held_title_tier >= tier_duchy
+					government_has_flag = government_is_celestial #
+					is_house_head = yes
+					top_liege ?= {
+						is_independent_ruler = yes
+						government_has_flag = government_is_celestial #
+					}
+					NOR = {
+						any_held_title = { is_noble_family_title = yes }
+						house = {
+							any_house_member = {
+								any_held_title = { is_noble_family_title = yes }
+							}
 						}
 					}
-					OR = {
-						any_close_family_member = {
-							is_adult = yes
-							count > 1
-						}
-						highest_held_title_tier > tier_county
-					}
 				}
-				dynasty = {
-					add_dynasty_prestige_level = {
-						value = 2 max = 2
-					}
-				}
+				create_noble_family_effect = yes
+				domicile ?= { set_up_domicile_estate_effect = yes }
 			}
 		}
 	}
@@ -299,6 +263,9 @@ great_dynasty_marriage = {
 				limit = {
 					exists = dynasty
 					culture = { has_cultural_pillar = heritage_chinese }
+					#location.county.holder.top_liege = {
+						#government_allows = administrative
+					#}
 					dynasty = { dynasty_prestige_level >= 3 }	
 					is_adult = yes
 					is_married = no
