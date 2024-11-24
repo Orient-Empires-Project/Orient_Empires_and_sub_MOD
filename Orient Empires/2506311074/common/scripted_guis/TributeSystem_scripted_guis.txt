@@ -15,90 +15,112 @@ TributeSystem_update_WLTDJ_tribute_relation_list = {
 		clear_variable_list = feudal_tributary_list
 		clear_variable_list = celestial_tributary_list
 
-		every_relation = {
-			type = tributary
-			save_scope_as = temp_tributary
-			root = {
-				add_to_variable_list = {
-					name = tributary_list
-					target = scope:temp_tributary
-				}
-			}
-		}
-		every_relation = {
-			type = suzerain
-			save_scope_as = temp_suzerain
-			root = {
-				add_to_variable_list = {
-					name = suzerain_list
-					target = scope:temp_suzerain
-				}
-			}
-		}
-		every_relation = {
-			type = tributary
+		if = {
 			limit = {
-				OR = {
-					#has_faith = scope:temp_character.faith
-					dynasty = scope:temp_character.dynasty
-					is_allied_to = scope:temp_character
-				}
+				top_liege != root
 			}
-			save_scope_as = same_heritage_tributary
-			root = {
-				add_to_variable_list = {
-					name = same_heritage_tributary_list
-					target = scope:same_heritage_tributary
-				}
+			top_liege = {
+				save_scope_as = liege
 			}
 		}
-		every_relation = {
-			type = tributary
+		else_if = {
 			limit = {
-				OR = {
-					has_government = tribal_government
-					has_government = clan_government
+				any_relation = {
+					type = suzerain
+					is_ruler = yes
 				}
 			}
-			save_scope_as = tribal_tributary
-			root = {
-				add_to_variable_list = {
-					name = tribal_tributary_list
-					target = scope:tribal_tributary
+			random_relation = {
+				type = suzerain
+				limit = {
+					is_ruler = yes
 				}
+				save_scope_as = liege
 			}
 		}
-		every_relation = {
-			type = tributary
-			limit = {
-				OR = {
-					has_government = feudal_government
-					has_government = republic_government
-					has_government = theocracy_government
-				}
-			}
-			save_scope_as = feudal_tributary
-			root = {
-				add_to_variable_list = {
-					name = feudal_tributary_list
-					target = scope:feudal_tributary
-				}
-			}
+		else = {
+			save_scope_as = liege
 		}
-		every_relation = {
-			type = tributary
-			limit = {
-				OR = {
-					has_government = celestial_government
-					has_government = legion_government
-					has_government = bureau_government
+		scope:liege = {
+			every_relation = {
+				type = tributary
+				root = {
+					add_to_variable_list = {
+						name = tributary_list
+						target = prev
+					}
 				}
 			}
-			save_scope_as = celestial_tributary
-			root = {
-				add_to_variable_list = {
-					name = celestial_tributary_list
-					target = scope:celestial_tributary
+			every_relation = {
+				type = suzerain
+				root = {
+					add_to_variable_list = {
+						name = suzerain_list
+						target = prev
+					}
+				}
+			}
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						#has_faith = scope:temp_character.faith
+						dynasty = scope:temp_character.dynasty
+						is_allied_to = scope:temp_character
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = same_heritage_tributary_list
+						target = prev
+					}
+				}
+			}
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						has_government = tribal_government
+						has_government = clan_government
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = tribal_tributary_list
+						target = prev
+					}
+				}
+			}
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						has_government = feudal_government
+						has_government = republic_government
+						has_government = theocracy_government
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = feudal_tributary_list
+						target = prev
+					}
+				}
+			}
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						government_has_flag = government_is_celestial
+						has_government = legion_government
+						has_government = bureau_government
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = celestial_tributary_list
+						target = prev
+					}
 				}
 			}
 		}

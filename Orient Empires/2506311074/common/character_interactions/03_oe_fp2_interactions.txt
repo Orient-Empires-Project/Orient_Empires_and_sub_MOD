@@ -41,6 +41,15 @@ incite_revolts_interaction = {
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
 		OR = {
+			scope:actor = {
+				is_landless_adventurer = yes
+				OR = {
+					any_claim = {
+						holder = scope:recipient
+					}
+					has_relation_rival = scope:recipient
+				}					
+			}
 			AND = {
 				has_dlc_feature = the_fate_of_iberia
 				# Only available during Opportunity, Hostility and Tension phases
@@ -235,6 +244,7 @@ incite_revolts_interaction = {
 
 					hidden_effect = {
 						send_interface_toast = {
+							type = event_toast_effect_bad
 							title = incite_revolts_interaction_result.tt
 							left_icon = scope:chosen_county
 							right_icon = scope:recipient
@@ -303,6 +313,7 @@ incite_revolts_interaction = {
 
 					hidden_effect = {
 						send_interface_toast = {
+							type = event_toast_effect_good
 							title = incite_revolts_interaction_result.tt
 							left_icon = scope:chosen_county
 		
@@ -335,7 +346,23 @@ incite_revolts_interaction = {
 			}
 		}
 		
-		# TO DO POLISH: add a chance to be discovered depending on target's intrigue: leads to opinion loss and progress towards Rivalry
+		# for landless adventurers, add the county to a variable list to unlock a unique cb
+		scope:actor = {
+			if = {
+				limit = {
+					government_has_flag = government_is_landless_adventurer
+				}
+				laamp_rewards_apply_criminal_xp_effect = {
+					TRACK = bandit
+					XP_MIN = gallowsbait_xp_minor_gain
+					XP_MAX = gallowsbait_xp_medium_gain
+				}
+				add_to_variable_list = {
+					name = war_supported_counties_list
+					target = scope:chosen_county
+				}
+			}			
+		}
 
 		# If we're a clan this interaction affects unity
 		add_clan_unity_interaction_effect = {
@@ -354,6 +381,10 @@ incite_revolts_interaction = {
 			any_character_struggle = {
 				has_struggle_phase_parameter = unlocks_incite_revolts_interaction
 				involvement = involved
+				#OR = {
+					#is_struggle_phase = struggle_iberia_phase_opportunity
+					#is_struggle_phase = struggle_iberia_phase_hostility
+				#}
 			}
 			any_character_struggle = {
 				is_struggle_type = persian_struggle

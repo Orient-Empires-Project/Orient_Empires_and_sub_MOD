@@ -80,7 +80,7 @@ realm_law_use_camp_purpose = {
 }
 
 realm_law_use_imperial_bureaucracy = {
-	allows_imperial_bureaucracy = yes
+	government_allows = administrative
 }
 
 can_have_confederate_partition_succession_law_trigger = {
@@ -218,7 +218,7 @@ can_have_single_heir_succession_law_trigger = {
 		has_title = title:d_gosho
 
 	}
-	NOT = { government_has_flag = government_is_administrative }
+	NOT = { government_allows = administrative }
 }
 
 can_keep_single_heir_youngest_succession_law_trigger = {
@@ -315,6 +315,14 @@ can_have_bishop_theocratic_succession_law_trigger = {
 }
 
 is_temporal_head_of_faith_trigger = {
+	holder = {
+		NOR = {
+			government_has_flag = government_is_celestial
+			faith = { religion_tag = confucianism_religion }
+			faith = { religion_tag = shinto_religion }
+			faith = { religion_tag = taoism_religion }
+		}
+	}
 	is_head_of_faith = yes
 	holder.faith = { has_doctrine = doctrine_temporal_head }
 }
@@ -339,19 +347,19 @@ can_have_city_succession_law_trigger = {
 title_can_reduce_partition_law_trigger = {
 	OR = {
 		AND = {
-			has_title_law = single_heir_succession_law
+			has_realm_law = single_heir_succession_law
 			holder = {
 				can_have_high_partition_succession_law_trigger = yes
 			}
 		}
 		AND = {
-			has_title_law = high_partition_succession_law
+			has_realm_law = high_partition_succession_law
 			holder = {
 				can_have_high_partition_succession_law_trigger = yes
 			}
 		}
 		AND = {
-			has_title_law = partition_succession_law
+			has_realm_law = partition_succession_law
 			holder = {
 				can_have_confederate_partition_succession_law_trigger = yes
 			}
@@ -407,7 +415,10 @@ can_have_official_succession_law_trigger = {
 	government_has_flag = government_is_celestial
 	is_independent_ruler = no
 	highest_held_title_tier > tier_county
-	is_ai = yes
+	primary_title = {
+		tier > tier_county
+		is_oe_noble_family_title = no
+	}
 	NOR = {
 		vassal_contract_has_flag = imperial_legion_3
 		vassal_contract_has_flag = imperial_royal_1
@@ -424,17 +435,17 @@ can_keep_official_succession_law_trigger = {
 		}
 		can_have_official_succession_law_trigger = yes
 	}
-	trigger_if = {
-		limit = {
-			highest_held_title_tier = tier_kingdom
-		}
-		OR = {
-			vassal_contract_has_flag = imperial_legion_4
-			top_liege = { is_oe_imperial_government_trigger = no }
-			culture = { has_innovation = innovation_court_officials }
-			top_liege = { culture = { has_innovation = innovation_court_officials } }
-		}
-	}
+	#trigger_if = {
+		#limit = {
+			#highest_held_title_tier = tier_kingdom
+		#}
+		#OR = {
+			#vassal_contract_has_flag = imperial_legion_4
+			#top_liege = { is_oe_imperial_government_trigger = no }
+			#culture = { has_innovation = innovation_court_officials }
+			#top_liege = { culture = { has_innovation = innovation_court_officials } }
+		#}
+	#}
 }
 
 
@@ -475,7 +486,6 @@ can_pass_tradition_succession_law_trigger = {
 #留后册命制（藩镇基础继承法）
 can_have_legion_succession_law_trigger = {
 	OR = {
-		is_milita_government_trigger = yes
 		government_has_flag = government_is_legion
 		AND = {
 			government_has_flag = government_is_celestial
@@ -488,7 +498,7 @@ can_have_legion_succession_law_trigger = {
 can_keep_legion_succession_law_trigger = {
 	trigger_if = {
 		limit = { has_realm_law = legion_succession_law }
-		can_have_legion_succession_law_trigger = yes
+		can_have_legion_succession_law_trigger = yes 		
 	}
 }
 
@@ -499,8 +509,12 @@ can_pass_legion_succession_law_trigger = {
 
 #科举制
 can_have_admin_succession_law_trigger = {
+	is_landed = yes
 	highest_held_title_tier <= tier_county
 	OR = {
+		top_liege ?= {
+			government_has_flag = government_is_celestial
+		}
 		government_has_flag = government_is_bureau
 		AND = {
 			government_has_flag = government_is_celestial
@@ -511,12 +525,17 @@ can_have_admin_succession_law_trigger = {
 			religion = religion:confucianism_religion
 		}	
 	}
+	NOR = {
+		vassal_contract_has_flag = imperial_legion_3
+		vassal_contract_has_flag = imperial_royal_1
+		vassal_contract_has_flag = heir_succession_rights_unlock
+	}
 }
 
 #玩家判定
 can_have_official_succession_law_player_trigger = {
 	is_independent_ruler = no
-	highest_held_title_tier >= tier_county
+	#highest_held_title_tier >= tier_county
 	liege ?= {
 		OR = {
 			government_has_flag = government_is_celestial
@@ -524,34 +543,14 @@ can_have_official_succession_law_player_trigger = {
 			is_legion_government_trigger = yes
 		}
 	}
-	#highest_held_title_tier >= tier_county
 	OR = {
 		government_has_flag = government_is_celestial
 		government_has_flag = government_is_bureau
 		is_legion_government_trigger = yes
 	}
 	OR = {
-		is_ai = no #is_ai = no
+		is_ai = no
 		has_variable = player_officier
-	}
-    OR = {
-		vassal_contract_has_flag =imperial_legion_4
-		AND = {
-			highest_held_title_tier < tier_kingdom
-			NOT = { has_title = title:d_gosho }
-		}
-		AND = {
-			highest_held_title_tier = tier_kingdom
-			OR = {
-				culture = { has_innovation = innovation_court_officials }
-				top_liege = { culture = { has_innovation = innovation_court_officials } }
-			}			
-		}
-    }
-	NOR = {
-		vassal_contract_has_flag = imperial_legion_3
-		vassal_contract_has_flag = imperial_royal_1
-		vassal_contract_has_flag = heir_succession_rights_unlock
 	}
 }
 #玩家判定
@@ -562,9 +561,4 @@ can_keep_official_succession_law_player_trigger = {
 		}
 		is_ai = no
 	}
-}
-
-realm_law_use_celestial_bureaucracy = {
-	has_dlc_feature = roads_to_power
-	government_has_flag = government_is_celestial
 }

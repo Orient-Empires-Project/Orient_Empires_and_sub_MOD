@@ -9,10 +9,10 @@
 			triggered_desc = {
 				trigger = {
 					scope:actor = {
-						allows_imperial_bureaucracy = yes
+						government_allows = administrative
 					}
 					scope:recipient = {
-						allows_imperial_bureaucracy = yes
+						government_allows = administrative
 					}
 				}
 				desc = revoke_governorship_interaction
@@ -26,10 +26,10 @@
 			triggered_desc = {
 				trigger = {
 					scope:actor = {
-						allows_imperial_bureaucracy = yes
+						government_allows = administrative
 					}
 					scope:recipient = {
-						allows_imperial_bureaucracy = yes
+						government_allows = administrative
 					}
 				}
 				desc = revoke_governorship_interaction_desc
@@ -41,10 +41,10 @@
 	icon = {
 		trigger = {
 			scope:actor = {
-				allows_imperial_bureaucracy = yes
+				government_allows = administrative
 			}
 			scope:recipient = {
-				allows_imperial_bureaucracy = yes
+				government_allows = administrative
 			}
 		}
 		reference = revoke_governorship
@@ -90,7 +90,7 @@
 				}
 			}
 			trigger_else_if = {
-				limit = { allows_imperial_bureaucracy = yes }
+				limit = { government_allows = administrative }
 			}
 			trigger_else = {
 				custom_description = {
@@ -136,7 +136,7 @@
 				}
 			}
 			custom_description = {
-				text = NOT_ACTOR_REFUSAL_IS_BUREAU
+				text = ACTOR_REFUSAL_IS_BUREAU
 				scope:actor = {
 					NOT = { is_oe_landed_bureaucrat_trigger = yes }
 				}
@@ -185,7 +185,7 @@
 				}
 			}
 			custom_description = {
-				text = NOT_ACTOR_REFUSAL_IS_BUREAU
+				text = ACTOR_REFUSAL_IS_BUREAU
 				scope:actor = {
 					NOT = {
 						is_oe_landed_bureaucrat_trigger = yes
@@ -221,8 +221,8 @@
 			title_revocation_standard_can_pick_title_trigger = yes
 			trigger_if = {
 				limit = {
-					scope:actor = { allows_imperial_bureaucracy = yes }
-					scope:recipient = { allows_imperial_bureaucracy = yes }
+					scope:actor = { government_allows = administrative }
+					scope:recipient = { government_allows = administrative }
 				}
 				custom_description = {
 					text = "admin_revoke_primary_tier_only"
@@ -236,7 +236,7 @@
 
 	has_valid_target = {
 		scope:target = {
-			NOT = { is_noble_family_title = yes }
+			NOT = { is_oe_noble_family_title = yes }
 		}
 	}
 
@@ -395,10 +395,20 @@
 				value = yes
 			}
 		}
+		if = { # Safety flag to ensure admin revocations behave properly
+			limit = {
+				scope:actor = { government_has_flag = government_is_celestial }
+				scope:recipient = { government_has_flag = government_is_celestial }
+			}
+			save_scope_value_as = {
+				name = administrative_revocation
+				value = yes
+			}
+		}
 		scope:actor = {
 			if = { # Admin has to pay an influence cost unless they have a revocation reason on the recipient
 				limit = {
-					allows_imperial_bureaucracy = yes
+					government_allows = administrative
 					NOT = { has_revoke_title_reason = scope:recipient }
 					scope:recipient = {
 						highest_held_title_tier >= tier_county
@@ -541,7 +551,7 @@
 		scope:actor = {
 			if = { # Admin has to pay an influence cost unless they have a revocation reason on the recipient
 				limit = {
-					allows_imperial_bureaucracy = yes
+					government_allows = administrative
 					NOT = { has_revoke_title_reason = scope:recipient }
 					scope:recipient = {
 						highest_held_title_tier >= tier_county
@@ -762,9 +772,9 @@
 				}
 				custom_tooltip = {
 					text = "has_admin_gov"
-					scope:actor = { allows_imperial_bureaucracy = yes }
+					scope:actor = { government_allows = administrative }
 					scope:recipient = {
-						allows_imperial_bureaucracy = yes
+						government_allows = administrative
 						highest_held_title_tier = tier_county
 						is_ai = yes
 					}
@@ -891,7 +901,7 @@
 		}
 		modifier = { #Title is part of vassal's primary title de-jure. Not relevant for Admin.
 			add = -25
-			NOT = { scope:recipient = { allows_imperial_bureaucracy = yes } }
+			NOT = { scope:recipient = { government_allows = administrative } }
 			scope:recipient.primary_title.tier > tier_county
 			OR = {
 				scope:recipient.primary_title = {
@@ -1310,7 +1320,7 @@
 		# Slight preference for higher-tier titles
 		modifier = {
 			NOT = {
-				scope:actor = { allows_imperial_bureaucracy = yes }
+				scope:actor = { government_allows = administrative }
 			}
 			add = scope:landed_title.tier
 		}
@@ -1422,18 +1432,18 @@
 
 		# Admin Government: Do not revoke titles from your house unless it's really needed
 		modifier = {
-			scope:actor = { allows_imperial_bureaucracy = yes }
+			scope:actor = { government_allows = administrative }
 			scope:actor.house = scope:recipient.house
 			add = -500
 		}
 		# Admin rulers should be less likely to revoke titles without a revocation reason, as they should prefer to depose governors
 		modifier = {
 			scope:actor = {
-				allows_imperial_bureaucracy = yes
+				government_allows = administrative
 				NOT = { has_revoke_title_reason = scope:recipient }
 			}
 			scope:recipient = {
-				allows_imperial_bureaucracy = yes
+				government_allows = administrative
 				highest_held_title_tier >= tier_duchy
 			}
 			factor = { # Honorable AI's will never revoke titles without a reason

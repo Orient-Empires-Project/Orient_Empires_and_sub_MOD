@@ -40,21 +40,30 @@ east_on_game_start_effects = {
 		}
 	}
 }	
-on_game_start_after_lobby = { #by 糜三小姐
+on_game_start_after_lobby = { 
 	events = {
 		historical_artifacts.2333  #东方宝物
 	}
 }
 	
-east_on_after_lobby_effects = {	
+east_on_after_lobby_effects = { #by 糜三小姐
 	effect = {
 		every_ruler = {
 			if = {
 				limit = {
-					current_date > 956.1.1
+					game_start_date > 956.1.1
 					is_oe_imperial_court_trigger = yes
 				}
-				add_realm_law_skip_effects = imperial_bureaucracy_2
+				if = {
+					limit = {
+						has_dlc_feature = roads_to_power
+						government_allows = administrative
+					}
+					add_realm_law_skip_effects = imperial_bureaucracy_2
+				}
+				else = {
+					add_realm_law_skip_effects = crown_authority_2
+				}
 			}
 			#if = { #所有非玩家的听命属臣实行男性流官制
 				#limit = { 
@@ -105,7 +114,7 @@ east_on_after_lobby_effects = {
 						has_primary_title = title:d_wuping
 					}
 				}
-				change_government = celestial_government
+				change_to_celes_government_effect = yes
 				vassal_contract_set_obligation_level = {
 					type = special_imperial_contract
 					level = 1
@@ -143,6 +152,7 @@ east_on_after_lobby_effects = {
 				}
 				if = {
 					limit = {
+						is_landed = yes
 						OR = {
 							has_primary_title = title:d_jingxiang
 							has_primary_title = title:d_jingnan
@@ -160,7 +170,7 @@ east_on_after_lobby_effects = {
 							has_primary_title = title:d_hedong
 							has_primary_title = title:d_hezhong
 							has_primary_title = title:d_lingnan
-							has_primary_title = title:d_annan
+							has_primary_title = title:d_jiaozhi
 							has_primary_title = title:d_fengxiang
 							has_primary_title = title:d_fufang
 							has_primary_title = title:d_binning
@@ -180,13 +190,14 @@ east_on_after_lobby_effects = {
 				#都防御
 				if = {
 					limit = {
+						is_landed = yes
 						OR = { 
 							has_primary_title = title:d_fengzhou
 							has_primary_title = title:d_jinshang
 							has_primary_title = title:d_pingyi
 						}
 					}
-					change_government = celestial_government
+					change_to_celes_government_effect = yes
 					vassal_contract_set_obligation_level = {
 						type = special_imperial_contract
 						level = 1
@@ -280,6 +291,7 @@ east_on_after_lobby_effects = {
 			if = {
 				limit = {
 					current_date >= 1134.5.26
+					is_landed = yes
 					OR = {
 						has_primary_title = title:d_eyue
 						has_primary_title = title:d_longnan
@@ -288,17 +300,15 @@ east_on_after_lobby_effects = {
 					}
 				}
 				change_government_legion_government_effect = yes
-				if = { 
-					limit = { NOT = { has_realm_law = legion_succession_law } }
-					add_realm_law_skip_effects = legion_succession_law
-				}
 			}
 			if = {
 				limit = {
 					current_date >= 1161.5.26
+					is_landed = yes
 					OR = {										
 						has_primary_title = title:d_huainan
 						has_primary_title = title:d_huaixi
+						has_primary_title = title:d_eyue
 					}
 				}
 				if = { 
@@ -309,6 +319,7 @@ east_on_after_lobby_effects = {
 			if = {
 				limit = {
 					current_date >= 1134.5.26
+					is_landed = yes
 					OR = {
 						has_primary_title = title:d_xichuan
 						has_primary_title = title:d_hanzhong
@@ -321,12 +332,10 @@ east_on_after_lobby_effects = {
 			if = {
 				limit = {
 					current_date >= 1134.5.26
+					is_landed = yes
 					has_primary_title = title:d_longnan
 				}
-				if = { 
-					limit = { NOT = { has_realm_law = legion_succession_law } }
-					add_realm_law_skip_effects = legion_succession_law
-				}
+				change_government_legion_government_effect = yes
 			}
 			if = {
 				limit = {
@@ -385,6 +394,7 @@ east_on_after_lobby_effects = {
 			if = { #北宋军州
 				limit = { 
 					is_independent_ruler = no
+					is_landed = yes
 					current_date > 937.1.1
 					OR = { 
 						has_primary_title = title:d_chengde
@@ -410,7 +420,7 @@ east_on_after_lobby_effects = {
 						has_primary_title = title:d_jingxiang
 					}
 				}
-				change_government = celestial_government
+				change_to_celes_government_effect = yes
 				vassal_contract_set_obligation_level = {
 					type = special_imperial_contract
 					level = 1
@@ -427,6 +437,7 @@ east_on_after_lobby_effects = {
 			if = { #北宋监司
 				limit = { 
 					is_independent_ruler = no
+					is_landed = yes
 					current_date > 960.1.1
 					#current_date < 1127.1.1
 					OR = { 
@@ -438,7 +449,7 @@ east_on_after_lobby_effects = {
 						#has_primary_title = title:d_confucius
 					}
 				}
-				change_government = celestial_government
+				change_to_celes_government_effect = yes
 				vassal_contract_set_obligation_level = {
 					type = special_imperial_contract
 					level = 2
@@ -487,115 +498,6 @@ east_on_after_lobby_effects = {
 on_title_gain = {
 	on_actions = {
 		east_on_title_gain_effects
-		#oe_admin_effects
-	}
-}
-
-oe_admin_effects = {
-	effect = {
-		# EP3 ADVENTURERS BECOMING LANDED
-		if = {
-			limit = {
-				scope:title = { is_titular = no }
-				any_held_title = { has_variable = adventurer_creation_reason }
-			}
-			save_scope_as = adventurer
-			if = {
-				limit = {
-					NOT = { has_trait = adventurer }
-				}
-				add_trait = adventurer
-			}
-			every_courtier = {
-				set_variable = {
-					name = former_camp_leader
-					value = scope:adventurer
-				}
-				add_trait = adventurer_follower
-			}
-			destroy_laamp_effect = { ADVENTURER = scope:adventurer }
-			# EP3 - Ensure NF holders are Admin
-			if = {
-				limit = {
-					scope:title = { is_noble_family_title = yes }
-					location.county.holder = { government_has_flag = government_is_celestial }
-					NOT = { government_has_flag = government_is_celestial }
-				}
-				change_government = celestial_government
-			}
-		}
-		# Note: anything that should be run after creation can go in on_noble_family_title_created
-		if = {
-			limit = {
-				highest_held_title_tier >= tier_duchy
-				government_has_flag = government_is_celestial #
-				is_house_head = yes
-				top_liege = {
-					is_independent_ruler = yes
-					government_has_flag = government_is_celestial #
-				}
-				NOR = {
-					any_held_title = { is_noble_family_title = yes }
-					house = {
-						any_house_member = {
-							any_held_title = { is_noble_family_title = yes }
-						}
-					}
-				}
-			}
-			create_noble_family_effect = yes
-			domicile ?= { set_up_domicile_estate_effect = yes }
-		}
-		# EP3 - Ensure Emperor keeps old realm capital in admin realms & apply unique domicile building bonus if appropriate
-		if = {
-			limit = {
-				government_has_flag = government_is_celestial #
-				is_independent_ruler = yes
-				highest_held_title_tier >= tier_empire
-			}
-			if = { # Ensure we keep the old realm capital
-				limit = {
-					scope:title = {
-						tier = tier_empire
-						NOT = { title_capital_county = root.capital_county }
-						# Constantinople must have been inherited
-						title_capital_county.holder = root
-					}
-				}
-				set_realm_capital = scope:title.title_capital_county
-			}
-			if = { # Get legitimacy from Reception Hall House Bonus
-				limit = {
-					house = { has_variable = ep3_legacy_legitimacy_counter }
-				}
-				send_interface_message = {
-					type = event_toast_effect_good
-					title = ep3_dynasty_legacy_gain_legitimacy_effect_title
-					left_icon = root
-					right_icon = root.primary_title
-					add_legitimacy = house.var:ep3_legacy_legitimacy_counter
-				}
-			}
-		}
-		# EP3 - Fire a became governor event
-		else_if = {
-			limit = {
-				government_has_flag = government_is_celestial #
-				is_independent_ruler = no
-				is_governor = yes
-				any_held_title = {
-					count < 1
-					NOT = { this = scope:title }
-					tier >= scope:title.tier
-					is_landless_type_title = no
-					is_noble_family_title = no
-				}
-			}
-			trigger_event = {
-				id = ep3_admin_events.0002
-				delayed = yes
-			}
-		}
 	}
 }
 
@@ -876,6 +778,26 @@ celestia_game_start_on_action = {
 #自动化无地角色修正
 east_history_fix_action = {
 	effect = {
+		#儒家信仰还原
+		religion:confucianism_religion = {
+			every_faith = {
+				limit = {
+					OR = {
+						this = faith:jingxue
+						this = faith:lixue
+						this = faith:xinxue
+						this = faith:jingshi
+						this = faith:rangyi
+					}
+					has_doctrine = doctrine_theocracy_temporal
+					has_doctrine = doctrine_clerical_succession_spiritual_appointment
+				} 
+				remove_doctrine = doctrine_theocracy_temporal
+				add_doctrine = doctrine_theocracy_lay_clergy
+				remove_doctrine = doctrine_clerical_succession_spiritual_appointment
+				add_doctrine = doctrine_clerical_succession_temporal_appointment
+			}
+		}
 		#every_ruler = {
 			#if = {
 				#limit = {
@@ -977,14 +899,15 @@ east_history_fix_action = {
 				every_held_title = {
 					limit = {
 						tier = tier_duchy
+						is_landless_type_title = no
+						is_oe_noble_family_title = no
 						title_capital_county = {
 							holder = title:e_cathay.holder
 						}
 					}
 					
 					if = { limit = { exists = holder } }
-					holder = { destroy_title = prev 
-				}
+					holder = { destroy_title = prev }
 				}
 			}
 		}

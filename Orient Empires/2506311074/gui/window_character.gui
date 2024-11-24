@@ -311,121 +311,9 @@ window = {
 				}
 			}
 
-			##宫相
-			container = {
-				name = "great_misit"
-				#blockoverride "portrait_datamodel" {
-					#datamodel = #"[CharacterWindow.GetRelationsOfType( #GetRelation( 'shiyuezhe' ) )]"
-				#}
-				datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation('great_misit') )]"
-				visible = "[GreaterThan_int32(GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation('great_misit') )), '(int32)0' ))]"
-				parentanchor = bottom|right
-				widgetanchor = top|left
-				position = { -105 -250 }
-				allow_outside = yes	
-				using = Animation_Character_Window_Refresh
-				
-				item = {
-					visible = "[Character.IsValid]"
-
-					portrait_head_small = {
-						blockoverride "portrait_transformation"
-						{
-							portrait_scale = { -1 1 }
-							portrait_offset = { 1 0 }
-						}
-						text_label_center = {
-							text = "[great_misit|E]"
-							parentanchor = top|hcenter
-							position = { 0 85 }
-						}
-					}
-				}		
-			}
-
-			#朝贡
-			container = {
-				name = "suzerain"
-				datacontext = "[CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter]"
-				#visible = false
-				visible = "[And(CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').IsSet, CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter.IsAlive)]"
-				parentanchor = bottom|right
-				widgetanchor = top|left
-				position = { -105 -250 }
-				allow_outside = yes
-
-				using = Animation_Character_Window_Refresh
-
-				portrait_head_small = {
-					blockoverride "portrait_transformation"
-					{
-						portrait_scale = { -1 1 }
-						portrait_offset = { 1 0 }
-					}
-
-					blockoverride "coa" {
-						coa_realm_tiny = {
-							visible = "[And(CharacterWindow.GetCharacter.IsAlive, CharacterWindow.HasLiegeTitleEvenWhenDead)]"
-							parentanchor = bottom|left
-							position = { 3 -2 }
-							scale = 0.85
-						}
-
-						coa_title_tiny = {
-							visible = "[And(Not(CharacterWindow.GetCharacter.IsAlive), CharacterWindow.HasLiegeTitleEvenWhenDead)]"
-							datacontext = "[CharacterWindow.GetCharacter.GetLiegeTitleEvenWhenDead]"
-							parentanchor = bottom|left
-							position = { 3 -2 }
-							scale = 0.85
-						}
-					}
-				}
-
-				text_label_center = {
-					parentanchor = top|hcenter
-					position = { 0 85 }
-					text = "suzerain"
-					allow_outside = yes
-				}
-
-				portrait_opinion = {
-					name = "suzerain_opinion"
-					parentanchor = top|hcenter
-					position = { 0 110 }
-
-					datacontext = "[CharacterWindow.GetCharacter]"
-					visible = "[And( Character.GetLiege.IsValid, And( Character.IsAlive, Not(Character.IsLocalPlayer ) ) )]"
-
-					blockoverride "dread_logic" {
-						visible = "[Character.ShouldShowDreadEffectIconFor( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
-						frame = "[Character.GetDreadEffectIconFrameFor( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
-						tooltip = "[Character.GetDreadEffectTooltipFor( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
-					}
-
-					blockoverride "opinion_text"
-					{
-						text = "[Character.GetOpinionOf( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )|=]"
-						fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
-					}
-
-					blockoverride "ott_heading_text"
-					{
-						text = "[Character.GetOpinionHeadingText( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
-					}
-
-					blockoverride "ott_opinion_value_text"
-					{
-						text = "[Character.GetOpinionOf( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )|=]"
-						fonttintcolor = "[Character.GetOpinionOfTint( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
-					}
-
-					blockoverride "ott_opinion_breakdown_text"
-					{
-						text = "[Character.GetOpinionBreakdownText( CharacterWindow.GetCharacter.MakeScope.Var('my_suzerain').GetCharacter )]"
-					}
-				}
-			}
-			#朝贡结束	
+			# OE modifiered
+			oe_great_misit_container = {}
+			oe_tributary_container = {}
 
 			### Host
 			container = {
@@ -944,83 +832,18 @@ window = {
 							margin = { 3 0 }
 							margin_top = 1
 
-							#####谥号庙号 姓名提示
-							hbox_miaohao_text = {}		
-
 							text_single = {
-								datacontext = "[GetScriptedGui('show_miaohao_gui')]"
-								visible = "[Not(ScriptedGui.IsShown(GuiScope.SetRoot(CharacterWindow.GetCharacter.MakeScope).End))]"
+								#####谥号庙号 姓名提示
+								# oe modifiered
+								using = oe_character_name_template
+								using = oe_character_name_tooltip_template
 								name = "character_name"
-								raw_text = "[Character.Custom('OE_GetUINameNotMeNoTooltip')], " 
 								margin_left = 2
 								max_width = 398
 								fontsize = 20
 								fontsize_min = 14
 								align = nobaseline
 								default_format = "#high"
-								tooltipwidget = {
-									widget = {
-										alwaystransparent = no
-	
-										block "background" { #
-											using = DefaultTooltipBackground
-										}
-										vbox = {
-											layoutpolicy_horizontal = expanding
-											set_parent_size_to_minimum = yes
-
-											hbox = {
-												layoutpolicy_horizontal = expanding
-												set_parent_size_to_minimum = yes												
-												margin = { 20 20 }
-
-												text_single = {
-													layoutpolicy_horizontal = expanding
-													text = "[Character.Custom('OE_GetUINameNotMeNoTooltip')]"
-													default_format = "#T"
-												}
-
-												expand = { }
-											}
-
-											vbox = {
-												visible = "[GetScriptedGui('is_china_vassals').IsShown( GuiScope.SetRoot( Character.MakeScope ).End )]"
-												layoutpolicy_horizontal = expanding
-												set_parent_size_to_minimum = yes
-												margin = { 20 0 }
-												margin_bottom = 20
-												spacing = 2
-												
-												text_single = {
-													layoutpolicy_horizontal = expanding
-													text = "EAST_SUCCESSION_TT"
-												}							
-												text_single = {
-													layoutpolicy_horizontal = expanding
-													raw_text = "EAST_CONTRACT_TT"
-												}
-												text_single = {
-													layoutpolicy_horizontal = expanding
-													text = "TRAIT_BUREAUCRAT_TT"
-												}												
-												text_single = {											
-													layoutpolicy_horizontal = expanding
-													text = "bureaucracy_title_rank_tooltip"
-
-												}
-												text_single = {
-													visible = "[GetScriptedGui('is_bureaucrat').IsShown( GuiScope.SetRoot( Character.MakeScope ).End )]"																				
-													layoutpolicy_horizontal = expanding
-													text = "bureaucracy_exp_rank_tooltip"
-
-												}
-
-												expand = { }
-											}
-
-										}
-									}							
-								}
 							}
 
 							text_single = {
@@ -1151,8 +974,8 @@ window = {
 							tooltip = "ADMIN_WINDOW_THEME_GOVERNOR_EFFICIENCY_TT"
 							using = tooltip_ne
 							spacing = -3
-							#visible = "[Or( Character.GetGovernment.HasRule( 'administrative' ), And( And( Not( Character.HasLandedTitles ), Not( Character.HasLiege ) ), GetPlayer.GetGovernment.HasRule( 'administrative' ) ) )]"
-							visible = "[Or(Character.GetGovernment.HasRule( 'administrative' ), Character.GetGovernment.IsType( 'celestial_government' ) )]"
+							# OE modifiered
+							visible = "[Or( IsAdministrativeRuler( Character ), And( And( Not( Character.HasLandedTitles ), Not( Character.HasLiege ) ), IsAdministrativeRuler( GetPlayer ) ) )]"
 							margin_right = 3
 
 							using = Animation_Character_Window_Refresh
@@ -2189,298 +2012,11 @@ window = {
 						scissor = yes
 
 						hbox = {
-
-							############往来天地间（开始）
-							vbox_character_row_item = {
-								name = "suzerain"
-								visible = "[And(CharacterWindow.GetCharacter.IsRuler,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )))]"
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'suzerain' ), '(int32)1' )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "suzerain_LABEL"
-								}
-
-								blockoverride "remaining_items"
-								{
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' ))]"
-									text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )|=]"
-								}
-
-								blockoverride "expand_button_inside" {
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )]"
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'suzerain' )]"
-								}
-							}
-
-							vbox_character_row_item = {
-								name = "suzerain_contracted"
-								visible = "[And(CharacterWindow.GetCharacter.IsRuler,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' ))]"
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'suzerain' ), '(int32)1' )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "suzerain_LABEL"
-								}
-
-								blockoverride "remaining_items"
-								{
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' ))]"
-									text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )|=]"
-								}
-
-								blockoverride "expand_button_inside" {
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )), '(int32)1' )]"
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'suzerain' )]"
-								}
-
-								blockoverride "gridbox"
-								{
-									overlappingitembox = {
-										size = { 80 0 }
-
-										block "portrait_datamodel" {
-											datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
-										}
-
-										item = {
-											portrait_head_small = {
-												blockoverride "portrait_button"
-												{
-													using = tooltip_ne
-												}
-
-											}
-										}
-									}
-								}
-							}
-							vbox_character_row_item = {
-								name = "tributary"
-								layoutpolicy_vertical = expanding
-								visible = "[And(CharacterWindow.GetCharacter.IsRuler,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )))]"
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "tributary_LABEL"
-								}
-
-								blockoverride "remaining_items"
-								{
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' ))]"
-									text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )|=]"
-								}
-
-								blockoverride "expand_button_inside" {
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )]"
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'tributary' )]"
-								}
-							}
-
-							vbox_character_row_item = {
-								name = "tributary_contracted"
-								visible = "[And(CharacterWindow.GetCharacter.IsRuler,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' ))]"
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "tributary_LABEL"
-								}
-
-								blockoverride "remaining_items"
-								{
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' ))]"
-									text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )|=]"
-								}
-
-								blockoverride "expand_button_inside" {
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )), '(int32)1' )]"
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'tributary' )]"
-								}
-
-								blockoverride "gridbox"
-								{
-									overlappingitembox = {
-										size = { 80 0 }
-
-										block "portrait_datamodel" {
-											datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'tributary' ), '(int32)1' )]"
-										}
-
-										item = {
-											portrait_head_small = {
-												blockoverride "portrait_button"
-												{
-													using = tooltip_ne
-												}
-
-											}
-										}
-									}
-								}
-							}
-
-							vbox_character_row_item = {
-								name = "wards"
-								#visible = "[CharacterWindow.GetCharacter.IsAdult]"
-								visible = "[And(CharacterWindow.GetCharacter.IsAdult,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'ward' ) )), '(int32)2' )))]"#往来天地间
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'ward' ), '(int32)2' )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "WARDS_LABEL"
-								}
-
-								blockoverride "expand_button" {}
-
-								blockoverride "empty_character"
-								{
-									visible = "[Character.IsValid]"
-								}
-							}
-
-							vbox_character_row_item = {
-								name = "wards_contracted"
-								visible = "[And(CharacterWindow.GetCharacter.IsAdult,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'ward' ) )), '(int32)2' ))]"
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'ward' ), '(int32)1' )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "WARDS_LABEL"
-								}
-
-								blockoverride "remaining_items"
-								{
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'ward' ) )), '(int32)1' ))]"
-									text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'ward' ) )), '(int32)1' )|=]"
-								}
-
-								blockoverride "expand_button_inside" {
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'ward' ) )), '(int32)1' )]"
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'wards' )]"
-								}
-
-								blockoverride "gridbox"
-								{
-									overlappingitembox = {
-										size = { 100 10 }
-
-										block "portrait_datamodel" {
-											datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'ward' ), '(int32)1' )]"
-										}
-
-										item = {
-											portrait_head_small = {
-												blockoverride "portrait_button"
-												{
-													using = tooltip_ne
-												}
-
-											}
-										}
-									}
-								}
-							}
-
-							vbox_character_row_item = {
-								name = "lovers"
-								visible = "[And(CharacterWindow.GetCharacter.IsAdult,Not(GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)2' )))]"#往来天地间
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "LOVERS_LABEL"
-								}
-
-								blockoverride "remaining_items"
-								{
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)1' ))]"
-									text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)1' )|=]"
-								}
-
-								blockoverride "expand_button_inside" {
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)1' )]"
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'lovers' )]"
-								}
-							}
-
-							vbox_character_row_item = {
-								name = "lovers_contracted"
-								visible = "[And(CharacterWindow.GetCharacter.IsAdult,GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)2' ))]"
-								layoutpolicy_vertical = expanding
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'lover' ), '(int32)1' )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "LOVERS_LABEL"
-								}
-
-								blockoverride "remaining_items"
-								{
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)1' ))]"
-									text = "[GetNumberAbove_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)1' )|=]"
-								}
-
-								blockoverride "expand_button_inside" {
-									visible = "[GreaterThan_int32( GetDataModelSize(CharacterWindow.GetRelationsOfType( GetRelation( 'lover' ) )), '(int32)1' )]"
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'lovers' )]"
-								}
-
-								blockoverride "gridbox"
-								{
-									overlappingitembox = {
-										size = { 80 0 }
-
-										block "portrait_datamodel" {
-											datamodel = "[CharacterWindow.GetRelationsOfTypeFillEmpty( GetRelation( 'lover' ), '(int32)1' )]"
-										}
-
-										item = {
-											portrait_head_small = {
-												blockoverride "portrait_button"
-												{
-													using = tooltip_ne
-												}
-
-											}
-										}
-									}
-								}
-							}
-
-					############往来天地间（结束）
+							# oe modifiered
+							oe_relation_suzerain = {}
+							oe_relation_suzerain_contracted = {}
+							oe_relation_tributary = {}
+							oe_relation_tributary_contracted = {}
 
 							vbox_character_row_item = {
 								name = "wards"
@@ -3048,72 +2584,10 @@ window = {
 						}
 					}
 				}
-				############往来天地间（开始）
 				
-					scrollbox = {
-						name = "suzerain_expanded"
-						visible = "[CharacterWindow.IsRelationExpanded( 'suzerain' )]"
-						size = { 100% 100% }
-
-						blockoverride "scrollbox_replace_vbox" {
-							vbox_character_row_item = {
-								name = "suzerain"
-								margin_top = 10
-								spacing = 5
-
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation( 'suzerain' ) )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "suzerain_LABEL"
-								}
-
-								blockoverride "expand_button_inside" {
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'suzerain' )]"
-									down = "[CharacterWindow.IsRelationExpanded( 'suzerain' )]"
-								}
-
-								blockoverride "gridbox_slots" {}
-							}
-						}
-					}
-
-					scrollbox = {
-						name = "tributary_expanded"
-						visible = "[CharacterWindow.IsRelationExpanded( 'tributary' )]"
-						size = { 100% 100% }
-
-						blockoverride "scrollbox_replace_vbox" {
-							vbox_character_row_item = {
-								name = "tributary"
-								margin_top = 10
-								spacing = 5
-
-
-								blockoverride "portrait_datamodel" {
-									datamodel = "[CharacterWindow.GetRelationsOfType( GetRelation( 'tributary' ) )]"
-								}
-
-								blockoverride "header_text"
-								{
-									text = "tributary_LABEL"
-								}
-
-								blockoverride "expand_button_inside" {
-									onclick = "[CharacterWindow.ToggleExpandedRelation( 'tributary' )]"
-									down = "[CharacterWindow.IsRelationExpanded( 'tributary' )]"
-								}
-
-								blockoverride "gridbox_slots" {}
-							}
-						}
-					}
-
-
-					############往来天地间（结束）
+				# oe modifiered
+				oe_relation_suzerain_expanded = {}
+				oe_relation_tributary_expanded = {}
 
 			}
 
@@ -5101,7 +4575,8 @@ types CharacterWindow
 			size = { 72 32 }
 
 			hbox = {
-				visible = "[Or(Character.GetGovernment.HasRule( 'administrative' ), Character.GetGovernment.IsType( 'celestial_government' ))]"
+				# OE modifiered
+				visible = "[IsAdministrativeRuler( Character )]"
 
 				tooltip = "[Character.GetInfluenceTooltipWithBalance]"
 

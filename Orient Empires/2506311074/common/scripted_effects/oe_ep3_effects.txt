@@ -1,4 +1,214 @@
-﻿# Picks a random valid maa type for OWNER to create
+﻿admin_change_government_effect = {
+	# Make sure you only use this effect on characters you are sure should change government! Since we don't do any extended triggers here.
+	# For a consistent behaviour, this effect is based on "convert_whole_realm_to_feudalism_effect"
+	
+	# First, let's see if the character only has their noble family title - then we don't bother changing their government
+	# We only destroy the family title to make sure it doesn't linger
+	if = {
+		limit = {
+			is_landed = no
+			any_held_title = {
+				is_noble_family_title = yes #仅限原版世族
+			}
+			NOT = {
+				any_held_title = {
+					is_noble_family_title = no
+				}
+			}
+		}
+		every_held_title = {
+			limit = {
+				is_noble_family_title = yes
+			}
+			save_temporary_scope_as = family_title
+			prev = { destroy_title = scope:family_title }  #销毁家族头衔？
+		}
+	}
+
+	########
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			OR = {
+				liege = { government_has_flag = government_is_celestial }
+				liege = { government_has_flag = government_is_ulus }
+			}
+		}
+		change_to_celes_government_effect = yes
+	}
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_legion }
+			}
+		}
+		change_government = legion_government
+	}
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_ulus }
+			}
+		}
+		change_government = ulus_government
+	}
+	
+	# If not, let's change the government type
+	# If liege has clan - Become clan!
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_clan }
+				AND = {
+					liege = { government_has_flag = government_is_tribal }
+					religion = religion:islam_religion
+				}
+			}
+		}
+		change_government = clan_government
+	}
+	# If liege has feudal - Become feudal!
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_feudal }
+				AND = {
+					liege = { government_has_flag = government_is_tribal }
+					NOT = { religion = religion:islam_religion }
+				}
+			}
+		}
+		change_government = feudal_government
+	}
+	#华夏传承独立转律令  （独立公爵级行政化？
+	else_if = {
+		limit = {
+			is_independent_ruler = yes
+			is_legion_government_trigger = yes
+		}
+		change_government = legion_government
+	}
+	else_if = {
+		limit = {
+			is_independent_ruler = yes
+			culture = { has_cultural_pillar = heritage_chinese }
+		}
+		change_to_celes_government_effect = yes
+	}
+	# If you're an independent Muslim ruler - Become clan!
+	else_if = {
+		limit = {
+			is_independent_ruler = yes
+			faith = { religion_tag = islam_religion }
+		}
+		change_government = clan_government
+	}
+	# If you're an independent ruler with anything else - Become feudal!
+	else = { change_government = feudal_government }
+	
+	# Finally, let's double-check and see if there are any remaining family titles we should destroy
+	if = {
+		limit = {
+			NOT = { government_has_flag = government_use_estate }
+			any_held_title = {
+				is_oe_noble_family_title = yes
+			}
+		}
+		every_held_title = {
+			limit = {
+				is_oe_noble_family_title = yes
+			}
+			save_temporary_scope_as = family_title
+			prev = { destroy_title = scope:family_title }
+		}
+	}
+}
+
+
+change_to_administrative_effect = {
+	save_scope_as = governor
+	if = {
+		limit = {
+			liege = { government_has_flag = government_is_celestial }
+			NOT = { government_has_flag = government_is_celestial }
+		}
+		change_government_legion_government_effect = yes
+		save_scope_as = new_admin
+	}
+	else_if = {
+		limit = {
+			NOT = { government_has_flag = government_is_celestial }
+			NOT = { government_has_flag = government_is_administrative }
+		}
+		change_government = administrative_government
+		save_scope_as = new_admin
+	}
+	if = {
+		limit = {
+			primary_title.tier >= tier_duchy
+			liege = {
+				is_independent_ruler = yes
+				government_has_flag = government_use_estate
+			}
+			house.house_head = {
+				NOT = {
+					any_held_title = { is_oe_noble_family_title = yes }
+				}
+			}
+		}
+		create_noble_family_effect = yes
+	}
+	else_if = {
+		limit = {
+			primary_title.tier >= tier_duchy
+			liege = {
+				is_independent_ruler = yes
+				allows_imperial_bureaucracy = yes
+				government_allows = administrative
+			}
+			house.house_head = {
+				NOT = {
+					any_held_title = { is_noble_family_title = yes }
+				}
+			}
+		}
+		create_noble_family_effect = yes
+	}
+
+	hidden_effect = {
+		if = {
+			limit = {
+				is_governor = yes
+				government_has_flag = government_is_celestial
+				NOT = { has_trait = lifestyle_bureaucrat }
+			}
+			add_trait = lifestyle_bureaucrat
+		}
+		else_if = {
+			limit = {
+				is_governor = yes
+				NOT = { has_trait = governor }
+			}
+			add_trait = governor
+		}
+	}
+	if = {
+		limit = { exists = scope:new_admin }
+		domicile ?= {
+			set_up_domicile_estate_effect = yes
+		}
+	}
+}
+
+# Picks a random valid maa type for OWNER to create
 ep3_pick_random_maa_regiment_effect = {
 	save_temporary_scope_value_as = {
 		name = include_basic_maa
@@ -1416,12 +1626,10 @@ settle_landless_title_no_dlc_effect = {
 	if = {
 		limit = {
 			NOT = { has_dlc_feature = roads_to_power }
-
-
 			game_start_date = $DATE$
 		}		
 		create_title_and_vassal_change = {
-			type = conquest
+			type = appointment
 			save_scope_as = change
 		}
 		title:$TITLE$ = {
@@ -1435,151 +1643,480 @@ settle_landless_title_no_dlc_effect = {
 	}
 }
 
+#律令制切换
+#行政化
+celestial_change_to_imperial_with_laws_effect = {
+	if = {
+		limit = {
+			has_government = celestial_government
+			has_realm_law = crown_authority_1
+		}
+		change_government = imperial_government
+		add_realm_law_skip_effects = imperial_bureaucracy_1
+	}
+	else_if = {
+		limit = {
+			has_government = celestial_government
+			has_realm_law = crown_authority_2
+		}
+		change_government = imperial_government
+		add_realm_law_skip_effects = imperial_bureaucracy_2
+	}
+	else_if = {
+		limit = {
+			has_government = celestial_government
+			has_realm_law = crown_authority_3
+		}
+		change_government = imperial_government
+		add_realm_law_skip_effects = imperial_bureaucracy_3
+	}
+	else_if = {
+		limit = {
+			has_government = celestial_government
+		}
+		change_government = imperial_government
+	}
+}
+#去行政化
+imperial_change_to_celestial_with_laws_effect = {
+	if = {
+		limit = {
+			has_government = imperial_government
+			has_realm_law = imperial_bureaucracy_1
+		}
+		change_government = celestial_government
+		add_realm_law_skip_effects = crown_authority_1
+	}
+	else_if = {
+		limit = {
+			has_government = imperial_government
+			has_realm_law = imperial_bureaucracy_2
+		}
+		change_government = celestial_government
+		add_realm_law_skip_effects = crown_authority_2
+	}
+	else_if = {
+		limit = {
+			has_government = imperial_government
+			has_realm_law = imperial_bureaucracy_3
+		}
+		change_government = celestial_government
+		add_realm_law_skip_effects = crown_authority_3
+	}
+	else_if = {
+		limit = {
+			has_government = imperial_government
+		}
+		change_government = celestial_government
+	}
+}
+
 
 ##################################################
 # Dynasty Legacy: Bureaucracy
 ##################################################
 
-ep3_dynasty_legacy_add_legitimacy_effect = {
-	scope:activity = {
+
+#嵌入替換
+#create_noble_family_effect = {
+#	debug_log = create_noble_family_title
+#	save_scope_as = new_noble_family_holder
+#	hidden_effect = { # NF can only be held by house heads
+#		house ?= {
+#			if = {
+#				limit = { house_head != scope:new_noble_family_holder }
+#				set_house_head = scope:new_noble_family_holder
+#			}
+#		}
+#	}
+#	give_noble_family_title = {
+#		name = noble_family_name
+#		article = DEFAULT_TITLE_NAME_ARTICLE
+#		save_scope_as = new_title
+#	}
+#
+#	#添加头衔转换
+#	scope:new_title = {
+#		if = {
+#			limit = {
+#				NOT = { exists = holder }
+#			}
+#			scope:new_noble_family_holder = {
+#				become_title_holder_effect = { TITLE = scope:new_title }
+#			}
+#		}
+#	}
+#	#转换完毕
+#
+#	scope:new_title = {
+#		holder = {
+#			save_scope_as = noble_family_head
+#		}
+#		set_coa = scope:noble_family_head.house
+#	}
+#	custom_description = {
+#		text = create_noble_family_tt
+#	}
+#	#Notifications
+#	top_liege ?= {
+#		every_vassal = {
+#			limit = {
+#				is_ai = no
+#				NOT = { this = scope:new_noble_family_holder }
+#			}
+#			trigger_event = {
+#				id = ep3_emperor_yearly.2410
+#				days = 1
+#			}
+#		}
+#	}
+#	debug_log_scopes = yes
+#}
+
+#完整式
+oe_create_noble_family_effect = {
+	debug_log = create_noble_family_title
+	save_scope_as = new_noble_family_holder
+	hidden_effect = { # NF can only be held by house heads
+	if = {
+		limit = {
+			NOT = {
+				any_held_title = { is_noble_family_title = yes }
+			}
+		}
+		house ?= {
+			if = {
+				limit = { house_head != scope:new_noble_family_holder }
+				set_house_head = scope:new_noble_family_holder
+			}
+		}
+
+		#直接用原版贵族头衔封装效果，用于创建庄园
+		give_noble_family_title = {
+			name = noble_family_name
+			article = DEFAULT_TITLE_NAME_ARTICLE
+			save_scope_as = new_title
+		}
+
 		if = {
 			limit = {
-				scope:host = {
-					government_allows = administrative
-					dynasty = { has_dynasty_perk = ep3_administrative_legacy_3 }
-				}
-				# Does the activity location have a domicile owned by a house member
-				# Does that domicile have the Reception Hall building
-				activity_location = {
-					any_province_domicile = {
-						owner = { house ?= scope:host.house }
-						has_domicile_building_or_higher = reception_hall_01
-					}
-				}
-			}
-			activity_location = {
-				random_province_domicile = {
-					limit = {
-						owner = { house ?= scope:host.house }
-						has_domicile_building_or_higher = reception_hall_01
-					}
-					owner = { save_scope_as = reception_hall_owner }
-				}
-			}
-			scope:host = {
-				house = {
-					if = {
-						limit = {
-							NOT = {
-								has_variable = ep3_legacy_legitimacy_counter
-							}
-						}
-						# Set the initial value
-						set_variable = {
-							name = ep3_legacy_legitimacy_counter
-							value = 10
-						}
-					}
-					else = {
-						change_variable = {
-							name = ep3_legacy_legitimacy_counter
-							add = 10
-						}
-					}
-				}
-				if = {
-					limit = {
-						primary_title.tier = tier_empire
-					}
-					send_interface_toast = {
-						type = event_toast_effect_good
-						title = ep3_dynasty_legacy_gain_legitimacy_effect_title
-						left_icon = scope:host
-						right_icon = scope:host.primary_title
-						add_legitimacy = 10
-					}
-				}
-				else = {
+				government_has_flag = government_use_estate	
+				NOR = {
+					any_held_title = { is_oe_aristocrat_title = yes }
 					house = {
-						every_house_member = {
-							limit = { is_ai = no }
-							send_interface_message = {
-								type = event_generic_good_text
-								title = ep3_dynasty_legacy_add_legitimacy_effect_title
-								desc = ep3_dynasty_legacy_add_legitimacy_effect_desc
-								left_icon = scope:host
-								right_icon = house
-							}
+						any_house_member = {
+							any_held_title = { is_oe_aristocrat_title = yes }
 						}
 					}
 				}
 			}
+			create_dynamic_title = {
+				tier = duchy
+				name = oe_noble_family_name
+			}
+			create_title_and_vassal_change = {
+				type = created
+				save_scope_as = change
+				add_claim_on_loss = no
+			}
+			scope:new_title = {
+				change_title_holder = {
+					holder = scope:new_noble_family_holder
+					change = scope:change
+				}
+				set_coa = scope:new_noble_family_holder.house
+				set_capital_county = scope:new_noble_family_holder.location.county
+				set_definitive_form = yes
+				set_landless_title = yes
+				set_no_automatic_claims = yes
+			}
+			resolve_title_and_vassal_change = scope:change
 		}
+
+		scope:new_title = {
+			set_variable = {
+				name = oe_aristocrat_title
+				value = yes
+			}
+			holder = {
+				save_scope_as = new_family
+				save_scope_as = noble_family_head
+			}
+			add_title_law = noble_family_succession_law #添加继承法
+			add_title_law = male_preference_law
+		}
+	}
+
+
+	custom_description = {
+		text = create_noble_family_tt
+	}
+
+	#Notifications
+	top_liege ?= {
+		every_vassal = {
+			limit = {
+				is_ai = no
+				NOT = { this = scope:new_noble_family_holder }
+			}
+			trigger_event = {
+				id = ep3_emperor_yearly.2410
+				days = 1
+			}
+		}
+	}
+	}
+	debug_log_scopes = yes
+}
+#become_title_holder_effect = { TITLE =  }
+
+
+
+#转移或销毁世族头衔
+transfer_noble_family_title_effect = {
+	save_scope_as = old_house_head
+	every_held_title = {
+		limit = { is_oe_noble_family_title = yes }
+		save_scope_as = nf_title
+	}
+
+	if = {
+		limit = {
+			any_house_member = {
+				highest_held_title_tier > tier_county
+			}
+		}
+		random_house_member = {
+			limit = {
+				highest_held_title_tier > tier_county
+			}
+			save_scope_as = new_house_head
+		}
+	}
+	else_if = {
+		limit = {
+			any_close_family_member = {
+				is_landed = no
+				age > scope:old_house_head.age
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+		}
+		random_close_family_member = {
+			limit = {
+				is_landed = no
+				age > scope:old_house_head
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+			save_scope_as = new_house_head
+		}
+	}
+	else_if = {
+		limit = {
+			any_house_member = {
+				is_landed = no
+				age > scope:old_house_head.age
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+		}
+		random_house_member = {
+			limit = {
+				is_landed = no
+				age > scope:old_house_head
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+			save_scope_as = new_house_head
+		}
+	}
+	else_if = {
+		limit = {
+			any_close_family_member = {
+				is_landed = no
+				is_adult = yes
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+		}
+		random_close_family_member  = {
+			limit = {
+				is_landed = no
+				is_adult = yes
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+			save_scope_as = new_house_head
+		}
+	}
+	else_if = {
+		limit = {
+			any_house_member = {
+				is_landed = no
+				is_adult = yes
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+		}
+		random_house_member = {
+			limit = {
+				is_landed = no
+				is_adult = yes
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_male_dominated
+						}
+					}
+					is_male = yes
+				}
+				trigger_if = {
+					limit = {
+						scope:liege.faith = {
+							has_doctrine = doctrine_gender_female_dominated
+						}
+					}
+					is_female = yes
+				}
+			}
+			save_scope_as = new_house_head
+		}
+	}
+	else = {
+		scope:old_house_head = {
+			destroy_title = scope:nf_title
+		}
+	}
+
+	if = {
+		limit = {
+			exists = scope:new_house_head
+		}
+		create_title_and_vassal_change = {
+			type = inheritance
+			save_scope_as = change
+		}
+		scope:nf_title = {
+			change_title_holder = {
+				holder = scope:new_house_head
+				change = scope:change
+			}
+		}
+	
+		resolve_title_and_vassal_change = scope:change
 	}
 }
 
-
-
-increase_imperial_bureaucracy_effect = {
+#添加君权法
+add_imperial_law_level_effect = {
 	if = {
-		limit = { has_realm_law_flag = uses_imperial_bureaucracy }
-		#Laws
-		if = {
-			limit = { has_realm_law = imperial_bureaucracy_0 }
-			add_realm_law = imperial_bureaucracy_1
+		limit = {
+			has_dlc_feature = roads_to_power
+			government_allows = administrative
+			is_oe_imperial_court_trigger = yes
 		}
-		else_if = {
-			limit = { has_realm_law = imperial_bureaucracy_1 }
-			add_realm_law = imperial_bureaucracy_2
-		}
-		else_if = {
-			limit = { has_realm_law = imperial_bureaucracy_2 }
-			add_realm_law = imperial_bureaucracy_3
-		}
-		#Laws
-		if = {
-			limit = { has_realm_law = celestial_bureaucracy_0 }
-			add_realm_law = celestial_bureaucracy_1
-		}
-		else_if = {
-			limit = { has_realm_law = celestial_bureaucracy_1 }
-			add_realm_law = celestial_bureaucracy_2
-		}
-		else_if = {
-			limit = { has_realm_law = celestial_bureaucracy_2 }
-			add_realm_law = celestial_bureaucracy_3
-		}
+		add_realm_law_skip_effects = imperial_bureaucracy_$LEVVEL$
 	}
-}
-
-decrease_imperial_bureaucracy_effect = {
-	if = {
-		limit = { has_realm_law_flag = uses_imperial_bureaucracy }
-		#Laws
-		if = {
-			limit = { has_realm_law = imperial_bureaucracy_3 }
-			add_realm_law = imperial_bureaucracy_2
-		}
-		else_if = {
-			limit = { has_realm_law = imperial_bureaucracy_2 }
-			add_realm_law = imperial_bureaucracy_1
-		}
-		else_if = {
-			limit = { has_realm_law = imperial_bureaucracy_1 }
-			add_realm_law = imperial_bureaucracy_0
-		}
-		#Laws
-		if = {
-			limit = { has_realm_law = celestial_bureaucracy_0 }
-			add_realm_law = celestial_bureaucracy_1
-		}
-		else_if = {
-			limit = { has_realm_law = celestial_bureaucracy_1 }
-			add_realm_law = celestial_bureaucracy_2
-		}
-		else_if = {
-			limit = { has_realm_law = celestial_bureaucracy_2 }
-			add_realm_law = celestial_bureaucracy_3
-		}
+	else = {
+		add_realm_law_skip_effects = crown_authority_$LEVVEL$
 	}
 }

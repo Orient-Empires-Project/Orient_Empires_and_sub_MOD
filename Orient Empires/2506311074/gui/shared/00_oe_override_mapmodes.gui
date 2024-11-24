@@ -1,0 +1,346 @@
+types MapModes
+{
+	type map_modes = widget {
+		allow_outside = yes
+		filter_mouse = all
+		alwaystransparent = yes
+		size = { 200 95 }
+
+		using = oe_mapmode_template
+
+		background = {
+			using = Background_Area_Dark
+			margin_left = 10
+			margin_bottom = 10
+			margin_top = -12
+			margin_right = 20
+			color = { 0.15 0.15 0.15 0.75 }
+			visible = "[And(CanChangeMapMode, Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_timeline').GetValue, '(CFixedPoint)0' ) ))]"
+		}
+
+		@zoom_level_offset = -40
+
+		flowcontainer = {
+			name = "paper_map"
+			visible = "[And(And( And( Not( GetVariableSystem.Exists( 'mapmodes_expand' ) ), IsMapMode('realms') ), IsDefaultGUIMode ), Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_map_zoom').GetValue, '(CFixedPoint)0' ) ))]"
+			parentanchor = top|right
+			position = { 0 @zoom_level_offset }
+			direction = vertical
+			ignoreinvisible = yes
+			min_width = 170
+			tooltip = "ZOOM_LEVEL_PAPER_MAP_TOOLTIP"
+
+			state = {
+				name = _show
+				using = Animation_FadeIn_Standard
+			}
+
+			state = {
+				name = _hide
+				using = Animation_FadeOut_Standard
+			}
+
+			background = {
+				using = Background_Area_Dark
+				margin = { 10 10 }
+				margin_top = 5
+				color = { 0.15 0.15 0.15 0.75 }
+			}
+
+			text_single = {
+				visible = "[GreaterThanOrEqualTo_int32(GetZoomLevel, '(int32)20')]"
+				parentanchor = hcenter
+				text = "ZOOM_LEVEL_PAPER_MAP"
+				default_format = "#high;italic"
+			}
+
+			text_single = {
+				visible = "[GreaterThanOrEqualTo_int32(GetZoomLevel, '(int32)20')]"
+				parentanchor = hcenter
+				text = "ZOOM_LEVEL_SELECTING_REALMS"
+			}
+		}
+
+		flowcontainer = {
+			name = "political_map"
+			visible = "[And(And( And( Not( GetVariableSystem.Exists( 'mapmodes_expand' ) ), IsMapMode('realms') ), IsDefaultGUIMode ), Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_map_zoom').GetValue, '(CFixedPoint)0' ) ))]"
+			parentanchor = top|right
+			position = { 0 @zoom_level_offset }
+			direction = vertical
+			ignoreinvisible = yes
+			min_width = 170
+			tooltip = ZOOM_LEVEL_POLITICAL_TOOLTIP
+
+			state = {
+				name = _show
+				using = Animation_FadeIn_Standard
+			}
+
+			state = {
+				name = _hide
+				using = Animation_FadeOut_Standard
+			}
+
+			background = {
+				using = Background_Area_Dark
+				margin = { 10 10 }
+				margin_top = 5
+				color = { 0.15 0.15 0.15 0.75 }
+			}
+
+			text_single = {
+				visible = "[And(LessThan_int32(GetZoomLevel, '(int32)20'), GreaterThan_int32(GetZoomLevel, '(int32)8'))]"
+				parentanchor = hcenter
+				text = "ZOOM_LEVEL_POLITICAL"
+				default_format = "#color_yellow"
+			}
+
+			text_single = {
+				visible = "[And(LessThan_int32(GetZoomLevel, '(int32)20'), GreaterThan_int32(GetZoomLevel, '(int32)8'))]"
+				parentanchor = hcenter
+				text = "ZOOM_LEVEL_SELECTING_REALMS"
+			}
+		}
+
+		flowcontainer = {
+			name = "details_map"
+			visible = "[And(And( And(Not(GetVariableSystem.Exists( 'mapmodes_expand' )), IsMapMode('realms')), IsDefaultGUIMode ), Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_map_zoom').GetValue, '(CFixedPoint)0' ) ))]"
+			parentanchor = top|right
+			position = { 0 @zoom_level_offset }
+			direction = vertical
+			ignoreinvisible = yes
+			min_width = 170
+			tooltip = ZOOM_LEVEL_DETAILS_TOOLTIP
+
+			state = {
+				name = _show
+				using = Animation_FadeIn_Standard
+			}
+
+			state = {
+				name = _hide
+				using = Animation_FadeOut_Standard
+			}
+
+			background = {
+				using = Background_Area_Dark
+				margin = { 10 10 }
+				margin_top = 5
+				color = { 0.15 0.15 0.15 0.75 }
+			}
+
+			text_single = {
+				visible = "[LessThan_int32(GetZoomLevel, '(int32)9')]"
+				parentanchor = hcenter
+				text = "ZOOM_LEVEL_DETAILS"
+				default_format = "#color_green"
+			}
+
+			text_single = {
+				visible = "[LessThan_int32(GetZoomLevel, '(int32)9')]"
+				parentanchor = hcenter
+				text = "ZOOM_LEVEL_SELECTING_BARONIES"
+			}
+		}
+
+		# hmi plus added
+		hm_map_legend = {}
+
+		## Realm
+		icon_button_mapmode = {
+			name = "map_mode_realms_button"
+			position = { 0 25 }
+			size = { 50 50 }
+			visible = "[And(CanChangeMapMode, Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_timeline').GetValue, '(CFixedPoint)0' ) ))]"
+
+			blockoverride 'mm_datacontext'
+			{
+				datacontext = "[GetMapMode('realms')]"
+			}
+
+			blockoverride "mm_button"
+			{
+				onclick = "[ClearExploringRealms]"
+				shortcut = "map_mode_1"
+			}
+			blockoverride "mm_icon"
+			{
+				size = { 50 50 }
+			}
+
+			blockoverride "mm_glow"
+			{
+				visible = no
+			}
+
+			blockoverride "mm_bg_color"
+			{
+				color = { 0.18 0.18 0 1 }
+			}
+		}
+
+		flowcontainer = {
+			parentanchor = right|bottom
+			margin_right = 15
+			direction = vertical
+			visible = "[And(CanChangeMapMode, Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_timeline').GetValue, '(CFixedPoint)0' ) ))]"
+			
+			## De Jure
+			flowcontainer = {
+				visible = "[CanChangeMapMode]"
+				parentanchor = hcenter
+				direction = horizontal
+				ignoreinvisible = yes
+				spacing = -3
+
+				icon_button_mapmode = {
+					name = "map_mode_duchies_button"
+					block "map_mode_tutorial"{}
+
+					size = { 38 38 }
+				
+					blockoverride 'mm_datacontext'
+					{
+						datacontext = "[GetMapMode('dejure_duchies')]"
+					}
+				
+					blockoverride "mm_button"
+					{
+						shortcut = "map_mode_9"
+					}
+				
+					blockoverride "button_bg_color"
+					{
+						color = { 0.1 0.14 0.1 1 }
+					}
+				}
+			
+				icon_button_mapmode = {
+					name = "map_mode_kingdoms_button"
+					size = { 38 38 }
+				
+					blockoverride 'mm_datacontext'
+					{
+						datacontext = "[GetMapMode('dejure_kingdoms')]"
+					}
+				
+					blockoverride "mm_button"
+					{
+						shortcut = "map_mode_10"
+					}
+				
+					blockoverride "button_bg_color"
+					{
+						color = { 0.18 0.1 0.1 1 }
+					}
+				}
+			
+				icon_button_mapmode = {
+					name = "map_mode_empires_button"
+					size = { 38 38 }
+				
+					blockoverride 'mm_datacontext'
+					{
+						datacontext = "[GetMapMode('dejure_empires')]"
+					}
+				
+					blockoverride "mm_button"
+					{
+						shortcut = "map_mode_11"
+					}
+				
+					blockoverride "button_bg_color"
+					{
+						color = { 0.12 0.12 0.18 1 }
+					}
+				}
+
+				# oe added
+				button_oe_tributary_map = {}
+			}
+
+			## Other
+			flowcontainer = {
+				parentanchor = hcenter
+				direction = horizontal
+				ignoreinvisible = no
+				spacing = -2
+
+				visible = "[And(CanChangeMapMode, Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_timeline').GetValue, '(CFixedPoint)0' ) ))]"
+
+				icon_button_mapmode = {
+					name = "map_mode_religion_button"
+					size = { 32 32 }
+					parentanchor = vcenter
+
+					blockoverride 'mm_datacontext'
+					{
+						datacontext = "[GetMapMode('religions')]"
+					}
+
+					blockoverride "mm_button"
+					{
+						shortcut = "map_mode_3"
+					}
+				}
+
+				icon_button_mapmode = {
+					name = "map_mode_cultures_button"
+					size = { 32 32 }
+					parentanchor = vcenter
+
+					blockoverride 'mm_datacontext'
+					{
+						datacontext = "[GetMapMode('cultures')]"
+					}
+
+					blockoverride "mm_button"
+					{
+						shortcut = "map_mode_2"
+					}
+				}
+
+				icon_button_mapmode = {
+					name = "map_mode_houses_button"
+					size = { 32 32 }
+					parentanchor = vcenter
+
+					blockoverride 'mm_datacontext'
+					{
+						datacontext = "[GetMapMode('houses')]"
+					}
+
+					blockoverride "mm_button"
+					{
+						shortcut = "map_mode_4"
+					}
+				}
+
+				# oe added
+				button_oe_contract_map = {}
+
+				widget = {
+					parentanchor = vcenter
+					size = {32 32}
+
+					button_round = {
+						parentanchor = center
+						size = { 30 30 }
+						onclick = "[GetVariableSystem.Toggle( 'mapmodes_expand' )]"
+
+						button_plus_small = {
+							parentanchor = center
+							alwaystransparent = yes
+						}
+					}
+				}
+			}
+		}
+
+		flowcontainer_additional_mapmodes = {
+			parentanchor = top|right
+			widgetanchor = bottom|right
+			position = { 20 21 } 
+		}
+	}
+}

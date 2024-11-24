@@ -420,6 +420,7 @@ adopt_celestial_government_decision = {
 
 	is_valid = {
 			highest_held_title_tier >= tier_duchy
+			has_realm_law = crown_authority_3
 			NOT = { government_has_flag = government_is_landless_adventurer }
 			capital_province.county = {
 				development_level >= convert_to_feudalism_development_requirement
@@ -468,7 +469,8 @@ adopt_celestial_government_decision = {
 	}
 
 	effect = {
-		change_government = celestial_government
+		change_to_celes_government_effect = yes
+		
 		add_realm_law_skip_effects = tradition_succession_law
 	}
 	
@@ -807,5 +809,147 @@ convert_to_tribalism_decision = {
 			government_has_flag = government_is_celestial
 			highest_held_title_tier > tier_duchy
 		}
+	}
+}
+
+
+
+#律令制互换
+celestial_change_to_imperial_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	sort_order = 60
+	ai_check_interval = 12
+	ai_goal = yes
+
+	is_shown = {
+		has_ep3_dlc_trigger = yes
+		has_government = celestial_government
+		OR = {
+			is_independent_ruler = yes
+			is_ai = no
+		}
+		NOT = { has_character_flag = used_celestial_change_decision }
+	}
+
+	is_valid = {
+		custom_description = {
+			text = not_used_celestial_change_decision_tt
+			trigger_if = {
+				limit = { is_ai = no }
+				NOT = { has_character_flag = used_celestial_change_decision }
+			}		
+		}
+	}
+
+	is_valid_showing_failures_only = {
+	}
+
+	cost = {
+		prestige = 1
+	}
+
+	effect = {
+		celestial_change_to_imperial_with_laws_effect = yes
+		custom_tooltip = government_has_influence
+		custom_tooltip = government_has_title_men_at_arms
+		custom_tooltip = government_has_powerful_families
+
+		hidden_effect = {
+			add_character_flag = used_celestial_change_decision
+			if = {
+				limit = {
+					any_vassal_or_below = {
+						exists = yes
+					}
+				}
+				every_vassal_or_below = {
+					limit = {
+						has_government = celestial_government
+						primary_title = {
+							is_landless_type_title = no
+						}
+					}
+					celestial_change_to_imperial_with_laws_effect = yes
+				}
+			}
+		}
+	}
+	
+	ai_potential = {
+		is_independent_ruler = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+#
+imperial_change_to_celestial_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	sort_order = 60
+
+	is_shown = {
+		has_ep3_dlc_trigger = yes
+		has_government = imperial_government
+		is_ai = no
+		NOT = { has_character_flag = used_celestial_change_decision }
+	}
+	is_valid = {
+		custom_description = {
+			text = not_used_celestial_change_decision_tt
+			trigger_if = {
+				limit = { is_ai = no }
+				NOT = { has_character_flag = used_celestial_change_decision }
+			}		
+		}
+	}
+
+	is_valid_showing_failures_only = {
+	}
+
+	cost = {
+		influence = 1
+	}
+
+	effect = {
+		imperial_change_to_celestial_with_laws_effect = yes
+		custom_tooltip = no_more_government_has_title_men_at_arms
+		custom_tooltip = no_more_government_has_powerful_families
+
+		hidden_effect = {
+			add_character_flag = used_celestial_change_decision
+			if = {
+				limit = {
+					any_vassal_or_below = {
+						exists = yes
+						has_government = imperial_government
+					}
+				}
+				every_vassal_or_below = {
+					limit = {
+						has_government = imperial_government
+						primary_title = {
+							is_landless_type_title = no
+						}
+					}
+					imperial_change_to_celestial_with_laws_effect = yes
+				}
+			}
+		}
+	}
+	
+	ai_potential = {
+		always = no
+	}
+
+	ai_will_do = {
+		base = 0
 	}
 }

@@ -4,13 +4,14 @@
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
 	desc = hm_replace_the_bureaucratic_interaction_desc
-	needs_recipient_to_open = yes
+	#needs_recipient_to_open = yes
+	#can_send_despite_rejection = yes
 
 	ai_maybe = no
-	can_send_despite_rejection = yes
+
 	popup_on_receive = yes
 	pause_on_receive = yes
-	interface_priority = 60
+	interface_priority = 65
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
 
@@ -20,24 +21,21 @@
 			is_oe_imperial_court_trigger = yes
 			is_ai = no
 		}
-		scope:recipient = {
-			is_vassal_or_below_of = scope:actor
-			is_oe_landed_bureaucrat_trigger = yes
-		}
-		NOT = { scope:recipient = scope:actor }
-	}
-	is_valid = {
-		scope:actor = {
-			culture = { has_innovation = innovation_centralization_of_authority }
-			has_realm_law = imperial_bureaucracy_2	
-		}
 		scope:recipient = { #卸任官
+			is_vassal_or_below_of = scope:actor
 			is_ai = yes
 			is_at_war = no
 			custom_description = {
 				text = AI_REFUSAL_IS_BUREAU
 				is_oe_landed_bureaucrat_trigger = yes
 			}
+		}
+		NOT = { scope:recipient = scope:actor }
+	}
+	is_valid = {
+		scope:actor = {
+			#culture = { has_innovation = innovation_centralization_of_authority }
+			#oe_autocracy_level_3 = yes	#官僚法三级 TODO律令细化
 		}
 	}
 
@@ -52,25 +50,25 @@
 			}
 		}
 	}
-	populate_actor_list = {
+	populate_recipient_list = {
 		scope:actor = {
-			every_vassal_or_below = { #皇帝的其他文官
-				limit = {
-					highest_held_title_tier < scope:recipient.primary_title.tier
-					is_oe_landed_bureaucrat_trigger = yes
-				}
-				add_to_list = characters
-			}
-			every_courtier_or_guest = { #皇帝的廷臣
+			#every_vassal_or_below = { #皇帝的其他文官
+				#limit = {
+					#highest_held_title_tier < scope:recipient.primary_title.tier
+					#is_oe_landed_bureaucrat_trigger = yes
+				#}
+				#add_to_list = characters
+			#}
+			every_courtier = { #皇帝的廷臣
 				limit = {
 					is_ruler = no
-					target_is_liege_or_above = scope:actor
 					is_available_ai_adult = yes
 					is_male = yes
 				}
 				add_to_list = characters
 			}
 			every_pool_character = { #首都角色池
+				province = scope:actor.capital_province
 				limit = {
 					is_available_healthy_ai_adult = yes
 					OR = {
@@ -87,11 +85,9 @@
 			}
 		}
 		scope:recipient = { #地方幕僚
-			every_courtier_or_guest = {
+			every_courtier = {
 				limit = {
-					is_ruler = no
-					target_is_liege_or_above = scope:actor
-					is_adult = yes
+					is_available_ai_adult = yes
 					is_male = yes
 				}
 				add_to_list = characters
@@ -118,6 +114,10 @@
 
 	send_options_exclusive = no
 
+	can_send = {
+		#scope:target = { exists = this }
+	}
+
 	on_send = {
 		scope:actor = {
 			add_character_flag = {
@@ -137,7 +137,7 @@
 							any_held_title = {
 								tier = tier_kingdom
 								is_landless_type_title = no
-								is_noble_family_title = no
+								is_oe_noble_family_title = no
 							}
 						}
 						add = {
@@ -145,7 +145,7 @@
 								limit = {
 									tier = tier_kingdom
 									is_landless_type_title = no
-									is_noble_family_title = no
+									is_oe_noble_family_title = no
 								}
 								add = {
 									value = scope:recipient.massive_influence_value
@@ -160,7 +160,7 @@
 							any_held_title = {
 								tier = tier_duchy
 								is_landless_type_title = no
-								is_noble_family_title = no
+								is_oe_noble_family_title = no
 							}
 						}
 						add = {
@@ -168,7 +168,7 @@
 								limit = {
 									tier = tier_duchy
 									is_landless_type_title = no
-									is_noble_family_title = no
+									is_oe_noble_family_title = no
 								}
 								add = scope:recipient.massive_influence_value
 							}
@@ -241,8 +241,8 @@
 		
 	on_accept = {
 		if = {
-			limit = { scope:secondary_actor = { is_landed = yes } }
-			scope:secondary_actor = { oe_governor_resignation_title_transfer_effect = yes }
+			limit = { scope:secondary_recipient = { is_landed = yes } }
+			scope:secondary_recipient = { oe_governor_resignation_title_transfer_effect = yes }
 		}
 		scope:recipient = {
 			save_east_contract_effect = yes
@@ -255,11 +255,11 @@
 				limit = {
 					tier < tier_empire
 					tier >= tier_county
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 					is_landless_type_title = no
 				}
 				change_title_holder = {
-					holder = scope:secondary_actor
+					holder = scope:secondary_recipient
 					change = scope:change
 				}
 			}
@@ -268,7 +268,7 @@
 					highest_held_title_tier >= tier_county
 				}
 				change_liege = {
-					liege = scope:secondary_actor
+					liege = scope:secondary_recipient
 					change = scope:change
 				}
 			}
@@ -282,8 +282,9 @@
 		scope:actor = {
 			add_courtier = scope:recipient 
 		}
-		scope:secondary_actor = {
+		scope:secondary_recipient = {
 			change_government = celestial_government
+			save_scope_as = lucky
 			inter_east_contract_effect = yes
 		}
 	}
@@ -294,11 +295,14 @@
 				scope:recipient.primary_title.tier != tier_barony
 			}
 			scope:actor = {
-				revocation_tyranny_effect = yes
-				title_revocation_stress_effect = yes
+				revocation_tyranny_effect = { VASSAL = scope:recipient }
+				title_revocation_stress_effect = { VASSAL = scope:recipient }
 			}
 		}
-		war_for_revoke_effect = yes
+		war_for_revoke_effect = {
+			LIEGE = scope:actor
+			REBEL = scope:recipient
+		}
 		scope:recipient = {
 			add_opinion = {
 				target = scope:actor
@@ -672,8 +676,8 @@ hm_exchange_two_bannermen_interaction = {
 	}
 	is_valid_showing_failures_only = {
 		scope:actor = {
-			has_realm_law = imperial_bureaucracy_2
-			culture = { has_innovation = innovation_centralization_of_authority }
+			oe_autocracy_level_3 = yes	#官僚法三级 TODO律令细化
+			#culture = { has_innovation = innovation_centralization_of_authority }
 		}
 		trigger_if = {
 			limit = {
@@ -695,7 +699,7 @@ hm_exchange_two_bannermen_interaction = {
 		scope:secondary_recipient = {
 			every_held_title = {
 				limit = {
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 					is_landless_type_title = no
 				}
 				add_to_temporary_list = titles_recipient
@@ -707,7 +711,7 @@ hm_exchange_two_bannermen_interaction = {
 		scope:secondary_actor = {
 			every_held_title = {
 				limit = {
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 					is_landless_type_title = no
 				}
 				add_to_temporary_list = titles_actor
@@ -771,11 +775,14 @@ hm_exchange_two_bannermen_interaction = {
 				scope:recipient.primary_title.tier != tier_barony
 			}
 			scope:actor = {
-				revocation_tyranny_effect = yes
-				title_revocation_stress_effect = yes
+				revocation_tyranny_effect = { VASSAL = scope:recipient }
+				title_revocation_stress_effect = { VASSAL = scope:recipient }
 			}
 		}
-		war_for_revoke_effect = yes
+		war_for_revoke_effect = {
+			LIEGE = scope:actor
+			REBEL = scope:recipient
+		}
 		scope:recipient = {
 			add_opinion = {
 				target = scope:actor
@@ -1232,7 +1239,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		}	
 	}
 	has_valid_target_showing_failures_only = {
-		scope:secondary_actor = { #候任官
+		scope:secondary_recipient = { #候任官
 			is_available_at_peace_adult = yes
 			 #不在活动中
 			OR = {
@@ -1258,7 +1265,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			is_available_at_peace = yes
 		}
 	}
-	populate_actor_list = {
+	populate_recipient_list = {
 		scope:actor.top_liege = {
 			every_courtier_or_guest = { #皇帝的廷臣
 				limit = {
@@ -1283,6 +1290,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			}
 		}
 		every_pool_character = { #首都角色池
+			province = scope:actor.capital_province
 			limit = {
 				is_available_healthy_ai_adult = yes
 				OR = {
@@ -1341,13 +1349,13 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			}
 			every_held_title = {
 				limit = {
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 					is_landless_type_title = no
 					tier < tier_empire
 					tier >= tier_county
 				}
 				change_title_holder = {
-					holder = scope:secondary_actor
+					holder = scope:secondary_recipient
 					change = scope:change
 				}
 			}
@@ -1356,7 +1364,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 					highest_held_title_tier >= tier_county
 				}
 				change_liege = {
-					liege = scope:secondary_actor
+					liege = scope:secondary_recipient
 					change = scope:change
 				}
 			}
@@ -1365,7 +1373,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 		scope:actor.liege = {
 			add_courtier = scope:recipient 
 		}
-		scope:secondary_actor = {
+		scope:secondary_recipient = {
 			change_government = celestial_government
 		}
 	}
@@ -1376,8 +1384,8 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				scope:recipient.primary_title.tier != tier_barony
 			}
 			scope:actor = {
-				revocation_tyranny_effect = yes
-				title_revocation_stress_effect = yes
+				revocation_tyranny_effect = { VASSAL = scope:recipient }
+				title_revocation_stress_effect = { VASSAL = scope:recipient }
 			}
 		}
 		#war_for_revoke_effect = yes

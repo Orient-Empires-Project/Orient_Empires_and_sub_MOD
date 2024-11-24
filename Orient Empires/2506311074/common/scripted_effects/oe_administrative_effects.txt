@@ -1,146 +1,11 @@
-﻿admin_change_government_effect = {
-	# Make sure you only use this effect on characters you are sure should change government! Since we don't do any extended triggers here.
-	# For a consistent behaviour, this effect is based on "convert_whole_realm_to_feudalism_effect"
-	
-	# First, let's see if the character only has their noble family title - then we don't bother changing their government
-	# We only destroy the family title to make sure it doesn't linger
-	if = {
-		limit = {
-			is_landed = no
-			any_held_title = {
-				is_noble_family_title = yes
-			}
-			NOT = {
-				any_held_title = {
-					is_noble_family_title = no
-				}
-			}
-		}
-		every_held_title = {
-			limit = {
-				is_noble_family_title = yes
-			}
-			save_temporary_scope_as = family_title
-			prev = { destroy_title = scope:family_title }
-		}
-	}
-
-	########
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			OR = {
-				liege = { government_has_flag = government_is_celestial }
-				AND = {
-					liege = { government_has_flag = government_is_ulus }
-					culture = culture:han
-				}
-			}
-		}
-		change_government = celestial_government
-	}
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			OR = {
-				liege = { government_has_flag = government_is_legion }
-			}
-		}
-		change_government = legion_government
-	}
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			OR = {
-				liege = { government_has_flag = government_is_ulus }
-			}
-		}
-		change_government = ulus_government
-	}
-	
-	# If not, let's change the government type
-	# If liege has clan - Become clan!
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			OR = {
-				liege = { government_has_flag = government_is_clan }
-				AND = {
-					liege = { government_has_flag = government_is_tribal }
-					religion = religion:islam_religion
-				}
-			}
-		}
-		change_government = clan_government
-	}
-	# If liege has feudal - Become feudal!
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			OR = {
-				liege = { government_has_flag = government_is_feudal }
-				AND = {
-					liege = { government_has_flag = government_is_tribal }
-					NOT = { religion = religion:islam_religion }
-				}
-			}
-		}
-		change_government = feudal_government
-	}
-	# If you're an independent Muslim ruler - Become clan!
-	else_if = {
-		limit = {
-			is_independent_ruler = yes
-			faith = { religion_tag = islam_religion }
-		}
-		change_government = clan_government
-	}
-	# If you're an independent ruler with anything else - Become feudal!
-	else = { change_government = feudal_government }
-	
-	# Finally, let's double-check and see if there are any remaining family titles we should destroy
-	if = {
-		limit = {
-			NOT = { government_has_flag = government_is_celestial }
-			any_held_title = {
-				is_noble_family_title = yes
-			}
-		}
-		every_held_title = {
-			limit = {
-				is_noble_family_title = yes
-			}
-			save_temporary_scope_as = family_title
-			prev = { destroy_title = scope:family_title }
-		}
-	}
-}
-
-#转律令制
+﻿#转律令制
 change_to_celestial_effect = {
 	save_scope_as = governor
 	if = {
 		limit = {
 			NOT = { government_has_flag = government_is_celestial }
-			OR = {
-				government_has_flag = government_is_legion
-				government_has_flag = government_is_feudal
-				government_has_flag = government_is_clan
-			}
 		}
 		change_government_legion_government_effect = yes
-		save_scope_as = new_admin
-	}
-	if = {
-		limit = {
-			NOT = { government_has_flag = government_is_celestial }
-			NOR = {
-				government_has_flag = government_is_legion
-				government_has_flag = government_is_feudal
-				government_has_flag = government_is_clan
-			}
-		}
-		change_government = celestial_government
 		save_scope_as = new_admin
 	}
 	if = {
@@ -148,20 +13,19 @@ change_to_celestial_effect = {
 			primary_title.tier >= tier_duchy
 			house.house_head = {
 				NOT = {
-					any_held_title = { is_noble_family_title = yes }
+					any_held_title = { is_oe_noble_family_title = yes }
 				}
 			}
 		}
 		create_noble_family_effect = yes
 	}
-
 	hidden_effect = {
 		if = {
 			limit = {
 				is_governor = yes
-				NOT = { has_trait = governor }
+				NOT = { has_trait = lifestyle_bureaucrat }
 			}
-			add_trait = governor
+			add_trait = lifestyle_bureaucrat
 		}
 	}
 	if = {
@@ -233,13 +97,11 @@ change_to_celestial_interaction_effect = {
 oe_governor_resignation_title_transfer_effect = {
 	save_scope_as = resigner
 	top_liege = { save_scope_as = emperor }
-	#补充
-	if = { limit = { is_diarch = yes } depose_diarch = yes }
 	# Create tooltips
 	every_held_title = {
 		limit = {
 			is_landless_type_title = no
-			is_noble_family_title = no
+			is_oe_noble_family_title = no
 			save_temporary_scope_as = liege_title
 			NOT = {
 				scope:resigner = {
@@ -266,7 +128,7 @@ oe_governor_resignation_title_transfer_effect = {
 					count = 1
 					tier >= tier_duchy
 					is_landless_type_title = no
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 				}
 			}
 			primary_title.current_heir = { save_scope_as = next_candidate }
@@ -285,7 +147,7 @@ oe_governor_resignation_title_transfer_effect = {
 				limit = {
 					tier >= tier_county
 					is_landless_type_title = no
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 				}
 				change_title_holder_include_vassals = {
 					holder = scope:next_candidate
@@ -299,7 +161,7 @@ oe_governor_resignation_title_transfer_effect = {
 				limit = {
 					tier >= tier_duchy
 					is_landless_type_title = no
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 				}
 				current_heir = { save_scope_as = next_candidate }
 				every_direct_de_facto_vassal_title = {
@@ -354,6 +216,7 @@ oe_governor_resignation_title_transfer_effect = {
 			remove_claim = prev
 		}
 	}
+	change_government_aristo_effect = yes
 }
 
 
@@ -402,12 +265,12 @@ oe_governor_step_down_effect = {
 		limit = {
 			any_held_title = {
 				tier = tier_duchy
-				is_noble_family_title = yes
+				is_oe_noble_family_title = yes
 			}
 			NOT = {
 				any_held_title = {
 					tier = tier_duchy
-					is_noble_family_title = no
+					is_oe_noble_family_title = no
 				}
 			}
 			any_vassal = { count >= 1 }

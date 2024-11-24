@@ -27,14 +27,17 @@ show_great_misit_coa_button = {
 	is_shown = {
 
 		OR = {
-			exists = var:new_military_playerheir_list
+			# exists = var:great_misit
+			any_in_list = {
+				variable = new_military_playerheir_list
+			}
 			top_liege = {
 				any_vassal = {
 					has_trait = great_misit
-				}		
+				}
 			}
 			top_liege = {
-				has_active_diarchy = yes		
+				has_active_diarchy = yes
 			}
 		}
 		AND = {
@@ -48,7 +51,7 @@ show_against_great_misit_coa_button = {
 	is_shown = {
 		always = no
 		#NOR = {
-			#exists = var:new_military_playerheir_list
+			#exists = var:great_misit
 			#top_liege = {
 				#any_vassal = {
 					#has_trait = great_misit
@@ -64,27 +67,25 @@ show_against_great_misit_coa_button = {
 }
 update_great_misit = {
 	scope = character
-	
+
 	effect = {
 		clear_variable_list = new_military_list
 		clear_variable_list = old_military_list
 		clear_variable_list = new_military_playerheir_list
-		clear_variable_list = military_liege_list
 		clear_variable_list = old_good_military_ally_list
-		
+		remove_variable = great_misit_view_liege
+
 		set_variable = { name = great_misit_sub_realm_size value = root.sub_realm_size } #家族总占地
-		
+
 		set_variable = { name = great_misit_liege_sub_realm_size value = root.liege.sub_realm_size }
 		change_variable = { name = great_misit_sub_realm_size divide = var:great_misit_liege_sub_realm_size }
 		change_variable = { name = great_misit_sub_realm_size multiply = 100 }
 		#皇帝视角
 		if = {
 			limit = { is_independent_ruler = yes }
-			root = {
-				add_to_variable_list = {
-					name = military_liege_list
-					target = root
-				}
+			set_variable = {
+				name = great_misit_view_liege
+				value = root
 			}
 			diarch ?= {
 				root = {
@@ -94,28 +95,7 @@ update_great_misit = {
 					}
 				}
 				ordered_vassal = { #权臣派
-					limit = { 
-						is_landed = yesy
-					}
-					order_by = sub_realm_size
-					max = 20
-					root = {
-						add_to_variable_list = {
-							name = new_military_list
-							target = prev
-						}
-					}	
-				}
-			}
-			designated_diarch ?= {
-				root = {
-					add_to_variable_list = {
-						name = new_military_playerheir_list
-						target = prev
-					}
-				}
-				ordered_vassal = { #权臣派
-					limit = { 
+					limit = {
 						is_landed = yes
 					}
 					order_by = sub_realm_size
@@ -125,11 +105,11 @@ update_great_misit = {
 							name = new_military_list
 							target = prev
 						}
-					}	
+					}
 				}
 			}
 			ordered_courtier = { #内阁忠臣
-				limit = { 
+				limit = {
 					loyal_to_emperor = yes
 					OR = {
 						is_councillor = yes
@@ -146,7 +126,7 @@ update_great_misit = {
 				}
 			}
 			ordered_courtier = { #内阁不忠
-				limit = { 
+				limit = {
 					disloyal_to_emperor = yes
 					OR = {
 						is_councillor = yes
@@ -165,7 +145,7 @@ update_great_misit = {
 				}
 			}
 			ordered_vassal = { #忠心大臣
-				limit = { 
+				limit = {
 					loyal_to_emperor = yes
 					is_diarch = no
 					is_designated_diarch = no
@@ -180,7 +160,7 @@ update_great_misit = {
 				}
 			}
 			ordered_vassal = { #不忠大臣
-				limit = { 
+				limit = {
 					disloyal_to_emperor = yes
 					is_diarch = no
 					is_designated_diarch = no
@@ -214,9 +194,9 @@ update_great_misit = {
 		else = {
 			top_liege = { #君主
 				root = {
-					add_to_variable_list = {
-						name = military_liege_list
-						target = prev
+					set_variable = {
+						name = great_misit_view_liege
+						value = prev
 					}
 				}
 				diarch ?= {
@@ -227,7 +207,7 @@ update_great_misit = {
 						}
 					}
 					ordered_vassal = { #权臣派
-						limit = { 
+						limit = {
 							is_landed = yes
 							#highest_held_title_tier >= tier_county
 						}
@@ -241,29 +221,8 @@ update_great_misit = {
 						}
 					}
 				}
-				designated_diarch ?= {
-					root = {
-						add_to_variable_list = {
-							name = new_military_playerheir_list
-							target = prev
-						}
-					}
-					ordered_vassal = { #权臣派
-						limit = { 
-							is_landed = yes
-						}
-						order_by = sub_realm_size
-						max = 20
-						root = {
-							add_to_variable_list = {
-								name = new_military_list
-								target = prev
-							}
-						}	
-					}
-				}
 				ordered_courtier = { #倾向摄政的廷臣
-					limit = { 
+					limit = {
 						OR = {
 							is_councillor = yes
 							has_court_position = yes
@@ -283,7 +242,7 @@ update_great_misit = {
 					}
 				}
 				ordered_vassal = { #倾向摄政的封臣
-					limit = { 
+					limit = {
 						loyal_to_diarch = yes
 						NOR = {
 							is_diarch_of_target = top_liege
@@ -299,7 +258,7 @@ update_great_misit = {
 					}
 				}
 				ordered_courtier = { #反对摄政
-					limit = { 
+					limit = {
 						OR = {
 							is_councillor = yes
 							has_court_position = yes
@@ -319,7 +278,7 @@ update_great_misit = {
 					}
 				}
 				ordered_vassal = { #反对摄政的封臣
-					limit = { 
+					limit = {
 						disloyal_to_diarch = yes
 						NOR = {
 							is_diarch_of_target = top_liege
@@ -349,5 +308,5 @@ update_great_misit = {
 				}
 			}
 		}
-	}	
+	}
 }
