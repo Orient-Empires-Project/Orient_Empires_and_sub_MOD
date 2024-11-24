@@ -1,0 +1,1216 @@
+﻿namespace = oe_struggle
+
+# Setting AI Intent
+oe_struggle.0003 = {
+	hidden = yes
+	scope = none
+	scope = struggle
+
+	trigger = { # Should not need this, but, redundancy check! -h
+		exists = struggle:tartaria_struggle
+		struggle:tartaria_struggle = { any_involved_ruler = { count > 0 } } # For when the conflict is ongoing but nobody is left to fight it
+	}
+
+	immediate = {
+		# prepare needed variables; they will be destroyed at the end of the immediate
+		set_variable = {
+			name = agents_for_escalation
+			value = 0
+		}
+		set_variable = {
+			name = agents_for_deescalation
+			value = 0
+		}
+
+		# Go through the characters to distribute them between the potential transitions
+		struggle:tartaria_struggle = {
+			every_involved_ruler = {
+				limit = { is_alive = yes }
+				#######################
+				# Play cue track
+				######################
+				if = {
+					limit = { is_ai = no }
+					play_music_cue = "mx_Struggle_Opening"
+				}
+
+				#######################
+				# Check existing flags
+				######################
+				if = {
+					limit = { has_character_flag = agenda_towards_escalation }
+					root = {
+						change_variable = {
+							name = agents_for_escalation
+							add = 1
+						}
+					}
+				}
+				else_if = {
+					limit = { has_character_flag = agenda_towards_deescalation }
+					root = {
+						change_variable = {
+							name = agents_for_deescalation
+							add = 1
+						}
+					}
+				}
+				else = { # Set a flag
+					#############################
+					# Current Phase: Opportunity
+					#############################
+					if = {
+						limit = { root = { is_struggle_phase = struggle_tartaria_phase_opportunity } }
+						random_list = {
+							# Working towards Hostility
+							# It should be for characters looking for direct conflicts and domination, with the will and ability to expand their realms
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = hostility
+									INTENT = escalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = escalation
+								}
+							}
+							# Working towards Conciliation
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = conciliation
+									INTENT = deescalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = deescalation
+								}
+							}
+						}
+					}
+
+					#############################
+					# Current Phase: Hostility
+					#############################
+					if = {
+						limit = { root = { is_struggle_phase = struggle_tartaria_phase_hostility } }
+						random_list = {
+							# Working towards Hostility: it means that the character wants to stay in
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = hostility
+									INTENT = escalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = escalation
+								}
+							}
+							# Working towards Compromise
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = compromise
+									INTENT = deescalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = deescalation
+								}
+							}
+						}
+					}
+
+					#############################
+					# Current Phase: Compromise
+					#############################
+					if = {
+						limit = { root = { is_struggle_phase = struggle_tartaria_phase_compromise } }
+						random_list = {
+
+							# Working towards Opportunity
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = opportunity
+									INTENT = escalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = escalation
+								}
+							}
+							# Working towards Compromise: they want to stay in the same phase
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = compromise
+									INTENT = deescalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = deescalation
+								}
+							}
+						}
+					}
+
+					#############################
+					# Current Phase: Conciliation
+					#############################
+					if = {
+						limit = { root = { is_struggle_phase = struggle_tartaria_phase_conciliation } }
+						random_list = {
+							# Working towards Compromise
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = compromise
+									INTENT = escalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = escalation
+								}
+							}
+							# Working towards Conciliation: they want to stay in the same phase
+							100 = {
+								# Odds modifiers
+								oe_struggle_set_ai_agenda_common_modifiers = {
+									PHASE = conciliation
+									INTENT = deescalation
+								}
+
+								# Apply effects
+								oe_struggle_apply_ai_agenda_effect = {
+									INTENT = deescalation
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		# Clean variables
+		remove_variable = agents_for_escalation
+		remove_variable = agents_for_deescalation
+	}
+}
+
+# Set AI Intent on join
+oe_struggle.004 = {
+	hidden = yes
+	scope = none
+
+	immediate = {
+		set_variable = {
+			name = agents_for_escalation
+			value = 0
+		}
+		set_variable = {
+			name = agents_for_deescalation
+			value = 0
+		}
+
+		############################
+		# Update the variables
+		############################
+		struggle:tartaria_struggle = {
+			every_involved_ruler = {
+				limit = { is_alive = yes }
+				if = {
+					limit = { has_character_flag = agenda_towards_escalation }
+					root = {
+						change_variable = {
+							name = agents_for_escalation
+							add = 1
+						}
+					}
+				}
+				else_if = {
+					limit = { has_character_flag = agenda_towards_deescalation }
+					root = {
+						change_variable = {
+							name = agents_for_deescalation
+							add = 1
+						}
+					}
+				}
+			}
+		}
+
+		if = {
+			limit = {
+				NOR = {
+					has_character_flag = agenda_towards_escalation
+					has_character_flag = agenda_towards_deescalation
+				}
+			}
+
+			#############################
+			# Current Phase: Opportunity
+			#############################
+			if = {
+				limit = {
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						is_struggle_phase = struggle_tartaria_phase_opportunity
+					}
+				}
+				random_list = {
+					# Working towards Hostility
+					# It should be for characters looking for direct conflicts and domination, with the will and ability to expand their realms
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = hostility
+							INTENT = escalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = escalation
+						}
+					}
+					# Working towards Conciliation
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = conciliation
+							INTENT = deescalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = deescalation
+						}
+					}
+				}
+			}
+
+			#############################
+			# Current Phase: Hostility
+			#############################
+			if = {
+				limit = { 
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						is_struggle_phase = struggle_tartaria_phase_hostility
+					}
+				}
+				random_list = {
+					# Working towards Hostility: it means that the character wants to stay in
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = hostility
+							INTENT = escalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = escalation
+						}
+					}
+					# Working towards Compromise
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = compromise
+							INTENT = deescalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = deescalation
+						}
+					}
+				}
+			}
+
+			#############################
+			# Current Phase: Compromise
+			#############################
+			if = {
+				limit = {
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						is_struggle_phase = struggle_tartaria_phase_compromise
+					}
+				}
+				random_list = {
+
+					# Working towards Opportunity
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = opportunity
+							INTENT = escalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = escalation
+						}
+					}
+					# Working towards Compromise: they want to stay in the same phase
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = compromise
+							INTENT = deescalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = deescalation
+						}
+					}
+				}
+			}
+
+			#############################
+			# Current Phase: Conciliation
+			#############################
+			if = {
+				limit = {
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						is_struggle_phase = struggle_tartaria_phase_conciliation
+					}
+				}
+				random_list = {
+					# Working towards Compromise
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = compromise
+							INTENT = escalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = escalation
+						}
+					}
+					# Working towards Conciliation: they want to stay in the same phase
+					100 = {
+						# Odds modifiers
+						oe_struggle_set_ai_agenda_common_modifiers = {
+							PHASE = conciliation
+							INTENT = deescalation
+						}
+
+						# Apply effects
+						oe_struggle_apply_ai_agenda_effect = {
+							INTENT = deescalation
+						}
+					}
+				}
+			}
+		}
+
+		# Clean variables
+		remove_variable = agents_for_escalation
+		remove_variable = agents_for_deescalation
+	}
+}
+
+###################################
+# Iberian Struggle Intro Events
+# 0501 - 599
+###################################
+oe_struggle.0501 = { # Fullscreen Intro Event
+	type = character_event
+	window = fullscreen_event
+	title = oe_struggle.0501.t
+	desc = {
+		desc = oe_struggle.0501.desc
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					any_character_struggle = {
+						involvement = involved
+						is_struggle_type = tartaria_struggle
+					}
+				}
+				desc = oe_struggle.0501.desc.involved
+			}
+			triggered_desc = {
+				trigger = {
+					any_character_struggle = {
+						involvement = interloper
+						is_struggle_type = tartaria_struggle
+					}
+				}
+				desc = oe_struggle.0501.desc.interloper
+			}
+		}
+	}
+	theme = realm
+	trigger = { # we need to prevent this from firing for all players when a new player joins in MP
+		is_ai = no
+		NOT = { has_character_flag = oe_struggle_intro_event_flag }
+		oe_character_any_involvement_tartaria_struggle_trigger = yes
+ 	}
+	override_background = { reference = fp2_fullscreen_intro }
+	override_sound = { reference = "event:/DLC/FP2/SFX/UI/fp2_struggle_ui_intro_animate" }
+
+	widgets = {
+		widget = {
+ 			gui = "event_window_widget_struggle_info"
+ 			container = "dynamic_content_widget"
+ 			controller = struggle_info
+ 			setup_scope = { struggle:tartaria_struggle = { save_scope_as = struggle } }
+		}
+	}
+	immediate = {
+		play_music_cue = "mx_Struggle_Opening"
+		add_character_flag = oe_struggle_intro_event_flag
+		save_scope_value_as = {
+			name = start
+			value = yes
+		}
+	}
+	option = {
+		name = oe_struggle.0501.a
+	}
+}
+
+#########################################
+#终局决议
+
+oe_struggle.0900 = { # Hostility
+	type = character_event
+	window = fullscreen_event
+	title = oe_struggle.0900.t
+	desc = {
+		first_valid = {
+		    triggered_desc = {
+				trigger = {
+					any_parent_culture = { this = culture:jurchen }
+		        }
+		        desc = oe_struggle.0900.opening.jurchen
+		    }
+			triggered_desc = {
+		        trigger = {
+					culture = {
+						OR = {
+							has_cultural_pillar = heritage_turkic
+							any_parent_culture = { this = culture:shatuo }
+							has_cultural_pillar = heritage_mongolic
+							any_parent_culture = { this = culture:khitan }
+						}
+					}
+		        }
+		        desc = oe_struggle.0900.opening.steppe
+		    }
+			triggered_desc = {
+				trigger = {
+					culture = { has_cultural_pillar = heritage_chinese }
+				}
+				desc = oe_struggle.0900.opening.chinese
+			}
+		    desc = oe_struggle.0900.opening
+		}
+		desc = oe_struggle.0900.desc
+	}
+
+	theme = court
+	override_background = { reference = fp2_fullscreen_hostility }
+	override_sound = { reference = "event:/DLC/FP2/SFX/UI/fp2_struggle_ui_intro_end_animate" }
+
+	immediate = {
+		# Add all involved rulers to a list, for ping event
+		play_music_cue = "mx_Struggle_ending_hostility"
+		oe_stuggle_ending_involved_list_effect = yes
+		give_nickname = nick_the_tengrikhagan
+		dynasty = { add_dynasty_prestige = 10000 }
+	}
+
+	# Faith victory
+	option = {
+		name = oe_struggle.0900.a
+		if = {
+			limit = { exists = house }
+			house = {
+				add_house_modifier = {
+					modifier = fp2_struggle_hostility_house_faith_modifier
+				}
+			}
+		}
+		# Piety reward for faith victory
+		add_piety = 1000
+		custom_description_no_bullet = { text = fp2_struggle_house_tt }
+		custom_tooltip = fp2_struggle_hostility_holy_cb_tt
+		custom_tooltip = oe_struggle_hostility_conversion_holy_tt
+		stress_impact = {
+			cynical = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			ai_value_modifier = {
+				ai_zeal = 1
+			}
+		}
+	}
+
+	# Culture victory
+	option = {
+		name = oe_struggle.0900.b
+		# Renown reward for culture victory
+		if = {
+			limit = { exists = house }
+			dynasty = { add_dynasty_prestige = 1000 }
+			house = {
+				add_house_modifier = {
+					modifier = fp2_struggle_hostility_house_culture_modifier
+				}
+			}
+		}
+		custom_description_no_bullet = { text = fp2_struggle_house_tt }
+		custom_tooltip = fp2_struggle_hostility_culture_cb_tt
+		custom_tooltip = oe_struggle_hostility_conversion_culture_tt
+		# All Involved cultures lose acceptance of each other
+		custom_tooltip = {
+			text = fp2_struggle_hostility_culture_tt
+			oe_struggle_hostility_cultural_acceptance_effect = yes
+		}
+		stress_impact = {
+			humble = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+
+	# Combined victory
+	option = {
+		name = oe_struggle.0900.c
+		# Reduced renown and piety rewards for combined
+		if = {
+			limit = { exists = house }
+			house = {
+				add_house_modifier = {
+					modifier = fp2_struggle_hostility_house_combined_modifier
+					years = 200
+				}
+			}
+		}
+		add_prestige = 3000
+		custom_description_no_bullet = { text = fp2_struggle_house_tt }
+		custom_tooltip = fp2_struggle_hostility_holy_cb_tt
+		custom_tooltip = culture_parameter_cb_lower_piety_level_requirement
+		custom_tooltip = fp2_struggle_hostility_culture_cb_tt
+		custom_tooltip = oe_struggle_hostility_conversion_holy_tt
+		custom_tooltip = oe_struggle_hostility_conversion_culture_tt
+		# All Involved cultures lose acceptance of each other
+		custom_tooltip = {
+			text = fp2_struggle_hostility_culture_large_tt 
+			oe_struggle_hostility_cultural_acceptance_large_effect = yes
+		}
+		stress_impact = {
+			humble = medium_stress_impact_gain
+			cynical = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			ai_value_modifier = {
+				ai_zeal = 2
+				ai_boldness = 1
+			}
+		}
+	}
+
+	after = {
+		# Notify & End Struggle
+		save_scope_as = fp2_loc_struggle_ender # Loc used to use root, this fixes it
+		every_player = {
+			limit = { oe_does_this_player_care_about_the_fate_of_tartaria = yes } # Needs to be checked before the struggle ends due to race condition issues
+			add_to_list = player_to_notify # Making a list so stuff is tiggered after the struggle ends, to make extra sure I don't break anything.
+		}
+
+		struggle:tartaria_struggle = { end_struggle = struggle_tartaria_ending_hostility_decision }
+		every_in_list = { # Then we *actually* notify palyers, making sure the struggle has already ended
+			list = player_to_notify
+			trigger_event = oe_struggle.0910
+		}
+	}
+}
+
+oe_struggle.0910 = {
+	type = character_event
+	window = fullscreen_event
+	title = oe_struggle.0900.t
+	desc = {
+		first_valid = {
+		    triggered_desc = {
+		        trigger = { is_in_list = oe_struggle_involvees }
+		        desc = oe_struggle.0910.opening.involved
+		    }
+		    desc = oe_struggle.0910.opening
+		}
+		desc = oe_struggle.0910.desc
+		first_valid = {
+		    triggered_desc = {
+		        trigger = {
+		        	scope:struggle_ender.house = { has_house_modifier = fp2_struggle_hostility_house_faith_modifier }
+		        }
+		        desc = oe_struggle.0910.closing.faith
+		    }
+		    triggered_desc = {
+		        trigger = {
+		        	scope:struggle_ender.house = { has_house_modifier = fp2_struggle_hostility_house_culture_modifier }
+		        }
+		        desc = oe_struggle.0910.closing.culture
+		    }
+		    desc = oe_struggle.0910.closing.combined
+		}
+	}
+	theme = court
+	override_background = { reference = fp2_fullscreen_hostility }
+	override_sound = { reference = "event:/DLC/FP2/SFX/UI/fp2_struggle_ui_intro_end_animate" }
+
+	immediate = {
+		play_music_cue = "mx_Struggle_ending_hostility"
+		##### Major Effects #####
+		show_as_tooltip = {
+			scope:struggle_ender = {
+				#dynasty = { add_dynasty_prestige = 10000 }
+				fp2_struggle_hostility_ender_effect = yes
+			}
+		}
+		# Hispania is available!
+		custom_tooltip = oe_struggle_can_create_empire_of_cathay_tt 
+		# Choose Holy War boost, Culture War boost, or both
+		scope:struggle_ender.house = {
+			switch = {
+				trigger = has_house_modifier
+				fp2_struggle_hostility_house_faith_modifier = {
+					show_as_tooltip = { add_house_modifier = fp2_struggle_hostility_house_faith_modifier }
+					custom_description_no_bullet = { text = fp2_struggle_house_tt }
+					custom_tooltip = fp2_struggle_hostility_holy_cb_tt
+				}
+				fp2_struggle_hostility_house_culture_modifier = {
+					show_as_tooltip = { add_house_modifier = fp2_struggle_hostility_house_culture_modifier }
+					custom_description_no_bullet = { text = fp2_struggle_house_tt }
+					custom_tooltip = fp2_struggle_hostility_culture_cb_tt
+					custom_tooltip = fp2_struggle_hostility_culture_tt
+				}
+				fp2_struggle_hostility_house_combined_modifier = {
+					show_as_tooltip = { add_house_modifier = fp2_struggle_hostility_house_combined_modifier }
+					custom_description_no_bullet = { text = fp2_struggle_house_tt }
+					custom_tooltip = fp2_struggle_hostility_holy_cb_tt
+					custom_tooltip = fp2_struggle_hostility_culture_cb_tt
+					custom_tooltip = fp2_struggle_hostility_culture_large_tt
+				}
+			}
+		}
+	}
+
+	# Ok
+	option = {
+		name = {
+			text = oe_struggle.0910.a
+			trigger = { is_in_list = oe_struggle_involvees }
+		}
+		name = {
+			text = oe_struggle.0910.b
+			trigger = {
+				NOT = { is_in_list = oe_struggle_involvees }
+			}
+		}
+	}
+}
+
+oe_struggle.0901 = { # Compromise
+	type = character_event
+	window = fullscreen_event
+	title = oe_struggle.0901.t
+
+	desc = oe_struggle.0901.desc
+
+	theme = court
+	override_background = { reference = fp2_fullscreen_compromise }
+	override_sound = { reference = "event:/DLC/FP2/SFX/UI/fp2_struggle_ui_intro_end_animate" }
+
+	immediate = {
+		play_music_cue = "mx_Struggle_ending_compromise"
+		# Independent/Split De Jure Duchies will become De Jure Kingdoms
+		#if = {
+			#limit = {
+				#title:e_spain = {
+					#any_in_de_jure_hierarchy = { fp2_struggle_ending_compromise_independent_duchy_trigger = yes }
+				#}
+			#}
+			#custom_tooltip = {
+				#text = fp2_struggle_compromise_create_new_kingdoms_tt
+				#fp2_struggle_compromise_duchies_to_kingdoms_effect = yes
+			#}
+		#}
+		## Move duchies to right kingdoms
+		#fp2_struggle_compromise_transfer_duchies_effect = yes
+		## Turn kingdoms to empires
+		#fp2_struggle_compromise_kingdoms_to_empires_effect = yes
+		## distribute small kingdoms
+		#fp2_struggle_compromise_distribute_kingdoms_to_neighbouring_empires_effect = yes
+		## assign the new title to existing characters
+		#fp2_struggle_compromise_distribute_the_actual_titles = yes
+
+		# Set up truces
+		oe_struggle_compromise_truce_effect = yes
+
+		##### Major Effects #####
+		fp2_struggle_compromise_ender_effect = yes
+		
+		# Tooltips!
+		#fp2_struggle_compromise_tooltip_effect = yes
+
+		##### Minor Effects #####
+		# Self-sufficiency modifiers for each independent realm
+		oe_struggle_compromise_modifier_rewards_effect = yes
+		set_global_variable = {
+			name = oe_struggle_compromise_ending
+			value = yes
+		}
+		# Add all involved rulers to a list, for ping event
+		oe_stuggle_ending_involved_list_effect = yes
+	}
+
+	# Ok
+	option = {
+		name = oe_struggle.0901.a
+		#if = {
+			#limit = {
+				#any_in_list = {
+					#list = kingdom_empire
+					#this = root.primary_title
+				#}
+			#}
+			#custom_tooltip = oe_struggle.0901.tt
+		#}
+	}
+
+	after = {
+		stress_impact = {
+			arrogant = medium_stress_impact_gain
+		}
+		
+		# Notify & End Struggle
+		save_scope_as = fp2_loc_struggle_ender # Loc used to use root, this fixes it
+		every_player = {
+			limit = { oe_does_this_player_care_about_the_fate_of_tartaria = yes } # Needs to be checked before the struggle ends due to race condition issues
+			add_to_list = player_to_notify # Making a list so stuff is tiggered after the struggle ends, to make extra sure I don't break anything.
+		}
+
+		struggle:tartaria_struggle = { end_struggle = struggle_tartaria_ending_compromise_decision }
+		every_in_list = { # Then we *actually* notify palyers, making sure the struggle has already ended
+			list = player_to_notify
+			trigger_event = oe_struggle.0911
+		}
+	}
+}
+
+oe_struggle.0911 = {
+	type = character_event
+	window = fullscreen_event
+	title = oe_struggle.0901.t
+	desc = {
+		first_valid = {
+		    triggered_desc = {
+		        trigger = { is_in_list = oe_struggle_involvees }
+		        desc = oe_struggle.0910.opening.involved
+		    }
+		    desc = oe_struggle.0910.opening
+		}
+		desc = oe_struggle.0911.desc
+	}
+	theme = court
+	override_background = { reference = fp2_fullscreen_compromise }
+	override_sound = { reference = "event:/DLC/FP2/SFX/UI/fp2_struggle_ui_intro_end_animate" }
+
+	immediate = {
+		play_music_cue = "mx_Struggle_ending_compromise"
+		##### Major Effects #####
+		show_as_tooltip = {
+			scope:struggle_ender = { fp2_struggle_compromise_ender_effect = yes }
+		}
+		# Independent/Split De Jure Duchies will become De Jure Kingdoms
+		#custom_tooltip = fp2_struggle_compromise_create_new_kingdoms_tt
+		# RIP Hispania
+		#fp2_struggle_compromise_tooltip_effect = yes
+
+		##### Minor Effects #####
+		#if = {
+			#limit = {
+				#any_in_list = {
+					#list = kingdom_empire
+					#OR = {
+						#this = root.primary_title
+						#this = root.primary_title.de_jure_liege
+						#this = root.primary_title.de_jure_liege.de_jure_liege
+					#}
+				#}
+			#}
+			#custom_tooltip = oe_struggle.0901.tt
+		#}
+		if = {
+			limit = { is_in_list = oe_struggle_involvees }
+			show_as_tooltip = {
+				fp2_struggle_compromise_modifier_rewards_personal_house_effect = yes
+				fp2_struggle_compromise_modifier_rewards_personal_county_effect = yes
+			}
+		}
+	}
+
+	# Ok
+	option = {
+		name = {
+			text = oe_struggle.0911.a
+			trigger = { is_in_list = oe_struggle_involvees }
+		}
+		name = {
+			text = oe_struggle.0910.b
+			trigger = {
+				NOT = { is_in_list = oe_struggle_involvees }
+			}
+		}
+	}
+}
+
+oe_struggle.0902 = { # Conciliation
+	type = character_event
+	window = fullscreen_event
+	title = oe_struggle.0902.t
+
+	desc = oe_struggle.0902.desc
+
+	theme = court
+	override_background = { reference = fp2_fullscreen_conciliation }
+	override_sound = { reference = "event:/DLC/FP2/SFX/UI/fp2_struggle_ui_intro_end_animate" }
+
+	immediate = {
+		play_music_cue = "mx_Struggle_ending_conciliation"
+		set_global_variable = {
+			name = oe_struggle_conciliation_ending
+			value = yes
+		}
+		# Add all involved rulers to a list, for ping event
+		oe_stuggle_ending_involved_list_effect = yes
+
+		# Add all involved cultures with counties to a list, for marriage and holy war checks
+		oe_struggle_ending_culture_list_effect = yes
+
+		# Change cultural acceptance
+		oe_struggle_conciliation_cultural_acceptance_effect = yes
+
+		##### Major Effects #####
+		oe_struggle_conciliation_ender_effect = yes
+		oe_struggle_conciliation_tooltip_effect = yes
+		oe_struggle_conciliation_modifier_rewards_effect = yes
+		convert_family_culture_and_notify_vassals_effect = {
+			CONVERTER = root
+			OLD_CULTURE = root.culture
+			NEW_CULTURE = culture:han
+		}
+	}
+
+	# 
+	option = {
+		name = oe_struggle.0902.a
+		every_involved_ruler = {
+			convert_family_culture_and_notify_vassals_effect = {
+				CONVERTER = root
+				OLD_CULTURE = this.culture
+				NEW_CULTURE = root.culture
+			}
+			capital_county.culture = {
+				change_cultural_acceptance = {
+					target = root.culture
+					value = 5
+					desc = cultural_acceptance_gain_event
+				}
+			}
+		}
+	}
+
+	after = {
+		stress_impact = {
+			arrogant = medium_stress_impact_gain
+			zealous = medium_stress_impact_gain
+		}
+
+		# Notify & End Struggle
+		save_scope_as = fp2_loc_struggle_ender # Loc used to use root, this fixes it
+		every_player = {
+			limit = { oe_does_this_player_care_about_the_fate_of_tartaria = yes } # Needs to be checked before the struggle ends due to race condition issues
+			add_to_list = player_to_notify # Making a list so stuff is tiggered after the struggle ends, to make extra sure I don't break anything.
+		}
+
+		struggle:tartaria_struggle = { end_struggle = struggle_tartaria_ending_conciliation_decision }
+		every_in_list = { # Then we *actually* notify palyers, making sure the struggle has already ended
+			list = player_to_notify
+			trigger_event = oe_struggle.0912
+		}
+	}
+}
+
+oe_struggle.0912 = {
+	type = character_event
+	window = fullscreen_event
+	title = oe_struggle.0902.t
+	desc = {
+		first_valid = {
+		    triggered_desc = {
+		        trigger = { is_in_list = oe_struggle_involvees }
+		        desc = oe_struggle.0910.opening.involved
+		    }
+		    desc = oe_struggle.0910.opening
+		}
+		desc = oe_struggle.0912.desc
+	}
+	theme = court
+	override_background = { reference = fp2_fullscreen_conciliation }
+	override_sound = { reference = "event:/DLC/FP2/SFX/UI/fp2_struggle_ui_intro_end_animate" }
+
+	immediate = {
+		play_music_cue = "mx_Struggle_ending_conciliation"
+		##### Major Effects #####
+		show_as_tooltip = {
+			scope:struggle_ender = { oe_struggle_conciliation_ender_effect = yes }
+		}
+		oe_struggle_conciliation_tooltip_effect = yes
+
+		##### Minor Effects #####
+		# All involved rulers gain diff culture opinion and learn language scheme power
+		if = {
+			limit = { is_in_list = oe_struggle_involvees }
+			show_as_tooltip = { fp2_struggle_conciliation_modifier_rewards_personal_effect = yes }
+		}
+	}
+
+	# Ok
+	option = {
+		name = {
+			text = oe_struggle.0912.a
+			trigger = { is_in_list = oe_struggle_involvees }
+		}
+		name = {
+			text = oe_struggle.0910.b
+			trigger = {
+				NOT = { is_in_list = oe_struggle_involvees }
+			}
+		}
+	}
+}
+
+######################################
+#立足点
+
+oe_struggle.1000 = {
+	type = character_event
+	title = oe_struggle.1000.t
+	desc = {
+		first_valid = {
+		    triggered_desc = {
+		        trigger = {
+					religion = {
+						any_faith = {
+							struggle:tartaria_struggle = { is_faith_involved_in_struggle = prev }
+						}
+					}
+		        }
+		        desc = oe_struggle.1000.involved_religion
+		    }
+		    desc = oe_struggle.1000.desc
+		}
+		first_valid = {
+		    triggered_desc = {
+		        trigger = {
+					struggle:tartaria_struggle = { is_faith_involved_in_struggle = root.faith }
+		        }
+		        desc = oe_struggle.1000.involved_faith
+		    }
+		    triggered_desc = {
+		        trigger = {
+					religion = {
+						any_faith = {
+							struggle:tartaria_struggle = { is_faith_involved_in_struggle = prev }
+						}
+					}
+		        }
+		        desc = oe_struggle.1000.uninvolved_faith
+		    }
+		    desc = oe_struggle.1000.closing
+		}
+	}
+	theme = realm
+	left_portrait = {
+		character = root
+		animation = war_over_win
+	}
+
+	trigger = {
+		# DLC checking
+		#has_fp2_dlc_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = tartaria_footholder
+		every_held_title = {
+			limit = {
+				# Any de jure kingdom of Iberia is completely controlled
+				fp2_struggle_secure_tartaria_foothold_tartaria_kingdom_trigger = yes
+				# That kingdom is mostly my faith
+				fp2_struggle_secure_tartaria_foothold_faith_trigger = yes
+				scope:tartaria_kingdom_temp = { title_held_years = fp2_struggle_secure_tartaria_foothold_years_value }
+			}
+			add_to_list = tartaria_footholder_list
+		}
+		hidden_effect  = {
+			while = {
+				limit = {
+					any_in_list = {
+						list = tartaria_footholder_list
+						# Borders held lands in a non-Iberian kingdom you hold
+						any_de_jure_county = {
+							any_title_to_title_neighboring_and_across_water_county = { fp2_struggle_secure_tartaria_foothold_outsider_kingdom_trigger = yes }
+						}
+						NOT = { is_in_list = tartaria_footholder_transfer_list }
+					}
+				}
+				random_in_list = {
+					list = tartaria_footholder_list
+					limit = {
+						# Borders held lands in a non-Iberian kingdom you hold
+						any_de_jure_county = {
+							any_title_to_title_neighboring_and_across_water_county = { fp2_struggle_secure_tartaria_foothold_outsider_kingdom_trigger = yes }
+						}
+						NOT = { is_in_list = tartaria_footholder_transfer_list }
+					}
+					random_de_jure_county = {
+						limit = {
+							any_title_to_title_neighboring_and_across_water_county = { fp2_struggle_secure_tartaria_foothold_outsider_kingdom_trigger = yes }
+						}
+						random_title_to_title_neighboring_and_across_water_county = {
+							limit = { fp2_struggle_secure_tartaria_foothold_outsider_kingdom_trigger = yes }
+							empire = { save_scope_as = transfer_empire }
+						}
+					}
+					add_to_list = tartaria_footholder_transfer_list
+					set_de_jure_liege_title = scope:transfer_empire
+					custom_tooltip = tartaria_footholder_transfer_tt
+				}
+			}
+		}
+		show_as_tooltip = {
+			every_in_list = {
+				list = tartaria_footholder_transfer_list
+				set_de_jure_liege_title = scope:transfer_empire
+			}
+		}
+	}
+
+	option = {
+		name = oe_struggle.1000.a
+	}
+
+	after = {
+		struggle:tartaria_struggle = {
+			every_involved_ruler = {
+				limit = { is_ai = no }
+				trigger_event = oe_struggle.1001
+			}
+		}
+		# End Struggle
+		struggle:tartaria_struggle = {
+			end_struggle = secure_tartaria_foothold_decision_title
+		}
+	}
+}
+
+oe_struggle.1001 = {
+	type = character_event
+	title = oe_struggle.1000.t
+	desc = {
+		first_valid = {
+		    triggered_desc = {
+		        trigger = {
+					scope:tartaria_footholder.religion = {
+						any_faith = {
+							struggle:tartaria_struggle = { is_faith_involved_in_struggle = prev }
+						}
+					}
+		        }
+		        desc = oe_struggle.1001.involved_religion
+		    }
+		    desc = oe_struggle.1001.desc
+		}
+		first_valid = {
+		    triggered_desc = {
+		        trigger = {
+					struggle:tartaria_struggle = { is_faith_involved_in_struggle = scope:tartaria_footholder.faith }
+		        }
+		        desc = oe_struggle.1001.involved_faith
+		    }
+		    triggered_desc = {
+		        trigger = {
+					scope:tartaria_footholder.religion = {
+						any_faith = {
+							struggle:tartaria_struggle = { is_faith_involved_in_struggle = prev }
+						}
+					}
+					religion = scope:tartaria_footholder.religion
+		        }
+		        desc = oe_struggle.1001.same_uninvolved_faith
+		    }
+		    triggered_desc = {
+		        trigger = {
+					scope:tartaria_footholder.religion = {
+						any_faith = {
+							struggle:tartaria_struggle = { is_faith_involved_in_struggle = prev }
+						}
+					}
+		        }
+		        desc = oe_struggle.1001.uninvolved_faith
+		    }
+		    desc = oe_struggle.1001.closing
+		}
+	}
+	theme = realm
+	left_portrait = {
+		character = scope:tartaria_footholder
+		animation = war_over_win
+	}
+
+	trigger = {
+		# DLC checking
+		#has_fp2_dlc_trigger = yes
+	}
+
+	immediate = {
+		show_as_tooltip = {
+			every_in_list = {
+				list = tartaria_footholder_transfer_list
+				set_de_jure_liege_title = scope:transfer_empire
+			}
+		}
+	}
+
+	option = {
+		name = oe_struggle.1001.a
+		
+	}
+}
+
+########################

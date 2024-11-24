@@ -1,0 +1,980 @@
+﻿###################################
+# Request Turkic invasion (can_request_incursion_interaction)
+# By Hugo Cortell
+###################################
+oe_request_normad_invasion_interaction = {
+	interface_priority = 100
+	common_interaction = yes
+	category = interaction_category_hostile
+	cooldown_against_recipient = { years = 2 }
+
+	icon = request_mercenary
+	desc = oe_request_normad_invasion_interaction_desc
+
+	is_shown = {
+		scope:actor = {
+			any_character_struggle = {
+				involvement = involved
+				is_struggle_type = tartaria_struggle
+				has_struggle_phase_parameter = unlocks_oe_reclamation_casus_belli
+			}
+		}
+		scope:recipient = {
+			is_landed = yes
+			OR = {
+				any_character_struggle = {
+					involvement = involved
+					is_struggle_type = tartaria_struggle
+				}
+				title:e_celestia.holder ?= this
+				title:e_cathay.holder ?= this
+			}
+			is_independent_ruler = yes
+			is_ai = yes
+		}
+		NOT = { scope:actor = scope:recipient }
+	}
+
+	is_valid_showing_failures_only = {
+	}
+
+	populate_recipient_list = {
+		scope:actor.top_liege = {
+			every_independent_ruler = {
+				limit = {
+					is_ai = yes
+					is_landed = yes
+					is_physically_able = yes
+					has_raised_armies = no
+					in_diplomatic_range = scope:actor
+					any_character_struggle = { is_struggle_type = tartaria_struggle }
+					OR = {
+						government_has_flag = government_is_clan
+						government_has_flag = government_is_ulus
+						government_has_flag = government_is_tribal
+					}
+					highest_held_title_tier >= tier_county
+					NOR = {
+						culture = { has_cultural_tradition = tradition_agrarian }
+						is_at_war_with = scope:actor
+						is_at_war_with = scope:recipient
+						is_allied_to = scope:recipient
+						has_relation_tributary = scope:recipient
+						has_relation_suzerain = scope:recipient
+						has_truce = scope:recipient
+						this = scope:actor
+						this = scope:recipient
+					}
+				}
+				add_to_list = characters
+			}
+		}
+	}
+	
+	send_options_exclusive = no
+
+	send_option = {
+		flag = war_support
+		localization = fp3_request_turkic_invasion_interaction_option_join_war
+		current_description = fp3_request_turkic_invasion_interaction_option_join_war_desc
+		is_shown = { exists = scope:secondary_recipient }
+		is_valid = {
+			scope:actor = {
+				NOR = {
+					is_at_war_with = scope:recipient
+					is_allied_to = scope:recipient
+					has_truce = scope:recipient
+				}
+			}
+		}
+	}
+
+	send_option = {
+		flag = financial_support
+		localization = fp3_request_turkic_invasion_interaction_option_more_gold
+		current_description = fp3_request_turkic_invasion_interaction_option_more_gold_desc
+		is_shown = { exists = scope:secondary_recipient }
+		is_valid = {
+			custom_description = {
+				text = fp3_please_dont_give_me_negative_gold
+				fp3_request_invasion_troop_value_estimate > 0
+			}
+		}
+	}
+
+	cost = {
+		gold = {
+			value = {
+				value = scope:secondary_recipient.max_military_strength
+				divide = 20
+				round = yes
+			}
+			add = {
+				if = {
+					limit = { scope:financial_support = yes }
+					add = fp3_request_invasion_troop_value_estimate
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = { has_title = title:e_celestia }
+					struggle:tartaria_struggle = { has_struggle_phase_parameter = unlocks_oe_tribute_threating_cb }
+				}
+				divide = 2
+			}
+		}
+	}
+
+	on_accept = {
+		if = {
+			limit = { exists = scope:secondary_recipient }
+
+			scope:recipient = {
+				if = {
+					limit = {
+						any_realm_county = {
+							NOT = { this = scope:recipient.capital_county }
+							any_neighboring_county = { holder.top_liege = scope:secondary_recipient.top_liege }
+							any_county_province = { geographical_region = world_struggle_tartaria }
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+					}
+					random_realm_county = {
+						limit = {
+							NOT = { this = scope:recipient.capital_county }
+							any_neighboring_county = { holder.top_liege = scope:secondary_recipient.top_liege }
+							any_county_province = { geographical_region = world_struggle_tartaria }
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+						save_scope_as = invasion_target_title
+					}
+				}
+				else_if = {
+					limit = {
+						any_realm_county = {
+							NOT = { this = scope:recipient.capital_county }
+							any_neighboring_county = {
+								any_county_province = { geographical_region = world_struggle_tartaria }
+								NOT = {
+									holder.top_liege = prev.holder.top_liege
+								}
+							}
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+					}
+					random_realm_county = {
+						limit = {
+							NOT = { this = scope:recipient.capital_county }
+							any_neighboring_county = {
+								any_county_province = { geographical_region = world_struggle_tartaria }
+								NOT = {
+									holder.top_liege = prev.holder.top_liege
+								}
+							}
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+						save_scope_as = invasion_target_title
+					}
+				}
+				else_if = {
+					limit = {
+						any_realm_county = {
+							NOT = { this = scope:recipient.capital_county }
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+					}
+					random_realm_county = {
+						limit = {
+							NOT = { this = scope:recipient.capital_county }
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+						save_scope_as = invasion_target_title
+					}
+				}
+				else_if = {
+					limit = {
+						any_realm_county = {
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+					}
+					random_realm_county = {
+						limit = {
+							NOR = {
+								holder = scope:actor
+								holder = { is_vassal_or_below_of = scope:actor }
+							}
+						}
+						save_scope_as = invasion_target_title
+					}
+				}
+				else = {
+					random_realm_county = { save_scope_as = invasion_target_title }
+				}
+				
+				scope:invasion_target_title.duchy = { save_scope_as = text_title }
+
+				hidden_effect = { # Not worth cluttering the UI with
+					add_opinion = {
+						modifier = fp3_incited_conflict
+						target = scope:actor
+					}
+					add_opinion = {
+						modifier = declared_war
+						target = scope:secondary_recipient
+					}
+				}
+			}
+
+			scope:secondary_recipient = {
+				add_gold = {
+					value = {
+						value = scope:secondary_recipient.max_military_strength
+						divide = 20
+						round = yes
+					}
+					add = {
+						if = {
+							limit = { scope:financial_support = yes }
+							add = fp3_request_invasion_troop_value_estimate
+						}
+					}
+					if = {
+						limit = {
+							scope:recipient = { has_title = title:e_celestia }
+							struggle:tartaria_struggle = { has_struggle_phase_parameter = unlocks_oe_tribute_threating_cb }
+						}
+						divide = 2
+					}
+				}
+				start_war = {
+					casus_belli = oe_normad_invasion_cb
+					target = scope:recipient
+					target_title = scope:invasion_target_title.duchy
+				}
+				custom_tooltip = oe_normad_invasion_cb_result_tt
+				if = {
+					limit = {
+						scope:financial_support = yes
+					}
+					trigger_event = oe_misc_decisions.0006
+					show_as_tooltip = {
+						spawn_army = {
+							men_at_arms = {
+								type = horse_archers
+								stacks = fp3_request_invasion_troop_value_bonus_troops
+							}
+							men_at_arms = {
+								type = light_horsemen
+								stacks = fp3_request_invasion_troop_value_bonus_troops
+							}
+							levies = fp3_request_invasion_troop_value_bonus_levy_troops
+							location = capital_province
+							uses_supply = yes
+							inheritable = no
+							name = turkic_tribal_event_troops
+						}
+					}
+				}
+				if = {
+					limit = { scope:war_support = yes }
+					custom_tooltip = fp3_request_turkic_invasion_interaction_option_join_war_outcome_tooltip
+					trigger_event = oe_misc_decisions.0005 
+				}
+			}
+			
+			scope:actor = {
+				hidden_effect = {
+					send_interface_toast = {
+						type = event_toast_effect_good
+						title = fp3_request_turkic_invasion_interaction_accept_notification.t
+						left_icon = scope:secondary_recipient
+						right_icon = scope:recipient
+	
+						show_as_tooltip = {
+							custom_tooltip = fp3_request_turkic_invasion_interaction_accept_notification.desc
+						}
+					}
+				}
+			}
+			
+			scope:recipient = {
+				add_character_flag = {
+					flag = incursion_ai_pacing
+					years = 5
+				}
+				hidden_effect = {
+					send_interface_toast = {
+						type = event_toast_effect_bad
+						title = fp3_request_turkic_invasion_interaction_accept_notification.t
+						left_icon = scope:secondary_recipient
+						right_icon = scope:actor
+	
+						show_as_tooltip = {
+							custom_tooltip = fp3_request_turkic_invasion_interaction_accept_target_notification.desc
+						}
+					}
+				}
+			}
+		}
+	}
+
+	use_diplomatic_range = yes
+
+	ai_accept = {
+		base = 0
+
+		# Relationships: actor -> recipient / We avoid more relationship checks for balance reasons (and because important decisions tend to care little for relationships)
+		modifier = { # Rivalry modifier.
+			desc = offer_vassalization_interaction_aibehavior_rival_tt_2
+			trigger = {
+				scope:secondary_recipient = {
+					has_relation_rival = scope:actor
+					NOT = { has_relation_nemesis = scope:actor }
+				}
+			}
+			add = -10
+		}
+		modifier = { # Nemesis modifier.
+			desc = offer_vassalization_interaction_aibehavior_nemesis_tt_2
+			trigger = {
+				scope:secondary_recipient = {
+					has_relation_nemesis = scope:actor
+				}
+			}
+			add = -30
+		}
+		modifier = { # Same Dynasty modifier.
+			desc = offer_vassalization_interaction_aibehavior_dynasty_tt_2
+			trigger = {
+				scope:secondary_recipient = {
+					dynasty = scope:actor.dynasty
+				}
+			}
+			add = 10
+		}
+
+		# Compare Opinion modifier
+		opinion_modifier = {
+			who = scope:secondary_recipient
+			opinion_target = scope:actor
+			multiplier = 0.25
+		}
+
+		# Pledged to help in invasion
+		modifier = {
+			add = {
+				value = scope:actor.max_military_strength
+				divide = 70
+				round = yes
+			}
+			desc = HAS_YOUR_SUPPORT_REASON
+			scope:war_support = yes
+		}
+
+		# Relative power (taken from PT interaction)
+		modifier = { # A lot less levies than scope:secondary_recipient
+			add = -100
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_far_weaker_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_MUCH_WEAKER
+		}
+		modifier = { # Few less levies than scope:secondary_recipient
+			add = -75
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_far_weaker_value
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_somewhat_weaker_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_SOMEWHAT_WEAKER
+		}
+		modifier = { # Roughly equal levies with scope:secondary_recipient
+			add = 10
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_somewhat_weaker_value
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_somewhat_stronger_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_ROUGHLY_EQUAL
+		}
+		modifier = { # More levies than scope:secondary_recipient
+			add = 50
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_somewhat_stronger_value
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_far_stronger_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_SOMEWHAT_STRONGER
+		}
+		modifier = { # Many more levies than scope:secondary_recipient
+			add = 75
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_far_stronger_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_MUCH_STRONGER
+		}
+
+		# AI who are in debt will take whatever windfalls they can.
+		modifier = {
+			add = {
+				value = scope:secondary_recipient.debt_level
+				add = 1 # Our first level is 0, so we add one to always get a positive number.
+				multiply = 10
+			}
+			debt_level >= 0
+			desc = PT_AI_IS_IN_DEBT
+		}
+
+		# Pacifist AI don't like raiding
+		modifier = {
+			add = -25
+			scope:secondary_recipient.faith = { has_doctrine_parameter = pacifist_opinion_active }
+			desc = PT_AI_IS_PACIFIST_FAITH_2
+		}
+		modifier = {
+			add = -25
+			scope:secondary_recipient.culture = { has_cultural_parameter = reduced_cost_for_conversion_to_pacifist_faith }
+			desc = PT_AI_IS_PACIFIST_CULTURE_2
+		}
+
+		# Offered proportional gold
+		modifier = {
+			add = 85
+			scope:financial_support = yes
+			desc = GOLD_REASON
+		}
+
+		# AI value mod
+		ai_value_modifier = {
+			ai_greed = 0.5
+			ai_boldness = 0.25
+			min = 0
+			max = 25
+		}
+	}
+	#auto_accept = {
+	#	scope:recipient = { is_ai = yes }
+	#}
+	can_send_despite_rejection = no
+	ai_frequency = 24
+	ai_targets = {
+		ai_recipients = neighboring_rulers
+		ai_recipients = liege
+	}
+	ai_potential = {
+		is_at_war = no
+		NOT = { ai_has_economical_boom_personality = yes }
+		ai_greed <= 25
+		highest_held_title_tier > tier_barony
+		culture = { has_cultural_pillar = heritage_chinese }
+	}
+	ai_will_do = {
+		base = 0
+
+		modifier = {
+			add = 50
+			scope:recipient = {
+				has_trait = disloyal
+				scope:recipient.max_military_strength >= scope:actor.max_military_strength
+			}
+		}
+
+		modifier = {
+			add = 50
+			title:e_celestia.holder ?= scope:recipient
+		}
+
+		modifier = {
+			add = 100
+			scope:recipient = {
+				has_relation_rival = scope:actor
+			}
+		}
+
+		modifier = {
+			factor = 0.1
+			scope:actor.liege ?= scope:recipient
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				has_character_flag = incursion_ai_pacing
+			}
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				is_at_war = yes
+				is_ai = no
+			}
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				is_ai = no
+				is_liege_or_above_of = scope:actor
+			}
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				OR = {
+					has_relation_friend = scope:actor
+					has_relation_lover = scope:actor
+					opinion = {
+						target = scope:actor
+						value >= 45
+					}
+				}
+			}
+		}
+	}
+}
+
+
+#要求勤王
+oe_request_serve_invasion_interaction = {
+	interface_priority = 100
+	#common_interaction = yes
+	category = interaction_category_hostile
+	cooldown_against_recipient = { years = 2 }
+
+	icon = request_mercenary
+	desc = oe_request_serve_invasion_interaction_desc
+
+	is_shown = {
+		scope:actor = {
+			OR = {
+				has_title = title:d_gosho
+				has_title = title:d_incho
+				has_title = title:d_sekke
+				has_title = title:e_celestia
+			}
+		}
+		scope:recipient = {
+			is_landed = yes
+			trigger_if = {
+				limit = { scope:actor = { has_title = title:e_celestia } }
+				is_vassal_of = scope:actor
+			}
+			trigger_else = {
+				is_vassal_of = title:k_yamato
+			}
+		}
+		NOT = { scope:actor = scope:recipient }
+	}
+
+	is_valid_showing_failures_only = {
+	}
+
+	populate_recipient_list = {
+		scope:actor.top_liege = {
+			every_vassal = {
+				limit = {
+					is_landed = yes
+					is_physically_able = yes
+					has_raised_armies = no
+					in_diplomatic_range = scope:actor
+					NOR = {
+						government_has_flag = government_is_clan
+						government_has_flag = government_is_ulus
+						government_has_flag = government_is_tribal
+					}
+					highest_held_title_tier >= tier_county
+					NOR = {
+						is_at_war_with = scope:actor
+						is_at_war_with = scope:recipient
+						is_allied_to = scope:recipient
+						has_truce = scope:recipient
+						this = scope:actor
+						this = scope:recipient
+					}
+				}
+				add_to_list = characters
+			}
+		}
+	}
+	
+	send_options_exclusive = no
+
+	send_option = {
+		flag = war_support
+		localization = fp3_request_turkic_invasion_interaction_option_join_war
+		current_description = fp3_request_turkic_invasion_interaction_option_join_war_desc
+		is_shown = { exists = scope:secondary_recipient }
+		is_valid = {
+			scope:actor = {
+				NOR = {
+					is_at_war_with = scope:recipient
+					is_allied_to = scope:recipient
+					has_truce = scope:recipient
+				}
+			}
+		}
+	}
+
+	send_option = {
+		flag = financial_support
+		localization = fp3_request_turkic_invasion_interaction_option_more_gold
+		current_description = fp3_request_turkic_invasion_interaction_option_more_gold_desc
+		is_shown = { exists = scope:secondary_recipient }
+		is_valid = {
+			custom_description = {
+				text = fp3_please_dont_give_me_negative_gold
+				fp3_request_invasion_troop_value_estimate > 0
+			}
+		}
+	}
+
+	cost = {
+		gold = {
+			value = {
+				value = scope:secondary_recipient.max_military_strength
+				divide = 20
+				round = yes
+			}
+			add = {
+				if = {
+					limit = { scope:financial_support = yes }
+					add = fp3_request_invasion_troop_value_estimate
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = { has_title = title:e_celestia }
+					struggle:tartaria_struggle = { has_struggle_phase_parameter = unlocks_oe_tribute_threating_cb }
+				}
+				divide = 2
+			}
+		}
+	}
+
+	on_accept = {
+		if = {
+			limit = { exists = scope:secondary_recipient }
+
+			scope:recipient = {
+				primary_title.title_capital_county = { save_scope_as = invasion_target_title }
+				
+				scope:invasion_target_title.duchy = { save_scope_as = text_title }
+
+				hidden_effect = { # Not worth cluttering the UI with
+					add_opinion = {
+						modifier = fp3_incited_conflict
+						target = scope:actor
+					}
+					add_opinion = {
+						modifier = declared_war
+						target = scope:secondary_recipient
+					}
+				}
+			}
+
+			scope:secondary_recipient = {
+				add_gold = {
+					value = {
+						value = scope:secondary_recipient.max_military_strength
+						divide = 20
+						round = yes
+					}
+					add = {
+						if = {
+							limit = { scope:financial_support = yes }
+							add = fp3_request_invasion_troop_value_estimate
+						}
+					}
+					if = {
+						limit = {
+							scope:recipient = { has_title = title:e_celestia }
+							struggle:tartaria_struggle = { has_struggle_phase_parameter = unlocks_oe_tribute_threating_cb }
+						}
+						divide = 2
+					}
+				}
+				start_war = {
+					casus_belli = oe_serve_invasion_cb
+					target = scope:recipient
+					target_title = scope:invasion_target_title.duchy
+				}
+				custom_tooltip = oe_serve_invasion_cb_result_tt
+				if = {
+					limit = {
+						scope:financial_support = yes
+					}
+					trigger_event = oe_misc_decisions.0008
+					show_as_tooltip = {
+						spawn_army = {
+							men_at_arms = {
+								type = horse_archers
+								stacks = fp3_request_invasion_troop_value_bonus_troops
+							}
+							men_at_arms = {
+								type = light_horsemen
+								stacks = fp3_request_invasion_troop_value_bonus_troops
+							}
+							levies = fp3_request_invasion_troop_value_bonus_levy_troops
+							location = capital_province
+							uses_supply = yes
+							inheritable = no
+							name = turkic_tribal_event_troops
+						}
+					}
+				}
+				if = {
+					limit = { scope:war_support = yes }
+					custom_tooltip = fp3_request_turkic_invasion_interaction_option_join_war_outcome_tooltip
+					trigger_event = oe_misc_decisions.0007 
+				}
+			}
+			
+			scope:actor = {
+				hidden_effect = {
+					send_interface_toast = {
+						type = event_toast_effect_good
+						title = fp3_request_turkic_invasion_interaction_accept_notification.t
+						left_icon = scope:secondary_recipient
+						right_icon = scope:recipient
+	
+						show_as_tooltip = {
+							custom_tooltip = fp3_request_turkic_invasion_interaction_accept_notification.desc
+						}
+					}
+				}
+			}
+			
+			scope:recipient = {
+				add_character_flag = {
+					flag = incursion_ai_pacing
+					years = 5
+				}
+				hidden_effect = {
+					send_interface_toast = {
+						type = event_toast_effect_bad
+						title = fp3_request_turkic_invasion_interaction_accept_notification.t
+						left_icon = scope:secondary_recipient
+						right_icon = scope:actor
+	
+						show_as_tooltip = {
+							custom_tooltip = fp3_request_turkic_invasion_interaction_accept_target_notification.desc
+						}
+					}
+				}
+			}
+		}
+	}
+
+	use_diplomatic_range = yes
+
+	ai_accept = {
+		base = 0
+
+		# Relationships: actor -> recipient / We avoid more relationship checks for balance reasons (and because important decisions tend to care little for relationships)
+		modifier = { # Rivalry modifier.
+			desc = offer_vassalization_interaction_aibehavior_rival_tt_2
+			trigger = {
+				scope:secondary_recipient = {
+					has_relation_rival = scope:actor
+					NOT = { has_relation_nemesis = scope:actor }
+				}
+			}
+			add = -10
+		}
+		modifier = { # Nemesis modifier.
+			desc = offer_vassalization_interaction_aibehavior_nemesis_tt_2
+			trigger = {
+				scope:secondary_recipient = {
+					has_relation_nemesis = scope:actor
+				}
+			}
+			add = -30
+		}
+		modifier = { # Same Dynasty modifier.
+			desc = offer_vassalization_interaction_aibehavior_dynasty_tt_2
+			trigger = {
+				scope:secondary_recipient = {
+					dynasty = scope:actor.dynasty
+				}
+			}
+			add = 10
+		}
+
+		# Compare Opinion modifier
+		opinion_modifier = {
+			who = scope:secondary_recipient
+			opinion_target = scope:actor
+			multiplier = 0.25
+		}
+
+		# Pledged to help in invasion
+		modifier = {
+			add = {
+				value = scope:actor.max_military_strength
+				divide = 70
+				round = yes
+			}
+			desc = HAS_YOUR_SUPPORT_REASON
+			scope:war_support = yes
+		}
+
+		# Relative power (taken from PT interaction)
+		modifier = { # A lot less levies than scope:secondary_recipient
+			add = -100
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_far_weaker_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_MUCH_WEAKER
+		}
+		modifier = { # Few less levies than scope:secondary_recipient
+			add = -75
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_far_weaker_value
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_somewhat_weaker_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_SOMEWHAT_WEAKER
+		}
+		modifier = { # Roughly equal levies with scope:secondary_recipient
+			add = 10
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_somewhat_weaker_value
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_somewhat_stronger_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_ROUGHLY_EQUAL
+		}
+		modifier = { # More levies than scope:secondary_recipient
+			add = 50
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_somewhat_stronger_value
+			scope:secondary_recipient.max_military_strength <= scope:recipient.purchase_truce_interaction_recipient_far_stronger_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_SOMEWHAT_STRONGER
+		}
+		modifier = { # Many more levies than scope:secondary_recipient
+			add = 75
+			scope:secondary_recipient.max_military_strength > scope:recipient.purchase_truce_interaction_recipient_far_stronger_value
+			desc = fp3_RTI_AI_RECIPIENT_IS_MUCH_STRONGER
+		}
+
+		# AI who are in debt will take whatever windfalls they can.
+		modifier = {
+			add = {
+				value = scope:secondary_recipient.debt_level
+				add = 1 # Our first level is 0, so we add one to always get a positive number.
+				multiply = 10
+			}
+			debt_level >= 0
+			desc = PT_AI_IS_IN_DEBT
+		}
+
+		# Pacifist AI don't like raiding
+		modifier = {
+			add = -25
+			scope:secondary_recipient.faith = { has_doctrine_parameter = pacifist_opinion_active }
+			desc = PT_AI_IS_PACIFIST_FAITH_2
+		}
+		modifier = {
+			add = -25
+			scope:secondary_recipient.culture = { has_cultural_parameter = reduced_cost_for_conversion_to_pacifist_faith }
+			desc = PT_AI_IS_PACIFIST_CULTURE_2
+		}
+
+		# Offered proportional gold
+		modifier = {
+			add = 85
+			scope:financial_support = yes
+			desc = GOLD_REASON
+		}
+
+		# AI value mod
+		ai_value_modifier = {
+			ai_greed = 0.5
+			ai_boldness = 0.25
+			min = 0
+			max = 25
+		}
+	}
+	#auto_accept = {
+	#	scope:recipient = { is_ai = yes }
+	#}
+	can_send_despite_rejection = no
+	ai_frequency = 24
+	ai_targets = {
+		ai_recipients = neighboring_rulers
+		ai_recipients = liege
+	}
+	ai_potential = {
+		is_at_war = no
+		NOT = { ai_has_economical_boom_personality = yes }
+		ai_greed <= 25
+		highest_held_title_tier > tier_barony
+		culture = { has_cultural_pillar = heritage_chinese }
+	}
+	ai_will_do = {
+		base = 0
+
+		modifier = {
+			add = 50
+			scope:recipient = {
+				has_trait = disloyal
+				scope:recipient.max_military_strength >= scope:actor.max_military_strength
+			}
+		}
+
+		modifier = {
+			add = 50
+			title:e_celestia.holder ?= scope:recipient
+		}
+
+		modifier = {
+			add = 100
+			scope:recipient = {
+				has_relation_rival = scope:actor
+			}
+		}
+
+		modifier = {
+			factor = 0.1
+			scope:actor.liege ?= scope:recipient
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				has_character_flag = incursion_ai_pacing
+			}
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				is_at_war = yes
+				is_ai = no
+			}
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				is_ai = no
+				is_liege_or_above_of = scope:actor
+			}
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				OR = {
+					has_relation_friend = scope:actor
+					has_relation_lover = scope:actor
+					opinion = {
+						target = scope:actor
+						value >= 45
+					}
+				}
+			}
+		}
+	}
+}

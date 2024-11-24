@@ -239,8 +239,268 @@ TributeSystem.1015 = {
 	}
 }
 
+###########################
+# 新朝贡
+###########################
+
+#选择进贡类型
+TributeSystem.1016 = {
+	type = letter_event
+	opening = {
+		desc = TributeSystem.1016.opening
+	}
+	desc = TributeSystem.1016.desc
+		
+	sender = {
+		character = scope:recipient
+		animation = personality_content	
+	}
+
+	#王化朝贡
+	option = {														
+		name = trait_track_civilized
+		
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = tribute_exp_gain_notification
+			right_icon = scope:actor
+
+			add_trait_xp = {
+				trait = tributary
+				track = civilized
+				value = var:tributary_exp_gain
+			}
+		}
+
+		ai_chance = {
+			base = 25
+			ai_value_modifier = {
+				ai_zeal = 0.1
+				ai_honor = 0.1
+			}
+		}
+	}
+	#互市朝贡
+	option = {												
+		name = trait_track_league
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = tribute_exp_gain_notification
+			right_icon = scope:actor
+
+			add_trait_xp = {
+				trait = tributary
+				track = league
+				value = var:tributary_exp_gain
+			}
+		}
 
 
+		ai_chance = {
+			base = 25
+			ai_value_modifier = {
+				ai_greed = 0.1
+				ai_compassion = 0.1
+			}
+		}
+	}
+	#臣属朝贡点数？
+	option = {
+		name = trait_track_hegemony
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = tribute_exp_gain_notification
+			right_icon = scope:actor
 
+			add_trait_xp = {
+				trait = tributary
+				track = hegemony
+				value = var:tributary_exp_gain
+			}
+		}
 
+		ai_chance = {
+			base = 40
+			ai_value_modifier = {
+				ai_boldness = -1
+			}
+		}
+	}
+	#听从宗主国安排
+	option = {
+		name = follow_suzerain
+		trigger = {}
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = tribute_exp_gain_notification
+			right_icon = scope:actor
+			show_as_tooltip = {
+				scope:actor = {
+					change_tribute_exp_effect = { EXP = var:tributary_exp_gain }
+				}
+			}
+		}
+		#scope:actor = {
+			#change_tribute_exp_effect = { EXP = var:tributary_exp_gain }
+		#}
 
+		reverse_add_opinion = {
+			target = scope:recipient
+			modifier = humbled_opinion
+			opinion = var:tributary_exp_gain
+		}
+		ai_chance = {
+			base = 60
+		}
+	}
+	remove_variable = tributary_exp_gain
+}
+
+#宗主国赏赐（金钱）
+TributeSystem.1017 = {
+	type = character_event
+	title = TributeSystem.1017.t
+	desc = TributeSystem.1017.desc
+	theme = new_royal_court
+
+	left_portrait = {
+		character = scope:actor #朝贡国
+		animation = admiration
+	}
+	right_portrait = {
+		character = scope:recipient #宗主国
+		animation = personality_content	
+	}
+
+	immediate = {
+		scope:actor = { save_scope_as = tributary }
+		scope:recipient = { save_scope_as = suzerain }
+	}
+	#不给赏赐
+	option = {
+		name = bestow_none
+		scope:suzerain = { change_tribute_exp_effect = { EXP = -2 } }
+
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = bestow_none
+			right_icon = scope:recipient
+			pay_short_term_gold = {
+				gold = 0
+				target = scope:tributary
+			}
+		}
+		ai_chance = {
+			base = 1
+			ai_value_modifier = {
+				ai_greed = 1
+				ai_compassion = -1
+			}
+		}
+	}
+	#半年收入
+	option = {										
+		is_valid = {
+			scope:suzerain.gold >= scope:tributary.medium_gold_value #朝贡国的收入
+		}	
+		name = medium_gold_value
+		scope:suzerain = { change_tribute_exp_effect = { EXP = 5 } }
+		
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = bestow_interaction_notification
+			right_icon = scope:recipient
+			pay_short_term_gold = {
+				gold = scope:tributary.medium_gold_value
+				target = scope:tributary
+			}
+			stress_impact = {
+				greedy = medium_stress_impact_gain
+			}
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					modifier = gift_opinion
+					opinion = send_gift_opinion
+				}
+			}
+		}
+		ai_chance = {
+			base = 1
+			ai_value_modifier = {
+				ai_greed = -1
+				ai_compassion = 1
+			}
+		}
+	}
+	#一年收入
+	option = {									
+		is_valid = {
+			scope:suzerain.gold >= scope:tributary.major_gold_value
+		}	
+		name = major_gold_value
+		scope:suzerain = { change_tribute_exp_effect = { EXP = 10 } }
+
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = bestow_interaction_notification
+			right_icon = scope:recipient
+			pay_short_term_gold = {
+				gold = scope:tributary.major_gold_value
+				target = scope:tributary
+			}
+			stress_impact = {
+				greedy = medium_stress_impact_gain
+			}
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					modifier = gift_opinion
+					opinion = send_gift_opinion
+				}
+			}
+		}
+		ai_chance = {
+			base = 1
+			ai_value_modifier = {
+				ai_greed = -1
+				ai_compassion = 0.8
+			}
+		}
+	}
+	#一年半收入
+	option = {
+		is_valid = {
+			scope:suzerain.gold >= scope:tributary.massive_gold_value
+		}
+		name = massive_gold_value
+		scope:suzerain = { change_tribute_exp_effect = { EXP = 15 } }
+
+		send_interface_toast = {
+			type = event_toast_effect_neutral
+			title = bestow_interaction_notification
+			right_icon = scope:recipient
+			pay_short_term_gold = {
+				gold = scope:tributary.massive_gold_value
+				target = scope:tributary
+			}
+			stress_impact = {
+				greedy = medium_stress_impact_gain
+			}
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					modifier = gift_opinion
+					opinion = send_gift_opinion
+				}
+			}
+		}
+		ai_chance = {
+			base = 1
+			ai_value_modifier = {
+				ai_greed = -1
+				ai_compassion = 0.5
+			}
+		}
+	}
+}

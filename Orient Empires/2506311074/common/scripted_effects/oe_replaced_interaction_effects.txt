@@ -1,0 +1,1695 @@
+﻿offer_vassalization_interaction_effect = {
+	create_title_and_vassal_change = {
+		type = swear_fealty
+		save_scope_as = change
+	}
+	scope:recipient = {
+		change_liege = {
+			liege = scope:actor
+			change = scope:change
+		}
+		add_opinion = {
+			modifier = became_vassal
+			target = scope:actor
+			opinion = 10
+		}
+	}
+	resolve_title_and_vassal_change = scope:change
+
+	# Special terms for feudal contracts
+	scope:recipient = {
+		if = {
+			limit = {
+				government_has_flag = government_is_feudal
+			}
+			if = {
+				limit = { scope:high_obligations = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 3 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 3 }
+					}	
+				}
+				custom_tooltip = high_obligations_taxes
+				custom_tooltip = high_obligations_levies
+			}
+			else_if = {
+				limit = { scope:low_obligations = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 1 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 1 }
+					}			
+				}
+				custom_tooltip = low_obligations_taxes
+				custom_tooltip = low_obligations_levies
+			}
+			else_if = {
+				limit = { scope:religious_exemption = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 1 }
+						vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+					}
+				}
+				custom_tooltip = normal_obligations_taxes
+				custom_tooltip = low_obligations_levies
+				custom_tooltip = religious_protection_tt
+			}
+			else = {
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 2 }
+					}
+				}
+				custom_tooltip = normal_obligations_taxes
+				custom_tooltip = normal_obligations_levies
+			}
+		}
+		else_if = {
+			limit = {
+				government_has_flag = government_is_clan
+				scope:religious_exemption_clan = yes
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+				}
+			}
+			custom_tooltip = religious_protection_tt
+		}
+		else_if = {
+			limit = {
+				government_has_flag = government_is_celestial
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					vassal_contract_set_obligation_level = { type = special_imperial_contract level = 1 }
+					vassal_contract_set_obligation_level = { type = special_imperial_legion level = 3 }
+				}
+			}
+		}
+	}
+
+	# Struggle catalysts.
+	hidden_effect = {
+		fp3_struggle_apply_independent_vassalage_catalyst_effect = {
+			NEW_LIEGE = scope:actor
+			NEW_VASSAL = scope:recipient
+		}
+	}
+}
+
+
+results_of_university_education_points_effect = {
+	if = {
+		limit = {
+			has_character_flag = studying_at_university
+		}
+		#Adding the points to the current education
+		if = {
+			limit = { has_focus = education_diplomacy }
+			change_variable = {
+				name = education_diplomacy_variable
+				add = 12 #They should reach the top if they're not completely dumb
+			}
+		}
+		else_if = {
+			limit = { has_focus = education_martial }
+			change_variable = {
+				name = education_martial_variable
+				add = 12 #They should reach the top if they're not completely dumb
+			}
+		}
+		else_if = {
+			limit = { has_focus = education_stewardship }
+			change_variable = {
+				name = education_stewardship_variable
+				add = 12 #They should reach the top if they're not completely dumb
+			}
+		}
+		else_if = {
+			limit = { has_focus = education_intrigue }
+			change_variable = {
+				name = education_intrigue_variable
+				add = 12 #They should reach the top if they're not completely dumb
+			}
+		}
+		else_if = {
+			limit = { has_focus = education_learning }
+			change_variable = {
+				name = education_learning_variable
+				add = 12 #They should reach the top if they're not completely dumb
+			}
+		}
+		remove_character_flag = studying_at_university
+		add_character_flag = studied_at_university
+
+		if = {
+			limit = {
+				any_realm_province = {
+					has_building_or_higher = celestial_university
+				}
+			}
+			add_trait = lifestyle_bureaucrat
+		}
+
+		if = {
+			limit = {
+				NOT = {
+					has_trait = drunkard
+				}
+			}
+			hidden_effect = {
+				random = {
+					chance = 2
+					add_trait = drunkard
+				}
+			}
+		}
+	}
+}
+
+#勋号
+accolade_character_creation_effect = {
+	#don't want AI using our performance intensive checks
+	if = {
+		limit = {
+			root = {
+				OR = {
+					is_ai = no
+					any_held_title = { this = title:e_byzantium }
+				}
+			}
+		}
+		#save a general knight-y culture that can randomly be used
+		save_general_accolade_successor_culture_effect = yes
+		#varangians if relevant
+		save_varangian_successor_culture_effect = yes
+		#turkic warriors if relevant
+		save_turkic_successor_culture_effect = yes
+		#save one specific to the accolade type
+		save_type_specific_successor_culture_effect = yes
+	}
+	#let's get creating - but needs to be the right type of knight
+	#Marauder
+	if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:marauder_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_marauder_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Idealist
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:idealist_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_idealist_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Charmer
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:charmer_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_charmer_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Thug
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:thug_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_thug_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Disciplinarian
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:disciplinarian_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_disciplinarian_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Fanatic
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:fanatic_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_fanatic_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Valiant
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:valiant_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_valiant_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Stalwart
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:stalwart_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_stalwart_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Scoundrel
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:scoundrel_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_scoundrel_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Politicker
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:politicker_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_politicker_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+		if = {
+			limit = {
+				scope:chosen_knight = { diplomacy < 15 }
+			}
+			scope:chosen_knight = {
+				add_diplomacy_skill = {
+					value = 15
+					subtract = diplomacy
+				}
+			}
+		}
+	}
+	#Tactician
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:tactician_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_tactician_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+		if = {
+			limit = {
+				scope:chosen_knight = { martial < 15 }
+			}
+			scope:chosen_knight = {
+				add_martial_skill = {
+					value = 15
+					subtract = martial
+				}
+			}
+		}
+	}
+	#Reeve
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:reeve_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_reeve_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+		if = {
+			limit = {
+				scope:chosen_knight = { stewardship < 15 }
+			}
+			scope:chosen_knight = {
+				add_stewardship_skill = {
+					value = 15
+					subtract = stewardship
+				}
+			}
+		}
+	}
+	#Manipulator
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:manipulator_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_manipulator_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+		if = {
+			limit = {
+				scope:chosen_knight = { intrigue < 15 }
+			}
+			scope:chosen_knight = {
+				add_intrigue_skill = {
+					value = 15
+					subtract = intrigue
+				}
+			}
+		}
+	}
+	#Mentor
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:mentor_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_mentor_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+		if = {
+			limit = {
+				scope:chosen_knight = { learning < 15 }
+			}
+			scope:chosen_knight = {
+				add_learning_skill = {
+					value = 15
+					subtract = learning
+				}
+			}
+		}
+	}
+	#Contender
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:contender_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_contender_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+		if = {
+			limit = {
+				scope:chosen_knight = { prowess < 20 }
+			}
+			scope:chosen_knight = {
+				add_prowess_skill = {
+					value = 20
+					subtract = prowess
+				}
+			}
+		}
+	}
+	#Archer
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:archer_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_archer_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Skirmisher
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:skirmisher_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_skirmisher_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Pike
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:pike_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_pike_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:varangian_culture = {
+					trigger = { exists = scope:varangian_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Outrider
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:outrider_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_outrider_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = { exists = root.location.culture }
+				}
+				scope:knight_culture = {
+					trigger = { exists = scope:knight_culture }
+				}
+				scope:turkic_culture = {
+					trigger = { exists = scope:turkic_culture }
+				}
+				scope:type_specific_culture = {
+					trigger = { exists = scope:type_specific_culture }
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Vanguard
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:vanguard_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_vanguard_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = {
+							OR = {
+								has_innovation = innovation_quilted_armor
+								has_cultural_tradition = tradition_fp1_coastal_warriors
+								has_cultural_tradition = tradition_hird
+								has_cultural_tradition = tradition_futuwaa
+								has_cultural_tradition = tradition_druzhina
+								has_cultural_tradition = tradition_khadga_puja
+								has_cultural_tradition = tradition_garuda_warriors
+								has_cultural_tradition = tradition_himalayan_settlers
+								has_cultural_tradition = tradition_mubarizuns
+								has_cultural_tradition = tradition_burman_royal_army
+								has_cultural_tradition = tradition_mountaineer_ruralism
+								has_innovation = innovation_sarawit
+								has_innovation = innovation_legionnaires
+							}
+						}
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = {
+							OR = {
+								has_innovation = innovation_quilted_armor
+								has_cultural_tradition = tradition_fp1_coastal_warriors
+								has_cultural_tradition = tradition_hird
+								has_cultural_tradition = tradition_futuwaa
+								has_cultural_tradition = tradition_druzhina
+								has_cultural_tradition = tradition_khadga_puja
+								has_cultural_tradition = tradition_garuda_warriors
+								has_cultural_tradition = tradition_himalayan_settlers
+								has_cultural_tradition = tradition_mubarizuns
+								has_cultural_tradition = tradition_burman_royal_army
+								has_cultural_tradition = tradition_mountaineer_ruralism
+								has_innovation = innovation_sarawit
+								has_innovation = innovation_legionnaires
+							}
+						}
+					}
+				}
+				scope:varangian_culture = {
+					trigger = {
+						exists = scope:varangian_culture
+						scope:varangian_culture = {
+							OR = {
+								has_innovation = innovation_quilted_armor
+								has_cultural_tradition = tradition_fp1_coastal_warriors
+								has_cultural_tradition = tradition_hird
+								has_cultural_tradition = tradition_futuwaa
+								has_cultural_tradition = tradition_druzhina
+								has_cultural_tradition = tradition_khadga_puja
+								has_cultural_tradition = tradition_garuda_warriors
+								has_cultural_tradition = tradition_himalayan_settlers
+								has_cultural_tradition = tradition_mubarizuns
+								has_cultural_tradition = tradition_burman_royal_army
+								has_cultural_tradition = tradition_mountaineer_ruralism
+								has_innovation = innovation_sarawit
+								has_innovation = innovation_legionnaires
+							}
+						}
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = {
+							OR = {
+								has_innovation = innovation_quilted_armor
+								has_cultural_tradition = tradition_fp1_coastal_warriors
+								has_cultural_tradition = tradition_hird
+								has_cultural_tradition = tradition_futuwaa
+								has_cultural_tradition = tradition_druzhina
+								has_cultural_tradition = tradition_khadga_puja
+								has_cultural_tradition = tradition_garuda_warriors
+								has_cultural_tradition = tradition_himalayan_settlers
+								has_cultural_tradition = tradition_mubarizuns
+								has_cultural_tradition = tradition_burman_royal_army
+								has_cultural_tradition = tradition_mountaineer_ruralism
+								has_innovation = innovation_sarawit
+								has_innovation = innovation_legionnaires
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Lancer
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:lancer_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_lancer_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+								has_innovation = innovation_valets
+							}
+						}
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+								has_innovation = innovation_valets
+							}
+						}
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+						scope:turkic_culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+								has_innovation = innovation_valets
+							}
+						}
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Saber
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:saber_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_lancer_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+								has_innovation = innovation_valets
+							}
+						}
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+								has_innovation = innovation_valets
+							}
+						}
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+						scope:turkic_culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+								has_innovation = innovation_valets
+							}
+						}
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = {
+							OR = {
+								has_innovation = innovation_arched_saddle
+								has_cultural_tradition = tradition_caucasian_wolves
+								has_cultural_tradition = tradition_ep3_audacious_cadets
+								has_cultural_tradition = tradition_roman_legacy
+								has_cultural_tradition = tradition_ep3_imperial_tagmata
+								has_innovation = innovation_valets
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Besieger
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:besieger_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_besieger_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = { has_innovation = innovation_mangonel }
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = { has_innovation = innovation_mangonel }
+					}
+				}
+				scope:varangian_culture = {
+					trigger = {
+						exists = scope:varangian_culture
+						scope:varangian_culture = { has_innovation = innovation_mangonel }
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+						scope:turkic_culture = { has_innovation = innovation_mangonel }
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = { has_innovation = innovation_mangonel }
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Crossbowman
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:crossbowmen_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_crossbowmen_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						OR = {
+							root.location.culture = {
+								has_innovation = innovation_advanced_bowmaking
+								has_innovation = innovation_repeating_crossbow
+							}
+						}
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = {
+							OR = {
+								has_innovation = innovation_advanced_bowmaking
+								has_innovation = innovation_repeating_crossbow
+							}
+						}
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+						scope:turkic_culture = {
+							OR = {
+								has_innovation = innovation_advanced_bowmaking
+								has_innovation = innovation_repeating_crossbow
+							}
+						}
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = {
+							OR = {
+								has_innovation = innovation_advanced_bowmaking
+								has_innovation = innovation_repeating_crossbow
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Camel Rider
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:camelry_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_camelry_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = { has_innovation = innovation_war_camels }
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = { has_innovation = innovation_war_camels }
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+						scope:turkic_culture = { has_innovation = innovation_war_camels }
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = { has_innovation = innovation_war_camels }
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Elephant Rider
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:elephantry_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_elephantry_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = { has_innovation = innovation_elephantry }
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = { has_innovation = innovation_elephantry }
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = { has_innovation = innovation_elephantry }
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Horse Archer
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:horse_archer_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_horse_archer_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = { has_cultural_parameter = unlock_maa_horse_archers }
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = { has_cultural_parameter = unlock_maa_horse_archers }
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+						scope:turkic_culture = { has_cultural_parameter = unlock_maa_horse_archers }
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = { has_cultural_parameter = unlock_maa_horse_archers }
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Huntsmaster
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:huntsmaster_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_huntsmaster_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+						root.location.culture = { NOT = { has_cultural_tradition = tradition_vegetarianism } }
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+						scope:knight_culture = { NOT = { has_cultural_tradition = tradition_vegetarianism } }
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+						scope:turkic_culture = { NOT = { has_cultural_tradition = tradition_vegetarianism } }
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+						scope:type_specific_culture = { NOT = { has_cultural_tradition = tradition_vegetarianism } }
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Blademaster
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:blademaster_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_blademaster_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+					}
+				}
+				scope:varangian_culture = {
+					trigger = {
+						exists = scope:varangian_culture
+					}
+				}
+				scope:turkic_culture = {
+					trigger = {
+						exists = scope:turkic_culture
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	#Reveler
+	else_if = {
+		limit = {
+			scope:accolade_in_need = {
+				primary_type = {
+					this = accolade_type:master_of_revels_attribute
+				}
+			}
+		}
+		create_character = {
+			location = root.capital_province
+			template = accolade_master_of_revels_character
+			faith = root.faith
+			random_culture = {
+				root.culture = {
+					trigger = { always = yes }
+				}
+				root.location.culture = {
+					trigger = {
+						exists = root.location.culture
+					}
+				}
+				scope:knight_culture = {
+					trigger = {
+						exists = scope:knight_culture
+					}
+				}
+				scope:type_specific_culture = {
+					trigger = {
+						exists = scope:type_specific_culture
+					}
+				}
+			}
+			save_scope_as = chosen_knight
+		}
+	}
+	if = {
+		limit = {
+			scope:chosen_knight = { prowess < 12 }
+		}
+		scope:chosen_knight = {
+			add_prowess_skill = {
+				value = 12
+				subtract = prowess
+			}
+		}
+	}
+	if = {
+		limit = {
+			scope:chosen_knight = { has_trait = devoted }
+		}
+		scope:chosen_knight = {
+			remove_trait = devoted
+		}
+	}
+	if = {
+		limit = {
+			scope:chosen_knight = { has_trait = celibate }
+		}
+		scope:chosen_knight = {
+			remove_trait = celibate
+		}
+	}
+}
+
+
+
+
+#宫廷影响力
+diarch_swing_scales_guts_effect = {
+	# Influence.
+	if = {
+		limit = { scope:swing_influence = yes }
+		show_as_tooltip = {
+			change_influence = {
+				value = swing_scales_influence_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				multiply = -1
+				round = yes
+			}
+		}
+	}
+	# Prestige.
+	if = {
+		limit = { scope:swing_prestige = yes }
+		show_as_tooltip = {
+			add_prestige = {
+				value = swing_scales_prestige_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				multiply = -1
+				round = yes
+			}
+		}
+	}
+	# Piety.
+	else_if = {
+		limit = { scope:swing_piety = yes }
+		show_as_tooltip = {
+			add_piety = {
+				value = swing_scales_piety_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				multiply = -1
+				round = yes
+			}
+		}
+	}
+	# Cash.
+	else_if = {
+		limit = { scope:swing_gold = yes }
+		save_scope_value_as = {
+			name = swing_gold_value
+			value = {
+				value = swing_scales_cash_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				round = yes
+			}
+		}
+		show_as_tooltip = {
+			pay_short_term_gold = {
+				target = scope:recipient
+				gold = scope:swing_gold_value
+			}
+		}
+		# Scope:actor actually loses their gold when paying the admission price for the interaction, so we silently give scope:recipient gold from nowhere instead.
+		hidden_effect = {
+			scope:recipient = { add_gold = scope:swing_gold_value }
+		}
+	}
+	# Hook.
+	else_if = {
+		limit = { scope:swing_hook = yes }
+		use_hook = scope:recipient
+	}
+	# HoF.
+	else_if = {
+		limit = { scope:swing_hof = yes }
+		show_as_tooltip = {
+			add_piety = {
+				value = swing_scales_piety_cost_value
+				multiply = -1
+			}
+			pay_short_term_gold = {
+				target = scope:actor.faith.religious_head
+				gold = swing_scales_cash_cost_value
+			}
+		}
+		# The HoF doesn't need *another* source of cash unless they're fairly minor, so we only actually pay this if they're already very low on cash.
+		hidden_effect = {
+			scope:actor.faith.religious_head = {
+				if = {
+					limit = { gold <= 1000 }
+					add_gold = scope:actor.swing_scales_cash_cost_value
+				}
+			}
+		}
+	}
+	if = {
+		limit = {
+			scope:actor = { is_diarch_of_target = scope:recipient }
+			OR = {
+				scope:swing_prestige = yes
+				scope:swing_piety = yes
+				scope:swing_gold = yes
+			}
+		}
+		if = {
+			limit = { scope:recipient.legitimacy_level <= 2 }
+			custom_tooltip = legitimacy_swing_scales_cheaper_tt
+		}
+		else = { custom_tooltip = legitimacy_swing_scales_dearer_tt }
+	}
+
+	#宫廷影响力
+	if = {
+		limit = {
+			has_trait = great_misit
+		}
+		show_as_tooltip = {
+			custom_tooltip = add_misit_power_50_tooltip
+			change_variable = {
+				name = misit_power
+				add = 50
+			}
+		}
+	}
+
+}

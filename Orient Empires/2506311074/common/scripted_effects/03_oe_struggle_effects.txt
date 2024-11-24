@@ -1,0 +1,367 @@
+﻿##### Struggle Ending #####
+
+### Common
+oe_struggle_apply_ai_agenda_effect = {
+	# Apply effects
+	add_character_flag = {
+		flag = agenda_towards_$INTENT$
+	}
+	root = {
+		change_variable = {
+			name = agents_for_$INTENT$
+			add = 1
+		}
+	}
+}
+
+# Add all Involved cultures with counties to a list
+oe_struggle_ending_culture_list_effect = {
+	every_culture_global = {		
+		limit = {
+			#TODO_CD_FP2 (JP) check if this can be more performant, every_struggle_culture would be better
+			save_temporary_scope_as = this_culture
+			struggle:tartaria_struggle = { is_culture_involved_in_struggle = scope:this_culture }
+			culture_number_of_counties > 0
+		}
+		save_scope_as = culture_scope
+		add_to_global_variable_list = {
+			name = oe_struggle_ending_culture_list
+			target = scope:culture_scope
+		}
+	}
+}
+
+# Add all Involved independent rulers to a list
+oe_stuggle_ending_involved_list_effect = {
+	save_scope_as = struggle_ender
+	struggle:tartaria_struggle = {
+		every_involved_ruler = {
+			limit = {
+				is_independent_ruler = yes
+				primary_title = { is_mercenary_company = no }
+			}
+			add_to_list = oe_struggle_involvees
+		}
+	}
+	# Add all involved cultures with counties to a list, for war checks
+	oe_struggle_ending_culture_list_effect = yes
+	# Add all involved faiths with counties to a list, for marriage and holy war checks
+	oe_struggle_ending_faith_list_effect = yes
+}
+
+### Hostility
+
+# Add all Involved faiths with counties to a list
+oe_struggle_ending_faith_list_effect = {
+	every_religion_global = {
+		limit = {
+			any_faith = {
+				save_temporary_scope_as = this_faith
+				struggle:tartaria_struggle = { is_faith_involved_in_struggle = scope:this_faith }
+				num_county_followers > 0
+			}
+		}
+		every_faith = {
+			limit = {
+				struggle:tartaria_struggle = { is_faith_involved_in_struggle = prev }
+				num_county_followers > 0
+			}
+			save_scope_as = faith_scope
+			add_to_global_variable_list = {
+				name = fp2_struggle_ending_faith_list
+				target = scope:faith_scope
+			}
+		}
+	}
+}
+
+# Set cultural acceptance between all Involved cultures
+oe_struggle_hostility_cultural_acceptance_effect = {
+	hidden_effect = {
+		while = {
+			limit = {
+				any_in_global_list = {
+					variable = oe_struggle_ending_culture_list
+					NOT = { has_variable = oe_struggle_hostility_flag }
+				}
+			}
+			ordered_in_global_list = {
+				variable = oe_struggle_ending_culture_list
+				limit = {
+					NOT = { has_variable = oe_struggle_hostility_flag }
+				}
+				order_by = culture_number_of_counties
+				save_scope_as = culture_scope
+				set_variable = oe_struggle_hostility_flag # variable ensures acceptance is only lost once per couple
+			}
+			every_in_global_list = {
+				variable = oe_struggle_ending_culture_list
+				limit = {
+					NOR = {
+						has_variable = oe_struggle_hostility_flag
+						this = scope:culture_scope
+					}
+				}
+				change_cultural_acceptance = {
+					target = scope:culture_scope
+					value = fp2_struggle_hostility_culture_acceptance_value
+					desc = oe_struggle_hostility_acceptance_tt
+				}
+			}
+		}
+		every_in_global_list = {
+			variable = oe_struggle_ending_culture_list
+			remove_variable = oe_struggle_hostility_flag
+		}
+	}
+}
+
+# Set cultural acceptance between all Involved cultures
+oe_struggle_hostility_cultural_acceptance_large_effect = {
+	hidden_effect = {
+		while = {
+			limit = {
+				any_in_global_list = {
+					variable = oe_struggle_ending_culture_list
+					NOT = { has_variable = oe_struggle_hostility_flag }
+				}
+			}
+			ordered_in_global_list = {
+				variable = oe_struggle_ending_culture_list
+				limit = {
+					NOT = { has_variable = oe_struggle_hostility_flag }
+				}
+				order_by = culture_number_of_counties
+				save_scope_as = culture_scope
+				set_variable = oe_struggle_hostility_flag # variable ensures acceptance is only lost once per couple
+			}
+			every_in_global_list = {
+				variable = oe_struggle_ending_culture_list
+				limit = {
+					NOR = {
+						has_variable = oe_struggle_hostility_flag
+						this = scope:culture_scope
+					}
+				}
+				change_cultural_acceptance = {
+					target = scope:culture_scope
+					value = fp2_struggle_hostility_culture_acceptance_value
+					desc = oe_struggle_hostility_acceptance_tt
+				}
+			}
+		}
+		every_in_global_list = {
+			variable = oe_struggle_ending_culture_list
+			remove_variable = oe_struggle_hostility_flag
+		}
+	}
+}
+
+
+### Compromise
+
+# Create new de jure empires from relevant kingdoms
+
+# Add house modifiers to Involved rulers; Didn't rename the key for localization cost reasons
+oe_struggle_compromise_modifier_rewards_effect = {
+	struggle:tartaria_struggle = {
+		show_as_tooltip = {
+			every_involved_ruler = {
+				limit = { this = root }
+				custom = oe_struggle_compromise_house_rewards_tt
+				oe_struggle_compromise_modifier_rewards_personal_house_effect = yes
+			}
+			every_involved_ruler = {
+				limit = { this = root }
+				custom = oe_struggle_compromise_defensive_rewards_tt
+				oe_struggle_compromise_modifier_rewards_personal_county_effect = yes
+			}
+		}
+		hidden_effect = {
+			every_involved_ruler = {
+				limit = {
+					is_independent_ruler = yes
+					primary_title = { is_mercenary_company = no }
+					exists = house
+					NOT = {
+						house = { has_house_modifier = fp2_struggle_compromise_house_reward_modifier }
+					}
+				}
+				oe_struggle_compromise_modifier_rewards_personal_house_effect = yes
+			}
+			every_involved_ruler = {
+				limit = {
+					is_independent_ruler = yes
+					primary_title = { is_mercenary_company = no }
+				}
+				oe_struggle_compromise_modifier_rewards_personal_county_effect = yes
+			}
+		}
+	}
+}
+
+# Add house modifiers to a single character (used in tooltips);
+oe_struggle_compromise_modifier_rewards_personal_house_effect = {
+	house = {
+		custom_tooltip = oe_struggle_compromise_house_enforce_truce_rewards_tt
+		add_house_modifier = {
+			modifier = fp2_struggle_compromise_house_reward_modifier
+		}
+	}
+}
+
+# Add county modifiers to a single character (used in tooltips)
+oe_struggle_compromise_modifier_rewards_personal_county_effect = {
+	capital_county = {
+		add_county_modifier = { #TODO_CD_FP2 (JP) check this is the right scope
+			modifier = fp2_struggle_compromise_defensive_reward_modifier
+		}
+	}
+}
+
+# Add truces between all Involved rulers
+oe_struggle_compromise_truce_effect = {
+	hidden_effect = {
+		if = {
+			limit = {
+				struggle:tartaria_struggle = {
+					any_involved_ruler = {
+						count > 1
+						is_independent_ruler = yes
+						primary_title = { is_mercenary_company = no }
+					}
+				}
+			}
+			struggle:tartaria_struggle = {
+				every_involved_ruler = {
+					limit = {
+						is_independent_ruler = yes
+						primary_title = { is_mercenary_company = no }
+					}
+					add_to_list = oe_struggle_compromise_truce_list
+				}
+			}
+			while = {
+				limit = {
+					any_in_list = {
+						list = oe_struggle_compromise_truce_list
+						NOT = { has_variable = fp2_struggle_compromise_flag }
+					}
+				}
+				ordered_in_list = {
+					list = oe_struggle_compromise_truce_list
+					limit = {
+						NOT = { has_variable = fp2_struggle_compromise_flag }
+					}
+					order_by = realm_size
+					save_scope_as = realm_scope
+					set_variable = fp2_struggle_compromise_flag # variable ensures truces are set only once per couple
+				}
+				every_in_list = {
+					list = oe_struggle_compromise_truce_list
+					limit = {
+						NOR = {
+							has_variable = fp2_struggle_compromise_flag
+							this = scope:realm_scope
+							has_truce = scope:realm_scope
+						}
+					}
+					add_truce_both_ways = {
+						character = scope:realm_scope
+						days = 3650
+						name = TRUCE_FP2_COMPROMISE
+					}
+				}
+			}
+			every_in_list = {
+				list = oe_struggle_compromise_truce_list
+				remove_variable = fp2_struggle_compromise_flag
+			}
+		}
+	}
+}
+
+### Conciliation
+
+# Add House modifiers to all Involved rulers
+oe_struggle_conciliation_modifier_rewards_effect = {
+	struggle:tartaria_struggle = {
+		every_involved_ruler = {
+			limit = { this = root }
+			custom = oe_struggle_compromise_house_rewards_tt
+			show_as_tooltip = { fp2_struggle_conciliation_modifier_rewards_personal_effect = yes }
+		}
+		every_involved_ruler = {
+			limit = {
+				is_independent_ruler = yes
+				primary_title = { is_mercenary_company = no }
+				exists = house
+				NOT = {
+					house = { has_house_modifier = fp2_struggle_conciliation_house_reward_modifier }
+				}
+			}
+			hidden_effect = { fp2_struggle_conciliation_modifier_rewards_personal_effect = yes }
+		}
+	}
+}
+
+# Add cultural acceptance between Involved cultures
+
+oe_struggle_conciliation_ender_effect = {
+	give_nickname = nick_the_equitable
+	dynasty = { add_dynasty_prestige = 10000 }
+}
+
+oe_struggle_conciliation_tooltip_effect = {
+	# Hispania is available!
+	#custom_tooltip = oe_struggle_can_create_empire_of_cathay_tt
+	# All Involved cultures gain acceptance of each other
+	custom_tooltip = oe_struggle_conciliation_culture_tt
+	# Interfaith marriage unlocked for Involved cultures
+	custom_tooltip = oe_struggle_conciliation_marriage_unlocked_tt
+	# Declaring holy wars is perma-disabled for locals in the region
+	custom_tooltip = oe_struggle_conciliation_holy_war_disabled_tt 
+	# Involved cultures/faiths can offer to join defensive wars with outsiders targetting Iberia
+	custom_tooltip = oe_struggle_conciliation_join_war_tt
+}
+
+# Add cultural acceptance between Involved cultures
+oe_struggle_conciliation_cultural_acceptance_effect = {
+	hidden_effect = {
+		while = {
+			limit = {
+				any_in_global_list = {
+					variable = oe_struggle_ending_culture_list
+					NOT = { has_variable = oe_struggle_conciliation_flag }
+				}
+			}
+			ordered_in_global_list = {
+				variable = oe_struggle_ending_culture_list
+				limit = {
+					NOT = { has_variable = oe_struggle_conciliation_flag }
+				}
+				order_by = culture_number_of_counties
+				save_scope_as = culture_scope
+				set_variable = oe_struggle_conciliation_flag # variable ensures acceptance is only gained once per couple
+			}
+			every_in_global_list = {
+				variable = oe_struggle_ending_culture_list
+				limit = {
+					NOR = {
+						has_variable = oe_struggle_conciliation_flag
+						this = scope:culture_scope
+					}
+				}
+				change_cultural_acceptance = {
+					target = scope:culture_scope
+					value = fp2_struggle_conciliation_culture_acceptance_value #TODO_CD_FP2 (JP) check if this is enough
+					desc = oe_struggle_conciliation_acceptance_tt
+				}
+			}
+		}
+		every_in_global_list = {
+			variable = oe_struggle_ending_culture_list
+			remove_variable = oe_struggle_conciliation_flag
+		}
+	}
+}

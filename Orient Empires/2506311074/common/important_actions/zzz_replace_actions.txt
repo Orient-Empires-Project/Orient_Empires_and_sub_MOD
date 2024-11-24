@@ -1,0 +1,147 @@
+﻿action_empty_council_position = {
+	type = alert
+	
+	check_create_action = {
+		if = {
+			limit = {
+				highest_held_title_tier > tier_barony
+				has_free_council_slot = yes
+				OR = {
+					not = {
+						any_councillor = {
+							has_council_position = councillor_chancellor
+						}
+					}
+					not = {
+						any_councillor = {
+							has_council_position = councillor_steward
+						}
+					}					
+					not = {
+						any_councillor = {
+							has_council_position = councillor_spymaster
+						}
+					}
+					not = {
+						any_councillor = {
+							has_council_position = councillor_marshal
+						}
+					}
+					not = {
+						any_councillor = {
+							has_council_position = councillor_court_chaplain
+						}
+					}
+				}
+			}		
+			try_create_important_action = {
+				important_action_type = action_empty_council_position
+				actor = root
+			}	
+		}
+	}
+	effect = {
+		scope:actor = {
+			open_view_data = {
+				view = council_window
+			}
+		}
+	}
+}
+
+action_powerful_vassal_not_on_council = {
+	combine_into_one = yes	
+	priority = 700
+	
+	check_create_action = {
+		every_vassal = {
+			limit = {
+				is_powerful_vassal = yes
+				is_councillor = no
+				can_be_councillor_basics_trigger = yes
+			}
+			try_create_important_action = {
+				important_action_type = action_powerful_vassal_not_on_council
+				actor = root
+				recipient = this
+			}
+		}
+	}
+	effect = {
+		scope:actor = {
+			open_view_data = {
+				view = council_window
+			}
+		}
+		scope:recipient = {
+			open_view_data = {
+				view = character
+			}
+		}
+	}
+}
+
+# LEGEND PROMOTION
+action_upgrade_legend = {
+	type = alert
+	icon = action_can_start_legend
+
+	check_create_action = {
+		if = {
+			limit = {
+				has_dlc_feature = legends_of_the_dead
+				AND = {
+					exists = promoted_legend
+					promoted_legend.legend_owner = root
+				}
+
+				promoted_legend = {
+					save_temporary_scope_as = legend
+				}
+
+				scope:legend = {
+					NOT = {
+						legend_quality = mythical
+					}
+					OR = {
+						AND = {
+							legend_quality = famed
+							trigger_if = {
+								limit = { legend_type = legend_type:origin }
+								any_spread_province = { count >= 200 }
+							}
+							trigger_else = {
+								any_spread_province = { count >= 100 }
+							}
+						}
+						AND = {
+							legend_quality = illustrious
+							trigger_if = {
+								limit = { legend_type = legend_type:origin }
+								any_spread_province = { count >= 600 }
+							}
+							trigger_else = {
+								any_spread_province = { count >= 300 }
+							}
+							
+						}
+					}
+				}
+				AND = {
+					gold >= legend_upgrade_cost
+					prestige >= legend_prestige_cost
+				}
+			}
+
+			try_create_important_action = {
+				important_action_type = action_upgrade_legend
+				recipient = this
+			}
+		}
+	}
+
+	effect = {
+		open_view = legends
+		open_view = legend_chronicle
+	}
+}

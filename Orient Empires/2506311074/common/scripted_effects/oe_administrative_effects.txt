@@ -1,0 +1,290 @@
+﻿#转律令制
+change_to_celestial_effect = {
+	save_scope_as = governor
+	if = {
+		limit = {
+			NOT = { government_has_flag = government_is_celestial }
+		}
+		change_government_legion_government_effect = yes
+		save_scope_as = new_admin
+	}
+	if = {
+		limit = {
+			primary_title.tier >= tier_duchy
+			house.house_head = {
+				NOT = {
+					any_held_title = { is_oe_noble_family_title = yes }
+				}
+			}
+		}
+		create_noble_family_effect = yes
+	}
+	hidden_effect = {
+		if = {
+			limit = {
+				is_governor = yes
+				NOT = { has_trait = lifestyle_bureaucrat }
+			}
+			add_trait = lifestyle_bureaucrat
+		}
+	}
+	if = {
+		limit = { exists = scope:new_admin }
+		domicile ?= {
+			set_up_domicile_estate_effect = yes
+		}
+	}
+}
+
+change_to_celestial_interaction_effect = {
+	scope:actor = {
+		pay_short_term_gold = {
+			target = scope:recipient
+			gold = {
+				value = 50
+				scope:recipient = {
+					if = {
+						limit = { highest_held_title_tier >= tier_kingdom }
+						multiply = 10
+					}
+					else_if = {
+						limit = { highest_held_title_tier >= tier_duchy }
+						multiply = 6
+					}
+					else_if = {
+						limit = { highest_held_title_tier >= tier_county }
+						multiply = 3
+					}
+				}
+				if = {
+					limit = { scope:gold ?= yes }
+					add = scope:actor.medium_gold_value
+				}
+				if = {
+					limit = {
+						scope:actor = { has_realm_law_flag = admin_change_vassal_gov_cheaper }
+					}
+					multiply = 0.5
+				}
+			}
+		}
+	}
+	scope:recipient = { change_to_celestial_effect = yes }
+	if = {
+		limit = {
+			scope:hook = yes
+			scope:actor = { has_usable_hook = scope:recipient }
+		}
+		scope:actor = { use_hook = scope:recipient }
+	}
+	if = {
+		limit = { scope:hereditary = yes }
+		scope:recipient = { save_scope_as = petition_vassal }
+		change_to_administrative_hereditary_effect = yes
+	}
+	if = {
+		limit = { scope:influence = yes }
+		scope:actor = {
+			change_influence = {
+				value = massive_influence_loss
+			}
+		}
+	}
+}
+
+
+#免职交接
+oe_governor_resignation_title_transfer_effect = {
+	save_scope_as = resigner
+	top_liege = { save_scope_as = emperor }
+	# Create tooltips
+	every_held_title = {
+		limit = {
+			is_landless_type_title = no
+			is_oe_noble_family_title = no
+			save_temporary_scope_as = liege_title
+			NOT = {
+				scope:resigner = {
+					any_held_title = { is_de_jure_liege_or_above_target = scope:liege_title } 
+				}
+			}
+		}
+		save_scope_as = landed_title
+		current_heir = { save_scope_as = next_candidate }
+		if = {
+			limit = { tier >= tier_duchy }
+			scope:next_candidate = { custom_tooltip = force_governor_removal_interaction_pass_effect_tt }
+		}
+	}
+	create_title_and_vassal_change = {
+		type = stepped_down
+		save_scope_as = change
+	}
+	# Transfer all titles to heir of primary title if only one governorship is held
+	hidden_effect = {
+		if = {
+			limit = {
+				any_held_title = {
+					count = 1
+					tier >= tier_duchy
+					is_landless_type_title = no
+					is_oe_noble_family_title = no
+				}
+			}
+			primary_title.current_heir = { save_scope_as = next_candidate }
+			every_vassal = {
+				limit = {
+					NOT = {
+						this = scope:next_candidate
+					}
+				}
+				change_liege = {
+					liege = scope:next_candidate
+					change = scope:change
+				}
+			}
+			every_held_title = {
+				limit = {
+					tier >= tier_county
+					is_landless_type_title = no
+					is_oe_noble_family_title = no
+				}
+				change_title_holder_include_vassals = {
+					holder = scope:next_candidate
+					change = scope:change
+					take_baronies = no
+				}
+			}
+		}
+		else = {
+			every_held_title = {
+				limit = {
+					tier >= tier_duchy
+					is_landless_type_title = no
+					is_oe_noble_family_title = no
+				}
+				current_heir = { save_scope_as = next_candidate }
+				every_direct_de_facto_vassal_title = {
+					limit = {
+						holder = {
+							is_vassal_of = scope:resigner
+							NOT = {
+								this = scope:next_candidate
+							}
+						}
+					}
+					holder = {
+						change_liege = {
+							liege = scope:next_candidate
+							change = scope:change
+						}
+					}
+				}
+				change_title_holder_include_vassals = {
+					holder = scope:next_candidate
+					change = scope:change
+					take_baronies = no
+				}
+				every_direct_de_facto_vassal_title = {
+					limit = { holder = scope:resigner }
+					change_title_holder_include_vassals = {
+						holder = scope:next_candidate
+						change = scope:change
+						take_baronies = no
+					}
+				}
+			}
+			# Fallback for counties not held in de jure duchies
+			every_held_title = {
+				limit = {
+					tier = tier_county
+				}
+				change_title_holder_include_vassals = {
+					holder = scope:next_candidate
+					change = scope:change
+					take_baronies = no
+				}
+			}
+		}
+	}
+	resolve_title_and_vassal_change = scope:change
+
+	#补充
+	every_in_list = {
+		list = list_old_titles
+		scope:bureaucrat = {
+			remove_claim = prev
+		}
+	}
+	change_government_aristo_effect = yes
+}
+
+
+#总督下台效果
+oe_governor_step_down_effect = {
+	# Change 1: Handle the main duchy title
+	create_title_and_vassal_change = {
+		type = stepped_down
+		save_scope_as = change
+	}
+	primary_title.current_heir = { save_scope_as = next_candidate }
+	scope:target = {
+		change_title_holder_include_vassals = {
+			holder = scope:next_candidate
+			change = scope:change
+			take_baronies = no
+		}
+	}
+	every_held_title = {
+		limit = {
+			tier = tier_county
+			target_is_de_jure_liege_or_above = scope:target
+		}
+		change_title_holder_include_vassals = {
+			holder = scope:next_candidate
+			change = scope:change
+			take_baronies = no
+		}
+	}
+	every_held_title = {
+		limit = {
+			tier = tier_county
+			NOT = { target_is_de_jure_liege_or_above = scope:target }
+			target_is_de_facto_liege_or_above = scope:target
+		}
+		# De Facto counties go back to the top liege
+		change_title_holder = {
+			holder = scope:next_candidate.top_liege
+			change = scope:change
+			take_baronies = no
+		}
+	}	
+	resolve_title_and_vassal_change = scope:change	
+	# Change 2: Take care of vassals, if you only hold a Noble Family title
+	if = {
+		limit = {
+			any_held_title = {
+				tier = tier_duchy
+				is_oe_noble_family_title = yes
+			}
+			NOT = {
+				any_held_title = {
+					tier = tier_duchy
+					is_oe_noble_family_title = no
+				}
+			}
+			any_vassal = { count >= 1 }
+		}
+		create_title_and_vassal_change = {
+			type = stepped_down
+			save_scope_as = change2
+		}
+		every_vassal = {
+			change_liege = {
+				liege = scope:next_candidate
+				change = scope:change2
+			}
+		}
+		resolve_title_and_vassal_change = scope:change2
+	}
+}

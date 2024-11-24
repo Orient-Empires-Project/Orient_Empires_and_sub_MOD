@@ -8,74 +8,119 @@ TributeSystem_update_WLTDJ_tribute_relation_list = {
 	scope = character
 	effect = {
 		save_scope_as = temp_character
-		clear_variable_list = WLTDJ_tributary_list
-		clear_variable_list = WLTDJ_suzerain_list
-		clear_variable_list = WLTDJ_type_01_tributary_list
-		clear_variable_list = WLTDJ_type_02_tributary_list
-		clear_variable_list = WLTDJ_type_03_tributary_list
-		clear_variable_list = WLTDJ_type_04_tributary_list
+		clear_variable_list = tributary_list
+		clear_variable_list = suzerain_list
+		clear_variable_list = same_heritage_tributary_list
+		clear_variable_list = tribal_tributary_list
+		clear_variable_list = feudal_tributary_list
+		clear_variable_list = celestial_tributary_list
 
-		every_relation = {
-			type = WLTDJ_tributary
-			save_scope_as = temp_WLTDJ_tributary
-			root = {
-				add_to_variable_list = {
-					name = WLTDJ_tributary_list
-					target = scope:temp_WLTDJ_tributary
-				}
+		if = {
+			limit = {
+				top_liege != root
+			}
+			top_liege = {
+				save_scope_as = liege
 			}
 		}
-		every_relation = {
-			type = WLTDJ_suzerain
-			save_scope_as = temp_WLTDJ_suzerain
-			root = {
-				add_to_variable_list = {
-					name = WLTDJ_suzerain_list
-					target = scope:temp_WLTDJ_suzerain
+		else_if = {
+			limit = {
+				any_relation = {
+					type = suzerain
+					is_ruler = yes
 				}
 			}
-		}
-		every_relation = {
-			type = WLTDJ_tributary
-			limit = { TributeSystem_is_type_01_tributary_of_trigger = { suzerain = temp_character } }
-			save_scope_as = WLTDJ_type_01_tributary
-			root = {
-				add_to_variable_list = {
-					name = WLTDJ_type_01_tributary_list
-					target = scope:WLTDJ_type_01_tributary
+			random_relation = {
+				type = suzerain
+				limit = {
+					is_ruler = yes
 				}
+				save_scope_as = liege
 			}
 		}
-		every_relation = {
-			type = WLTDJ_tributary
-			limit = { TributeSystem_is_type_02_tributary_of_trigger = { suzerain = temp_character } }
-			save_scope_as = WLTDJ_type_02_tributary
-			root = {
-				add_to_variable_list = {
-					name = WLTDJ_type_02_tributary_list
-					target = scope:WLTDJ_type_02_tributary
+		else = {
+			save_scope_as = liege
+		}
+		scope:liege = {
+			every_relation = {
+				type = tributary
+				root = {
+					add_to_variable_list = {
+						name = tributary_list
+						target = prev
+					}
 				}
 			}
-		}
-		every_relation = {
-			type = WLTDJ_tributary
-			limit = { TributeSystem_is_type_03_tributary_of_trigger = { suzerain = temp_character } }
-			save_scope_as = WLTDJ_type_03_tributary
-			root = {
-				add_to_variable_list = {
-					name = WLTDJ_type_03_tributary_list
-					target = scope:WLTDJ_type_03_tributary
+			every_relation = {
+				type = suzerain
+				root = {
+					add_to_variable_list = {
+						name = suzerain_list
+						target = prev
+					}
 				}
 			}
-		}
-		every_relation = {
-			type = WLTDJ_tributary
-			limit = { TributeSystem_is_type_04_tributary_of_trigger = { suzerain = temp_character } }
-			save_scope_as = WLTDJ_type_04_tributary
-			root = {
-				add_to_variable_list = {
-					name = WLTDJ_type_04_tributary_list
-					target = scope:WLTDJ_type_04_tributary
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						#has_faith = scope:temp_character.faith
+						dynasty = scope:temp_character.dynasty
+						is_allied_to = scope:temp_character
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = same_heritage_tributary_list
+						target = prev
+					}
+				}
+			}
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						has_government = tribal_government
+						has_government = clan_government
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = tribal_tributary_list
+						target = prev
+					}
+				}
+			}
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						has_government = feudal_government
+						has_government = republic_government
+						has_government = theocracy_government
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = feudal_tributary_list
+						target = prev
+					}
+				}
+			}
+			every_relation = {
+				type = tributary
+				limit = {
+					OR = {
+						government_has_flag = government_is_celestial
+						has_government = legion_government
+						has_government = bureau_government
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = celestial_tributary_list
+						target = prev
+					}
 				}
 			}
 		}
@@ -86,14 +131,14 @@ TributeSystem_update_WLTDJ_tribute_relation_list = {
 TributeSystem_show_open_TributeSystemDisplay_button = {
 	scope = character
 	is_shown = {
-		is_ai = no#暂时禁用
+		is_ai = no #暂时禁用
 		OR = {
 			any_relation = {
-				type = WLTDJ_suzerain
+				type = suzerain
 				NOT = { this = root }
 			}
 			any_relation = {
-				type = WLTDJ_tributary
+				type = tributary
 				NOT = { this = root }
 			}
 		}

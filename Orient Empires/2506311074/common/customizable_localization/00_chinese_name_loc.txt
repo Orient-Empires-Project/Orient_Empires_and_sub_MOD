@@ -1,52 +1,78 @@
 ﻿nianhao_date = {
 	type = character
 	text = {
+		trigger = { has_nianhao_trigger = yes }
 		localization_key = nianhao_date_self
-		trigger = {
-			has_nianhao_trigger = yes
-		}
 	}
 	text = {
+		trigger = {
+			AND = {
+				exists = top_liege
+				top_liege = { has_nianhao_trigger = yes }
+			}
+		}
 		localization_key = nianhao_date_top_liege
-		fallback = yes
+	}
+	text = {
+		trigger = {
+			OR = {
+				has_nianhao_trigger = no
+				AND = {
+					exists = top_liege
+					top_liege = { has_nianhao_trigger = no }
+				}
+			}
+		}
+		localization_key = nianhao_null
 	}
 }
+
+
 ###王谥？帝谥？
 GetUIchinaTitle = {
 	type = character
 	text = {
 		localization_key = Loc_GetUIchinaTitleKing
 		trigger = {
-			highest_held_title_tier = tier_kingdom
-			culture = { has_cultural_pillar = heritage_chinese }
+			primary_title.tier = tier_kingdom
+			sino_name_style_culture_trigger = yes
 		}
 	}
 	text = {
 		localization_key = Loc_GetUIchinaTitleEmperor
 		trigger = {
-			highest_held_title_tier > tier_kingdom
-			culture = { has_cultural_pillar = heritage_chinese }
+			primary_title.tier > tier_kingdom
+			sino_name_style_culture_trigger = yes
 		}
 	}
 	text = {
 		localization_key = Loc_GetUIchinaTitleEmperor
 		trigger = {
-			culture = { has_cultural_pillar = heritage_chinese }
-			has_miaohao_trigger = yes
-			highest_held_title_tier < tier_kingdom
+			sino_name_style_culture_trigger = yes
+			any_close_family_member = {
+				even_if_dead = yes
+				exists = primary_title
+				primary_title = title:e_celestia
+			}
+			OR = {
+				has_miaohao_trigger = yes
+				has_shihao_trigger = yes
+			}
+			primary_title.tier < tier_kingdom
 		}
 	}
 	text = {
 		localization_key = Loc_GetUIsteppeTitleEmperor
 		trigger = {
-			OR = {
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_mongol }
-			}
+			#OR = {
+				#culture = { has_name_list = name_list_khitan }
+				#culture = { has_name_list = name_list_jurchen }
+				#culture = { has_name_list = name_list_jurchen }
+				#culture = { has_name_list = name_list_mongol }
+			#}
+			sino_name_style_culture_trigger = yes
 			has_miaohao_trigger = yes
-			highest_held_title_tier >= tier_kingdom
+			primary_title.tier >= tier_kingdom
 			NOT = { has_title = title:d_gosho }
 		}
 	}
@@ -58,24 +84,49 @@ GetUIchinaTitle = {
 #头衔历史窗口/庙号
 china_GetUINameNotMeNoTooltip = {
 	type = character
+	# Religion Head  转入flavoration
+	text = {
+		localization_key = Loc_OE_TennoGetUINameNotMeNoTooltip
+		trigger = {
+			culture = { has_cultural_pillar = heritage_yamato }
+			dynasty = dynasty:10000420
+			OR = {
+				AND = {
+					exists = primary_title
+					primary_title = title:d_gosho
+				}
+				AND = {
+					exists = primary_title
+					primary_title = title:k_yamato
+				}
+				has_title = title:d_gosho
+				has_title = title:k_yamato
+			}
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Religious
+		trigger = {
+			is_landed = yes
+			OR = {
+				religion = religion:taoism_religion
+			}
+			has_any_nickname = no			
+			exists = primary_title
+			exists = faith.religious_head_title
+			primary_title = faith.religious_head_title
+			NOT = { primary_title = title:d_gosho }
+			has_miaohao_trigger = no
+		}
+	}
 	text = {
 		localization_key = Loc_china_GetUINameNotMeNoTooltip
 		trigger = {
+			sino_name_style_culture_trigger = yes
 			OR = {
-				culture = { has_cultural_pillar = heritage_yamato }
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_cultural_pillar = heritage_qiangic }
-				culture = { has_cultural_pillar = heritage_yues }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_name_list = name_list_sogdian }
+				has_miaohao_trigger = yes
+				primary_title = title:e_celestia
 			}
-			has_miaohao_trigger = yes
-			is_lowborn = no
 			NOT = { has_title = title:d_gosho }
 		}
 	}
@@ -83,37 +134,41 @@ china_GetUINameNotMeNoTooltip = {
 		localization_key = Loc_china_GetUINameNoMHNotMeNoTooltip
 		trigger = {
 			has_miaohao_trigger = no
-			OR = {
-				culture = { has_cultural_pillar = heritage_yamato }
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_name_list = name_list_tangut }
-				culture = { has_name_list = name_list_balhae }
-				culture = { has_name_list = name_list_jiaozhi }
-				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
-				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
-			}
-			is_lowborn = no
+			has_shihao_trigger = no
+			sino_name_style_culture_trigger = yes
 			NOT = { has_title = title:d_gosho }
 		}
 	}
 	text = {
-		localization_key = Loc_OE_TennoGetUINameNotMeNoTooltip
+		localization_key = Abolished_emperor
 		trigger = {
-			culture = { has_cultural_pillar = heritage_yamato }
-			dynasty = dynasty:10000420
+			is_alive = no
 			OR = {
-				has_title = title:d_gosho
-				has_title = title:k_yamato
+				has_miaohao_trigger = yes
+				has_shihao_trigger = yes
+			}
+			OR = {
+				AND = {
+					exists = father
+					father = {
+						exists = primary_title
+						primary_title = title:e_celestia
+					}
+				}
+				AND = {
+					exists = father.father
+					father.father = {
+						exists = primary_title
+						primary_title = title:e_celestia
+					}
+				}
+				AND = {
+					exists = primary_spouse
+					primary_spouse = {
+						exists = primary_title
+						primary_title = title:e_celestia
+					}
+				}
 			}
 		}
 	}
@@ -123,178 +178,503 @@ china_GetUINameNotMeNoTooltip = {
 	}
 }
 
+#庙号谥号
+
 #人物窗口
 OE_GetUINameNotMeNoTooltip = {
 	type = character
-#	text = {
-#		localization_key = Loc_OE_GetUINameNotMeNoTooltip_otherlandeddefult
-#		trigger = {
-#			NOR = {
-#				culture = { has_cultural_pillar = heritage_yamato }
-#				culture = { has_cultural_pillar = heritage_chinese }
-#				culture = { has_cultural_pillar = heritage_goryeo }
-#				culture = { has_cultural_pillar = heritage_hunic }
-#				culture = { has_name_list = name_list_khitan }
-#				culture = { has_name_list = name_list_jurchen }
-#				culture = { has_name_list = name_list_shatuo }
-#				culture = { has_name_list = name_list_tangut }
-#				culture = { has_name_list = name_list_balhae }
-#				culture = { has_name_list = name_list_jiaozhi }
-#				culture = { has_name_list = name_list_tuyuhun }
-#				culture = { has_name_list = name_list_sogdian }
-#				culture = { has_name_list = name_list_bai }
-#				culture = { has_name_list = name_list_wuman }
-#				culture = { has_name_list = name_list_qiang }
-#				culture = { has_name_list = name_list_yi }
-#			}
-#			culture = { NOT = { has_name_list = name_list_shatuo } }
-#			NOT = { has_title = title:d_gosho }
-#			is_landed = yes
-#			has_miaohao_trigger = no
-#			is_lowborn = no
-#		}
-#	}
 	text = {
-		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Steppe
+		localization_key = Loc_OE_TennoGetUINameNotMeNoTooltip
 		trigger = {
+			culture = { has_cultural_pillar = heritage_yamato }
+			dynasty = dynasty:10000420
 			OR = {
-				#culture = { has_name_list = name_list_mongol }
-				#culture = { has_name_list = name_list_uyghur }
-				culture = { has_name_list = name_list_karluk }
-				culture = { has_name_list = name_list_turkish }
-				culture = { has_name_list = name_list_cuman }
-				culture = { has_name_list = name_list_avar }	
-				culture = { has_name_list = name_list_kimek }		
+				AND = {
+					exists = primary_title
+					primary_title = title:d_gosho
+				}
+				AND = {
+					exists = primary_title
+					primary_title = title:k_yamato
+				}
+				has_title = title:d_gosho
+				has_title = title:k_yamato
 			}
-			#NOR = {
-				#has_government = clan_government
-			#}
+			NOR = {
+				has_trait = joko
+				has_trait = hoo
+			}
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Religious  #转入flavoration
+		trigger = {
 			is_landed = yes
-			is_lowborn = no
-			NOT = { has_title = title:d_gosho }
+			OR = {
+				religion = religion:taoism_religion
+				religion = religion:confucianism_religion
+			}
+			has_any_nickname = no			
+			exists = primary_title
+			exists = faith.religious_head_title
+			primary_title = faith.religious_head_title
+			NOT = { primary_title = title:d_gosho }
 			has_miaohao_trigger = no
 		}
 	}
 	text = {
-		localization_key = Loc_OE_GetUINameNotMeNoTooltip
+		localization_key = Loc_OE_InseiGetUINameNotMeNoTooltip
+		trigger = {
+			#has_title = title:d_incho
+			has_trait = joko
+			NOT = { has_trait = hoo }
+		}
+	}
+	text = {
+		localization_key = Loc_OE_HooGetUINameNotMeNoTooltip
+		trigger = {
+			#has_title = title:d_incho
+			has_trait = hoo
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Steppe
 		trigger = {
 			OR = {
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_tangut }
-				culture = { has_name_list = name_list_balhae }
-				culture = { has_name_list = name_list_jiaozhi }
-				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
-				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
+				culture = { has_name_list = name_list_karluk }
+				culture = { has_name_list = name_list_cuman }
+				culture = { has_name_list = name_list_avar }	
+				culture = { has_name_list = name_list_kimek }
+				culture = { has_name_list = name_list_khazar }
+				culture = { has_name_list = name_list_bolghar }	
 			}
-			culture = { NOT = { has_name_list = name_list_shatuo } }
-			has_any_nickname = no
-			is_landed = yes
-			is_lowborn = no
+			OR = {
+				exists = primary_title
+			}
 			NOT = { has_title = title:d_gosho }
 			has_miaohao_trigger = no
+		}
+	}
+	# 历朝皇帝
+	text = {
+		localization_key = Loc_china_emperor_GetHistoryNameNotMeNoTooltip
+		trigger = {
+			is_alive = no
+			exists = primary_title
+			primary_title = title:e_celestia
+		}
+	}
+	#历代国王
+	text = {
+		localization_key = Loc_china_king_GetHistoryNameNotMeNoTooltip
+		trigger = {
+			sino_name_style_culture_trigger = yes
+			is_alive = no
+			exists = primary_title
+			primary_title.tier = tier_kingdom
+		}
+	}
+	text = {
+		localization_key = Loc_OE_TaishanghuangGetUINameNotMeNoTooltip
+		trigger = {
+			has_trait = shanghuang
+		}
+	}
+	text = {
+		localization_key = Loc_OE_FahuangGetUINameNotMeNoTooltip
+		trigger = {
+			has_trait = hoo
+		}
+	}
+
+#
+
+	# Prince Emperor
+	# Prince King
+	text = {
+		localization_key = Loc_OE_Prince_GetUINameNotMeNoTooltip
+		trigger = {
+			is_lowborn = no
+			sino_name_style_culture_trigger = yes
+			any_parent = { even_if_dead = yes primary_title.tier >= tier_kingdom }
+			OR = {
+				is_landed = no
+				primary_title.tier < tier_kingdom
+			}
+			OR = {
+				NOT = { exists = primary_spouse }
+				NOT = { exists = primary_spouse.primary_title }
+				primary_spouse.primary_title.tier < tier_kingdom
+			}
+			# NOT = { primary_title = title:d_gosho }
+			has_miaohao_trigger = no
+			#has_shihao_trigger = no
+			NOT = { has_trait = devoted }
+		}
+	}
+
+
+	# Queen
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Queen
+		trigger = {
+			is_ruler = no
+			is_female = yes
+			sino_name_style_culture_trigger = yes
+			exists = primary_spouse
+			liege = primary_spouse
+			primary_spouse = { primary_spouse ?= root }
+			primary_spouse.primary_title.tier = tier_kingdom
+			liege = {
+				exists = primary_title
+				primary_title.tier = tier_kingdom
+			}
+			OR = {
+				NOT = { exists = primary_title }
+				highest_held_title_tier < tier_kingdom
+			}
+			NOT = { primary_title = title:d_gosho }
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Queen_male
+		trigger = {
+			is_ruler = no
+			is_male = yes
+			OR = {
+				AND = {
+					culture = { has_cultural_pillar = heritage_yamato }
+					dynasty = dynasty:10000420
+				}
+				sino_name_style_culture_trigger = yes
+			}
+			exists = primary_spouse
+			liege = primary_spouse
+			primary_spouse = { primary_spouse = root }
+			primary_spouse.primary_title.tier = tier_kingdom
+			liege = {
+				exists = primary_title
+				primary_title.tier = tier_kingdom
+			}
+			OR = {
+				NOT = { exists = primary_title }
+				highest_held_title_tier < tier_kingdom
+			}
+			NOT = { primary_title = title:d_gosho }
+		}
+	}
+	# Empress
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Spouse #Loc_OE_GetUINameNotMeNoTooltip_Empress
+		trigger = {
+			#is_female = yes
+			is_landed = no
+			OR = {
+				AND = {
+					culture = { has_cultural_pillar = heritage_yamato }
+					dynasty = dynasty:10000420
+				}
+				sino_name_style_culture_trigger = yes
+			}
+			exists = primary_spouse
+			primary_spouse = { primary_spouse = root }
+			primary_spouse = { is_landed = yes }
+			OR = {
+				NOT = { exists = primary_title }
+				primary_title.tier < primary_spouse.primary_title.tier
+			}
+			NOT = { primary_title = title:d_gosho }
+		}
+	}
+	# Empress Mother
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Empress_Mother
+		trigger = {
+			NOT = { has_title = title:d_gosho }
+			sino_name_style_culture_trigger = yes
+			primary_title.tier < tier_kingdom
+			is_female = yes
+			OR = {
+				any_child = { primary_title.tier = tier_empire }
+				primary_spouse ?= {
+					primary_title.tier = tier_empire
+					any_child = { primary_title.tier = tier_empire }
+				}
+			}
+		}
+	}
+	# Empress GrandMother
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Empress_GrandMother
+		trigger = {
+			OR = {
+				AND = {
+					culture = { has_cultural_pillar = heritage_yamato }
+					dynasty = dynasty:10000420
+				}
+				sino_name_style_culture_trigger = yes
+			}	
+			this = liege.father.mother
+			this = liege.father.father.primary_spouse
+			AND = {
+				OR = {
+					NOT = { exists = primary_title }
+					primary_title.tier < tier_empire
+				}
+				OR = {
+					NOT = { exists = primary_spouse }
+					NOT = { exists = primary_spouse.primary_title }
+					primary_spouse.primary_title.tier < tier_empire
+				}
+			}
+			liege = {
+				exists = primary_title
+				primary_title.tier = tier_empire
+				exists = father.father.primary_title 
+				primary_title = father.father.primary_title
+			}
+			# NOT = { primary_title = title:d_gosho }
+			has_miaohao_trigger = no
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_house_diarch
+		trigger = {
+			sino_name_style_culture_trigger = yes
+			NOT = { has_title = title:d_gosho }
+			has_miaohao_trigger = no
+			AND = {
+				exists = top_liege
+				is_diarch_of_target = top_liege
+			}
+			NOT = { has_council_position = councillor_spouse }
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_house_council
+		trigger = {
+			sino_name_style_culture_trigger = yes
+
+			NOT = { has_title = title:d_gosho }
+			has_miaohao_trigger = no
+			NOT = { has_trait = devoted }
+			is_councillor = yes
+			#is_landed = no
+			NOT = { has_council_position = councillor_spouse }
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_laamp
+		trigger = {
+			sino_name_style_culture_trigger = yes
+			NOT = { has_title = title:d_gosho }
+			#NAND = {
+				#religion = religion:buddhism_religion
+				#has_trait = devoted
+			#}
+			has_miaohao_trigger = no
+			exists = primary_title
+			is_landless_adventurer = yes
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_firstname_noble
+		trigger = {
+			is_landed = no
+			exists = primary_title
+			primary_title = {
+				is_oe_noble_family_title = yes #家主
+			}
+		}
+	}
+	text = {
+		localization_key = Loc_OE_ShanghuangGetUINameNotMeNoTooltip
+		trigger = {
+			OR = {
+				has_trait = joko
+				AND = {
+					exists = primary_title
+					primary_title = title:d_incho
+				}
+			}
 		}
 	}
 	text = {
 		localization_key = Loc_OE_GetUINameNotMeNoTooltip_House
 		trigger = {
 			OR = {
-				culture = { has_name_list = name_list_shatuo }
+				culture = { has_cultural_pillar = heritage_chinese }
 				culture = { has_cultural_pillar = heritage_yamato }
+				culture = { has_cultural_pillar = heritage_hunic }
+				culture = { has_cultural_pillar = heritage_qiangic }
+				culture = { has_name_list = name_list_shatuo }
+				culture = { has_name_list = name_list_tangut }
+				religion = religion:confucianism_religion
+				culture = culture:yao
 			}
-			is_landed = yes
 			NOT = { has_title = title:d_gosho }
-			is_lowborn = no
 			has_miaohao_trigger = no
+			has_any_nickname = no
+			exists = primary_title
+			NOT = { has_trait = devoted }
 		}
 	}
 	text = {
-		localization_key = Loc_OE_GetUINameNotMeNoTooltip_firstname_house
-		trigger = {						
-			is_landed = no				
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip
+		trigger = {
 			OR = {
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_cultural_pillar = heritage_yamato }
+				#culture = { has_cultural_pillar = heritage_chinese }
+				culture = { has_cultural_pillar = heritage_goryeo }
+				culture = { has_name_list = name_list_khitan }
+				culture = { has_name_list = name_list_jurchen }
+				culture = { has_name_list = name_list_balhae }
+				culture = { has_name_list = name_list_jiaozhi }
+				culture = { has_name_list = name_list_tuyuhun }
+				
+				AND = {
+					culture = { has_name_list = name_list_sogdian }
+					location ?= { geographical_region = world_asia_china }
+				}
+				AND = {
+					culture = { has_name_list = name_list_uyghur}
+					location ?= { geographical_region = world_asia_china }
+				}
+				culture = { has_name_list = name_list_bai }
+				
+
 			}
-			is_lowborn = no
+			OR = {
+				exists = primary_title
+				AND = {
+					is_married = yes
+					primary_spouse = { is_landed = yes }
+					liege = primary_spouse
+					OR = {
+						is_landed = no
+						highest_held_title_tier.tier < primary_spouse.highest_held_title_tier.tier
+					}
+				}	
+			}	
+			has_any_nickname = no
+			NOT = { has_trait = devoted }
 			NOT = { has_title = title:d_gosho }
 			has_miaohao_trigger = no
+			has_shihao_trigger = no
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_Nanman
+		trigger = {
+			exists = primary_title
+			OR = {
+				#culture = { has_name_list = name_list_ava }
+				culture = { has_name_list = name_list_wuman }
+				culture = { has_name_list = name_list_qiang }
+			}
+			NOT = { has_title = title:d_gosho }
+			has_miaohao_trigger = no
+			has_any_nickname = no
+			NOT = { has_trait = devoted }
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_nicknamed_House
+		trigger = {
+			OR = {
+				culture = { has_cultural_pillar = heritage_chinese }
+				culture = { has_cultural_pillar = heritage_yamato }
+				culture = { has_cultural_pillar = heritage_hunic }
+				culture = { has_cultural_pillar = heritage_qiangic }
+				culture = { has_name_list = name_list_shatuo }
+				culture = { has_name_list = name_list_tangut }
+				religion = religion:confucianism_religion
+				culture = culture:yao
+			}
+			NOT = { has_title = title:d_gosho }
+			has_miaohao_trigger = no
+			#has_shihao_trigger = no
+			has_any_nickname = yes
+			exists = primary_title
+			NOT = { has_trait = devoted }
 		}
 	}
 	text = {
 		localization_key = Loc_OE_GetUINameNotMeNoTooltip_nicknamed
 		trigger = {
-			OR = {
-				culture = { has_cultural_pillar = heritage_yamato }
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_name_list = name_list_tangut }
-				culture = { has_name_list = name_list_balhae }
-				culture = { has_name_list = name_list_jiaozhi }
-				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
-				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
-			}
+			sino_name_style_culture_trigger = yes
 			has_any_nickname = yes
 			NOT = { has_title = title:d_gosho }
-			is_landed = yes
-			is_lowborn = no
+			exists = primary_title
 			has_miaohao_trigger = no
+			#has_shihao_trigger = no
+			NOT = { has_trait = devoted }
+		}
+	}
+	text = {
+		localization_key = Abolished_emperor
+		trigger = {
+			is_alive = no
+			OR = {
+				has_miaohao_trigger = yes
+				has_shihao_trigger = yes
+			}
+			royal_members_trigger = yes
+		}
+	}
+	text = {
+		localization_key = Loc_china_GetUINameMHNotMeNoTooltip
+		trigger = {
+			sino_name_style_culture_trigger = yes
+			NOT = { has_title = title:d_gosho }
+			OR = {
+				has_miaohao_trigger = yes
+				has_shihao_trigger = yes
+			}
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_firstname_house
+		trigger = {
+			OR = {
+				culture = { has_cultural_pillar = heritage_chinese }
+				culture = { has_cultural_pillar = heritage_yamato }
+				culture = { has_cultural_pillar = heritage_hunic }
+				culture = { has_cultural_pillar = heritage_qiangic }
+				culture = { has_name_list = name_list_shatuo }
+			}
+			NOT = { has_title = title:d_gosho }
+			has_miaohao_trigger = no
+			NOT = { has_trait = devoted }
+			NAND = {
+				exists = primary_spouse
+				primary_spouse = { is_landed = yes }
+			}
+			NOT = {
+				any_parent = {
+					highest_held_title_tier >= tier_kingdom
+				}
+			}
 		}
 	}
 	text = {
 		localization_key = Loc_OE_GetUINameNotMeNoTooltip_firstname
 		trigger = {
-			OR = {
-				AND = {
-					is_married = no
-					is_landed = no
-				}
-				AND = {
-					is_married = yes
-					primary_spouse = { is_landed = no }
-				}
-				is_alive = no
-			}
-			OR = {
-				culture = { has_cultural_pillar = heritage_yamato }
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_name_list = name_list_tangut }
-				culture = { has_name_list = name_list_balhae }
-				culture = { has_name_list = name_list_jiaozhi }
-				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
-				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
-			}
+			sino_name_style_culture_trigger = yes
+
 			has_any_nickname = no
-			is_lowborn = no
 			has_miaohao_trigger = no
+			NOT = { has_trait = devoted }
+			NOT = { exists = primary_title }
 			NOT = { has_title = title:d_gosho }
+			NAND = {
+				exists = primary_spouse
+				primary_spouse = { is_landed = yes }
+			}
+			NOT = {
+				any_parent = {
+					highest_held_title_tier >= tier_kingdom
+				}
+			}
 		}
 	}
 	text = {
@@ -302,101 +682,32 @@ OE_GetUINameNotMeNoTooltip = {
 		trigger = {
 			OR = {
 				AND = {
-					is_married = no
-					is_landed = no
+					culture = { has_cultural_pillar = heritage_yamato }
+					dynasty = dynasty:10000420
 				}
-				AND = {
-					is_married = yes
-					primary_spouse = { is_landed = no }
-				}
-				is_alive = no
-			}
-			OR = {
-				culture = { has_cultural_pillar = heritage_yamato }
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_name_list = name_list_tangut }
-				culture = { has_name_list = name_list_balhae }
-				culture = { has_name_list = name_list_jiaozhi }
-				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
-				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
+				sino_name_style_culture_trigger = yes
 			}
 			has_any_nickname = yes
-			is_lowborn = no
 			has_miaohao_trigger = no
+			NOT = { has_trait = devoted }
 			NOT = { has_title = title:d_gosho }
+			NAND = {
+				exists = primary_spouse
+				primary_spouse = { is_landed = yes }
+			}
+			NOT = {
+				any_parent = {
+					highest_held_title_tier >= tier_kingdom
+				}
+			}
 		}
 	}
+
 	text = {
 		localization_key = Loc_OE_GetUINameNotMeNoTooltip_default
 		trigger = {
-			OR = {
-				culture = { has_cultural_pillar = heritage_yamato }
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_name_list = name_list_tangut }
-				culture = { has_name_list = name_list_balhae }
-				culture = { has_name_list = name_list_jiaozhi }
-				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
-				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
-			}
-			is_lowborn = yes
-			NOT = { has_title = title:d_gosho }
-		}
-	}
-	text = {
-		localization_key = Loc_china_GetUINameMHNotMeNoTooltip
-		trigger = {
-			OR = {
-				culture = { has_cultural_pillar = heritage_yamato }
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
-				culture = { has_name_list = name_list_khitan }
-				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_shatuo }
-				culture = { has_name_list = name_list_tangut }
-				culture = { has_name_list = name_list_balhae }
-				culture = { has_name_list = name_list_jiaozhi }
-				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
-				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
-			}
-			NOT = { has_title = title:d_gosho }
-			has_miaohao_trigger = yes
-		}
-	}	
-	text = {
-		localization_key = Loc_OE_TennoGetUINameNotMeNoTooltip
-		trigger = {
-			culture = { has_cultural_pillar = heritage_yamato }
-			dynasty = dynasty:10000420
-			OR = {
-				has_title = title:d_gosho
-				has_title = title:k_yamato
-			}
+			is_landed = no
+			is_alive = no
 		}
 	}
 	text = {
@@ -405,97 +716,701 @@ OE_GetUINameNotMeNoTooltip = {
 	}
 }
 
-#JP_GetTennoUITitleNameNoTooltip = {
-#	type = character
-#	text = {
-#		localization_key = Loc_JP_GetTennoUITitleNameNoTooltip
-#		trigger = {
-#			has_title = title:d_gosho
-#		}
-#	}
-#	text = {
-#		localization_key = Loc_JP_GetUITitleNameNoTooltip_default
-#		fallback = yes
-#	}
-#}
+OE_GetTitledFirstName = {
+	type = character
+	text = {
+		localization_key = Loc_GetTitledFirstName
+		trigger = {
+			exists = this
+			sino_name_style_culture_trigger = yes
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetTitledFirstName_default
+		fallback = yes
+	}
+}
 
-# 内阁窗口
-OE_GetUIShortUINameNoTooltip = {
+# 家谱
+OE_GetShortUINameNoTooltip = {
 	type = character
 	text = {
 		localization_key = Loc_OE_GetUINameNotMeNoTooltip_firstname
 		trigger = {
+			exists = this
 			OR = {
-				culture = { has_cultural_pillar = heritage_chinese }
-				culture = { has_cultural_pillar = heritage_goryeo }
-				culture = { has_cultural_pillar = heritage_nanman }
-				culture = { has_cultural_pillar = heritage_hunic }
 				culture = { has_name_list = name_list_khitan }
 				culture = { has_name_list = name_list_jurchen }
-				culture = { has_name_list = name_list_tangut }
 				culture = { has_name_list = name_list_balhae }
 				culture = { has_name_list = name_list_jiaozhi }
 				culture = { has_name_list = name_list_tuyuhun }
-				culture = { has_name_list = name_list_sogdian }
 				culture = { has_name_list = name_list_bai }
-				culture = { has_name_list = name_list_wuman }
-				culture = { has_name_list = name_list_qiang }
-				culture = { has_name_list = name_list_yi }
 			}
-			is_lowborn = no
 		}
 	}
 	text = {
-		localization_key = Loc_OE_GetUIShortUINameNoTooltip_default
+		localization_key = Loc_OE_GetUINameNotMeNoTooltip_firstname_house
+		trigger = {
+			exists = this
+			OR = {
+				culture = { has_cultural_pillar = heritage_chinese }
+				culture = { has_cultural_pillar = heritage_goryeo }
+				culture = { has_cultural_pillar = heritage_qiangic }
+				culture = { has_cultural_pillar = heritage_hunic }
+				culture = { has_name_list = name_list_tangut }
+				AND = {
+					culture = { has_cultural_pillar = heritage_yamato }
+					NOT = { dynasty = dynasty:10000420 }
+				}
+			}
+		}
+	}
+	text = {
+		localization_key = Loc_OE_GetShortUINameNoTooltip_default
+		fallback = yes
+	}
+}
+
+east_contract_name_Highlight = {
+	scope = character
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0 
+		}
+		localization_key = east_contract_bureau_highlight
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1 
+		}
+		localization_key = east_contract_legion_highlight
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2 
+		}
+		localization_key = east_contract_royal_highlight
+	}
+}
+
+east_contract_name1_icon = {
+	scope = character
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0 
+		}
+		localization_key = special_imperial_bureau_Highlight
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1 
+		}
+		localization_key = special_imperial_legion_Highlight
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2 
+		}
+		localization_key = special_imperial_royal_Highlight
+	}
+	text = {
+		fallback = yes
+		localization_key = ""
+	}
+}
+
+east_contract_name = {
+	scope = character
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_0 
+		}
+		localization_key = special_imperial_legion_0
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_1 
+		}
+		localization_key = special_imperial_legion_1
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_2 
+		}
+		localization_key = special_imperial_legion_2
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_3 
+		}
+		localization_key = special_imperial_legion_3
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_4 
+		}
+		localization_key = special_imperial_legion_4
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2
+			vassal_contract_has_flag = imperial_royal_0 
+		}
+		localization_key = special_imperial_royal_0
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2
+			vassal_contract_has_flag = imperial_royal_1 
+		}
+		localization_key = special_imperial_royal_1
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2
+			vassal_contract_has_flag = imperial_royal_2 
+		}
+		localization_key = special_imperial_royal_2
+	}
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_1 
+		}
+		localization_key = special_imperial_bureau_1
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_2 
+		}
+		localization_key = special_imperial_bureau_2
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_3 
+		}
+		localization_key = special_imperial_bureau_3
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_0 
+		}
+		localization_key = special_imperial_bureau_0
+		fallback = yes
+	}
+	text = {
+		localization_key = ""
 		fallback = yes
 	}
 }
 
 
-OE_jizya_special_rights = {
-	type = character
+east_contract_icon = {
+	scope = character
+
 	text = {
-		localization_key = jizya_special_rights_han
 		trigger = {
-			OR = {
-				culture = { has_cultural_pillar = heritage_chinese }
-			}
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_0 
 		}
+		localization_key = special_imperial_legion_0_text_icon
 	}
 	text = {
-		localization_key = jizya_special_rights_default
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_1 
+		}
+		localization_key = special_imperial_legion_1_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_2 
+		}
+		localization_key = special_imperial_legion_2_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_3 
+		}
+		localization_key = special_imperial_legion_3_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_1
+			vassal_contract_has_flag = imperial_legion_4 
+		}
+		localization_key = special_imperial_legion_4_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2
+			vassal_contract_has_flag = imperial_royal_0 
+		}
+		localization_key = special_imperial_royal_0_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2
+			vassal_contract_has_flag = imperial_royal_1 
+		}
+		localization_key = special_imperial_royal_1_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_2
+			vassal_contract_has_flag = imperial_royal_2 
+		}
+		localization_key = special_imperial_royal_2_text_icon
+	}
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_1 
+		}
+		localization_key = special_imperial_bureau_1_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_2 
+		}
+		localization_key = special_imperial_bureau_2_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_3 
+		}
+		localization_key = special_imperial_bureau_3_text_icon
+	}
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			vassal_contract_has_flag = imperial_contract_0
+			vassal_contract_has_flag = imperial_bureau_0 
+		}
+		localization_key = special_imperial_bureau_0_text_icon
+		fallback = yes
+	}
+	text = {
+		localization_key = ""
 		fallback = yes
 	}
 }
 
-OE_iqta_special_rights = {
-	type = character
+east_succession_name = {
+	scope = character
+
 	text = {
-		localization_key = iqta_special_rights_han
 		trigger = {
+			government_has_flag = government_is_celestial
 			OR = {
-				culture = { has_cultural_pillar = heritage_chinese }
+				has_realm_law = official_succession_law
+				has_realm_law = appointment_succession_law
+				has_realm_law = admin_succession_law
 			}
 		}
+		localization_key = loc_official_succession_law
+	}
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			NOR = {
+				has_realm_law = official_succession_law
+				has_realm_law = admin_succession_law
+			}
+		}
+		localization_key = loc_heir_succession_law
+	}
+
+	text = {
+		fallback = yes
+		localization_key = ""
+	}
+}
+
+east_succession_icon = {
+	scope = character
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			OR = {
+				has_realm_law = official_succession_law
+				has_realm_law = admin_succession_law
+				has_realm_law = appointment_succession_law
+			}
+		}
+		localization_key = loc_official_succession_law_text_icon
+	}
+
+	text = {
+		trigger = {
+			government_has_flag = government_is_celestial
+			NOR = {
+				has_realm_law = official_succession_law
+				has_realm_law = admin_succession_law
+			}
+		}
+		localization_key = loc_heir_succession_law_text_icon
+	}
+
+	text = {
+		fallback = yes
+		localization_key = " "
+	}
+}
+
+bureaucracy_title_rank_name = {
+	scope = character
+	text = {
+		trigger = { government_has_flag = government_is_celestial bureaucrat_title_rank_1 = yes }
+		localization_key = bureaucracy_title_rank_1
 	}
 	text = {
-		localization_key = iqta_special_rights_default
+		trigger = { government_has_flag = government_is_celestial bureaucrat_title_rank_2 = yes }
+		localization_key = bureaucracy_title_rank_2
+	}
+	text = {
+		trigger = { government_has_flag = government_is_celestial bureaucrat_title_rank_3 = yes }
+		localization_key = bureaucracy_title_rank_3
+	}
+	text = {
+		trigger = { government_has_flag = government_is_celestial bureaucrat_title_rank_4 = yes }
+		localization_key = bureaucracy_title_rank_4
+	}
+	text = {
+		trigger = { government_has_flag = government_is_celestial bureaucrat_title_rank_5 = yes }
+		localization_key = bureaucracy_title_rank_5
+	}
+	text = {
+		trigger = { government_has_flag = government_is_celestial bureaucrat_title_rank_6 = yes }
+		localization_key = bureaucracy_title_rank_6
+	}
+	text = {
+		trigger = { government_has_flag = government_is_celestial bureaucrat_title_rank_7 = yes }
+		localization_key = bureaucracy_title_rank_7
+	}
+	text = {
+		fallback = yes
+		localization_key = ""
+	}
+}
+
+GetEpidemicRulerName = {
+	scope = character
+
+	text = {
+		trigger = {
+			culture = {
+				OR = {
+					has_cultural_pillar = heritage_chinese
+					has_cultural_pillar = language_chinese
+				}
+			}
+		}
+		localization_key = epidemic_house_loc
+	}
+	text = {
+		fallback = yes
+		localization_key = epidemic_ruler_loc_defaut
+	}
+}
+
+
+GetRulerRelationFrom = {
+	scope = character
+
+	text = {
+		trigger = { # queen_mother (Reine mère)
+			sino_name_style_culture_trigger = yes
+			is_female = yes
+			any_child = {
+				exists = this
+				primary_title.tier >= tier_kingdom
+			}
+			exists = primary_spouse
+		}
+		localization_key = spouse_primary_title
+	}
+	text = {
+		trigger = { # queen_mother (Reine mère)
+			sino_name_style_culture_trigger = yes
+			is_female = yes
+			any_child = {
+				exists = this
+				primary_title.tier >= tier_kingdom
+				root = { is_courtier_of = this }
+			}
+			NOT = { exists = primary_spouse }
+		}
+		localization_key = liege_primary_title
+	}
+	text = {
+		trigger = {
+			exists = father
+			father = {
+				primary_title = title:e_celestia
+			}
+		}
+		localization_key = father_Guohao
+	}
+	text = {
+		trigger = {
+			exists = mother
+			mother = {
+				primary_title = title:e_celestia
+				house = root.house
+			}
+		}
+		localization_key = mother_Guohao
+	}
+	text = {
+		trigger = {
+			exists = father
+			father = {
+				primary_title.tier >= tier_kingdom
+			}
+		}
+		localization_key = father_primary_title
+	}
+	text = {
+		trigger = { # Princesse
+			exists = mother
+			mother = {
+				primary_title.tier > tier_kingdom
+			}
+		}
+		localization_key = mother_primary_title
+	}
+	text = {
+		localization_key = liege_primary_title
 		fallback = yes
 	}
 }
 
-OE_ghazi_special_rights = {
-	type = character
+#皇亲国戚
+GetRulerRelationName = {
+	scope = character
+	log_loc_errors = no
 	text = {
-		localization_key = ghazi_special_rights_han
-		trigger = {
-			OR = {
-				culture = { has_cultural_pillar = heritage_chinese }
+		trigger = { # queen_mother (Reine mère)
+			sino_name_style_culture_trigger = yes
+			is_female = yes
+			any_child = {
+				primary_title.tier = tier_kingdom
 			}
+			primary_title.tier < tier_kingdom
 		}
+		localization_key = queen_mother_han
 	}
 	text = {
-		localization_key = ghazi_special_rights_default
+		trigger = { # queen_mother (Reine mère)
+			sino_name_style_culture_trigger = yes
+			is_female = yes
+			any_child = {
+				primary_title.tier = tier_empire
+			}
+			primary_title.tier < tier_empire
+		}
+		localization_key = empress_mother_han
+	}
+	text = {
+		trigger = { # 太子
+			is_female = no
+			exists = top_liege
+			is_primary_heir_of = top_liege
+			OR = {
+				is_ruler = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				even_if_dead = yes
+				primary_title.tier > tier_kingdom
+			}
+		}
+		localization_key = crown_prince_empire_han
+	}
+	text = {
+		trigger = { # 太女
+			is_female = yes
+			exists = top_liege
+			is_primary_heir_of = top_liege
+			OR = {
+				is_ruler = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				even_if_dead = yes
+				primary_title.tier >= tier_kingdom
+			}
+		}
+		localization_key = crown_princess_empire_han
+	}
+	text = {
+		trigger = { # 太子
+			is_female = no
+			exists = top_liege
+			is_primary_heir_of = top_liege
+			OR = {
+				is_ruler = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				even_if_dead = yes
+				primary_title.tier = tier_kingdom
+			}
+		}
+		localization_key = crown_prince_han
+	}
+	text = {
+		trigger = { # 太女
+			is_female = yes
+			exists = top_liege
+			is_primary_heir_of = top_liege
+			OR = {
+				is_ruler = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				even_if_dead = yes
+				primary_title.tier = tier_kingdom
+			}
+		}
+		localization_key = crown_princess_han
+	}
+	text = {
+		trigger = { # Prince
+			is_female = no
+			OR = {
+				is_ruler = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				#even_if_dead = yes #在世皇帝的皇子才叫皇子
+				primary_title.tier > tier_kingdom
+			}
+		}
+		localization_key = prince_empire_han
+	}
+	text = {
+		trigger = { # 长公主
+			is_female = yes
+			OR = {
+				holds_landed_title = no
+				primary_title.tier < tier_kingdom
+			}
+			any_sibling = {
+				primary_title.tier = tier_empire
+			}
+		}
+		localization_key = princess_empire_elder
+	}
+	text = {
+		trigger = { # 大长公主
+			is_female = yes
+			OR = {
+				holds_landed_title = no
+				primary_title.tier < tier_kingdom
+			}
+			any_sibling = {
+				even_if_dead = yes
+				any_child = {
+					primary_title.tier = tier_empire
+				}
+			}
+		}
+		localization_key = princess_empire_eldest
+	}
+	text = {
+		trigger = { # Princesse
+			is_female = yes
+			OR = {
+				is_ruler = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				even_if_dead = yes
+				primary_title.tier > tier_kingdom
+			}
+		}
+		localization_key = princess_empire_han
+	}
+	text = {
+		trigger = { # Prince
+			is_female = no
+			OR = {
+				is_ruler = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				#even_if_dead = yes #在世国王的儿子才叫王子
+				primary_title.tier = tier_kingdom
+			}
+		}
+		localization_key = prince_han
+	}
+	text = {
+		trigger = { # Princess
+			is_female = yes
+			OR = {
+				holds_landed_title = no
+				primary_title.tier < tier_kingdom
+			}
+			any_parent = {
+				even_if_dead = yes
+				primary_title.tier = tier_kingdom
+			}
+		}
+		localization_key = princess_han
+	}
+	text = {
+		localization_key = Loc_OE_GetTitleTierName
 		fallback = yes
 	}
 }

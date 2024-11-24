@@ -1,0 +1,386 @@
+﻿civil_tax_collector = {
+	ai_will_do = {
+		value = default_tax_obligation_ai_will_do
+
+		# Always take at least one default tax collector slot
+		if = {
+			limit = { scope:num_slots_with_obligation = 0 }
+			add = 100
+		}
+	}
+}
+
+royal_treasury_taxation_tax_collector = { #太府/提举常平/仓司/自为兼并
+	is_shown = {
+		scope:liege = { is_oe_imperial_court_trigger = yes }
+	}
+
+	tax_factor = 0.25
+
+	liege_modifier = {
+		#domain_tax_mult = 0.01
+		naval_movement_speed_mult = 0.02
+	}
+
+	vassal_modifier = {
+		opinion_of_liege = -30
+		development_growth_factor = -0.25
+	}
+
+	ai_will_do = {
+		value = tax_obligation_base_ai_will_do
+		if = {
+			limit = {
+				scope:liege = {
+					ai_greed >= 75 # The AI has to be very greedy
+					ai_compassion <= 0 # And not kind enough to have qualms about it
+				}
+			}
+			add = 2
+		}
+	}
+}
+
+supervisory_special_rights_tax_collector = { #刺史/采访使/行省平章/巡抚
+	is_shown = {
+		scope:liege = { is_oe_imperial_court_trigger = yes }
+	}
+	is_valid = {
+		scope:liege = {			
+			culture = {
+				has_innovation = innovation_centralization_of_authority
+			}
+		}
+	}
+
+	tax_factor = 0.1
+
+	liege_modifier = {
+		monthly_piety_gain_mult = 0.01
+		cultural_head_fascination_mult = 0.01
+	}
+	vassal_modifier = {
+		opinion_of_liege = -10
+		personal_scheme_power_mult = 0.10
+	}
+	ai_will_do = {
+		value = tax_obligation_base_ai_will_do
+		add = 1
+	}
+}
+
+tribal_affairs_special_rights_tax_collector = { #理藩院
+
+
+	is_vassal_valid = {
+		custom_description = {
+			text = vassal_has_different_culture
+			subject = scope:vassal
+			NOT = { scope:vassal.culture = scope:liege.culture }
+		}
+	}
+
+	#tax_factor = 0.5
+	#levies_factor = -0.75
+
+	liege_modifier = {
+		minority_opinion = 2
+		levy_reinforcement_rate_different_faith = 0.05
+		cultural_head_acceptance_gain_mult = 0.05
+	}
+
+	vassal_modifier = {
+		monthly_dynasty_prestige = 0.1 #羁縻官爵
+		cultural_head_fascination_mult = 0.05 #技术交流	
+	}
+	flag = vassal_contract_cheaper_religious_war
+	flag = vassal_contract_cannot_revoke_titles
+	flag = religiously_protected
+
+	ai_will_do = {
+		value = tax_obligation_base_ai_will_do
+		if = {
+			limit = {
+				scope:num_slots_with_obligation = 0 # And only if we don't have Jizya already
+
+				scope:liege = {
+					OR = {
+						# The AI has at least this many vassals to warrant Jizya being used
+						any_vassal = {
+							count >= tax_obligation_half_of_slot
+							NOT = { culture = scope:liege.culture }					
+							NOT = { government_has_flag = government_is_celestial }
+						}
+
+						# Or a large enough portion of their vassals are of another religion
+						any_vassal = {
+							percent >= 0.25
+							NOT = { culture = scope:liege.culture }		
+							NOT = { government_has_flag = government_is_celestial }
+						}
+					}
+				}
+			}
+			add = 2
+		}
+	}
+}
+
+legion_special_rights_tax_collector = { #兵部/府兵
+
+	is_valid = {
+		scope:liege = {			
+			culture = {
+				has_innovation = innovation_bannus
+			}
+		}
+	}
+
+	tax_factor = -0.2
+	levies_factor = 0.2
+
+	liege_modifier = {
+		army_maintenance_mult = 0.01
+		men_at_recruitment_cost = 0.01
+		maa_damage_mult = 0.01
+	}
+
+	vassal_modifier = {
+		men_at_arms_maintenance = 0.1
+		men_at_arms_recruitment_cost = 0.1
+		glory_hound_opinion = 5
+		knight_limit = 2
+		levy_size = 0.1
+	}
+
+	flag = vassal_contract_increase_prestige_cb_cost
+
+	ai_will_do = {
+		value = tax_obligation_base_ai_will_do
+
+		if = {
+			limit = {
+				scope:liege = {
+					ai_has_warlike_personality = yes # AI should like wars to use Ghazi
+					ai_zeal >= 0
+					any_vassal = {
+						count >= {
+							value = scope:num_vassal_slots
+							divide = 100
+							multiply = 90
+						}
+						faith = scope:liege.faith
+					}
+				}
+			}
+			add = 2
+		}
+	}
+}
+
+penalty_special_rights_tax_collector = { #提点刑狱司/宪司
+
+	is_valid = {
+		scope:liege.culture = { has_innovation = innovation_baliffs }
+	}
+	levies_factor = -0.2
+
+	liege_modifier = {
+		army_maintenance_mult = 0.02
+		hostile_scheme_resistance_mult = 0.02
+		monthly_prestige_gain_per_dread_mult = 0.003
+	}
+
+	vassal_modifier = {
+		max_hostile_schemes_add = 1
+		monthly_county_control_growth_factor = 0.25
+	}
+
+	ai_will_do = {
+		value = tax_obligation_base_ai_will_do
+
+		scope:liege = {
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							ai_greed <= 0 # The AI shouldn't be greedy, since they won't care in that case
+							ai_compassion >= 0 # The AI has to the somewhat compassionate to consider being nice to their vassals
+						}
+					}
+				}
+				if = {
+					limit = { # Increase the score a lot if there are several vassal who REALLY doesn't like their liege
+						any_vassal = {
+							count >= tax_obligation_half_of_slot
+							opinion = {
+								target = scope:liege
+								value <= -80
+							}
+						}
+					}
+					add = 4
+				}
+				else_if = {
+					limit = { # Increase it only slightly if the vassals only somewhat dislike their liege
+						any_vassal = {
+							count >= tax_obligation_half_of_slot
+							opinion = {
+								target = scope:liege
+								value <= -40
+							}
+						}
+					}
+					add = 2
+				}
+			}
+		}
+	}
+
+}
+
+### FP3 Tax Decrees
+royal_house_special_rights_tax_collector = { #宗人府
+	is_shown = {
+		scope:liege = { is_oe_imperial_court_trigger = yes }
+	}
+	is_valid = {
+		#scope:liege.culture = { has_innovation = innovation_royal_prerogative }
+		scope:liege.culture = { has_cultural_tradition = tradition_chinese_succession }
+	}
+	is_vassal_valid = {
+		custom_description = {
+			text = vassal_has_wrong_dynasty
+			subject = scope:vassal
+			scope:vassal.dynasty = scope:liege.dynasty
+		}
+	}
+	tax_factor = -0.8
+
+	liege_modifier = {
+		build_gold_cost = 0.01
+	}
+
+	vassal_modifier = {
+		opinion_of_liege = 40
+		courtly_opinion = 20
+		monthly_prestige_gain_mult = 0.2
+	}
+
+	ai_will_do = {
+		value = tax_obligation_base_ai_will_do
+		if = {
+			limit = {
+				scope:num_slots_with_obligation = 0 # And only if we don't have Jizya already
+
+				scope:liege = {
+					OR = {
+						# The AI has at least this many vassals being house members
+						any_vassal = {
+							count >= tax_obligation_half_of_slot
+							house = scope:liege.house
+						}
+
+						# Or a large enough portion of their vassals are house members
+						any_vassal = {
+							percent >= 0.25
+							house = scope:liege.house
+						}
+					}
+				}
+			}
+			add = 5
+		}
+	}
+}
+
+trading_special_rights_tax_collector = { #市舶司
+	is_shown = {
+		scope:liege = { is_oe_imperial_court_trigger = yes }
+	}
+	is_valid = {
+		scope:liege = {			
+			culture = {
+				has_innovation = innovation_guilds
+			}
+		}
+	}
+	is_vassal_valid = {
+		custom_description = {
+			text = vassal_has_border_county
+			subject = scope:vassal
+			scope:vassal = {
+				OR = {
+					vassal_contract_has_flag = imperial_bureau_2
+					any_held_county = {
+						OR = {
+							is_coastal_county = yes
+							any_neighboring_county = {
+								holder = {
+									NOT = {
+										top_liege = scope:liege
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	tax_factor = 0.3
+	levies_factor = -0.3
+
+	liege_modifier = {
+		#monthly_prestige = 0.1
+		monthly_war_income_mult = -0.02
+		naval_movement_speed_mult = 0.02
+		mercenary_hire_cost_mult = -0.1
+	}
+
+	vassal_modifier = {
+		holding_build_speed = 0.1
+		development_growth_factor = 0.1
+		opinion_of_liege = 30
+		monthly_war_income_mult = -0.05
+		monthly_county_control_growth_at_war_factor = -0.25
+		naval_movement_speed_mult = 0.25
+	}
+
+	ai_will_do = {
+		value = tax_obligation_base_ai_will_do
+		if = {
+			limit = {
+				scope:num_slots_with_obligation = 0 # And only if we don't have Jizya already
+
+				scope:liege = {
+					OR = {
+						# The AI has at least this many vassals to warrant Jizya being used
+						any_vassal = {
+							count >= tax_obligation_half_of_slot
+							vassal_contract_has_flag = imperial_bureau_2
+						}
+
+						# Or a large enough portion of their vassals are of another religion
+						any_vassal = {
+							percent >= 0.25
+							any_held_county = {
+								OR = {
+									is_coastal_county = yes
+									any_neighboring_county = {
+										holder = {
+											NOT = {
+												top_liege = scope:liege
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			add = 5
+		}
+	}
+}

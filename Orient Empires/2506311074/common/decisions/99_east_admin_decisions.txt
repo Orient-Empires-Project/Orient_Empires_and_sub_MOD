@@ -1,0 +1,143 @@
+﻿create_noble_family_title_decision = {
+	decision_group_type = admin
+	#ai_goal = yes
+
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_dynasty_house.dds"
+	}
+
+	decision_group_type = major
+	#ai_check_interval = 60
+
+	is_shown = {
+		#is_playable_character = yes
+		is_ai = no
+		exists = house
+		OR = {
+			is_house_head = yes
+			AND = {
+				exists = house.house_head
+				is_house_head = no
+			}
+		}
+		NOR = {
+			any_held_title = { is_oe_noble_family_title = yes }
+			house = {
+				any_house_member = {
+					any_held_title = { is_oe_noble_family_title = yes }
+				}
+			}
+		}
+
+		primary_title.tier >= tier_duchy
+		NOR = {
+			government_has_flag = government_is_holy_order
+			government_has_flag = government_is_theocracy
+			AND = {
+				faith = { has_doctrine = doctrine_theocracy_temporal }
+				has_council_position = councillor_court_chaplain
+			}
+		}
+	}
+
+	is_valid = {
+		government_allows = create_cadet_branches
+		government_has_flag = government_use_estate
+		
+		# No living ancestors should belong to your house.
+		custom_description = {
+			text = create_cadet_branch_decision_ancestor_in_house
+			NOT = {
+				any_ancestor = {
+					house = root.house
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				is_married = yes
+				is_male = yes
+			}
+			patrilinear_marriage = yes
+		}
+		trigger_if = {
+			limit = {
+				is_married = yes
+				is_female = yes
+			}
+			matrilinear_marriage = yes
+		}
+		trigger_if = { #Males of female-dominated faith must already be patrilineally married before taking this decision.
+			limit = {
+				is_married = no
+				is_female = no
+				faith = {
+					has_doctrine = doctrine_gender_female_dominated
+				}
+			}
+			patrilinear_marriage = yes
+		}
+		trigger_if = { #Females of male-dominated faith must already be matrilineally married before taking this decision.
+			limit = {
+				is_married = no
+				is_female = yes
+				faith = {
+					has_doctrine = doctrine_gender_male_dominated
+				}
+			}
+			matrilinear_marriage = yes
+		}
+		trigger_if = {
+			limit = {
+				has_trait = devoted
+			}
+			NOT = {
+				has_trait = devoted
+			}
+		}
+		trigger_if = {
+			limit = {
+				has_trait = bastard
+			}
+			NOT = {
+				has_trait = bastard
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		is_available_adult = yes
+		is_playable_character = yes
+	}
+
+	effect = {
+		if = {
+			limit = {
+				government_has_flag = government_use_estate
+				highest_held_title_tier >= tier_duchy
+				has_dlc_feature = roads_to_power
+			}
+			create_noble_family_effect = yes
+			change_influence = major_influence_gain
+			domicile ?= { set_up_domicile_estate_effect = yes }
+		}
+		if = {
+			limit = {
+				government_has_flag = government_use_estate
+				highest_held_title_tier >= tier_duchy
+				NOT = { has_dlc_feature = roads_to_power }
+			}
+			oe_create_noble_family_effect = yes
+			change_influence = major_influence_gain
+			domicile ?= { set_up_domicile_estate_effect = yes }
+		}
+	}
+	
+	ai_potential = {
+		always = no
+	}
+	ai_will_do = {
+		value = 0
+	}
+}

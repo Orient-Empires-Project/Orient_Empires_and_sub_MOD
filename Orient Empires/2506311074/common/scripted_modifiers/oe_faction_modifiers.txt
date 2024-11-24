@@ -1,0 +1,370 @@
+﻿nation_fracturing_faction_modifiers = {
+
+	# Short reign increase the change of NF
+	modifier = {
+		desc = "FACTION_REASON_SHORT_REIGN"
+		add = {
+			value = 0
+			if =  {
+				limit =  {
+					$FACTION_TARGET$ = {
+						primary_title = {
+							title_held_years <= 1
+						}
+					}
+				}
+				add = 15
+			}
+			if =  {
+				limit =  {
+					$FACTION_TARGET$ = {
+						primary_title = {
+							title_held_years <= 5
+						}
+					}
+				}
+				add = 10
+			}
+			if =  {
+				limit =  {
+					$FACTION_TARGET$ = {
+						primary_title = {
+							title_held_years <= 10
+						}
+					}
+				}
+				add = 5
+			}
+		}
+	}
+
+	# Lower the score if there are claimants of my culture
+	modifier = {
+		desc = "FACTION_REASON_CLAIMANTS_OF_MY_CULTURE"
+		add = -200
+		$FACTION_TARGET$ = {
+			primary_title = {
+				any_claimant = {
+					count > 0
+					culture = root.culture
+				}
+			}
+		}
+	}
+
+	# Characters are less likely to join if cultural acceptance is high
+	modifier = {
+		desc = "FACTION_REASON_CULTURAL_ACCEPTANCE"
+		culture = {
+			NOR = {
+				this = $FACTION_TARGET$.culture
+				cultural_acceptance = { target = $FACTION_TARGET$.culture value >= 90 } # Essentially the same culture
+				has_cultural_parameter = doesnt_care_about_culture_faith_in_factions
+			}
+		}
+		add = {
+			value = 10
+			if = {
+				limit = {
+					culture = {
+						cultural_acceptance = { target = $FACTION_TARGET$.culture value <= 20 }
+					}
+				}
+				add = 20
+			}
+			if = {
+				limit = {
+					culture = {
+						cultural_acceptance = { target = $FACTION_TARGET$.culture value <= 35 }
+					}
+				}
+				add = 15
+			}
+			if = {
+				limit = {
+					culture = {
+						cultural_acceptance = { target = $FACTION_TARGET$.culture value <= 50 }
+					}
+				}
+				add = 10
+			}
+			if = {
+				limit = {
+					culture = {
+						cultural_acceptance = { target = $FACTION_TARGET$.culture value <= 70 }
+					}
+				}
+				add = 5
+			}
+			if = {
+				limit = {
+					culture = {
+						cultural_acceptance = { target = $FACTION_TARGET$.culture value <= 80 }
+					}
+				}
+				add = 5
+			}
+		}
+	}
+
+	# More likely to happen if the target don't control the entirety of the de jure area of any of their title of the same rank as their primary title
+	modifier = {
+		desc = "FACTION_REASON_TARGET_NOT_FULL_CONTROL"
+		add = {
+			value = 0
+			$FACTION_TARGET$ = {
+				every_held_title = {
+					limit = {
+						this.tier = prev.primary_title.tier
+						NOT = { $FACTION_TARGET$ = { completely_controls = prev } }
+					}
+					add = {
+						if = {
+							limit = { tier = tier_empire }
+							add = 50
+						}
+						else_if = {
+							limit = { tier = tier_kingdom }
+							add = 20
+						}
+						else_if = {
+							limit = { tier = tier_duchy }
+							add = 15
+						}
+						else_if = {
+							limit = { tier = tier_county }
+							add = 10
+						}
+						#bigger penalty for the primary_title
+						if = {
+							limit = { this = $FACTION_TARGET$.primary_title }
+							add = 50
+						}
+					}
+				}
+			}
+		}
+	}
+
+	# more likely to happen if they lost wars or title recently
+	modifier = {
+		desc = "FACTION_REASON_RECENT_LOST_WAR"
+		add = {
+			value = 0
+			if = {
+				limit = { $FACTION_TARGET$ = { has_variable =  recently_lost_wars } }
+				add = $FACTION_TARGET$.var:recently_lost_wars
+				multiply = 15
+			}
+		}
+	}
+
+	# more likely to happen to Tribal and Clans
+	modifier = {
+		desc = "FACTION_REASON_TRIBAL_CLAN"
+		add = {
+			value = 0
+			if = {
+				limit = { $FACTION_TARGET$ = { government_has_flag = government_is_tribal } }
+				add = 25
+			}
+			else_if = {
+				limit = { $FACTION_TARGET$ = { government_has_flag = government_is_clan } }
+				# Increase for each powerful vassal you are not allied with
+				add = {
+					value = 0
+					$FACTION_TARGET$ = {
+						every_vassal = {
+							limit = {
+								is_powerful_vassal_of = $FACTION_TARGET$
+								NOT = { is_allied_to = $FACTION_TARGET$ }
+							}
+							add = 10
+						}
+					}
+				}
+			}
+		}
+	}
+
+	# motivated if the target is involved in various struggle phases.
+	modifier = {
+		add = {
+			value = 0
+			# Some phases give a low chance...
+			if = {
+				limit = {
+					$FACTION_TARGET$ = {
+						any_character_struggle = {
+							is_struggle_type = iberian_struggle
+							involvement = involved
+							is_struggle_phase = struggle_iberia_phase_hostility
+						}
+					}
+				}
+				add = 50
+			}
+			# ... & some phases give a high chance.
+			else_if = {
+				limit = {
+					$FACTION_TARGET$ = {
+						any_character_struggle = {
+							is_struggle_type = iberian_struggle
+							involvement = involved
+							is_struggle_phase = struggle_iberia_phase_opportunity
+						}
+					}
+				}
+				add = 100 # High chance in opportunity
+			}
+		}
+		$FACTION_TARGET$ = {
+			any_character_struggle = {
+				is_struggle_type = iberian_struggle
+				involvement = involved
+			}
+		}
+	}
+
+	# Less likely for elective title
+	modifier = {
+		desc = "FACTION_REASON_ELECTIVE_PRIMARY"
+		add = -125
+	 	$FACTION_TARGET$.primary_title = {
+			has_order_of_succession = election
+		}
+	}
+	
+	# Less likely if you have low Crown Authority
+	modifier = {
+		desc = "FACTION_REASON_LOW_CROWN_AUTHORITY"
+		add = -50
+	 	$FACTION_TARGET$ = {
+			OR = {
+				has_realm_law = crown_authority_0
+				has_realm_law = crown_authority_1
+			}
+		}
+	}
+	
+	# Less likely for French vassals
+	modifier = {
+		desc = "FACTION_REASON_FRENCH_VASSAL"
+		add = -200
+		culture = {
+			has_cultural_pillar = heritage_frankish
+		}
+	 	$FACTION_TARGET$.primary_title = title:k_france
+	}
+	
+	# Less likely for Anglosaxons to want to destroy England
+	modifier = {
+		desc = "FACTION_REASON_ANGLOSAXON"
+		add = -200
+		culture = {
+			has_cultural_pillar = heritage_west_germanic
+		}
+	 	$FACTION_TARGET$.primary_title = title:k_england
+	}
+	
+	# Less likely for Normans to want to destroy England
+	modifier = {
+		desc = "FACTION_REASON_NORMAN"
+		add = -200
+		culture = {
+			has_cultural_pillar = heritage_frankish
+		}
+	 	$FACTION_TARGET$.primary_title = title:k_england
+	}
+	
+	# Less likely for Brythonic to want to destroy England
+	modifier = {
+		desc = "FACTION_REASON_BRYTHONIC"
+		add = -200
+		culture = {
+			has_cultural_pillar = heritage_brythonic
+		}
+	 	$FACTION_TARGET$.primary_title = title:k_england
+	}
+
+	# Less likely for vassals with Byzantine Traditions
+	modifier = {
+		desc = "FACTION_REASON_BYZANTINE"
+		add = -500
+	 	culture = {
+			has_cultural_parameter = byzantine_faction_differences
+		}
+	 	$FACTION_TARGET$ = {
+			has_title = title:e_byzantium
+		}
+	}
+
+	modifier = {
+		desc = "FACTION_REASON_BYZANTINE_RELIGION"
+		add = -200
+		religion = liege.religion
+	 	$FACTION_TARGET$ = {
+			has_title = title:e_byzantium
+		}
+	}
+	
+	modifier = { # New vassals do not want to join independence factions
+		desc = "FACTION_REASON_NEW_VASSAL"
+		add = -1000
+		has_opinion_modifier = {
+			modifier = became_vassal
+			target = $FACTION_TARGET$
+		}
+	}
+
+	modifier = {
+		desc = "FACTION_REASON_PERSIAN_STRUGGLE"
+		add = -100
+		any_character_struggle = {
+			is_struggle_type = persian_struggle
+		}
+	}
+
+	#敌对阶段
+	modifier = {
+		desc = "oe_struggle_hostility_acceptance_tt"
+		add = -2000
+		any_character_struggle = {
+			involvement = involved
+			has_struggle_phase_parameter = unlocks_oe_factions
+		}
+	}
+}
+
+#common_create_faction_blockers = {
+#	# Refuses to make if there was a recent independence faction revolt.
+#	modifier = {
+#		add = -1000
+#		$FACTION_TARGET$ = {
+#			has_character_flag = $FLAG$
+#		}
+#	}
+#
+#	# Do not join a new faction if I am already at war.
+#	modifier = {
+#		add = -1000
+#		is_at_war = yes
+#	}
+#
+#	# Block characters from joining if they have a high opinion of the target
+#	modifier = {
+#		add = -1000
+#		save_temporary_opinion_value_as = { name = target_opinion target = $FACTION_TARGET$ }		
+#		scope:target_opinion >= 80
+#	}
+#
+#	# 流官
+#	modifier = {
+#		add = -1000
+#		is_bureau_government_trigger = yes
+#	}
+#
+#}
+
+
+

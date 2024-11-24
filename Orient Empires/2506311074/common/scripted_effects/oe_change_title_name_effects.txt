@@ -1,0 +1,3415 @@
+﻿
+#决议用  必须设定 TIER  有 root, 授予 recipient = holder  
+oe_create_titular_title_effect = {
+	hidden_effect = {
+		create_dynamic_title = {
+			tier = $TIER$
+			name = TITLE_NAME_FROM_TARGET
+		}
+		create_title_and_vassal_change = {
+			type = created
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		
+		scope:new_title = {
+			set_no_automatic_claims = yes
+			set_can_be_named_after_dynasty = no
+			set_color_from_title = root.capital_county
+			set_capital_county = root.capital_county
+			set_landless_title = yes
+			change_title_holder = {
+				holder = $HOLDER$
+				change = scope:change
+			}
+			generate_coa = yes
+			set_variable = {
+				name = titular_title
+				value = root.capital_county
+			}
+		}
+		$HOLDER$ = {
+			change_liege = {
+				liege = root
+				change = scope:change
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
+
+		scope:target = {
+			reset_title_name = yes
+		}
+	
+		$HOLDER$ = {
+			set_primary_title_to = scope:new_title
+		}
+		$HOLDER$ = { #授予庄园
+			if = {
+				limit = {
+					is_landed = no
+					is_oe_aristocrat = no
+				}
+				domicile ?= {
+					set_up_domicile_estate_effect = yes
+				}
+			}
+		}
+	}
+}
+
+#互动用
+#仅针对 scope:recipient scope:target 注意修改
+create_title_basing_target_effect = {
+	hidden_effect = {
+		scope:target = {
+			change_title_name_$BASING_TIER$_effect = yes
+		}
+		
+		create_dynamic_title = {
+			tier = $NEW_TITLE_TIER$
+			name = TITLE_NAME_FROM_TARGET
+		}
+		create_title_and_vassal_change = {
+			type = created
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		scope:new_title = {
+			set_no_automatic_claims = yes
+			set_can_be_named_after_dynasty = no
+			set_color_from_title = scope:target
+			set_capital_county = scope:target.title_capital_county
+			set_landless_title = yes
+			change_title_holder = {
+				holder = scope:recipient
+				change = scope:change
+			}
+		}
+		scope:recipient = {
+			change_liege = {
+				liege = scope:actor
+				change = scope:change
+			}
+		}
+
+		resolve_title_and_vassal_change = scope:change
+
+		scope:target = {
+			reset_title_name = yes
+		}
+		scope:new_title = { generate_coa = yes }
+
+		scope:recipient = {
+			set_primary_title_to = scope:new_title
+		}
+
+
+		scope:new_title = {
+			set_variable = {
+				name = titular_title
+				value = scope:target
+			}
+		}
+
+		scope:target = {
+			set_variable = {
+				name = titular_granted
+				value = scope:new_title
+			}
+		}
+	}
+}
+
+#追封  无效
+#scope:death_man  scope:secondary_recipient
+fengjue_death_man_effect = {
+	send_interface_toast = {
+		title = shihao_custom_nickname.a.tooltip
+		left_icon = scope:death_man
+		scope:death_man = {
+			set_nickname_effect = {
+				NICKNAME = shihao_custom_nickname1
+			}
+		}
+	}
+}
+
+
+#建立单字王爵
+create_kingdom_guo_effect = {
+	create_title_basing_target_effect = {		
+		NEW_TITLE_TIER = kingdom
+		BASING_TIER = duchy
+	}
+	scope:new_title = {
+		set_de_jure_liege_title = scope:actor.capital_province.empire
+	}
+}
+
+#建立双字王爵
+create_kingdom_jun_effect = {
+	create_title_basing_target_effect = {			
+		NEW_TITLE_TIER = kingdom
+		BASING_TIER = county
+	}
+	scope:new_title = {
+		set_de_jure_liege_title = scope:actor.capital_province.empire
+	}
+}
+
+#建立单字公爵
+create_duchy_guo_effect = {
+	create_title_basing_target_effect = {			
+		NEW_TITLE_TIER = duchy
+		BASING_TIER = duchy
+	}
+	scope:new_title = {
+		set_de_jure_liege_title = scope:actor.capital_province.kingdom
+	}
+}
+
+#建立双字公爵 - 藩王契约显示 双字王
+create_duchy_jun_effect = {
+	create_title_basing_target_effect = {			
+		NEW_TITLE_TIER = duchy
+		BASING_TIER = county
+	}
+	scope:new_title = {
+		set_de_jure_liege_title = scope:actor.capital_province.kingdom
+	}
+}
+
+
+#单字国名
+change_title_name_duchy_effect = {
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_youzhou
+		}
+		set_title_name = hanfan_d_youzhou
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_liaodong
+		}
+		set_title_name = hanfan_d_liaodong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_liaoxi
+		}
+		set_title_name = hanfan_d_liaoxi
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_biansong
+		}
+		set_title_name = hanfan_d_biansong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_chengde
+		}
+		set_title_name = hanfan_d_chengde
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xingci
+		}
+		set_title_name = hanfan_d_xingci
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_zelu
+		}
+		set_title_name = hanfan_d_zelu
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_lulong
+		}
+		set_title_name = hanfan_d_lulong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yingmo
+		}
+		set_title_name = hanfan_d_yingmo
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yiding
+		}		
+		set_title_name = hanfan_d_yiding		
+	}
+	if = {
+		limit = {
+			title_capital_county.county = title:c_dingzhou
+		}		
+		set_title_name = Zhongshan	
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_weibo
+		}
+		set_title_name = hanfan_d_weibo
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xiangwei
+		}
+		set_title_name = hanfan_d_xiangwei
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_henghai
+		}
+		set_title_name = hanfan_d_henghai
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_zhenwu
+		}
+		set_title_name = hanfan_d_zhenwu
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_lulong
+		}
+		set_title_name = hanfan_d_fengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_ordos
+		}
+		set_title_name = hanfan_d_ordos
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_hedong
+		}
+		set_title_name = hanfan_d_hedong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yunzhong
+		}
+		set_title_name = hanfan_d_yunzhong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yanmen
+		}
+		set_title_name = hanfan_d_yanmen
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_hezhong
+		}
+		set_title_name = hanfan_d_hezhong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xiazhou
+		}
+		set_title_name = hanfan_d_xiazhou
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xia
+		}
+		set_title_name = hanfan_d_xia
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_shuofang
+		}
+		set_title_name = hanfan_d_shuofang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_fengxiang
+		}
+		set_title_name = hanfan_d_fengxiang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jingyuan
+		}
+		set_title_name = hanfan_d_jingyuan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_longxi
+		}
+		set_title_name = hanfan_d_longxi
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_longnan
+		}
+		set_title_name = hanfan_d_longnan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xijing
+		}
+		set_title_name = hanfan_d_xijing
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_pingyi
+		}
+		set_title_name = hanfan_d_pingyi
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_binning
+		}
+		set_title_name = hanfan_d_binning
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_fufang
+		}
+		set_title_name = hanfan_d_fufang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jinshang
+		}
+		set_title_name = hanfan_d_jinshang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xichuan
+		}
+		set_title_name = hanfan_d_xichuan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_hanzhong
+		}
+		set_title_name = hanfan_d_hanzhong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_dongchuan
+		}
+		set_title_name = hanfan_d_dongchuan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yongping
+		}
+		set_title_name = hanfan_d_yongping
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_ba
+		}
+		set_title_name = hanfan_d_ba
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_ningjiang
+		}
+		set_title_name = hanfan_d_ningjiang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_heluo
+		}
+		set_title_name = hanfan_d_heluo
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_shaanguo
+		}
+		set_title_name = hanfan_d_shaanguo
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_zhenghua
+		}
+		set_title_name = hanfan_d_zhenghua
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_heyang
+		}
+		set_title_name = hanfan_d_heyang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_chenxu
+		}
+		set_title_name = hanfan_d_yuu
+	}
+	if = {
+		limit = {
+			title_capital_county.county = title:c_chenzhou
+		}
+		set_title_name = hanfan_d_chenxu
+	}
+	if = {
+		limit = {
+			title_capital_county.county = title:c_xuuzhou
+		}
+		set_title_name = hanfan_d_xuu	
+	}
+	if = {
+		limit = {
+			title_capital_county.county = title:c_caizhou
+		}
+		set_title_name = hanfan_d_cai
+	}
+	if = {
+		limit = {
+			title_capital_county.county = title:c_yingzhou_song
+		}
+		set_title_name = hanfan_d_ying
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_pucao
+		}
+		set_title_name = hanfan_d_pucao
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xusi
+		}
+		random = {
+			chance = 30
+			set_title_name = hanfan_d_xusi
+		}
+		random = {
+			chance = 30
+			set_title_name = hanfan_d_pei
+		}
+		random = {
+			chance = 50
+			set_title_name = hanfan_d_teng
+		}
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_ziqing
+		}
+		set_title_name = hanfan_d_ziqing
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_denglai
+		}
+		set_title_name = hanfan_d_denglai
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:c_laizhou
+		}
+		set_title_name = hanfan_d_denglai
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:c_taishan
+		}
+		set_title_name = hanfan_d_qii
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:c_zibo
+		}
+		set_title_name = hanfan_d_zi
+	}
+	if = {
+		limit = {
+			title_capital_county.county = title:c_mizhou_qi
+		}
+		set_title_name = hanfan_d_yihai
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_taining
+		}
+		set_title_name = hanfan_d_taining
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yihai
+		}
+		set_title_name = hanfan_d_yihai
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jingxiang
+		}
+		set_title_name = hanfan_d_jingxiang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jingnan
+		}
+		set_title_name = hanfan_d_jingnan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_eyue
+		}
+		set_title_name = hanfan_d_eyue
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_hunan
+		}
+		set_title_name = hanfan_d_hunan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_huainan
+		}
+		set_title_name = hanfan_d_huainan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_huaixi
+		}
+		set_title_name = hanfan_d_huaixi
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_zhenhai
+		}
+		set_title_name = hanfan_d_zhenhai
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xuanshe
+		}
+		set_title_name = hanfan_d_xuanshe
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jiangxi
+		}
+		set_title_name = hanfan_d_jiangxi
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_zhexi
+		}
+		set_title_name = hanfan_d_zhexi
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_zhedong
+		}
+		set_title_name = hanfan_d_zhedong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_fujian
+		}
+		set_title_name = hanfan_d_fujian
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_qianzhong
+		}
+		set_title_name = hanfan_d_qianzhong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_lingnan
+		}
+		set_title_name = hanfan_d_lingnan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_chaoshan
+		}
+		set_title_name = hanfan_d_chaoshan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_qiongya
+		}
+		set_title_name = hanfan_d_qiongya
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_rongguan
+		}
+		set_title_name = hanfan_d_rongguan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_guiguan
+		}
+		set_title_name = hanfan_d_guiguan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yongguan
+		}
+		set_title_name = hanfan_d_yongguan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jiaozhi
+		}
+		set_title_name = hanfan_d_jiaozhou
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_dali
+		}
+		set_title_name = hanfan_d_dali
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_tuodong
+		}
+		set_title_name = hanfan_d_tuodong
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_huichuan
+		}
+		set_title_name = hanfan_d_huichuan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_tonghai
+		}
+		set_title_name = hanfan_d_tonghai
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jiuzhen
+		}
+		set_title_name = hanfan_d_jiuzhen
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_wuxi
+		}
+		set_title_name = hanfan_d_wuxi
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_zangke
+		}
+		set_title_name = hanfan_d_zangke
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_jianchuan
+		}
+		set_title_name = hanfan_d_jianchuan
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yinsheng
+		}
+		set_title_name = hanfan_d_yinsheng
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_yongchang
+		}
+		set_title_name = hanfan_d_yongchang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_luodian
+		}
+		set_title_name = hanfan_d_luodian
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_hepu
+		}
+		set_title_name = hanfan_d_hepu
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_luling
+		}
+		set_title_name = hanfan_d_luling
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_poyang
+		}
+		set_title_name = hanfan_d_poyang
+	}
+	if = {
+		limit = {
+			title_capital_county.duchy = title:d_xihe
+		}
+		set_title_name = hanfan_d_xihe
+	}
+}
+#双字郡名
+change_title_name_county_effect = {
+	if = {
+		limit = {
+			title_capital_county = title:c_yingzhou_liaoxi
+		}
+		set_title_name = hanfan_yingzhou_liaoxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_liaodong
+		}
+		set_title_name = hanfan_liaodong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zhaozhou
+		}
+		set_title_name = hanfan_zhaozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jizhou_zhao
+		}
+		set_title_name = hanfan_jizhou_zhao
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shenzhou_hebei
+		}
+		set_title_name = hanfan_shenzhou_hebei
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hengzhou
+		}
+		set_title_name = hanfan_hengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xingzhou
+		}
+		set_title_name = hanfan_xingzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_cizhou
+		}
+		set_title_name = hanfan_cizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_mingzhou_hebei
+		}
+		set_title_name = hanfan_mingzhou_hebei
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luzhou_jin
+		}
+		set_title_name = hanfan_luzhou_jin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zezhou
+		}
+		set_title_name = hanfan_zezhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_youzhou
+		}
+		set_title_name = hanfan_youzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guzhu
+		}
+		set_title_name = hanfan_guzhu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guizhou_yan
+		}
+		set_title_name = hanfan_guizhou_yan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_pingzhou
+		}
+		set_title_name = hanfan_pingzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jizhou_yan
+		}
+		set_title_name = hanfan_jizhou_yan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yingzhou_ji
+		}
+		set_title_name = hanfan_yingzhou_ji
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_mozhou
+		}
+		set_title_name = hanfan_mozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yizhou_yan
+		}
+		set_title_name = hanfan_yizhou_yan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_dingzhou
+		}
+		set_title_name = hanfan_dingzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_weizhou
+		}
+		set_title_name = hanfan_weizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_bozhou_wei
+		}
+		set_title_name = hanfan_bozhou_wei
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_beizhou
+		}
+		set_title_name = hanfan_beizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_weizhou_ji
+		}
+		set_title_name = hanfan_weizhou_ji
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xiangzhou
+		}
+		set_title_name = hanfan_xiangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_cangzhou
+		}
+		set_title_name = hanfan_cangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_dizhou
+		}
+		set_title_name = hanfan_dizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_dezhou_wei
+		}
+		set_title_name = hanfan_dezhou_wei
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chanyufu
+		}
+		set_title_name = hanfan_chanyufu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_mogols
+		}
+		set_title_name = hanfan_mogols
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shengzhou
+		}
+		set_title_name = hanfan_shengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xuandezhou
+		}
+		set_title_name = hanfan_xuandezhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tiandejun
+		}
+		set_title_name = hanfan_tiandejun
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_westsurrended
+		}
+		set_title_name = hanfan_westsurrended
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_midsurrended
+		}
+		set_title_name = hanfan_midsurrended
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_linzhou_shaan
+		}
+		set_title_name = hanfan_linzhou_shaan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_youzhou_shuofang
+		}
+		set_title_name = hanfan_youzhou_shuofang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_taiyuan
+		}
+		set_title_name = hanfan_taiyuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chengtianjun
+		}
+		set_title_name = hanfan_chengtianjun
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yizhou_hedong
+		}
+		set_title_name = hanfan_yizhou_hedong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lanzhou_hedong
+		}
+		set_title_name = hanfan_lanzhou_hedong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hequ
+		}
+		set_title_name = hanfan_hequ
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shizhou
+		}
+		set_title_name = hanfan_shizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qinzhou_hedong
+		}
+		set_title_name = hanfan_qinzhou_hedong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fenzhou
+		}
+		set_title_name = hanfan_fenzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yunzhou
+		}
+		set_title_name = hanfan_yunzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shuozhou
+		}
+		set_title_name = hanfan_shuozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jingbianjun
+		}
+		set_title_name = hanfan_jingbianjun
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yingzhou_jin
+		}
+		set_title_name = hanfan_yingzhou_jin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_daizhou
+		}
+		set_title_name = hanfan_daizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yuzhou_dai
+		}
+		set_title_name = hanfan_yuzhou_dai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xinzhou_dai
+		}
+		set_title_name = hanfan_xinzhou_dai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jiangzhou
+		}
+		set_title_name = hanfan_jiangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xizhou_hezhong
+		}
+		set_title_name = hanfan_xizhou_hezhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_cizhou_hezhong
+		}
+		set_title_name = hanfan_cizhou_hezhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_puzhou
+		}
+		set_title_name = hanfan_puzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jinzhou_hezhong
+		}
+		set_title_name = hanfan_jinzhou_hezhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xiazhou
+		}
+		set_title_name = hanfan_xiazhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yinzhou
+		}
+		set_title_name = hanfan_yinzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_suizhou_xia
+		}
+		set_title_name = hanfan_suizhou_xia
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_gaolan
+		}
+		set_title_name = hanfan_gaolan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yanzhou_shuofang
+		}
+		set_title_name = hanfan_yanzhou_shuofang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_anle
+		}
+		set_title_name = hanfan_anle
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huizhou
+		}
+		set_title_name = hanfan_huizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fengxiang
+		}
+		set_title_name = hanfan_fengxiang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_longzhou
+		}
+		set_title_name = hanfan_longzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yuanzou_xia
+		}
+		set_title_name = hanfan_yuanzou_xia
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jingzhou_xia
+		}
+		set_title_name = hanfan_jingzhou_xia
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tianshui
+		}
+		set_title_name = hanfan_tianshui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_weizhou_longxi
+		}
+		set_title_name = hanfan_weizhou_longxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_minzhou
+		}
+		set_title_name = hanfan_minzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qiuchi
+		}
+		set_title_name = hanfan_qiuchi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wudu
+		}
+		set_title_name = hanfan_wudu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_changan
+		}
+		set_title_name = hanfan_changan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xianyang
+		}
+		set_title_name = hanfan_xianyang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wugong
+		}
+		set_title_name = hanfan_wugong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huazhou_pingyi
+		}
+		set_title_name = hanfan_huazhou_pingyi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tongzhou_pingyi
+		}
+		set_title_name = hanfan_tongzhou_pingyi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_binzhou_qin
+		}
+		set_title_name = hanfan_binzhou_qin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qingzhou
+		}
+		set_title_name = hanfan_qingzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_ningzhou_qin
+		}
+		set_title_name = hanfan_ningzhou_qin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fuzhou_qin
+		}
+		set_title_name = hanfan_fuzhou_qin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yanzhou_xia
+		}
+		set_title_name = hanfan_yanzhou_xia
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fangzhou
+		}
+		set_title_name = hanfan_fangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_danzhou
+		}
+		set_title_name = hanfan_danzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shangzhou_qin
+		}
+		set_title_name = hanfan_shangzhou_qin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jinzhou_hanzhong
+		}
+		set_title_name = hanfan_jinzhou_hanzhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chengdu
+		}
+		set_title_name = hanfan_chengdu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hanzhou_shu
+		}
+		set_title_name = hanfan_hanzhou_shu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_pengzhou
+		}
+		set_title_name = hanfan_pengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qingchengshan
+		}
+		set_title_name = hanfan_qingchengshan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jianzhou_shu2
+		}
+		set_title_name = hanfan_jianzhou_shu2
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zizhou_xichuan
+		}
+		set_title_name = hanfan_zizhou_xichuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_meizhou_xichuan
+		}
+		set_title_name = hanfan_meizhou_xichuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jiazhou_xichuan
+		}
+		set_title_name = hanfan_jiazhou_xichuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_nanzheng
+		}
+		set_title_name = hanfan_nanzheng
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fengzhou_hanzhong
+		}
+		set_title_name = hanfan_fengzhou_hanzhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xingzhou_hanzhong
+		}
+		set_title_name = hanfan_xingzhou_hanzhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lizhou_hanzhong
+		}
+		set_title_name = hanfan_lizhou_hanzhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yangzhou_hanzhong
+		}
+		set_title_name = hanfan_yangzhou_hanzhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_longzhou_shu
+		}
+		set_title_name = hanfan_longzhou_shu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jianzhou_shu
+		}
+		set_title_name = hanfan_jianzhou_shu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_mianzhou
+		}
+		set_title_name = hanfan_mianzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zizhou_dongchuan
+		}
+		set_title_name = hanfan_zizhou_dongchuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_suizhou_dongchuan
+		}
+		set_title_name = hanfan_suizhou_dongchuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_puzhou_dongchuan
+		}
+		set_title_name = hanfan_puzhou_dongchuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luzhou_dongchuan
+		}
+		set_title_name = hanfan_luzhou_dongchuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_siezhou
+		}
+		set_title_name = hanfan_siezhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xizhou_dongchuan
+		}
+		set_title_name = hanfan_xizhou_dongchuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lingzhou_xichuan
+		}
+		set_title_name = hanfan_lingzhou_xichuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_rongzhou_xichuan
+		}
+		set_title_name = hanfan_rongzhou_xichuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yazhou
+		}
+		set_title_name = hanfan_yazhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lizhou_shu
+		}
+		set_title_name = hanfan_lizhou_shu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qiongzhou
+		}
+		set_title_name = hanfan_qiongzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_bazhou_ba
+		}
+		set_title_name = hanfan_bazhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_langzhou_ba
+		}
+		set_title_name = hanfan_langzhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guozhou_ba
+		}
+		set_title_name = hanfan_guozhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_quzhou_ba
+		}
+		set_title_name = hanfan_quzhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hezhou_ba
+		}
+		set_title_name = hanfan_hezhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yuzhou_ba
+		}
+		set_title_name = hanfan_yuzhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fuzhou_ba
+		}
+		set_title_name = hanfan_fuzhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fuzhou_ba
+		}
+		set_title_name = hanfan_fuzhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zhongzhou_ba
+		}
+		set_title_name = hanfan_zhongzhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zhongzhou_ba
+		}
+		set_title_name = hanfan_zhongzhou_ba
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wanzhou
+		}
+		set_title_name = hanfan_wanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zigui
+		}
+		set_title_name = hanfan_zigui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_ruzhou
+		}
+		set_title_name = hanfan_ruzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luoyang
+		}
+		set_title_name = hanfan_luoyang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guozhou_zhou
+		}
+		set_title_name = hanfan_guozhou_zhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shaanzhou
+		}
+		set_title_name = hanfan_shaanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zhengzhou
+		}
+		set_title_name = hanfan_zhengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huazhou_liang
+		}
+		set_title_name = hanfan_huazhou_liang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_mengzhou
+		}
+		set_title_name = hanfan_mengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huaizhou_zhou
+		}
+		set_title_name = hanfan_huaizhou_zhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xuuzhou
+		}
+		set_title_name = hanfan_xuuzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_caizhou
+		}
+		set_title_name = hanfan_caizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chenzhou
+		}
+		set_title_name = hanfan_chenzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_bianzhou
+		}
+		set_title_name = hanfan_bianzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_songzhou_song
+		}
+		set_title_name = hanfan_songzhou_song
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_bozhou_song
+		}
+		set_title_name = hanfan_bozhou_song
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yingzhou_song
+		}
+		set_title_name = hanfan_yingzhou_song
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_puzhou_liang
+		}
+		set_title_name = hanfan_puzhou_liang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yunzhou_liang
+		}
+		set_title_name = hanfan_yunzhou_liang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jizhou_liang
+		}
+		set_title_name = hanfan_jizhou_liang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_caozhou
+		}
+		set_title_name = hanfan_caozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xuzhou_xu
+		}
+		set_title_name = hanfan_xuzhou_xu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_sizhou_xu
+		}
+		set_title_name = hanfan_sizhou_xu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qingzhou_qi
+		}
+		set_title_name = hanfan_qingzhou_qi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zibo
+		}
+		set_title_name = hanfan_zibo
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qizhou_qi
+		}
+		set_title_name = hanfan_qizhou_qi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_laizhou
+		}
+		set_title_name = hanfan_laizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_penglai
+		}
+		set_title_name = hanfan_penglai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_mizhou_qi
+		}
+		set_title_name = hanfan_mizhou_qi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yanzhou
+		}
+		set_title_name = hanfan_yanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yizhou_taining
+		}
+		set_title_name = hanfan_yizhou_taining
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_haizhou_xu
+		}
+		set_title_name = hanfan_haizhou_xu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xiangfan
+		}
+		set_title_name = hanfan_xiangfan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_junzhou
+		}
+		set_title_name = hanfan_junzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fangzhou_chu
+		}
+		set_title_name = hanfan_fangzhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_dengzhou
+		}
+		set_title_name = hanfan_dengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tangzhou_chu
+		}
+		set_title_name = hanfan_tangzhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_suizhou
+		}
+		set_title_name = hanfan_suizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jingzhou_chu
+		}
+		set_title_name = hanfan_jingzhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yingzhou_chu
+		}
+		set_title_name = hanfan_yingzhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fuzhou_chu
+		}
+		set_title_name = hanfan_fuzhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xiazhou_chu
+		}
+		set_title_name = hanfan_xiazhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lizhou_chu
+		}
+		set_title_name = hanfan_lizhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_langzhou_chu
+		}
+		set_title_name = hanfan_langzhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_ezhou
+		}
+		set_title_name = hanfan_ezhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_anzhou
+		}
+		set_title_name = hanfan_anzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shenzhou
+		}
+		set_title_name = hanfan_shenzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huangzhou
+		}
+		set_title_name = hanfan_huangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qichun
+		}
+		set_title_name = hanfan_qichun
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yuezhou_chu
+		}
+		set_title_name = hanfan_yuezhou_chu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_changsha
+		}
+		set_title_name = hanfan_changsha
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hengshan
+		}
+		set_title_name = hanfan_hengshan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chenzhou_hunan
+		}
+		set_title_name = hanfan_chenzhou_hunan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lianzhou
+		}
+		set_title_name = hanfan_lianzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_daozhou
+		}
+		set_title_name = hanfan_daozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yongzhou_hunan
+		}
+		set_title_name = hanfan_yongzhou_hunan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shaozhou_hunan
+		}
+		set_title_name = hanfan_shaozhou_hunan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yangzhou
+		}
+		set_title_name = hanfan_yangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_haozhou_huainan
+		}
+		set_title_name = hanfan_haozhou_huainan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huaiyin
+		}
+		set_title_name = hanfan_huaiyin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chuzhou_huai
+		}
+		set_title_name = hanfan_chuzhou_huai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shouchun
+		}
+		set_title_name = hanfan_shouchun
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luzhou_huai
+		}
+		set_title_name = hanfan_luzhou_huai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guangzhou_huainan
+		}
+		set_title_name = hanfan_guangzhou_huainan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shuzhou_huai
+		}
+		set_title_name = hanfan_shuzhou_huai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_suzhou_wu
+		}
+		set_title_name = hanfan_suzhou_wu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jinling
+		}
+		set_title_name = hanfan_jinling
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_runzhou
+		}
+		set_title_name = hanfan_runzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_changzhou
+		}
+		set_title_name = hanfan_changzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huzhou_wu
+		}
+		set_title_name = hanfan_huzhou_wu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xuanzhou
+		}
+		set_title_name = hanfan_xuanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shezhou
+		}
+		set_title_name = hanfan_shezhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guangde
+		}
+		set_title_name = hanfan_guangde
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hongzhou
+		}
+		set_title_name = hanfan_hongzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jiangzhou_wu
+		}
+		set_title_name = hanfan_jiangzhou_wu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_raozhou
+		}
+		set_title_name = hanfan_raozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fuzhou_jiangxi
+		}
+		set_title_name = hanfan_fuzhou_jiangxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yuanzhou_jiangxi
+		}
+		set_title_name = hanfan_yuanzhou_jiangxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jizhou_jiangxi
+		}
+		set_title_name = hanfan_jizhou_jiangxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qianzhou_jiangxi
+		}
+		set_title_name = hanfan_qianzhou_jiangxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hangzhou
+		}
+		set_title_name = hanfan_hangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wuzhou_yue
+		}
+		set_title_name = hanfan_wuzhou_yue
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_muzhou_yue
+		}
+		set_title_name = hanfan_muzhou_yue
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_quzhou
+		}
+		set_title_name = hanfan_quzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yuezhou_yue
+		}
+		set_title_name = hanfan_yuezhou_yue
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_mingzhou
+		}
+		set_title_name = hanfan_mingzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_taizhou
+		}
+		set_title_name = hanfan_taizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wenzhou_yue
+		}
+		set_title_name = hanfan_wenzhou_yue
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_kuozhou_yue
+		}
+		set_title_name = hanfan_kuozhou_yue
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_fuzou
+		}
+		set_title_name = hanfan_fuzou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_quanzhou
+		}
+		set_title_name = hanfan_quanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zhangzhou_min
+		}
+		set_title_name = hanfan_zhangzhou_min
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jianzhou_min
+		}
+		set_title_name = hanfan_jianzhou_min
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tingzhou_min
+		}
+		set_title_name = hanfan_tingzhou_min
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qianzhong
+		}
+		set_title_name = hanfan_qianzhong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_enshi
+		}
+		set_title_name = hanfan_enshi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_sizhou_qian
+		}
+		set_title_name = hanfan_sizhou_qian
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_bozhou_zunyi
+		}
+		set_title_name = hanfan_bozhou_zunyi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_ligao
+		}
+		set_title_name = hanfan_ligao
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_rongyi
+		}
+		set_title_name = hanfan_rongyi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_pingyi
+		}
+		set_title_name = hanfan_pingyi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_langxi
+		}
+		set_title_name = hanfan_langxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xizhou_qian
+		}
+		set_title_name = hanfan_xizhou_qian
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chenxi
+		}
+		set_title_name = hanfan_chenxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luyang
+		}
+		set_title_name = hanfan_luyang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yelang
+		}
+		set_title_name = hanfan_yelang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_juzhou
+		}
+		set_title_name = hanfan_juzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qianxi
+		}
+		set_title_name = hanfan_qianxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_panjiang
+		}
+		set_title_name = hanfan_panjiang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_nanhai
+		}
+		set_title_name = hanfan_nanhai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shaoguan_guang
+		}
+		set_title_name = hanfan_shaoguan_guang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_duanzhou
+		}
+		set_title_name = hanfan_duanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xinhui
+		}
+		set_title_name = hanfan_xinhui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chaozhou
+		}
+		set_title_name = hanfan_chaozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_haka
+		}
+		set_title_name = hanfan_haka
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xunzhou
+		}
+		set_title_name = hanfan_xunzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qiongya
+		}
+		set_title_name = hanfan_qiongya
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_gaozhou
+		}
+		set_title_name = hanfan_gaozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_rongzhou_gui
+		}
+		set_title_name = hanfan_rongzhou_gui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yulinzhou
+		}
+		set_title_name = hanfan_yulinzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guilin
+		}
+		set_title_name = hanfan_guilin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_changwu
+		}
+		set_title_name = hanfan_changwu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_liuzhou
+		}
+		set_title_name = hanfan_liuzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_rongshui
+		}
+		set_title_name = hanfan_rongshui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_nanning
+		}
+		set_title_name = hanfan_nanning
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qinzhou_gui
+		}
+		set_title_name = hanfan_qinzhou_gui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_binzhou_gui
+		}
+		set_title_name = hanfan_binzhou_gui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luolong
+		}
+		set_title_name = hanfan_luolong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_baise
+		}
+		set_title_name = hanfan_baise
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luzhou_annan
+		}
+		set_title_name = hanfan_luzhou_annan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jiaozhi
+		}
+		set_title_name = hanfan_jiaozhi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jinlongzhou
+		}
+		set_title_name = hanfan_jinlongzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lang_giang
+		}
+		set_title_name = hanfan_lang_giang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wuan
+		}
+		set_title_name = hanfan_wuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_gantang
+		}
+		set_title_name = hanfan_gantang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_cuu_chan
+		}
+		set_title_name = hanfan_cuu_chan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_cu_duc
+		}
+		set_title_name = hanfan_cu_duc
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tanglinzhou
+		}
+		set_title_name = hanfan_tanglinzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_riluo
+		}
+		set_title_name = hanfan_riluo
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hezhou
+		}
+		set_title_name = hanfan_hezhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lanzhou_longxi
+		}
+		set_title_name = hanfan_lanzhou_longxi
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_nongdong
+		}
+		set_title_name = hanfan_nongdong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huichuan
+		}
+		set_title_name = hanfan_huichuan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_ruanhua
+		}
+		set_title_name = hanfan_ruanhua
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shanchan
+		}
+		set_title_name = hanfan_shanchan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_laos
+		}
+		set_title_name = hanfan_laos
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xingqing
+		}
+		set_title_name = hanfan_xingqing
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_liangzhou
+		}
+		set_title_name = hanfan_liangzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_ganzhou
+		}
+		set_title_name = hanfan_ganzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_suzhou
+		}
+		set_title_name = hanfan_suzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guazhou
+		}
+		set_title_name = hanfan_guazhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shazhou
+		}
+		set_title_name = hanfan_shazhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shanzhou
+		}
+		set_title_name = hanfan_shanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_kuozhou
+		}
+		set_title_name = hanfan_kuozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chamil
+		}
+		set_title_name = hanfan_chamil
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_kara_khoja
+		}
+		set_title_name = hanfan_kara_khoja
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_beshbalik
+		}
+		set_title_name = hanfan_beshbalik
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xinzhou_wu
+		}
+		set_title_name = hanfan_xinzhou_wu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chizhou
+		}
+		set_title_name = hanfan_chizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hezhou_huai
+		}
+		set_title_name = hanfan_hezhou_huai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_suzhou_xu
+		}
+		set_title_name = hanfan_suzhou_xu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_chanzhou
+		}
+		set_title_name = hanfan_chanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_lianzhou_gui
+		}
+		set_title_name = hanfan_lianzhou_gui
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_luanzhou
+		}
+		set_title_name = hanfan_luanzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yaozhou
+		}
+		set_title_name = hanfan_yaozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_gaizhou
+		}
+		set_title_name = hanfan_gaizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_kuizhou
+		}
+		set_title_name = hanfan_kuizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_danzhou_hainan
+		}
+		set_title_name = hanfan_danzhou_hainan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zhenzhou_hainan
+		}
+		set_title_name = hanfan_zhenzhou_hainan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_leizhou
+		}
+		set_title_name = hanfan_leizhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tengzhou
+		}
+		set_title_name = hanfan_tengzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guizhou_yulin
+		}
+		set_title_name = hanfan_guizhou_yulin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_waizao
+		}
+		set_title_name = hanfan_waizao
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qingzhou_qian
+		}
+		set_title_name = hanfan_qingzhou_qian
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jiangzhou_kaili
+		}
+		set_title_name = hanfan_jiangzhou_kaili
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xiuzhou
+		}
+		set_title_name = hanfan_xiuzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_nantong
+		}
+		set_title_name = hanfan_nantong
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shanfu
+		}
+		set_title_name = hanfan_shanfu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_beihai
+		}
+		set_title_name = hanfan_beihai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yongjingjun
+		}
+		set_title_name = hanfan_yongjingjun
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_baoding
+		}
+		set_title_name = hanfan_baoding
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_guzhu
+		}
+		set_title_name = hanfan_guzhu
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_miyun
+		}
+		set_title_name = hanfan_miyun
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_tongzhou_yan
+		}
+		set_title_name = hanfan_tongzhou_yan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_zhuozhou
+		}
+		set_title_name = hanfan_zhuozhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_Luanzhou_Yan
+		}
+		set_title_name = hanfan_Luanzhou_Yan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_Xinzhou_Fengsheng
+		}
+		set_title_name = hanfan_Xinzhou_Fengsheng
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_Wuzhou_Guihua
+		}
+		set_title_name = hanfan_Wuzhou_Guihua
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_Ruzhou_yan
+		}
+		set_title_name = hanfan_Ruzhou_yan
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yongzhou_changning
+		}
+		set_title_name = hanfan_yongzhou_changning
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_Sheenzhou
+		}
+		set_title_name = hanfan_Sheenzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_giao_chau
+		}
+		set_title_name = hanfan_giao_chau
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_truong_chau
+		}
+		set_title_name = hanfan_truong_chau
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yizhou_fuxin
+		}
+		set_title_name = hanfan_yizhou_fuxin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_qingzhou_liao
+		}
+		set_title_name = hanfan_qingzhou_liao
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_laibin
+		}
+		set_title_name = hanfan_laibin
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hailing
+		}
+		set_title_name = hanfan_hailing
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_nanjianzhou
+		}
+		set_title_name = hanfan_nanjianzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_yinping
+		}
+		set_title_name = hanfan_yinping
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_hanyang
+		}
+		set_title_name = hanfan_hanyang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wuluhai
+		}
+		set_title_name = hanfan_wuluhai
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_jone
+		}
+		set_title_name = hanfan_jone
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_shunzhou
+		}
+		set_title_name = hanfan_shunzhou
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_xingqing
+		}
+		set_title_name = hanfan_xingqing
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_wuda
+		}
+		set_title_name = hanfan_wuda
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_huaiyang
+		}
+		set_title_name = hanfan_huaiyang
+	}
+	if = {
+		limit = {
+			title_capital_county = title:c_pyongyang
+		}
+		set_title_name = hanfan_pyongyang
+	}
+}
+
+
+add_opinion_to_actor_receive_kingdom = {
+	add_opinion = {
+		target = scope:actor
+		modifier = received_title_kingdom
+	}
+	if = {
+		limit = {
+			is_lowborn = yes
+		}
+		scope:actor = {
+			every_vassal = {
+				limit = {
+					has_vassal_stance = courtly
+				}
+				add_opinion = {
+					target = scope:actor
+					modifier = courtly_lowborn_grant_opinion
+					opinion = -50
+				}
+			}
+		}
+	}
+	add_character_modifier = {
+		modifier = titular_title_vassal_modifier
+		years = 10
+	}
+
+	liege = {
+		add_character_modifier = {
+			modifier = titular_title_liege_modifier
+			years = 15
+		}
+	}
+}
+
+add_opinion_to_actor_receive_duchy = {
+	add_opinion = {
+		target = scope:actor
+		modifier = received_title_duchy
+	}
+	if = {
+		limit = {
+			is_lowborn = yes
+		}
+		scope:actor = {
+			every_vassal = {
+				limit = {
+					has_vassal_stance = courtly
+				}
+				add_opinion = {
+					target = scope:actor
+					modifier = courtly_lowborn_grant_opinion
+					opinion = -50
+				}
+			}
+		}
+	}
+	add_character_modifier = {
+		modifier = titular_title_vassal_modifier
+		years = 10
+	}
+	
+	liege = {
+		add_character_modifier = {
+			modifier = titular_title_liege_modifier
+			years = 15
+		}
+	}
+}
+
+
+
+
+#单字随机国名
+change_random_guohao_effect = {
+	random_list = {
+		10 = { set_title_name = hanfan_d_youzhou }
+		10 = { set_title_name = hanfan_d_liaodong }
+		10 = { set_title_name = hanfan_d_liaoxi }
+		10 = { set_title_name = hanfan_d_biansong }
+		10 = { set_title_name = hanfan_d_chengde }
+		10 = { set_title_name = hanfan_d_xingci }
+		10 = { set_title_name = hanfan_d_zelu }
+		10 = { set_title_name = hanfan_d_lulong }
+		10 = { set_title_name = hanfan_d_yingmo }
+		10 = { set_title_name = hanfan_d_yiding }
+		10 = { set_title_name = hanfan_d_weibo }
+		10 = { set_title_name = hanfan_d_xiangwei }
+		10 = { set_title_name = hanfan_d_henghai }
+		10 = { set_title_name = hanfan_d_zhenwu }
+		10 = { set_title_name = hanfan_d_fengzhou }
+		10 = { set_title_name = hanfan_d_ordos }
+		10 = { set_title_name = hanfan_d_hedong }
+		10 = { set_title_name = hanfan_d_yunzhong }
+		10 = { set_title_name = hanfan_d_yanmen }
+		10 = { set_title_name = hanfan_d_hezhong }
+		10 = { set_title_name = hanfan_d_xiazhou }
+		10 = { set_title_name = hanfan_d_xia }
+		10 = { set_title_name = hanfan_d_shuofang }
+		10 = { set_title_name = hanfan_d_fengxiang }
+		10 = { set_title_name = hanfan_d_jingyuan }
+		10 = { set_title_name = hanfan_d_longxi }
+		10 = { set_title_name = hanfan_d_longnan }
+		10 = { set_title_name = hanfan_d_xijing }
+		10 = { set_title_name = hanfan_d_pingyi }
+		10 = { set_title_name = hanfan_d_binning }
+		10 = { set_title_name = hanfan_d_fufang }
+		10 = { set_title_name = hanfan_d_jinshang }
+		10 = { set_title_name = hanfan_d_xichuan }
+		10 = { set_title_name = hanfan_d_hanzhong }
+		10 = { set_title_name = hanfan_d_dongchuan }
+		10 = { set_title_name = hanfan_d_yongping }
+		10 = { set_title_name = hanfan_d_ba }
+		10 = { set_title_name = hanfan_d_ningjiang }
+		10 = { set_title_name = hanfan_d_heluo }
+		10 = { set_title_name = hanfan_d_shaanguo }
+		10 = { set_title_name = hanfan_d_zhenghua }
+		10 = { set_title_name = hanfan_d_heyang }
+		10 = { set_title_name = hanfan_d_pucao }
+		10 = { set_title_name = hanfan_d_denglai }
+		10 = { set_title_name = hanfan_d_yihai }
+		10 = { set_title_name = hanfan_d_jingxiang }
+		10 = { set_title_name = hanfan_d_jingnan }
+		10 = { set_title_name = hanfan_d_eyue }
+		10 = { set_title_name = hanfan_d_hunan }
+		10 = { set_title_name = hanfan_d_huainan }
+		10 = { set_title_name = hanfan_d_huaixi }
+		10 = { set_title_name = hanfan_d_zhenhai }
+		10 = { set_title_name = hanfan_d_xuanshe }
+		10 = { set_title_name = hanfan_d_jiangxi }
+		10 = { set_title_name = hanfan_d_zhexi }
+		10 = { set_title_name = hanfan_d_zhedong }
+		10 = { set_title_name = hanfan_d_fujian }
+		10 = { set_title_name = hanfan_d_qianzhong }
+		10 = { set_title_name = hanfan_d_lingnan }
+		10 = { set_title_name = hanfan_d_chaoshan }
+		10 = { set_title_name = hanfan_d_qiongya }
+		10 = { set_title_name = hanfan_d_rongguan }
+		10 = { set_title_name = hanfan_d_guiguan }
+		10 = { set_title_name = hanfan_d_yongguan }
+		10 = { set_title_name = hanfan_d_jiaozhou }
+		10 = { set_title_name = hanfan_d_dali }
+		10 = { set_title_name = hanfan_d_tuodong }
+		10 = { set_title_name = hanfan_d_huichuan }
+		10 = { set_title_name = hanfan_d_tonghai }
+		10 = { set_title_name = hanfan_d_jiuzhen }
+		10 = { set_title_name = hanfan_d_wuxi }
+		10 = { set_title_name = hanfan_d_zangke }
+		10 = { set_title_name = hanfan_d_jianchuan }
+		10 = { set_title_name = hanfan_d_yinsheng }
+		10 = { set_title_name = hanfan_d_yongchang }
+		10 = { set_title_name = hanfan_d_luodian }
+		10 = { set_title_name = hanfan_d_hepu }
+		10 = { set_title_name = hanfan_d_luling }
+		10 = { set_title_name = hanfan_d_poyang }
+		10 = { set_title_name = hanfan_d_xihe }
+		10 = { set_title_name = Zhongshan }
+	}
+}
+#双字随机郡名
+change_random_junhao_effect = {
+	random_list = {
+		10 = { set_title_name = hanfan_yingzhou_liaoxi }
+		10 = { set_title_name = hanfan_liaodong }
+		10 = { set_title_name = hanfan_zhaozhou }
+		10 = { set_title_name = hanfan_jizhou_zhao }
+		10 = { set_title_name = hanfan_shenzhou_hebei }
+		10 = { set_title_name = hanfan_hengzhou }
+		10 = { set_title_name = hanfan_xingzhou }
+		10 = { set_title_name = hanfan_cizhou }
+		10 = { set_title_name = hanfan_mingzhou_hebei }
+		10 = { set_title_name = hanfan_luzhou_jin }
+		10 = { set_title_name = hanfan_zezhou }
+		10 = { set_title_name = hanfan_youzhou }
+		10 = { set_title_name = hanfan_guzhu }
+		10 = { set_title_name = hanfan_guizhou_yan }
+		10 = { set_title_name = hanfan_pingzhou }
+		10 = { set_title_name = hanfan_jizhou_yan }
+		10 = { set_title_name = hanfan_yingzhou_ji }
+		10 = { set_title_name = hanfan_mozhou }
+		10 = { set_title_name = hanfan_yizhou_yan }
+		10 = { set_title_name = hanfan_dingzhou }
+		10 = { set_title_name = hanfan_weizhou }
+		10 = { set_title_name = hanfan_bozhou_wei }
+		10 = { set_title_name = hanfan_beizhou }
+		10 = { set_title_name = hanfan_weizhou_ji }
+		10 = { set_title_name = hanfan_xiangzhou }
+		10 = { set_title_name = hanfan_cangzhou }
+		10 = { set_title_name = hanfan_dizhou }
+		10 = { set_title_name = hanfan_dezhou_wei }
+		10 = { set_title_name = hanfan_chanyufu }
+		10 = { set_title_name = hanfan_mogols }
+		10 = { set_title_name = hanfan_shengzhou }
+		10 = { set_title_name = hanfan_xuandezhou }
+		10 = { set_title_name = hanfan_tiandejun }
+		10 = { set_title_name = hanfan_westsurrended }
+		10 = { set_title_name = hanfan_midsurrended }
+		10 = { set_title_name = hanfan_linzhou_shaan }
+		10 = { set_title_name = hanfan_youzhou_shuofang }
+		10 = { set_title_name = hanfan_taiyuan }
+		10 = { set_title_name = hanfan_chengtianjun }
+		10 = { set_title_name = hanfan_yizhou_hedong }
+		10 = { set_title_name = hanfan_lanzhou_hedong }
+		10 = { set_title_name = hanfan_hequ }
+		10 = { set_title_name = hanfan_shizhou }
+		10 = { set_title_name = hanfan_qinzhou_hedong }
+		10 = { set_title_name = hanfan_fenzhou }
+		10 = { set_title_name = hanfan_yunzhou }
+		10 = { set_title_name = hanfan_shuozhou }
+		10 = { set_title_name = hanfan_jingbianjun }
+		10 = { set_title_name = hanfan_yingzhou_jin }
+		10 = { set_title_name = hanfan_daizhou }
+		10 = { set_title_name = hanfan_yuzhou_dai }
+		10 = { set_title_name = hanfan_xinzhou_dai }
+		10 = { set_title_name = hanfan_jiangzhou }
+		10 = { set_title_name = hanfan_xizhou_hezhong }
+		10 = { set_title_name = hanfan_cizhou_hezhong }
+		10 = { set_title_name = hanfan_puzhou }
+		10 = { set_title_name = hanfan_jinzhou_hezhong }
+		10 = { set_title_name = hanfan_xiazhou }
+		10 = { set_title_name = hanfan_yinzhou }
+		10 = { set_title_name = hanfan_suizhou_xia }
+		10 = { set_title_name = hanfan_gaolan }
+		10 = { set_title_name = hanfan_yanzhou_shuofang }
+		10 = { set_title_name = hanfan_anle }
+		10 = { set_title_name = hanfan_huizhou }
+		10 = { set_title_name = hanfan_fengxiang }
+		10 = { set_title_name = hanfan_longzhou }
+		10 = { set_title_name = hanfan_yuanzou_xia }
+		10 = { set_title_name = hanfan_jingzhou_xia }
+		10 = { set_title_name = hanfan_tianshui }
+		10 = { set_title_name = hanfan_weizhou_longxi }
+		10 = { set_title_name = hanfan_minzhou }
+		10 = { set_title_name = hanfan_qiuchi }
+		10 = { set_title_name = hanfan_wudu }
+		10 = { set_title_name = hanfan_changan }
+		10 = { set_title_name = hanfan_xianyang }
+		10 = { set_title_name = hanfan_wugong }
+		10 = { set_title_name = hanfan_huazhou_pingyi }
+		10 = { set_title_name = hanfan_tongzhou_pingyi }
+		10 = { set_title_name = hanfan_binzhou_qin }
+		10 = { set_title_name = hanfan_qingzhou }
+		10 = { set_title_name = hanfan_ningzhou_qin }
+		10 = { set_title_name = hanfan_fuzhou_qin }
+		10 = { set_title_name = hanfan_yanzhou_xia }
+		10 = { set_title_name = hanfan_fangzhou }
+		10 = { set_title_name = hanfan_danzhou }
+		10 = { set_title_name = hanfan_shangzhou_qin }
+		10 = { set_title_name = hanfan_jinzhou_hanzhong }
+		10 = { set_title_name = hanfan_chengdu }
+		10 = { set_title_name = hanfan_hanzhou_shu }
+		10 = { set_title_name = hanfan_pengzhou }
+		10 = { set_title_name = hanfan_qingchengshan }
+		10 = { set_title_name = hanfan_jianzhou_shu2 }
+		10 = { set_title_name = hanfan_zizhou_xichuan }
+		10 = { set_title_name = hanfan_meizhou_xichuan }
+		10 = { set_title_name = hanfan_jiazhou_xichuan }
+		10 = { set_title_name = hanfan_nanzheng }
+		10 = { set_title_name = hanfan_fengzhou_hanzhong }
+		10 = { set_title_name = hanfan_xingzhou_hanzhong }
+		10 = { set_title_name = hanfan_lizhou_hanzhong }
+		10 = { set_title_name = hanfan_yangzhou_hanzhong }
+		10 = { set_title_name = hanfan_longzhou_shu }
+		10 = { set_title_name = hanfan_jianzhou_shu }
+		10 = { set_title_name = hanfan_mianzhou }
+		10 = { set_title_name = hanfan_zizhou_dongchuan }
+		10 = { set_title_name = hanfan_suizhou_dongchuan }
+		10 = { set_title_name = hanfan_puzhou_dongchuan }
+		10 = { set_title_name = hanfan_luzhou_dongchuan }
+		10 = { set_title_name = hanfan_siezhou }
+		10 = { set_title_name = hanfan_xizhou_dongchuan }
+		10 = { set_title_name = hanfan_lingzhou_xichuan }
+		10 = { set_title_name = hanfan_rongzhou_xichuan }
+		10 = { set_title_name = hanfan_yazhou }
+		10 = { set_title_name = hanfan_lizhou_shu }
+		10 = { set_title_name = hanfan_qiongzhou }
+		10 = { set_title_name = hanfan_bazhou_ba }
+		10 = { set_title_name = hanfan_langzhou_ba }
+		10 = { set_title_name = hanfan_guozhou_ba }
+		10 = { set_title_name = hanfan_quzhou_ba }
+		10 = { set_title_name = hanfan_hezhou_ba }
+		10 = { set_title_name = hanfan_yuzhou_ba }
+		10 = { set_title_name = hanfan_fuzhou_ba }
+		10 = { set_title_name = hanfan_fuzhou_ba }
+		10 = { set_title_name = hanfan_zhongzhou_ba }
+		10 = { set_title_name = hanfan_zhongzhou_ba }
+		10 = { set_title_name = hanfan_wanzhou }
+		10 = { set_title_name = hanfan_zigui }
+		10 = { set_title_name = hanfan_ruzhou }
+		10 = { set_title_name = hanfan_luoyang }
+		10 = { set_title_name = hanfan_guozhou_zhou }
+		10 = { set_title_name = hanfan_shaanzhou }
+		10 = { set_title_name = hanfan_zhengzhou }
+		10 = { set_title_name = hanfan_huazhou_liang }
+		10 = { set_title_name = hanfan_mengzhou }
+		10 = { set_title_name = hanfan_huaizhou_zhou }
+		10 = { set_title_name = hanfan_xuuzhou }
+		10 = { set_title_name = hanfan_caizhou }
+		10 = { set_title_name = hanfan_chenzhou }
+		10 = { set_title_name = hanfan_bianzhou }
+		10 = { set_title_name = hanfan_songzhou_song }
+		10 = { set_title_name = hanfan_bozhou_song }
+		10 = { set_title_name = hanfan_yingzhou_song }
+		10 = { set_title_name = hanfan_puzhou_liang }
+		10 = { set_title_name = hanfan_yunzhou_liang }
+		10 = { set_title_name = hanfan_jizhou_liang }
+		10 = { set_title_name = hanfan_caozhou }
+		10 = { set_title_name = hanfan_xuzhou_xu }
+		10 = { set_title_name = hanfan_sizhou_xu }
+		10 = { set_title_name = hanfan_qingzhou_qi }
+		10 = { set_title_name = hanfan_zibo }
+		10 = { set_title_name = hanfan_qizhou_qi }
+		10 = { set_title_name = hanfan_laizhou }
+		10 = { set_title_name = hanfan_penglai }
+		10 = { set_title_name = hanfan_mizhou_qi }
+		10 = { set_title_name = hanfan_yanzhou }
+		10 = { set_title_name = hanfan_yizhou_taining }
+		10 = { set_title_name = hanfan_haizhou_xu }
+		10 = { set_title_name = hanfan_xiangfan }
+		10 = { set_title_name = hanfan_junzhou }
+		10 = { set_title_name = hanfan_fangzhou_chu }
+		10 = { set_title_name = hanfan_dengzhou }
+		10 = { set_title_name = hanfan_tangzhou_chu }
+		10 = { set_title_name = hanfan_suizhou }
+		10 = { set_title_name = hanfan_jingzhou_chu }
+		10 = { set_title_name = hanfan_yingzhou_chu }
+		10 = { set_title_name = hanfan_fuzhou_chu }
+		10 = { set_title_name = hanfan_xiazhou_chu }
+		10 = { set_title_name = hanfan_lizhou_chu }
+		10 = { set_title_name = hanfan_langzhou_chu }
+		10 = { set_title_name = hanfan_ezhou }
+		10 = { set_title_name = hanfan_anzhou }
+		10 = { set_title_name = hanfan_shenzhou }
+		10 = { set_title_name = hanfan_huangzhou }
+		10 = { set_title_name = hanfan_qichun }
+		10 = { set_title_name = hanfan_yuezhou_chu }
+		10 = { set_title_name = hanfan_changsha }
+		10 = { set_title_name = hanfan_hengshan }
+		10 = { set_title_name = hanfan_chenzhou_hunan }
+		10 = { set_title_name = hanfan_lianzhou }
+		10 = { set_title_name = hanfan_daozhou }
+		10 = { set_title_name = hanfan_yongzhou_hunan }
+		10 = { set_title_name = hanfan_shaozhou_hunan }
+		10 = { set_title_name = hanfan_yangzhou }
+		10 = { set_title_name = hanfan_haozhou_huainan }
+		10 = { set_title_name = hanfan_huaiyin }
+		10 = { set_title_name = hanfan_chuzhou_huai }
+		10 = { set_title_name = hanfan_shouchun }
+		10 = { set_title_name = hanfan_luzhou_huai }
+		10 = { set_title_name = hanfan_guangzhou_huainan }
+		10 = { set_title_name = hanfan_shuzhou_huai }
+		10 = { set_title_name = hanfan_suzhou_wu }
+		10 = { set_title_name = hanfan_jinling }
+		10 = { set_title_name = hanfan_runzhou }
+		10 = { set_title_name = hanfan_changzhou }
+		10 = { set_title_name = hanfan_huzhou_wu }
+		10 = { set_title_name = hanfan_xuanzhou }
+		10 = { set_title_name = hanfan_shezhou }
+		10 = { set_title_name = hanfan_guangde }
+		10 = { set_title_name = hanfan_hongzhou }
+		10 = { set_title_name = hanfan_jiangzhou_wu }
+		10 = { set_title_name = hanfan_raozhou }
+		10 = { set_title_name = hanfan_fuzhou_jiangxi }
+		10 = { set_title_name = hanfan_yuanzhou_jiangxi }
+		10 = { set_title_name = hanfan_jizhou_jiangxi }
+		10 = { set_title_name = hanfan_qianzhou_jiangxi }
+		10 = { set_title_name = hanfan_hangzhou }
+		10 = { set_title_name = hanfan_wuzhou_yue }
+		10 = { set_title_name = hanfan_muzhou_yue }
+		10 = { set_title_name = hanfan_quzhou }
+		10 = { set_title_name = hanfan_yuezhou_yue }
+		10 = { set_title_name = hanfan_mingzhou }
+		10 = { set_title_name = hanfan_taizhou }
+		10 = { set_title_name = hanfan_wenzhou_yue }
+		10 = { set_title_name = hanfan_kuozhou_yue }
+		10 = { set_title_name = hanfan_fuzou }
+		10 = { set_title_name = hanfan_quanzhou }
+		10 = { set_title_name = hanfan_zhangzhou_min }
+		10 = { set_title_name = hanfan_jianzhou_min }
+		10 = { set_title_name = hanfan_tingzhou_min }
+		10 = { set_title_name = hanfan_qianzhong }
+		10 = { set_title_name = hanfan_enshi }
+		10 = { set_title_name = hanfan_sizhou_qian }
+		10 = { set_title_name = hanfan_bozhou_zunyi }
+		10 = { set_title_name = hanfan_ligao }
+		10 = { set_title_name = hanfan_rongyi }
+		10 = { set_title_name = hanfan_pingyi }
+		10 = { set_title_name = hanfan_langxi }
+		10 = { set_title_name = hanfan_xizhou_qian }
+		10 = { set_title_name = hanfan_chenxi }
+		10 = { set_title_name = hanfan_luyang }
+		10 = { set_title_name = hanfan_yelang }
+		10 = { set_title_name = hanfan_juzhou }
+		10 = { set_title_name = hanfan_qianxi }
+		10 = { set_title_name = hanfan_panjiang }
+		10 = { set_title_name = hanfan_nanhai }
+		10 = { set_title_name = hanfan_shaoguan_guang }
+		10 = { set_title_name = hanfan_duanzhou }
+		10 = { set_title_name = hanfan_xinhui }
+		10 = { set_title_name = hanfan_chaozhou }
+		10 = { set_title_name = hanfan_haka }
+		10 = { set_title_name = hanfan_xunzhou }
+		10 = { set_title_name = hanfan_qiongya }
+		10 = { set_title_name = hanfan_gaozhou }
+		10 = { set_title_name = hanfan_rongzhou_gui }
+		10 = { set_title_name = hanfan_yulinzhou }
+		10 = { set_title_name = hanfan_guilin }
+		10 = { set_title_name = hanfan_changwu }
+		10 = { set_title_name = hanfan_liuzhou }
+		10 = { set_title_name = hanfan_rongshui }
+		10 = { set_title_name = hanfan_nanning }
+		10 = { set_title_name = hanfan_qinzhou_gui }
+		10 = { set_title_name = hanfan_binzhou_gui }
+		10 = { set_title_name = hanfan_luolong }
+		10 = { set_title_name = hanfan_baise }
+		10 = { set_title_name = hanfan_luzhou_annan }
+		10 = { set_title_name = hanfan_jiaozhi }
+		10 = { set_title_name = hanfan_jinlongzhou }
+		10 = { set_title_name = hanfan_lang_giang }
+		10 = { set_title_name = hanfan_wuan }
+		10 = { set_title_name = hanfan_gantang }
+		10 = { set_title_name = hanfan_cuu_chan }
+		10 = { set_title_name = hanfan_cu_duc }
+		10 = { set_title_name = hanfan_tanglinzhou }
+		10 = { set_title_name = hanfan_riluo }
+		10 = { set_title_name = hanfan_hezhou }
+		10 = { set_title_name = hanfan_lanzhou_longxi }
+		10 = { set_title_name = hanfan_nongdong }
+		10 = { set_title_name = hanfan_huichuan }
+		10 = { set_title_name = hanfan_ruanhua }
+		10 = { set_title_name = hanfan_shanchan }
+		10 = { set_title_name = hanfan_laos }
+		10 = { set_title_name = hanfan_xingqing }
+		10 = { set_title_name = hanfan_liangzhou }
+		10 = { set_title_name = hanfan_ganzhou }
+		10 = { set_title_name = hanfan_suzhou }
+		10 = { set_title_name = hanfan_guazhou }
+		10 = { set_title_name = hanfan_shazhou }
+		10 = { set_title_name = hanfan_shanzhou }
+		10 = { set_title_name = hanfan_kuozhou }
+		10 = { set_title_name = hanfan_chamil }
+		10 = { set_title_name = hanfan_kara_khoja }
+		10 = { set_title_name = hanfan_beshbalik }
+		10 = { set_title_name = hanfan_xinzhou_wu }
+		10 = { set_title_name = hanfan_chizhou }
+		10 = { set_title_name = hanfan_hezhou_huai }
+		10 = { set_title_name = hanfan_suzhou_xu }
+		10 = { set_title_name = hanfan_chanzhou }
+		10 = { set_title_name = hanfan_lianzhou_gui }
+		10 = { set_title_name = hanfan_luanzhou }
+		10 = { set_title_name = hanfan_yaozhou }
+		10 = { set_title_name = hanfan_gaizhou }
+		10 = { set_title_name = hanfan_kuizhou }
+		10 = { set_title_name = hanfan_danzhou_hainan }
+		10 = { set_title_name = hanfan_zhenzhou_hainan }
+		10 = { set_title_name = hanfan_leizhou }
+		10 = { set_title_name = hanfan_tengzhou }
+		10 = { set_title_name = hanfan_guizhou_yulin }
+		10 = { set_title_name = hanfan_waizao }
+		10 = { set_title_name = hanfan_qingzhou_qian }
+		10 = { set_title_name = hanfan_jiangzhou_kaili }
+		10 = { set_title_name = hanfan_xiuzhou }
+		10 = { set_title_name = hanfan_nantong }
+		10 = { set_title_name = hanfan_shanfu }
+		10 = { set_title_name = hanfan_beihai }
+		10 = { set_title_name = hanfan_yongjingjun }
+		10 = { set_title_name = hanfan_baoding }
+		10 = { set_title_name = hanfan_guzhu }
+		10 = { set_title_name = hanfan_miyun }
+		10 = { set_title_name = hanfan_tongzhou_yan }
+		10 = { set_title_name = hanfan_zhuozhou }
+		10 = { set_title_name = hanfan_Luanzhou_Yan }
+		10 = { set_title_name = hanfan_Xinzhou_Fengsheng }
+		10 = { set_title_name = hanfan_Wuzhou_Guihua }
+		10 = { set_title_name = hanfan_Ruzhou_yan }
+		10 = { set_title_name = hanfan_yongzhou_changning }
+		10 = { set_title_name = hanfan_Sheenzhou }
+		10 = { set_title_name = hanfan_giao_chau }
+		10 = { set_title_name = hanfan_truong_chau }
+		10 = { set_title_name = hanfan_yizhou_fuxin }
+		10 = { set_title_name = hanfan_qingzhou_liao }
+		10 = { set_title_name = hanfan_laibin }
+		10 = { set_title_name = hanfan_hailing }
+		10 = { set_title_name = hanfan_nanjianzhou }
+		10 = { set_title_name = hanfan_yinping }
+		10 = { set_title_name = hanfan_hanyang }
+		10 = { set_title_name = hanfan_wuluhai }
+		10 = { set_title_name = hanfan_jone }
+		10 = { set_title_name = hanfan_shunzhou }
+		10 = { set_title_name = hanfan_xingqing }
+		10 = { set_title_name = hanfan_wuda }
+		10 = { set_title_name = hanfan_huaiyang }
+		10 = { set_title_name = hanfan_pyongyang }
+	}
+}
+
+#随机州名
+change_random_zhou_effect = {
+	10 = { set_title_name = hanfan_liaodong_zhou }
+	10 = { set_title_name = hanfan_liaoxi_zhou }
+	10 = { set_title_name = hanfan_chengde_zhou }
+	10 = { set_title_name = hanfan_xingci_zhou }
+	10 = { set_title_name = hanfan_zelu_zhou }
+	10 = { set_title_name = hanfan_lulong_zhou }
+	10 = { set_title_name = hanfan_yingmo_zhou }
+	10 = { set_title_name = hanfan_yiding_zhou }
+	10 = { set_title_name = hanfan_weibo_zhou }
+	10 = { set_title_name = hanfan_xiangwei_zhou }
+	10 = { set_title_name = hanfan_henghai_zhou }
+	10 = { set_title_name = hanfan_zhenwu_zhou }
+	10 = { set_title_name = hanfan_fengzhou_zhou }
+	10 = { set_title_name = hanfan_ordos_zhou }
+	10 = { set_title_name = hanfan_hedong_zhou }
+	10 = { set_title_name = hanfan_yunzhong_zhou }
+	10 = { set_title_name = hanfan_yanmen_zhou }
+	10 = { set_title_name = hanfan_hezhong_zhou }
+	10 = { set_title_name = hanfan_xiazhou_zhou }
+	10 = { set_title_name = hanfan_xia_zhou }
+	10 = { set_title_name = hanfan_shuofang_zhou }
+	10 = { set_title_name = hanfan_fengxiang_zhou }
+	10 = { set_title_name = hanfan_jingyuan_zhou }
+	10 = { set_title_name = hanfan_longxi_zhou }
+	10 = { set_title_name = hanfan_longnan_zhou }
+	10 = { set_title_name = hanfan_xijing_zhou }
+	10 = { set_title_name = hanfan_pingyi_zhou }
+	10 = { set_title_name = hanfan_binning_zhou }
+	10 = { set_title_name = hanfan_fufang_zhou }
+	10 = { set_title_name = hanfan_jinshang_zhou }
+	10 = { set_title_name = hanfan_xichuan_zhou }
+	10 = { set_title_name = hanfan_hanzhong_zhou }
+	10 = { set_title_name = hanfan_dongchuan_zhou }
+	10 = { set_title_name = hanfan_yongping_zhou }
+	10 = { set_title_name = hanfan_ba_zhou }
+	10 = { set_title_name = hanfan_ningjiang_zhou }
+	10 = { set_title_name = hanfan_heluo_zhou }
+	10 = { set_title_name = hanfan_shaanguo_zhou }
+	10 = { set_title_name = hanfan_zhenghua_zhou }
+	10 = { set_title_name = hanfan_heyang_zhou }
+	10 = { set_title_name = hanfan_chenxu_zhou }
+	10 = { set_title_name = hanfan_biansong_zhou }
+	10 = { set_title_name = hanfan_pucao_zhou }
+	10 = { set_title_name = hanfan_xusi_zhou }
+	10 = { set_title_name = hanfan_ziqing_zhou }
+	10 = { set_title_name = hanfan_denglai_zhou }
+	10 = { set_title_name = hanfan_taining_zhou }
+	10 = { set_title_name = hanfan_yihai_zhou }
+	10 = { set_title_name = hanfan_jingxiang_zhou }
+	10 = { set_title_name = hanfan_jingnan_zhou }
+	10 = { set_title_name = hanfan_eyue_zhou }
+	10 = { set_title_name = hanfan_hunan_zhou }
+	10 = { set_title_name = hanfan_huainan_zhou }
+	10 = { set_title_name = hanfan_huaixi_zhou }
+	10 = { set_title_name = hanfan_zhenhai_zhou }
+	10 = { set_title_name = hanfan_xuanshe_zhou }
+	10 = { set_title_name = hanfan_jiangxi_zhou }
+	10 = { set_title_name = hanfan_zhexi_zhou }
+	10 = { set_title_name = hanfan_zhedong_zhou }
+	10 = { set_title_name = hanfan_fujian_zhou }
+	10 = { set_title_name = hanfan_qianzhong_zhou }
+	10 = { set_title_name = hanfan_poyang_zhou }
+	10 = { set_title_name = hanfan_luling_zhou }
+	10 = { set_title_name = hanfan_hepu_zhou }
+	10 = { set_title_name = hanfan_lingnan_zhou }
+	10 = { set_title_name = hanfan_chaoshan_zhou }
+	10 = { set_title_name = hanfan_qiongya_zhou }
+	10 = { set_title_name = hanfan_rongguan_zhou }
+	10 = { set_title_name = hanfan_guiguan_zhou }
+	10 = { set_title_name = hanfan_yongguan_zhou }
+	10 = { set_title_name = hanfan_wuxi_zhou }
+	10 = { set_title_name = hanfan_zangke_zhou }
+	10 = { set_title_name = hanfan_luodian_zhou }
+	10 = { set_title_name = hanfan_xihe_zhou }
+}
+
+#随机封国
+change_random_guo_effect = {
+	10 = { set_title_name = hanfan_youzhou_guo }
+	10 = { set_title_name = hanfan_liaodong_guo }
+	10 = { set_title_name = hanfan_liaoxi_guo }
+	10 = { set_title_name = hanfan_chengde_guo }
+	10 = { set_title_name = hanfan_xingci_guo }
+	10 = { set_title_name = hanfan_zelu_guo }
+	10 = { set_title_name = hanfan_lulong_guo }
+	10 = { set_title_name = hanfan_yingmo_guo }
+	10 = { set_title_name = hanfan_yiding_guo }
+	10 = { set_title_name = hanfan_weibo_guo }
+	10 = { set_title_name = hanfan_xiangwei_guo }
+	10 = { set_title_name = hanfan_henghai_guo }
+	10 = { set_title_name = hanfan_zhenwu_guo }
+	10 = { set_title_name = hanfan_fengzhou_guo }
+	10 = { set_title_name = hanfan_ordos_guo }
+	10 = { set_title_name = hanfan_hedong_guo }
+	10 = { set_title_name = hanfan_yunzhong_guo }
+	10 = { set_title_name = hanfan_yanmen_guo }
+	10 = { set_title_name = hanfan_hezhong_guo }
+	10 = { set_title_name = hanfan_xiazhou_guo }
+	10 = { set_title_name = hanfan_xia_guo }
+	10 = { set_title_name = hanfan_shuofang_guo }
+	10 = { set_title_name = hanfan_fengxiang_guo }
+	10 = { set_title_name = hanfan_jingyuan_guo }
+	10 = { set_title_name = hanfan_longxi_guo }
+	10 = { set_title_name = hanfan_longnan_guo }
+	10 = { set_title_name = hanfan_xijing_guo }
+	10 = { set_title_name = hanfan_pingyi_guo }
+	10 = { set_title_name = hanfan_binning_guo }
+	10 = { set_title_name = hanfan_fufang_guo }
+	10 = { set_title_name = hanfan_jinshang_guo }
+	10 = { set_title_name = hanfan_xichuan_guo }
+	10 = { set_title_name = hanfan_hanzhong_guo }
+	10 = { set_title_name = hanfan_dongchuan_guo }
+	10 = { set_title_name = hanfan_yongping_guo }
+	10 = { set_title_name = hanfan_ba_guo }
+	10 = { set_title_name = hanfan_ningjiang_guo }
+	10 = { set_title_name = hanfan_heluo_guo }
+	10 = { set_title_name = hanfan_shaanguo_guo }
+	10 = { set_title_name = hanfan_zhenghua_guo }
+	10 = { set_title_name = hanfan_heyang_guo }
+	10 = { set_title_name = hanfan_chenxu_guo }
+	10 = { set_title_name = hanfan_yuu_guo }
+	10 = { set_title_name = hanfan_xuu_guo }
+	10 = { set_title_name = hanfan_cai_guo }
+	10 = { set_title_name = hanfan_ying_guo }
+	10 = { set_title_name = hanfan_biansong_guo }
+	10 = { set_title_name = hanfan_pucao_guo }
+	10 = { set_title_name = hanfan_xusi_guo }
+	10 = { set_title_name = hanfan_pei_guo }
+	10 = { set_title_name = hanfan_teng_guo }
+	10 = { set_title_name = hanfan_qii_guo }
+	10 = { set_title_name = hanfan_zi_guo }
+	10 = { set_title_name = hanfan_ziqing_guo }
+	10 = { set_title_name = hanfan_denglai_guo }
+	10 = { set_title_name = hanfan_taining_guo }
+	10 = { set_title_name = hanfan_yihai_guo }
+	10 = { set_title_name = hanfan_jingxiang_guo }
+	10 = { set_title_name = hanfan_jingnan_guo }
+	10 = { set_title_name = hanfan_eyue_guo }
+	10 = { set_title_name = hanfan_hunan_guo }
+	10 = { set_title_name = hanfan_huainan_guo }
+	10 = { set_title_name = hanfan_huaixi_guo }
+	10 = { set_title_name = hanfan_zhenhai_guo }
+	10 = { set_title_name = hanfan_xuanshe_guo }
+	10 = { set_title_name = hanfan_jiangxi_guo }
+	10 = { set_title_name = hanfan_zhexi_guo }
+	10 = { set_title_name = hanfan_zhedong_guo }
+	10 = { set_title_name = hanfan_fujian_guo }
+	10 = { set_title_name = hanfan_qianzhong_guo }
+	10 = { set_title_name = hanfan_poyang_guo }
+	10 = { set_title_name = hanfan_luling_guo }
+	10 = { set_title_name = hanfan_hepu_guo }
+	10 = { set_title_name = hanfan_lingnan_guo }
+	10 = { set_title_name = hanfan_chaoshan_guo }
+	10 = { set_title_name = hanfan_qiongya_guo }
+	10 = { set_title_name = hanfan_rongguan_guo }
+	10 = { set_title_name = hanfan_guiguan_guo }
+	10 = { set_title_name = hanfan_yongguan_guo }
+	10 = { set_title_name = hanfan_wuxi_guo }
+	10 = { set_title_name = hanfan_zangke_guo }
+	10 = { set_title_name = hanfan_luodian_guo }
+	10 = { set_title_name = hanfan_xihe_guo }
+	10 = { set_title_name = hanfan_jiaozhou_guo }
+	10 = { set_title_name = hanfan_jiuzhen_guo }
+	10 = { set_title_name = hanfan_dali_guo }
+	10 = { set_title_name = hanfan_tonghai_guo }
+	10 = { set_title_name = hanfan_tuodong_guo }
+	10 = { set_title_name = hanfan_huichuan_guo }
+	10 = { set_title_name = hanfan_jianchuan_guo }
+	10 = { set_title_name = hanfan_yinsheng_guo }
+	10 = { set_title_name = hanfan_yongchang_guo }
+	10 = { set_title_name = hanfan_llishui_guo }
+}

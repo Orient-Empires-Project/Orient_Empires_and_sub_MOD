@@ -4,7 +4,9 @@
 	mutually_exclusive_titles = { always = yes }
 
 	allowed_for_character = {
-		
+		NOT = {
+			government_has_flag = government_is_landless_adventurer
+		}
 	}
 	
 	allowed_against_character = {
@@ -20,16 +22,9 @@
 
 	should_invalidate = {
 		NOT = {
-			any_in_list = {
-				list = target_titles
-				any_in_de_jure_hierarchy = {
-					tier = tier_county
-					holder = {
-						OR = {
-							this = scope:defender
-							target_is_liege_or_above = scope:defender
-						}
-					}
+			scope:defender = {
+				any_sub_realm_county = {
+					exists = this
 				}
 			}
 		}
@@ -71,7 +66,7 @@
 				limit = {
 					scope:attacker.faith = scope:defender.faith
 					scope:defender = {
-						has_government = theocracy_government
+						government_has_flag = government_is_theocracy
 					}
 				}
 				add = {
@@ -178,6 +173,12 @@
 	
 	on_victory = {
 		scope:attacker = { show_pow_release_message_effect = yes }
+
+		# Legitimacy
+		add_legitimacy_attacker_victory_effect = yes
+		
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
 		create_title_and_vassal_change = {
 			type = conquest
 			save_scope_as = change
@@ -205,7 +206,7 @@
 			}
 			# Mark any empire-level titles for destruction after transfer
 			every_realm_de_jure_empire = {
-				limit = {
+				limit = { #报错点，找不到landed title
 					holder = scope:defender
 					is_in_list = target_titles
 				}
@@ -328,6 +329,9 @@
 	on_white_peace = {
 		scope:attacker = { show_pow_release_message_effect = yes }
 
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
+
 		# Prestige for the attacker's war allies
 		add_from_contribution_attackers = {
 			prestige = mongol_invasion_cb_ally_prestige
@@ -362,9 +366,21 @@
 	}
 	
 	on_defeat = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+		
+		# Legitimacy
+		add_legitimacy_attacker_defeat_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:defender = { accolade_defender_war_end_glory_gain_med_effect = yes }
+		
 		scope:attacker = { 
 			show_pow_release_message_effect = yes 
-			depose = yes
+			if = {
+				limit = { is_diarch = yes }
+				depose_diarch = yes
+			}
+			oe_governor_resignation_title_transfer_effect = yes
 		}
 
 		# Prestige for the attacker's war allies

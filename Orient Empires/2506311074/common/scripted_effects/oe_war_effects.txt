@@ -1,0 +1,473 @@
+﻿jurchen_invasion_effect = {
+	#女真征服辽宋首都时，抓捕其所有廷臣和同宗族封臣并夺地
+	if = {
+		limit = {
+			scope:attacker = {
+				dynasty = dynasty:1051112
+				has_title = title:e_jurchen
+			}
+			scope:defender = {
+				OR = {
+					AND = {
+						dynasty = dynasty:zhuojun_zhao_dyn
+						has_title = title:e_celestia
+					}
+					AND = {
+						dynasty = dynasty:1000102400
+						has_title = title:e_cathay
+					}
+				}
+			}
+			scope:defender = {
+				capital_county.de_jure_liege.de_jure_liege = {
+					any_target_title = this
+				} 
+			}
+		}
+		scope:defender = {
+			every_courtier = {
+				scope:attacker = {
+					imprison = { target = prev }
+				}
+			}
+		}
+		every_target_title = {
+			every_dejure_vassal_title_holder = {
+				if = {
+					limit = {
+						dynasty = scope:defender.dynasty
+						target_is_liege_or_above = scope:defender
+					}
+					scope:attacker = {
+						imprison = { target = prev }
+					}
+					every_held_title = {
+						limit = { tier >= tier_county }
+						change_title_holder = {
+							holder = scope:attacker
+							change = scope:change
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+jurchen_incident_effect = {
+	if = {
+		limit = {
+			scope:attacker = {
+				dynasty = dynasty:zhuojun_zhao_dyn
+				has_title = title:e_jurchen
+				NOT = {
+					completely_controls = title:k_yan
+				}
+			}
+			scope:defender = {
+				dynasty = dynasty:1000102400
+				has_title = title:e_cathay
+			}
+			scope:attacker = {					
+				any_realm_county = {
+					count >= 1
+					title_province = { geographical_region = world_asia_china_yanzhao }
+				}
+			}
+		}
+		scope:attacker = {
+			trigger_event = mandate.0007
+		}
+	}
+	if = {
+		limit = {
+			exists = title:e_jurchen.holder
+			NOT = { title:e_jurchen.holder = title:e_celestia.holder }
+			title:e_jurchen.holder = {
+				dynasty = dynasty:1051112
+				is_ai = yes
+				NAND = {
+					completely_controls = title:k_zhou
+					completely_controls = title:k_liang
+					completely_controls = title:k_qi
+					completely_controls = title:k_jin
+					completely_controls = title:k_yan
+					completely_controls = title:k_zhao
+					completely_controls = title:k_qin
+				}
+			}
+			exists = title:e_celestia.holder
+			title:e_celestia.holder = {
+				dynasty = dynasty:zhuojun_zhao_dyn
+				highest_held_title_tier = tier_empire
+				any_sub_realm_county = {
+					OR = {
+						title:k_zhou = { is_de_jure_liege_or_above_target = prev }
+						title:k_liang = { is_de_jure_liege_or_above_target = prev }
+						title:k_qi = { is_de_jure_liege_or_above_target = prev	}
+						title:k_jin = { is_de_jure_liege_or_above_target = prev	}
+						title:k_yan = { is_de_jure_liege_or_above_target = prev	}
+						title:k_zhao = { is_de_jure_liege_or_above_target = prev }
+						title:k_qin = { is_de_jure_liege_or_above_target = prev	}
+					}
+				}
+			}
+		}
+		title:e_jurchen.holder = {
+			trigger_event = {
+				id = east_title.0002 #延迟触发跳过停战期
+				years = { 5 10 }
+			}
+		}
+	}
+}
+
+### Mongol war target evaluation and declaration
+jurchen_war_target_evaluation_and_declaration_effect = {
+	# Set the Mongol Emperor as reference point
+	title:e_jurchen.holder = { 
+		save_scope_as = jurchen_emperor
+	}
+	# Select a new target
+	title:e_celestia.holder = {
+		save_temporary_scope_as = next_invasion_target
+	}
+	if = {
+		limit = {
+			exists = scope:next_invasion_target
+			scope:jurchen_emperor = {
+				is_allied_to = scope:next_invasion_target
+			}
+		}
+		scope:jurchen_emperor = {
+			break_alliance = scope:next_invasion_target
+		}
+	}
+	if = {
+		limit = {
+			scope:jurchen_emperor = {
+				gold >= ai_war_chest_desired_gold_value
+				NAND = {
+					completely_controls = title:k_yan
+					completely_controls = title:k_zhao
+					completely_controls = title:k_jin
+					completely_controls = title:k_qin
+					completely_controls = title:k_tengri
+					
+				}
+			}
+		}
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = steppe_war
+				target = scope:next_invasion_target
+				target_title = title:k_yan
+				target_title = title:k_zhao
+				target_title = title:k_jin
+				target_title = title:k_qin
+				target_title = title:k_tengri
+				target_title = title:d_ordos
+				target_title = title:d_xiazhou
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:jurchen_emperor = {
+				gold >= ai_war_chest_desired_gold_value
+				NAND = {
+					completely_controls = title:k_qi
+					completely_controls = title:k_zhou
+					completely_controls = title:k_liang
+				}
+			}
+		}
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = steppe_war
+				target = scope:next_invasion_target
+				target_title = title:k_qi
+				target_title = title:k_zhou
+				target_title = title:k_liang
+				#target_title = title:d_xining
+				#target_title = title:d_shanzhou
+				target_title = title:c_bozhou_song
+				target_title = title:c_haizhou_xu
+				target_title = title:c_suzhou_xu
+
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:jurchen_emperor = {
+				gold >= ai_war_chest_desired_gold_value
+				NOR = {
+					completely_controls = title:d_huainan
+				}
+			}
+		}
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = steppe_war
+				target = scope:next_invasion_target
+				target_title = title:d_huainan
+				target_title = title:d_huaixi
+				target_title = title:d_jingxiang
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:jurchen_emperor = {
+				gold >= ai_war_chest_desired_gold_value
+			}
+		}
+		scope:jurchen_emperor = { # Emperors are not offered ways out
+			start_war = {
+				cb = steppe_war
+				target = title:e_celestia.holder
+				target_title = title:k_wu
+				target_title = title:k_chu
+				target_title = title:k_shu
+			}
+		}
+	}
+}
+
+oe_migration_effect = { #大迁徙扔地
+	save_temporary_scope_as = seceding_duchy
+			
+	#Create a local peasant warlord for the duchy & counties.
+	create_character = {
+		location = scope:seceding_duchy.capital_county.title_province
+		faith = scope:seceding_duchy.faith
+		culture = scope:seceding_duchy.culture
+		gender_female_chance = {
+			value = 10
+		}
+		save_scope_as = local_warlord
+	}
+	#Assign the seceding titles to the new peasant warlord.
+	create_title_and_vassal_change = {
+		type = usurped
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	every_in_list = {
+		list = seceding_duchy_list
+
+		change_title_holder = {
+			holder = scope:local_warlord
+			change = scope:change
+			take_baronies = yes
+		}
+		remove_from_list = seceding_duchy_list
+	}
+	resolve_title_and_vassal_change = scope:change
+	#And give the warlord their independence.
+	create_title_and_vassal_change = {
+		type = independency
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	scope:local_warlord = {
+		becomes_independent = { change = scope:change }
+	}
+	resolve_title_and_vassal_change = scope:change
+
+	if = {
+		limit = { exists = scope:attacker_liege }
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			save_scope_as = vassal_change
+			add_claim_on_loss = no
+		}
+		change_liege = {
+			liege = scope:attacker_liege
+			change = scope:vassal_change
+		}
+		resolve_title_and_vassal_change = scope:vassal_change
+	}
+}
+
+
+oe_migration_01_effect = { #大迁徙把地扔干净
+	save_temporary_scope_as = seceding_duchy
+			
+	#Create a local peasant warlord for the duchy & counties.
+	create_character = {
+		location = scope:seceding_duchy.capital_county.title_province
+		faith = scope:seceding_duchy.faith
+		culture = scope:seceding_duchy.culture
+		gender_female_chance = {
+			value = 10
+		}
+		save_scope_as = local_warlord
+	}
+	#Assign the seceding titles to the new peasant warlord.
+	create_title_and_vassal_change = {
+		type = usurped
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	every_in_list = {
+		list = seceding_duchy_list
+
+		change_title_holder = {
+			holder = scope:local_warlord
+			change = scope:change
+			take_baronies = yes
+		}
+		remove_from_list = seceding_duchy_list
+	}
+	resolve_title_and_vassal_change = scope:change
+	#And give the warlord their independence.
+	create_title_and_vassal_change = {
+		type = independency
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	scope:local_warlord = {
+		becomes_independent = { change = scope:change }
+	}
+	resolve_title_and_vassal_change = scope:change
+}
+
+
+
+
+#民粹派系男性
+setup_populist_leader_effect = {
+	save_scope_as = faction
+
+	random_faction_county_member = {
+		save_scope_as = peasant_county
+	}
+
+	# Runs the scripted effect to find the best title to target for the rebellion.
+	get_popular_revolt_target_effect = { FACTION = this }
+
+	# Find or create a leader for the populist faction.
+	scope:target_title = {
+		# Look to see if there are any displaced characters who are legitimate claimants to the target title that the populists might support.
+		random_claimant = {
+			limit = {
+				# Checks the 'is_character_valid' and 'can_character_join' triggers above, plus the faction hard/soft blocks in 00_rules.txt
+				can_join_faction = scope:faction
+				can_join_or_create_faction_against = scope:faction.faction_target
+
+				# Must share a faith & culture with the revolting county.
+				faith = scope:peasant_county.faith
+				culture = scope:peasant_county.culture
+
+				# Must be allowed to rule in their faith.
+				trigger_if = {
+					limit = {
+						faith = { has_doctrine = doctrine_gender_male_dominated }
+					}
+					is_male = yes
+				}
+				trigger_else_if = {
+					limit = {
+						faith = { has_doctrine = doctrine_gender_female_dominated }
+					}
+					is_female = yes
+				}
+				trigger_else = {
+					always = yes
+				}
+
+				# Must not already be a landed ruler, or set to inheirit a landed title.
+				AND = {
+					is_ruler = no
+					is_landed = no
+					NOT = {
+						any_heir_title = {
+							exists = this
+						}
+					}
+				}
+			}
+
+			save_scope_as = peasant_leader
+			add_character_flag = peasant_faction_claimant_without_title
+		}
+	}
+
+	# If we can't find any, then generate a new character to be the populist leader of the revolt.
+	if = {
+		limit = {
+			NOT = { exists = scope:peasant_leader }
+		}
+		create_character = {
+			location = scope:peasant_county.title_province
+			template = populist_faction_leader_template
+			faith = scope:peasant_county.faith
+			culture = scope:peasant_county.culture
+			gender_female_chance = {
+				if = {
+					limit = { scope:peasant_county.faith = { has_doctrine = doctrine_gender_male_dominated } }
+					add = 0
+				}
+				else_if = {
+					limit = { scope:peasant_county.faith = { has_doctrine = doctrine_gender_female_dominated } }
+					add = 50
+				}
+				else = {
+					add = 10
+				}
+			}
+			save_scope_as = peasant_leader
+		}
+		scope:peasant_leader = {
+			add_character_flag = peasant_faction_random_peasant
+		}
+	}
+
+	# Create a new title for the peasant.
+	create_dynamic_title = {
+		tier = duchy
+		name = FACTION_POPULIST_REVOLT_TITLE_NAME
+	}
+	create_title_and_vassal_change = {
+		type = created
+		save_scope_as = change
+		add_claim_on_loss = no
+	}
+	scope:new_title = {
+		set_capital_county = scope:peasant_county
+		set_landless_title = yes
+		set_destroy_on_succession = yes
+		set_delete_on_destroy = yes
+		set_no_automatic_claims = yes
+		set_definitive_form = yes
+		set_can_be_named_after_dynasty = no
+		change_title_holder = {
+			holder = scope:peasant_leader
+			change = scope:change
+		}
+		set_variable = {
+			name = faction
+			value = scope:faction
+		}
+	}
+	resolve_title_and_vassal_change = scope:change
+	scope:peasant_leader = {
+		set_variable = {
+			name = peasant_title
+			value = scope:new_title
+		}
+	}
+	scope:new_title = { generate_coa = factions }
+
+	# Set the peasant leader as the head of the faction.
+	scope:peasant_leader = {
+		set_variable = {
+			name = rebel_leader_peasants
+			value = scope:faction
+		}
+		join_faction_skip_check = scope:faction
+	}
+	set_special_character = scope:peasant_leader
+}

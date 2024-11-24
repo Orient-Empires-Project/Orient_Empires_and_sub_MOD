@@ -1,0 +1,1815 @@
+window = {
+	name = "character_event"
+
+	parentanchor = center
+	widgetanchor = center
+	size = { 1120 585 }
+	layer = events
+	alpha = 1
+
+	datacontext = "[EventWindow.AccessEventWindowData]"
+
+	using = Event_Window_Debug_OptionTooltips
+
+	state = {
+		name = show
+		trigger_on_create = yes
+		using = Animation_FadeIn_Standard
+		duration = 0.7
+
+		on_start = "[GetVariableSystem.Clear( 'event_window_mouse_leave')]"
+
+		start_sound = {
+			soundeffect = "event:/SFX/Events/Panels/sfx_event_panel_large"
+
+			soundparam = {
+				name = StateChange
+				value = 1
+			}
+		}
+	}
+
+	state = {
+		name = _hide
+		using = Animation_FadeOut_Standard
+
+		start_sound = {
+			soundeffect = "event:/MUSIC/Cues/Events/kill_mx_cue"
+		}
+	}
+
+	state = {
+		name = _mouse_hierarchy_leave
+		on_start = "[GetVariableSystem.Set( 'event_window_mouse_leave', 'true' )]"
+	}
+
+	widget = {
+		visible = "[Not(GameHasMultiplePlayers)]"
+		size = { 100% 100% }
+
+		icon = {
+			visible = "[Not(GetVariableSystem.Exists( 'event_window_mouse_leave'))]"
+			parentanchor = center
+			size = { 200% 200% }
+			alwaystransparent = yes
+			texture = "gfx/interface/component_masks/mask_fade_circle.dds"
+			color = { 0.1 0.1 0.1 1 }
+			alpha = 0
+
+			state = {
+				name = appear
+				trigger_on_create = yes
+				delay = 0.2
+				using = Animation_Curve_Default
+				alpha = 0.6
+				duration = 0.8
+			}
+
+			state = {
+				name = _hide
+				using = Animation_Curve_Default
+				duration = 3
+				alpha = 0
+			}
+		}
+	}
+
+	widget = {
+		size = { 100% 100% }
+		using = Window_Background
+		using = Window_Decoration_Frontend_Flat
+	}
+
+	event_window_background_widget = {
+		margin = { 30 20 }
+
+		blockoverride "event_picture_properties"
+		{}
+	}
+
+	###CHARACTERS
+	widget = {
+		name = "characters"
+		layoutstretchfactor_horizontal = 55
+		parentanchor = bottom|hcenter
+		size = { 100% 100% }
+		position = { -30 -15 }
+		scissor = yes
+
+		state = {
+			name = appear
+			trigger_on_create = yes
+			delay = 0.5
+			using = Animation_Curve_Default
+			alpha = 1
+			duration = 0.5
+		}
+
+		### RIGHT CHARACTER ###
+		widget = {
+			parentanchor = bottom|right
+			position = { 10 0 }
+			size = { 330 558 }
+
+			allow_outside = no
+
+			portrait_event = {
+				name = "portrait_right"
+				datacontext = "[EventWindowData.GetPortraitCharacter('right_portrait')]"
+				visible = "[EventWindowData.HasPortraitCharacter('right_portrait')]"
+				parentanchor = bottom|hcenter
+				position = { -80 -1 }
+				size = { 500 558 }
+
+				blockoverride "portrait_button"
+				{
+					size = { 700 558 }
+					portrait_texture = "[EventWindowData.GetAnimatedEventPortraitTexture('right_portrait', 'camera_event_right', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+					alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('right_portrait'))]"
+
+					tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('right_portrait')]"
+					tooltip_offset = { -210 0 }
+				}
+
+				blockoverride "highlight_visible"
+				{
+					visible = "[Or(Character.IsHovered, EventWindowData.IsCharacterHighlighted( EventWindowData.GetPortraitCharacter('right_portrait') ))]"
+					position = { 80 0 }
+				}
+
+				blockoverride "grayscale" {}
+
+				highlight_icon = {
+					name = "prison_bars"
+					visible = "[And(Character.IsImprisoned, Not(EventWindowData.ShouldHideImprisonment('right_portrait')))]"
+					visible_at_creation = no
+					size = { 285 500 }
+					position = { -30 0 }
+					parentanchor = bottom|right
+					effectname = "NoHighlight"
+					spriteType = corneredTiled
+					texture_density = 1.5
+					texture = "gfx/portraits/portrait_prison_body.dds"
+
+					modify_texture = {
+						name = "mask"
+						texture =  "gfx/portraits/portrait_mask_event.dds"
+						spriteType = Corneredstretched
+						blend_mode = alphamultiply
+					}
+				}
+			}
+		}
+
+		## LEFT CHARACTER ###
+		widget = {
+			parentanchor = bottom|hcenter
+			position = { 90 -1 }
+			size = { 330 558 }
+
+			allow_outside = no
+
+			portrait_event = {
+				name = "portrait_left"
+				datacontext = "[EventWindowData.GetPortraitCharacter('left_portrait')]"
+				visible = "[And(EventWindowData.HasPortraitCharacter('left_portrait'), EventWindowData.HasPortraitCharacter('right_portrait'))]"
+				parentanchor = bottom|hcenter
+				position = { 80 0 }
+				size = { 500 558 }
+
+				blockoverride "portrait_button"
+				{
+					size = { 700 558 }
+					portrait_texture = "[EventWindowData.GetAnimatedEventPortraitTexture('left_portrait', 'camera_event_left', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+					alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('left_portrait'))]"
+
+					tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('left_portrait')]"
+					using = tooltip_below
+					tooltip_widgetanchor = center
+				}
+
+				blockoverride "highlight_visible"
+				{
+					visible = "[Or(Character.IsHovered, EventWindowData.IsCharacterHighlighted( EventWindowData.GetPortraitCharacter('left_portrait') ))]"
+					position = { -40 0 }
+				}
+
+				blockoverride "grayscale" {}
+
+				highlight_icon = {
+					name = "prison_bars"
+					visible = "[And(Character.IsImprisoned, Not(EventWindowData.ShouldHideImprisonment('left_portrait')))]"
+					visible_at_creation = no
+					size = { 280 500 }
+					position = { 70 0 }
+					parentanchor = bottom|left
+					effectname = "NoHighlight"
+					spriteType = corneredTiled
+					texture_density = 1.5
+					texture = "gfx/portraits/portrait_prison_body.dds"
+
+					modify_texture = {
+						name = "mask"
+						texture =  "gfx/portraits/portrait_mask_event.dds"
+						spriteType = Corneredstretched
+						blend_mode = alphamultiply
+					}
+				}
+			}
+		}
+
+
+		### Use this for single character
+		portrait_event = {
+			name = "portrait_center"
+			visible = "[And(EventWindowData.HasPortraitCharacter('left_portrait'), Not(EventWindowData.HasPortraitCharacter('right_portrait')))]"
+			datacontext = "[EventWindowData.GetPortraitCharacter('left_portrait')]"
+			size = { 500 558 }
+			position = { 200 -2 }
+			parentanchor = bottom|hcenter
+
+			blockoverride "portrait_button"
+			{
+				size = { 700 558 }
+				portrait_texture = "[EventWindowData.GetAnimatedEventPortraitTexture('left_portrait', 'camera_event_center', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+				alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('left_portrait'))]"
+				tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('left_portrait')]"
+				using = tooltip_below
+				tooltip_offset = { 550 -580 }
+			}
+
+			blockoverride "highlight_visible"
+			{
+				visible = "[Or(Character.IsHovered, EventWindowData.IsCharacterHighlighted( EventWindowData.GetPortraitCharacter('left_portrait') ))]"
+			}
+
+			blockoverride "grayscale" {}
+
+			highlight_icon = {
+				name = "prison_bars"
+				visible = "[And(Character.IsImprisoned, Not(EventWindowData.ShouldHideImprisonment('left_portrait')))]"
+				visible_at_creation = no
+				size = { 300 500 }
+				position = { -60 0 }
+				parentanchor = bottom|hcenter
+				effectname = "NoHighlight"
+				spriteType = corneredTiled
+				texture_density = 1.5
+				texture = "gfx/portraits/portrait_prison_body.dds"
+
+				modify_texture = {
+					name = "mask"
+					texture =  "gfx/portraits/portrait_mask_event.dds"
+					spriteType = Corneredstretched
+					blend_mode = alphamultiply
+				}
+			}
+		}
+	}
+
+	# Event Effect Video
+	event_window_effect_2d_widget = {
+		margin = { 30 20 }
+	}
+
+	# Window Edge Fade
+	icon = {
+		texture = "gfx/interface/colors/black.dds"
+		parentanchor = right|vcenter
+		position = { -22 0 }
+		size = {2% 96%}
+		using = Mask_Rough_Edges
+
+		modify_texture = {
+			texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
+			blend_mode = alphaMultiply
+		}
+	}
+
+	vbox = {
+		name = "event_window"
+
+		widget = {
+			name = "event_window_content"
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+
+			hbox = {
+				margin = { 35 0 }
+				margin_bottom = 15
+
+				widget = {
+					name = "text_spacer"
+					layoutpolicy_horizontal = expanding
+					layoutpolicy_vertical = expanding
+					layoutstretchfactor_horizontal = 45
+				}
+			}
+
+			hbox = {
+				margin_left = 35
+				margin_right = 35
+				margin_bottom = 15
+
+				widget = {
+					name = "text"
+					layoutpolicy_horizontal = expanding
+					layoutpolicy_vertical = expanding
+					layoutstretchfactor_horizontal = 45
+
+					widget = {
+						size = { 155% 96%}
+						position = { -5 18 }
+
+						background = {
+							texture = "gfx/interface/component_tiles/tile_window_background_no_edge.dds"
+							spriteType = Corneredtiled
+							spriteborder = { 18 0 }
+							texture_density = 2
+							alpha = 0.7
+
+							modify_texture = {
+								texture = "gfx/interface/component_overlay/overlay_effect.dds"
+								blend_mode = overlay
+							}
+
+							modify_texture = {
+								texture = "gfx/interface/component_masks/mask_event_text.dds"
+								blend_mode = alphamultiply
+								alpha = 1
+							}
+						}
+					}
+
+					vbox = {
+						name = "description_and_options"
+
+						state = {
+							name = appear
+							trigger_on_create = yes
+							delay = 0.2
+							using = Animation_Curve_Default
+							alpha = 1
+							duration = 1.5
+						}
+
+						hbox = {
+							layoutpolicy_horizontal = expanding
+							layoutpolicy_vertical = expanding
+							margin_bottom = 10
+							margin_top = 85
+
+							scrollarea = {
+								name = "description_scrollarea"
+								layoutpolicy_horizontal = expanding
+								layoutpolicy_vertical = expanding
+								minimumsize = { 490 -1 }
+								maximumsize = { 490 -1 }
+
+								scrollbarpolicy_horizontal = always_off
+
+								scrollbar_vertical = {
+									using = Scrollbar_Vertical
+
+									blockoverride "alpha"{
+										alpha = 0.6
+									}
+								}
+
+								scrollwidget = {
+									text_multi = {
+										name = "description"
+										minimumsize = { 480 -1 }
+										maximumsize = { 480 -1 }
+										autoresize = yes
+										margin = { 20 4 }
+										text = "[EventWindowData.GetDescription]"
+										fontsize = 16
+									}
+								}
+							}
+
+							expand = {}
+						}
+
+						vbox = {
+							allow_outside = yes
+							layoutpolicy_horizontal = expanding
+							ignoreinvisible = yes
+							spacing = 5
+							margin_bottom = 5
+
+							hbox = {
+								spacing = 5
+
+								hbox = {
+									name = "dynamic_birth_name"
+									margin = { 5 0 }
+								}
+							}
+
+
+							vbox = {
+								name = "custom_widgets_container"
+								layoutpolicy_horizontal = expanding
+
+								state = {
+									trigger_on_create = yes
+									name = appear_test
+									delay = 0.8
+									using = Animation_Curve_Default
+									alpha = 1
+									duration = 0.6
+								}
+							}
+
+							vbox = {
+								name = "travel_event_info"
+								visible = "[And(EventWindowData.ThemeKeyStartsWith('travel'), GetPlayer.GetTravelPlan.IsValid)]"
+								layoutpolicy_horizontal = expanding
+								margin = { 20 0 }
+
+								divider_light = {
+									layoutpolicy_horizontal = expanding
+
+									modify_texture = {
+										texture = "gfx/interface/component_masks/mask_fade_horizontal_right.dds"
+										blend_mode = alphamultiply
+									}
+								}
+
+								hbox = {
+									layoutpolicy_horizontal = expanding
+
+									hbox = {
+										datacontext = "[GetPlayer.GetTravelPlan]"
+										datacontext = "[TravelPlan.GetData]"
+										datacontext = "[TravelPlanData.GetCurrentLocation]"
+
+										layoutpolicy_horizontal = expanding
+										spacing = 5
+
+										### CoA
+										coa_title_small = {
+											datacontext = "[Province.GetTitle]"
+											visible = "[Title.HasHolder]"
+										}
+
+										vbox = {
+											layoutpolicy_horizontal = expanding
+
+											text_single = {
+												layoutpolicy_horizontal = expanding
+												text = "TRAVEL_EVENT_WINDOW_CURRENT_LOCATION"
+												align = left|nobaseline
+											}
+
+											hbox = {
+												layoutpolicy_horizontal = expanding
+												spacing = 5
+
+												### Location Name
+												text_single = {
+													text = "[Province.GetName]"
+													align = left|nobaseline
+												}
+
+												icon = {
+													name = "terrain"
+													visible = "[Province.HasTerrain]"
+													datacontext = "[Province.GetTerrain]"
+													texture = "[Terrain.GetIcon]"
+													size = { 25 25 }
+													tooltip = "HOLDING_TERRAIN_TOOLTIP"
+												}
+
+												expand = {}
+
+											}
+										}
+
+										expand = {
+											layoutpolicy_horizontal = expanding
+										}
+
+										vbox = {
+											layoutpolicy_horizontal = expanding
+											margin = { 20 4 }
+
+											### Danger event indicator
+											hbox = {
+												visible = "[GreaterThanOrEqualTo_CFixedPoint(Subtract_CFixedPoint(Province.GetDangerValue(TravelPlan.Self), TravelPlanData.GetSafetyValue), '(CFixedPoint)0')]"
+												datacontext = "[Province.GetDangerType(TravelPlanData.Self)]"
+												layoutpolicy_horizontal = expanding
+												spacing = 5
+
+												expand = {}
+
+												warning_icon = {
+													size = { 28 28 }
+												}
+
+												widget = {
+													size = { 30 30 }
+													icon = {
+														texture = "[TravelDangerType.GetIconActive]"
+														parentanchor = center
+														size = { 35 35 }
+													}
+												}
+
+												### Put some indicator of travel danger intensity vs travel safety here, when we have decided on exactly what that is.
+												#text_single = {
+												#	raw_text = "33%"
+												#	default_format = "#d"
+												#	align = right|nobaseline
+												#}
+
+												tooltip = "[Province.GetTravelDangerTooltip(TravelPlan.Self)]"
+											}
+
+											hbox = {
+												layoutpolicy_horizontal = expanding
+
+												expand =  {}
+
+												### ETA to your next destination
+												text_single = {
+													layoutpolicy_horizontal = expanding
+													text = "TRAVEL_EVENT_WINDOW_NEXT_DESTINATION"
+													align = right|nobaseline
+												}
+											}
+										}
+									}
+								}
+							}
+							#为什么流浪，流浪远方
+							fixedgridbox = {
+								name = "option_grid"
+								addcolumn = 500
+								addrow = 42
+								datamodel = "[EventWindowData.GetOptions]"
+								visible = "[LessThanOrEqualTo_int32( GetDataModelSize(EventWindowData.GetOptions), '(int32)3')]"
+								item = {
+									button_eventoption = {}
+								}
+							}
+
+							#滚动条
+							scrollbox = {
+								name = "option_scrollbox"
+								layoutpolicy_horizontal = expanding
+								minimumsize = { 0 170 }
+								visible = "[GreaterThanOrEqualTo_int32( GetDataModelSize(EventWindowData.GetOptions), '(int32)4')]"
+								blockoverride "scrollbox_content"
+								{
+									margin = { -10 5 }
+									fixedgridbox = {
+										addcolumn = 500
+										addrow = 42
+										datamodel = "[EventWindowData.GetOptions]"
+										item = {
+											button_eventoption = {}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				widget = {
+					name = "characters_spacer"
+					layoutpolicy_horizontal = expanding
+					layoutpolicy_vertical = expanding
+					layoutstretchfactor_horizontal = 55
+				}
+			}
+		}
+	}
+
+	margin_widget = {
+		name = "bottom_characters"
+		size = { 55% 170 }
+		position = { -14 -10}
+		parentanchor = bottom|right
+		margin_bottom = 10
+		allow_outside = yes
+
+		icon = {
+			name = "bottom_characters_bg"
+			visible = "[Or(EventWindowData.HasPortraitOrArtifact('lower_left_portrait'), Or(EventWindowData.HasPortraitOrArtifact('lower_center_portrait'), EventWindowData.HasPortraitOrArtifact('lower_right_portrait')))]"
+			position = { 0 0 }
+			size = { 100% 100% }
+			texture = "gfx/interface/window_event/event_bottom_char_bg.dds"
+		}
+
+		flowcontainer = {
+			spacing = 20
+			parentanchor = bottom|hcenter
+
+			flowcontainer = {
+				parentanchor = bottom
+				direction = vertical
+				ignoreinvisible = yes
+
+				event_portrait_status_icons_left = {
+					datacontext = "[EventWindowData.GetPortraitCharacter('left_portrait')]"
+					visible = "[EventWindowData.ShouldShowPortraitInfo('left_portrait')]"
+
+					background = {
+						texture = "gfx/interface/window_event/event_character_status_icons_bg.dds"
+						spriteType = Corneredtiled
+						spriteborder = { 20 20 }
+						shaderfile = "gfx/FX/pdxgui_default.shader"
+						alpha = 0.5
+						margin = { 5 5 }
+
+						modify_texture = {
+							texture = "gfx/interface/window_event/event_character_status_icons_bg_overlay.dds"
+							spriteType = Corneredstretched
+							spriteborder = { 0 0 }
+							blend_mode = overlay
+							alpha = 0.5
+						}
+					}
+				}
+
+				spacer = {
+					size = { 140 0 }
+				}
+
+				flowcontainer = {
+					datacontext = "[EventWindowData.GetArtifact('lower_left_portrait')]"
+					visible = "[EventWindowData.HasArtifact('lower_left_portrait')]"
+					direction = vertical
+					spacing =-5
+
+					using = artifact_event_flowcontainer
+				}
+
+				widget = {
+					datacontext = "[EventWindowData.GetPortraitCharacter('lower_left_portrait')]"
+					visible = "[EventWindowData.HasPortraitCharacter('lower_left_portrait')]"
+					size = { 140 150 }
+
+					portrait_event_small = {
+						name = "portrait_left_small_1"
+						parentanchor = center
+						position = { 0 -4 }
+
+						blockoverride "portrait_button"
+						{
+							portrait_texture = "[EventWindowData.GetStaticEventPortraitTexture('lower_left_portrait', 'camera_shoulders', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+							alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('lower_left_portrait'))]"
+							tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('lower_left_portrait')]"
+						}
+
+						blockoverride "highlight_visible"
+						{
+							visible = "[Or(Character.IsHovered, EventWindowData.IsCharacterHighlighted( EventWindowData.GetPortraitCharacter('lower_left_portrait') ))]"
+						}
+
+						blockoverride "status_icons" {}
+						blockoverride "opinion_box" {}
+						blockoverride "grayscale" {}
+
+						blockoverride "coa"
+						{
+							event_portrait_status_icons_left = {
+								visible = "[EventWindowData.ShouldShowPortraitInfo('lower_right_portrait')]"
+								parentanchor = bottom|left
+								position = { -15 -5 }
+								scale = 0.8
+
+								background = {
+									using = Background_Bottom_Fade
+									margin = { 5 15 }
+									using = Color_Black
+									using = Mask_Rough_Edges
+									alpha =  0.5
+
+									modify_texture = {
+										texture = "gfx/interface/window_event/event_character_status_icons_bg_overlay.dds"
+										spriteType = Corneredstretched
+										spriteborder = { 0 0 }
+										blend_mode = overlay
+									}
+								}
+							}
+						}
+
+						text_label_center = {
+							parentanchor = bottom|hcenter
+							position = { 20 -5 }
+							alwaystransparent = yes
+							text = "[Character.GetShortUINameNoTooltip]"
+							visible = "[EventWindowData.ShouldShowPortraitInfo('lower_left_portrait')]"
+							max_width = 115
+							align = center
+							fontsize_min = 12
+						}
+					}
+				}
+			}
+
+			flowcontainer = {
+				parentanchor = bottom
+				direction = vertical
+				ignoreinvisible = yes
+
+				spacer = {
+					size = { 140 0 }
+				}
+
+				flowcontainer = {
+					datacontext = "[EventWindowData.GetArtifact('lower_center_portrait')]"
+					visible = "[EventWindowData.HasArtifact('lower_center_portrait')]"
+					direction = vertical
+					spacing =-5
+
+					using = artifact_event_flowcontainer
+
+					background = {
+						using = Background_Area_Dark
+						alpha = 0.4
+						margin_bottom = -30
+						margin_top = 10
+
+						modify_texture = {
+							name = "mask"
+							texture = "gfx/interface/component_masks/mask_glow.dds"
+							blend_mode = alphamultiply
+						}
+					}
+				}
+
+				widget = {
+					datacontext = "[EventWindowData.GetPortraitCharacter('lower_center_portrait')]"
+					visible = "[EventWindowData.HasPortraitCharacter('lower_center_portrait')]"
+					size = { 140 150 }
+
+					portrait_event_small = {
+						name = "portrait_left_small_2"
+						parentanchor = center
+						position = { 0 -4 }
+
+						blockoverride "portrait_button"
+						{
+							portrait_texture = "[EventWindowData.GetStaticEventPortraitTexture('lower_center_portrait', 'camera_shoulders', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+							alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('lower_center_portrait'))]"
+							tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('lower_center_portrait')]"
+						}
+
+						blockoverride "highlight_visible"
+						{
+							visible = "[Or(Character.IsHovered, EventWindowData.IsCharacterHighlighted( EventWindowData.GetPortraitCharacter('lower_center_portrait') ))]"
+						}
+
+						blockoverride "status_icons" {}
+						blockoverride "opinion_box"{}
+						blockoverride "grayscale" {}
+
+						blockoverride "coa"
+						{
+							event_portrait_status_icons_left = {
+								visible = "[EventWindowData.ShouldShowPortraitInfo('lower_center_portrait')]"
+								parentanchor = bottom|left
+								position = { -15 -5 }
+								scale = 0.8
+
+								background = {
+									using = Background_Bottom_Fade
+									margin = { 5 15 }
+									color = { 0.1 0.1 0.1 0.8 }
+
+									modify_texture = {
+										texture = "gfx/interface/window_event/event_character_status_icons_bg_overlay.dds"
+										spriteType = Corneredstretched
+										spriteborder = { 0 0 }
+										blend_mode = overlay
+									}
+								}
+							}
+						}
+
+
+						text_label_center = {
+							parentanchor = bottom|hcenter
+							position = { 20 -5 }
+							alwaystransparent = yes
+							text = "[Character.GetShortUINameNoTooltip]"
+							visible = "[EventWindowData.ShouldShowPortraitInfo('lower_center_portrait')]"
+							max_width = 115
+							align = center
+							fontsize_min = 12
+						}
+					}
+				}
+			}
+
+			flowcontainer = {
+				parentanchor = bottom
+				direction = vertical
+				ignoreinvisible = yes
+
+				event_portrait_status_icons_right = {
+					datacontext = "[EventWindowData.GetPortraitCharacter('right_portrait')]"
+					visible = "[EventWindowData.ShouldShowPortraitInfo('right_portrait')]"
+					parentanchor = right
+
+					background = {
+						texture = "gfx/interface/window_event/event_character_status_icons_bg.dds"
+						spriteType = Corneredtiled
+						spriteborder = { 20 20 }
+						shaderfile = "gfx/FX/pdxgui_default.shader"
+						alpha = 0.5
+						margin = { 5 5 }
+
+						modify_texture = {
+							texture = "gfx/interface/window_event/event_character_status_icons_bg_overlay.dds"
+							spriteType = Corneredstretched
+							spriteborder = { 0 0 }
+							blend_mode = overlay
+							alpha = 0.5
+						}
+					}
+				}
+
+				spacer = {
+					size = { 140 0 }
+				}
+
+				flowcontainer = {
+					datacontext = "[EventWindowData.GetArtifact('lower_right_portrait')]"
+					visible = "[EventWindowData.HasArtifact('lower_right_portrait')]"
+					direction = vertical
+					spacing =-5
+
+					using = artifact_event_flowcontainer
+				}
+
+				widget = {
+					datacontext = "[EventWindowData.GetPortraitCharacter('lower_right_portrait')]"
+					visible = "[EventWindowData.HasPortraitCharacter('lower_right_portrait')]"
+					size = { 140 150 }
+
+					portrait_event_small = {
+						name = "portrait_right_small_1"
+						parentanchor = center
+						position = { 0 -4 }
+
+						blockoverride "portrait_button"
+						{
+							portrait_texture = "[EventWindowData.GetStaticEventPortraitTexture('lower_right_portrait', 'camera_shoulders', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+							alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('lower_right_portrait'))]"
+							tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('lower_right_portrait')]"
+						}
+
+						blockoverride "portrait_transformation"
+						{
+							portrait_scale = { -1 1 }
+							portrait_offset = { 1 0 }
+						}
+
+						blockoverride "highlight_visible"
+						{
+							visible = "[Or(Character.IsHovered, EventWindowData.IsCharacterHighlighted( EventWindowData.GetPortraitCharacter('lower_right_portrait') ))]"
+						}
+
+						blockoverride "status_icons"{}
+						blockoverride "opinion_box"{}
+						blockoverride "grayscale" {}
+
+						blockoverride "coa"
+						{
+							event_portrait_status_icons_left = {
+								visible = "[EventWindowData.ShouldShowPortraitInfo('lower_right_portrait')]"
+								parentanchor = bottom|left
+								position = { -15 -5 }
+								scale = 0.8
+
+								background = {
+									using = Background_Bottom_Fade
+									margin = { 5 15 }
+									using = Color_Black
+									using = Mask_Rough_Edges
+									alpha =  0.5
+
+									modify_texture = {
+										texture = "gfx/interface/window_event/event_character_status_icons_bg_overlay.dds"
+										spriteType = Corneredstretched
+										spriteborder = { 0 0 }
+										blend_mode = overlay
+									}
+								}
+							}
+						}
+
+						text_label_center = {
+							parentanchor = bottom|hcenter
+							position = { 20 -5 }
+							alwaystransparent = yes
+							text = "[Character.GetShortUINameNoTooltip]"
+							visible = "[EventWindowData.ShouldShowPortraitInfo('lower_right_portrait')]"
+							max_width = 115
+							align = center
+							fontsize_min = 12
+						}
+					}
+				}
+			}
+		}
+	}
+
+	vbox = {
+		widget = {
+			layoutpolicy_horizontal = expanding
+			size = { 0 70 }
+
+			icon = {
+				name = "theme_header"
+				position = { 24 6 }
+				size = { 1050 76 }
+				texture = "gfx/interface/window_event/header_neutral.dds"
+
+				modify_texture = {
+					name = overlay
+					texture = "gfx/interface/component_effects/effect_header_blue_shine.dds"
+					blend_mode = colordodge
+					translate_uv = { 0.6 0 }
+				}
+
+				modify_texture = {
+					name = mask
+					texture = "gfx/interface/component_masks/mask_fade_horizontal_right.dds"
+					blend_mode = alphamultiply
+					translate_uv = { 0.2 0 }
+				}
+
+				state = {
+					name = right
+					next = left
+
+					duration = 8
+					bezier = { 0.8 0.18 0.96 .05 }
+
+					modify_texture = {
+						name = overlay
+						translate_uv = { -0.6 0 }
+					}
+				}
+
+				state = {
+					name = left
+					next = right
+
+					duration = 0.0
+					delay = 5
+
+					modify_texture = {
+						name = overlay
+						translate_uv = { 0.6 0 }
+					}
+				}
+
+				state = {
+					trigger_on_create = yes
+					name = start
+					next = right
+
+					duration = 0.0
+
+					modify_texture = {
+						name = overlay
+						translate_uv = { 0.6 0 }
+					}
+				}
+			}
+
+			text_single = {
+				name = "title"
+				parentanchor = vcenter
+				position = { 110 4 }
+				fontsize = 29
+				fontsize_min = 16
+				text = "[EventWindowData.GetTitle]"
+				default_format = "#high;glow_color:{0.1,0.1,0.1,1.0}"
+				using = Font_Type_Flavor
+				max_width = 950
+
+				alpha = 0
+
+				state = {
+					name = start
+					trigger_on_create = yes
+					delay = 0.2
+					using = Animation_Curve_Default
+					alpha = 1
+					duration = 0.5
+				}
+			}
+
+			icon = {
+				name = "theme_icon"
+				parentanchor = vcenter
+				position = { 20 9 }
+				size = { 80 80 }
+				texture = "[EventWindowData.GetThemeIcon]"
+
+				modify_texture = {
+					name = overlay
+					texture = "gfx/interface/component_effects/effect_blue_shine.dds"
+					blend_mode = colordodge
+					translate_uv = { 0.6 0 }
+				}
+
+				state = {
+					name = right
+					next = left
+
+					duration = 2
+					bezier = { .8 .18 .96 .05 }
+
+					modify_texture = {
+						name = overlay
+						translate_uv = { -0.6 0 }
+					}
+				}
+
+				state = {
+					name = left
+					next = right
+
+					duration = 0.0
+					delay = 5
+
+
+					modify_texture = {
+						name = overlay
+						translate_uv = { 0.6 0 }
+					}
+				}
+
+				state = {
+					trigger_on_create = yes
+					name = start
+					next = right
+
+					duration = 0.0
+
+					modify_texture = {
+						name = overlay
+						translate_uv = {0.6 0}
+					}
+				}
+			}
+		}
+
+		expand = {}
+	}
+	icon = {
+		visible = "[And( EventWindowData.ShouldShowContentSource, EventWindowData.GetContentSourceDlc.HasEventDecoration )]"
+		name = "source_icon"
+		position = { -22 20 }
+		size = { 263 64 }
+		parentanchor = top|right
+		texture = "[EventWindowData.GetContentSourceDlc.GetEventDecoration]"
+		tooltip = "EVENT_CONTENT_SOURCE_TT"
+		alpha = 1
+	}
+
+	flowcontainer = {
+		name = "debug_stuff"
+		visible = "[InDebugMode]"
+		parentanchor = top|right
+		position = { -100 25 }
+		ignoreinvisible = yes
+
+		using = Event_Window_Debug_Info
+	}
+}
+
+######################################################
+################ TYPES AND TEMPLATES #################
+######################################################
+
+types Events
+{
+	type event_portrait_status_icons_left = container {
+		flowcontainer = {
+			ignoreinvisible = yes
+			direction = horizontal
+
+			coa_realm_small_crown = {
+				visible = "[Character.HasLandedTitles]"
+				parentanchor = bottom
+			}
+
+			portrait_status_icons = {}
+		}
+	}
+
+	type event_portrait_status_icons_right = container {
+		flowcontainer = {
+			ignoreinvisible = yes
+			direction = horizontal
+
+			portrait_status_icons = {}
+
+			coa_realm_small_crown = {
+				visible = "[Character.HasLandedTitles]"
+			}
+		}
+	}
+
+	type button_eventoption = button_event_standard
+	{
+		name = "event_option_button"
+		size = { 500 36 }
+		enabled = "[EventOption.IsValid]"
+
+		default_clicksound = "event:/SFX/UI/Generic/sfx_ui_generic_icon_select"
+		onclick = "[EventOption.Select]"
+		clicksound = "[EventOption.GetClickSound]"
+
+		block "onmousehierarchy_callbacks" {
+			onmousehierarchyenter = "[EventOption.OnEnter]"
+			onmousehierarchyleave = "[EventOption.OnLeave]"
+		}
+
+		icon = {
+			texture = "gfx/interface/buttons/button_event.dds"
+			alpha = 1
+			spriteType = Corneredtiled
+			spriteborder = { 3 3 }
+			framesize = { 249 78 }
+			size = { 100% 100% }
+
+			modify_texture = {
+				name = "mask"
+				texture = "gfx/interface/component_masks/mask_fade_horizontal_middle_thick.dds"
+				spriteType = Corneredtiled
+				spriteborder_left = 40
+				spriteborder_right = 40
+				blend_mode = alphamultiply
+			}
+		}
+
+		# Trick to not have the option text steal tooltips from the trait/skill grid
+		hbox = {
+			tooltip = "[EventOption.GetTooltip]"
+			tooltip_visible = "[Not( StringIsEmpty( EventOption.GetTooltip ) )]"
+
+			block "option_tooltip_position"
+			{
+				using = tooltip_ws
+				tooltip_offset = { -80 0 }
+			}
+
+			# Wider tooltips for the effects
+			tooltipwidget = {
+				using = DefaultTooltipWidget
+			}
+		}
+
+		modify_texture = {
+			name = "mask"
+			texture = "gfx/interface/component_masks/mask_fade_horizontal_middle_thick.dds"
+			spriteType = Corneredtiled
+			spriteborder_left = 40
+			spriteborder_right = 40
+			blend_mode = alphamultiply
+		}
+
+		animation_glow_event = {
+			name = "special_option"
+			visible = "[And(EventOption.HasFlag('special'), Not(EventOption.HasFlag('dangerous')))]"
+		}
+
+		animation_glow_event = {
+			name = "dangerous_option"
+			visible = "[EventOption.HasFlag('dangerous')]"
+			using = Color_Red
+		}
+
+		### BUTTON CONTENT ####
+		hbox = {
+			margin = { 5 0 }
+
+			hbox = {
+				fixedgridbox = {
+					name = "reason_icons"
+					datamodel = "[EventOption.Reasons]"
+					addcolumn = 34
+					addrow = 34
+					flipdirection = yes
+
+					item = {
+						container = {
+							icon = {
+								name = "trait_icon"
+								datacontext = "[ReasonItem.GetTrait]"
+
+								visible = "[ReasonItem.IsTrait]"
+								alwaystransparent = yes
+
+								texture = "[Trait.GetIcon(GetPlayer)]"
+								size = { 34 34 }
+
+								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_TRAIT"
+								using = tooltip_nw
+							}
+
+							icon = {
+								name = "skill_icon"
+								datacontext = "[ReasonItem.GetSkillItem]"
+
+								visible = "[ReasonItem.IsSkill]"
+								alwaystransparent = yes
+
+								texture = "gfx/interface/icons/icon_skills.dds"
+								size = { 34 34 }
+								framesize = { 60 60 }
+								frame = "[SkillItem.GetFrame]"
+
+								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_SKILL"
+								using = tooltip_ws
+							}
+
+							icon = {
+								name = "dread_icon"
+								visible = "[ReasonItem.IsFlag( 'dread' )]"
+								size = { 34 34 }
+								texture = "gfx/interface/icons/icon_dread.dds"
+								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_DREAD"
+							}
+
+							icon = {
+								name = "activity_intent_icon"
+								visible = "[ReasonItem.IsFlag( 'activity_intent' )]"
+								size = { 34 34 }
+								texture = "[GetPlayer.GetInvolvedActivity.GetType.GetIcon]"
+								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_ACTIVITY_INTENT"
+							}
+
+							icon = {
+								name = "prestige_icon"
+								visible = "[ReasonItem.IsFlag( 'prestige_level' )]"
+								size = { 34 34 }
+								texture = "[GetPlayer.GetPrestigeLevelTexture]"
+								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_PRESTIGE_LEVEL"
+							}
+
+							icon = {
+								name = "piety_icon"
+								visible = "[ReasonItem.IsFlag( 'piety_level' )]"
+								size = { 34 34 }
+								texture = "[GetPlayer.GetPietyLevelTexture]"
+								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_PIETY_LEVEL"
+							}
+
+							icon = {
+								name = "faith_icon"
+								visible = "[ReasonItem.IsFlag( 'faith' )]"
+								size = { 34 34 }
+								texture = "[GetPlayer.GetFaith.GetIcon]"
+								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_FAITH"
+							}
+						}
+					}
+				}
+
+				warning_icon = {
+					visible = "[And( EventOption.IsTimeoutOption, And( GameHasMultiplePlayers, LessThanOrEqualTo_int32( EventWindowData.GetDaysRemaining, '(int32)30' ) ) )]"
+					name = "timeout_icon"
+					size = { 30 30 }
+					tooltip = EVENT_WINDOW_DAYS_REMAINING
+				}
+			}
+
+			###### SPACER ######
+			hbox = {
+				name = "spacer_effects"
+				datamodel = "[EventOption.Effects]"
+
+				item = {
+					container = {
+						container = {
+							visible = "[OptionEffectItem.IsTrait]"
+							alwaystransparent = yes
+
+							spacer = {
+								datacontext = "[OptionEffectItem.GetTrait]"
+								size = { 34 34 }
+							}
+						}
+
+						spacer = {
+							visible = "[OptionEffectItem.IsStress]"
+							size = { 34 34 }
+						}
+
+						spacer = {
+							visible = "[OptionEffectItem.IsScheme]"
+							size = { 34 34 }
+						}
+
+						spacer = {
+							visible = "[OptionEffectItem.IsDeath]"
+							size = { 34 34 }
+						}
+					}
+				}
+			}
+
+			text_single = {
+				layoutpolicy_horizontal = expanding
+				margin = { 5 0 }
+				alwaystransparent = yes
+
+				text = "[EventOption.GetText]"
+				autoresize = no
+				default_format = "#high"
+				align = center|nobaseline
+				fontsize_min = 12
+			}
+
+			##### SPACER #####
+			hbox = {
+				hbox = {
+					name = "reason_spacers"
+					datamodel = "[EventOption.Reasons]"
+					item = {
+						spacer = {
+							size = { 34 34 }
+						}
+					}
+				}
+
+				hbox = {
+					name = "timeout_spacer"
+					visible = "[And( EventOption.IsTimeoutOption, And( GameHasMultiplePlayers, LessThanOrEqualTo_int32( EventWindowData.GetDaysRemaining, '(int32)30' ) ) )]"
+
+					spacer = {
+						size = { 34 34 }
+					}
+				}
+			}
+
+			hbox = {
+				name = "effects_grid"
+				datamodel = "[EventOption.Effects]"
+
+				item = {
+					container = {
+						container = {
+							visible = "[OptionEffectItem.IsTrait]"
+							alwaystransparent = yes
+
+							icon = {
+								datacontext = "[OptionEffectItem.GetTrait]"
+								name = "trait_icon"
+								size = { 34 34 }
+								texture = "[Trait.GetIcon(GetPlayer)]"
+							}
+
+							icon = {
+								visible = "[OptionEffectItem.IsGain]"
+								texture = "gfx/interface/icons/symbols/icon_plus_small.dds"
+								name = "gain"
+								size = { 20 20 }
+							}
+
+							icon = {
+								visible = "[OptionEffectItem.IsLoss]"
+								texture = "gfx/interface/icons/symbols/icon_minus_small.dds"
+								name = "loss"
+								size = { 20 20 }
+							}
+						}
+
+						container = {
+							visible = "[OptionEffectItem.IsStress]"
+							alwaystransparent = yes
+
+							icon = {
+								visible = "[And(OptionEffectItem.IsGain,Not(OptionEffectItem.IsCritical))]"
+								texture = "gfx/interface/icons/stress/icon_stress_gain.dds"
+								name = "stress_gain"
+								size = { 34 34 }
+							}
+
+							icon = {
+								visible = "[OptionEffectItem.IsLoss]"
+								texture = "gfx/interface/icons/stress/icon_stress_loss.dds"
+								name = "stress_loss"
+								size = { 34 34 }
+							}
+
+							icon = {
+								visible = "[OptionEffectItem.IsCritical]"
+								texture = "gfx/interface/icons/stress/icon_stress_gain_critical.dds"
+								name = "stress_critical"
+								size = { 34 34 }
+							}
+						}
+
+						icon = {
+							name = "death"
+							visible = "[OptionEffectItem.IsDeath]"
+							size = { 34 34 }
+							texture = "gfx/interface/icons/icon_dead.dds"
+						}
+
+						icon = {
+							name = "scheme"
+							visible = "[OptionEffectItem.IsScheme]"
+							size = { 34 34 }
+							texture = "[OptionEffectItem.GetScheme.GetIcon]"
+						}
+					}
+				}
+			}
+		}
+	}
+
+	type event_window_background_widget = margin_widget
+	{
+		size = { 100% 100% }
+		alwaystransparent = yes
+		datacontext = "[EventWindowData.GetEventBackgroundData]"
+
+		icon = {
+			name = "event_picture_with_mask"
+			visible = "[And( Not( EventWindowBackgroundData.HasVideo ), EventWindowBackgroundData.HasVideoMask ) )]"
+			texture = "[EventWindowBackgroundData.GetTexture]"
+			size = { 100% 100% }
+
+			modify_texture = {
+				video = "[EventWindowBackgroundData.GetVideoMask]"
+				blend_mode = alphamultiply
+
+				block "event_mask_properties"
+				{
+					loop = no
+				}
+			}
+
+			block "event_picture_properties"
+			{
+			}
+		}
+
+		icon = {
+			name = "event_picture"
+			visible = "[Not( Or( EventWindowBackgroundData.HasVideo, EventWindowBackgroundData.HasVideoMask) )]"
+			texture = "[EventWindowBackgroundData.GetTexture]"
+			size = { 100% 100% }
+
+			block "event_mask" {
+				modify_texture = {
+					name = mask
+					texture = "gfx/interface/window_event/mask_event_image_large.dds"
+					blend_mode = alphamultiply
+
+					block "event_mask_properties"
+					{
+						loop = no
+					}
+				}
+			}
+
+			block "event_picture_properties"
+			{
+			}
+		}
+
+		video_icon = {
+			name = "event_video"
+			visible = "[EventWindowBackgroundData.HasVideo]"
+			video = "[EventWindowBackgroundData.GetVideo]"
+			size = { 100% 100% }
+			loop = no
+
+			block "event_video_properties"
+			{
+			}
+		}
+	}
+
+	type event_window_transition_widget = margin_widget {
+		size = { 100% 100% }
+		alwaystransparent = no
+		datacontext = "[EventWindowData.GetEventTransitionData]"
+		visible = "[EventWindowData.IsShowingTransition]"
+
+		icon = {
+			name = "event_transition_picture_with_mask"
+			visible = "[And( Not( EventWindowTransitionData.HasVideo ), EventWindowTransitionData.HasVideoMask )]"
+			texture = "[EventWindowTransitionData.GetTexture]"
+			size = { 100% 100% }
+
+			modify_texture = {
+				video = "[EventWindowTransitionData.GetVideoMask]"
+				blend_mode = alphamultiply
+				restart_on_show = yes
+
+				block "event_transition_mask_properties"
+				{
+					loop = no
+				}
+			}
+
+			block "event_transition_picture_properties"
+			{
+			}
+		}
+
+		icon = {
+			name = "event_transition_picture"
+			visible = "[Not( Or( EventWindowTransitionData.HasVideo, EventWindowTransitionData.HasVideoMask) )]"
+			texture = "[EventWindowTransitionData.GetTexture]"
+			size = { 100% 100% }
+
+			block "event_transition_picture_properties"
+			{
+			}
+		}
+
+		video_icon = {
+			name = "event_transition_video"
+			visible = "[EventWindowTransitionData.HasVideo]"
+			video = "[EventWindowTransitionData.GetVideo]"
+			size = { 100% 100% }
+			loop = no
+			restart_on_show = yes
+
+			block "event_transition_video_properties"
+			{
+			}
+		}
+	}
+
+	type event_window_effect_2d_widget = margin_widget {
+		size = { 100% 100% }
+		datacontext = "[EventWindowData.GetEvent2DEffectData]"
+		visible = "[And( Not( EventWindowData.IsShowingTransition ), EventWindow2DEffectData.HasEffect )]"
+
+		video_icon = {
+			name = "event_effect_2d_video_no_mask"
+			video = "[EventWindow2DEffectData.GetVideo]"
+			visible = "[Not( EventWindow2DEffectData.HasMask )]"
+			size = { 100% 100% }
+			loop = "[EqualTo_CFixedPoint( EventWindow2DEffectData.GetDuration, '(CFixedPoint)0.0' )]"
+			restart_on_show = yes
+
+			block "event_effect_2d_video_properties"
+			{
+			}
+		}
+
+		## VIDEO EVENT EFFECT
+
+		video_icon = {
+			name = "event_effect_2d_video_with_texture_mask"
+			video = "[EventWindow2DEffectData.GetVideo]"
+			visible = "[And( EventWindow2DEffectData.HasMask, EventWindow2DEffectData.IsTextureMask )]"
+			size = { 100% 100% }
+			loop = "[EqualTo_CFixedPoint( EventWindow2DEffectData.GetDuration, '(CFixedPoint)0.0' )]"
+			restart_on_show = yes
+
+			modify_texture = {
+				name = mask
+				texture= "gfx/interface/window_event/mask_event_image_large.dds"
+				blend_mode = alphamultiply
+
+				block "event_effect_2d_video_properties"
+				{
+				}
+
+			}
+
+		}
+
+		video_icon = {
+			name = "event_effect_2d_video_with_video_mask"
+			video = "[EventWindow2DEffectData.GetVideo]"
+			visible = "[And( EventWindow2DEffectData.HasMask, EventWindow2DEffectData.IsVideoMask )]"
+			size = { 100% 100% }
+			loop = "[EqualTo_CFixedPoint( EventWindow2DEffectData.GetDuration, '(CFixedPoint)0.0' )]"
+			restart_on_show = yes
+
+			block "event_effect_2d_video_properties"
+			{
+			}
+		}
+	}
+}
+
+template artifact_event_flowcontainer {
+
+	tooltipwidget = {
+		artifact_tooltip = {}
+	}
+
+	icon_artifact = {
+		parentanchor = hcenter
+	}
+
+	text_label_center = {
+		alwaystransparent = yes
+		text = "[Artifact.GetNameNoTooltip]"
+		max_width = 160
+		parentanchor = hcenter
+		align = center
+		fontsize_min = 12
+		multiline = yes
+	}
+}
+
+template Event_Window_Debug_Info
+{
+	button_round = {
+		alwaystransparent = no
+		tooltip = "REGENERATE_EVENT_CONTENTS"
+		using = tooltip_below
+
+		using = Animation_ShowHide_Quick
+
+		block "event_reset_onclick"
+		{
+			onclick = "[EventWindow.ResetContents]"
+		}
+
+		button_replace = {
+			parentanchor = center
+			alwaystransparent = yes
+		}
+	}
+
+	button_round = {
+		size = { 40 40 }
+
+		button_icon = {
+			size = { 100% 100% }
+			texture = "gfx/interface/icons/flat_icons/data_system.dds"
+			tooltip = "TOGGLE_DATA_SYSTEM"
+			using = tooltip_below
+			onclick = "[ExecuteConsoleCommand('Localization.ToggleSkipDataSystemInLocOutput')]"
+			fontsize = 24
+		}
+	}
+
+	button_round = {
+		size = { 40 40 }
+
+		button_icon = {
+			size = { 30 30 }
+			parentanchor = center
+			texture = "gfx/interface/icons/flat_icons/history.dds"
+			tooltip = "TOGGLE_DEBUG_OPTION_TOOLTIPS"
+			using = tooltip_below
+			onclick = "[EventWindowData.ToggleDebugOptionTooltips]"
+			fontsize = 24
+		}
+	}
+
+	button_round = {
+		size = { 40 40 }
+		button_copy = {
+			parentanchor = center
+			onclick = "[EventWindowData.CopyToClipboard]"
+			tooltip = "COPY_EVENT_CONTENTS"
+		}
+	}
+
+	button_round = {
+		name = "debug_icon"
+		size = { 40 40 }
+		button_search = {
+			parentanchor = center
+			size = { 26 26 }
+			tooltip = "EVENT_DEBUG_TOOLTIP"
+			using = tooltip_se
+			onclick = "[EventWindowData.DebugOpen]"
+			button_ignore = none
+		}
+	}
+
+	container = {
+		tooltip = "[EventWindowData.GetTriggerBreakdown]"
+		using = tooltip_es
+		icon = {
+			visible = "[EventWindowData.IsTriggerFulfilled]"
+			size = { 40 40 }
+			texture = "gfx/interface/icons/symbols/icon_check.dds"
+		}
+
+		icon = {
+			visible = "[Not( EventWindowData.IsTriggerFulfilled )]"
+			size = { 40 40 }
+			texture = "gfx/interface/icons/symbols/icon_cross.dds"
+		}
+	}
+
+	button = {
+		size = { 40 40 }
+
+		button = {
+			size = { 100% 100% }
+			tooltip = "[EventWindowData.GetDebugInfo]"
+			using = tooltip_es
+			onclick = "[EventWindowData.CopyToClipboard]"
+			onrightclick = "[EventWindowData.DebugOpen]"
+			button_ignore = none
+			raw_text = "?"
+			fontsize = 24
+		}
+	}
+}
+
+template Event_Window_Debug_OptionTooltips
+{
+	allow_outside = "[EventWindowData.ShowDebugOptionTooltips]"
+	vbox = {
+		name = "event_window_debug_tooltip_list"
+		visible_at_creation = no
+		visible = "[EventWindowData.ShowDebugOptionTooltips]"
+		alwaystransparent = no
+
+		position = { 20 -18 }
+		size = { 600 100% }
+		parentanchor = left|bottom
+		widgetanchor = right|bottom
+
+		vbox = {
+			layoutpolicy_vertical = expanding
+			layoutpolicy_horizontal = expanding
+			alwaystransparent = no
+
+			datamodel = "[EventWindowData.GetOptions]"
+			expand = {}
+			item = {
+				hbox = {
+					datacontext = "[GetDeepestTooltipInfo]"
+					alwaystransparent = no
+
+					layoutpolicy_horizontal = expanding
+					expand = {}
+					# This is a copy of gui template 'DefaultTooltipWidget'
+					container = {
+						using = GeneralTooltipSetup
+						alwaystransparent = no
+
+						widget = {
+							name = "background"
+							using = DefaultTooltipBackground
+							size = { 100% 100% }
+							alwaystransparent = no
+						}
+
+						flowcontainer = {
+							direction = vertical
+							margin_right = 10
+
+							textbox = {
+								name = "TooltipText"
+								text = "[EventOption.GetTooltip]"
+								using = DefaultTooltipText
+								margin = { 20 20 }
+								margin_top = 10
+								alwaystransparent = no
+							}
+
+							textbox = {
+								name = "TooltipTextShortcut"
+								using = DefaultTooltipText
+								parentanchor = right
+								margin_top = -20
+								margin_bottom = 15
+								margin_right = 15
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+template Event_Window_Default_Transition_States
+{
+	state = {
+		name = _show
+		using = Animation_FadeIn_Standard
+		duration = 0.25
+	}
+
+	state = {
+		name = _hide
+		using = Animation_FadeOut_Standard
+		duration = 0.5
+	}
+}

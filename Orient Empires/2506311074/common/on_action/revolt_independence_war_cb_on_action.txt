@@ -44,7 +44,8 @@ revolt_independence_war_county_occupied_on_action = {
 revolt_independence_war_county_change_on_action = {
 	trigger = {
 		NOR = { #某方只剩一个伯爵领且该伯爵领为首都时不会进行动态转移
-			AND = { 
+			AND = {
+				exists = scope:war.primary_attacker.capital_county
 				scope:county = scope:war.primary_attacker.capital_county
 				scope:war.primary_attacker = {
 					any_held_title = {
@@ -54,8 +55,18 @@ revolt_independence_war_county_change_on_action = {
 				}
 			}
 			AND = {
+				exists = scope:war.primary_defender.capital_county
 				scope:county = scope:war.primary_defender.capital_county
 				scope:war.primary_defender = {
+					any_held_title = {
+						count = 1
+						tier = tier_county
+					}
+				}
+			}
+			AND = {
+				scope:county.holder = {
+					is_ai = no
 					any_held_title = {
 						count = 1
 						tier = tier_county
@@ -65,19 +76,33 @@ revolt_independence_war_county_change_on_action = {
 		}
 		OR = { #动态转移的伯爵领只会是在进攻或防御方的领袖的领地内的
 			scope:war.primary_attacker = {
-				any_realm_county = {
+				any_sub_realm_county = {
 					this = scope:county
 				}
 			}
 			scope:war.primary_defender = {
-				any_realm_county = {
+				any_sub_realm_county = {
 					this = scope:county
 				}
 			}
 		}
+		NAND = { #占领者不是防御方境外盟友
+			root = { is_allied_to = scope:war.primary_defender }
+			root = { NOT = { is_vassal_or_below_of = scope:war.primary_defender } }
+		}
+		NAND = { #占领者不是防御方境外盟友
+			root.liege = { is_allied_to = scope:war.primary_defender }
+			root.liege = { NOT = { is_vassal_or_below_of = scope:war.primary_defender } }
+		}
 	}
 	effect = {
-		if = { #1.持有上级公爵领的角色
+		if = { #0.伯爵
+			limit = {
+				highest_held_title_tier = tier_county
+			}
+			root = { save_scope_as = target_holder }
+		}
+		else_if = { #1.持有上级公爵领的角色
 			limit = {
 				exists = scope:county.duchy.holder
 				scope:county.duchy.holder = { is_vassal_or_below_of = root }
@@ -94,7 +119,10 @@ revolt_independence_war_county_change_on_action = {
 							duchy = scope:county.duchy
 							count = all
 						}
-						any_held_title = { any_neighboring_county = { this = scope:county } } 
+						any_held_title = {
+							tier > tier_barony
+							any_neighboring_county = { this = scope:county }
+						} 
 					}
 				}
 			}
@@ -190,6 +218,7 @@ revolt_independence_war_county_change_on_action = {
 			random_pool_character = {
 				province = scope:county.title_province
 				limit = {
+					is_landless_administrative = no
 					is_landed = no
 					faith = root.faith
 					culture = root.culture
@@ -218,39 +247,44 @@ revolt_independence_war_county_change_on_action = {
 				martial = { 5 10 }
 				stewardship = { 5 10 }
 				intrigue = { 5 10 }
-				learning = { 5 10}
+				learning = { 5 10 }
 				prowess = { 5 10 }
 				random_traits = yes
 				save_scope_as = target_holder
 			}
 			scope:target_holder = { add_character_flag = { flag = huoxing_man years = 1 } }
 		}
-		create_title_and_vassal_change = {
-			type = conquest
-			save_scope_as = change
-			add_claim_on_loss = no
-		}
-		scope:county = {
-			change_title_holder = {
-				holder = scope:target_holder
-				change = scope:change
-			}
-		}
 		if = {
-			limit = { 
-				NOR = { 
-					scope:target_holder = root
-					scope:target_holder = { is_vassal_or_below_of = root }
-				}
+			limit = {
+				exists = scope:target_holder
 			}
-			scope:target_holder = {
-				change_liege = {
-					liege = root
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change
+				add_claim_on_loss = no
+			}
+			scope:county = {
+				change_title_holder = {
+					holder = scope:target_holder
 					change = scope:change
 				}
 			}
+			if = {
+				limit = { 
+					NOR = {
+						scope:target_holder = root
+						scope:target_holder = { is_vassal_or_below_of = root }
+					}
+				}
+				scope:target_holder = {
+					change_liege = {
+						liege = root
+						change = scope:change
+					}
+				}
+			}
+			resolve_title_and_vassal_change = scope:change
 		}
-		resolve_title_and_vassal_change = scope:change
 		#完全占领某个公爵领将弹出分地事件，分地事件会将整个公爵领的领地重新分配
 		if = {
 			limit = {
@@ -274,12 +308,15 @@ five_year_playable_pulse = {
 }
 chinese_revolt_events_on_action = {
 	trigger = {
-		top_liege = { has_primary_title = title:e_celestia }
+		OR = {
+			has_primary_title = title:e_celestia
+			top_liege = { has_primary_title = title:e_celestia }
+		}
 		current_date >= 793.1.1
-		current_date <= 887.1.1	
-		any_held_title = {
+		current_date <= 977.1.1	
+		any_sub_realm_title = {
 			tier = tier_county
-			count >2
+			count > 1
 			OR = {
 				has_county_modifier = county_corruption_deserting_levies_modifier
 				has_county_modifier = county_corruption_lackluster_administration_modifier

@@ -2,185 +2,194 @@
 	scope = character
 	is_shown = {
 		exists = this
-		is_landed = yes
+		is_ai = no
 		OR = {
 			has_nianhao_trigger = yes
 			top_liege = {
 				has_nianhao_trigger = yes
 			}
-		}	
+		}
 	}
 }
 show_miaohao_gui = {
 	scope = character
 	is_shown = {
-		has_miaohao_trigger = yes
+		exists = this
+		OR = {
+			has_shihao_trigger = yes
+			has_miaohao_trigger = yes
+		}
 	}
 }
 show_shihao_gui = {
 	scope = character
 	is_shown = {
-		has_shihao_trigger = yes
+		exists = this
+		OR = {
+			has_shihao_trigger = yes
+			has_any_nickname = yes
+		}
 	}
 }
+china_official_on_exit = {
+	scope = character
+
+	effect = {
+		clear_variable_list = celestial_government_list
+		clear_variable_list = legion_government_list
+		clear_variable_list = bureau_government_list
+
+		clear_variable_list = harem_spouse_list
+		clear_variable_list = harem_concubine_list
+		clear_variable_list = harem_spouse_house_list
+
+		clear_variable_list = tributary_list
+		clear_variable_list = suzerain_list
+		clear_variable_list = same_heritage_tributary_list
+		clear_variable_list = tribal_tributary_list
+		clear_variable_list = feudal_tributary_list
+		clear_variable_list = celestial_tributary_list
+	}
+}
+
 update_BureaucracyEmpireship_list = {
 	scope = character
-	
+
 	effect = {
 		# Clears lists
-		clear_variable_list = imperial_government_list
-		clear_variable_list = corps_government_list
+		clear_variable_list = celestial_government_list
+		clear_variable_list = legion_government_list
 		clear_variable_list = bureau_government_list
-		
-		
-		every_vassal = {
-			limit = { 
-				is_landed = yes
-				highest_held_title_tier >= tier_county
-				has_government = imperial_government
-				is_bureau_government_trigger = no
-			}
-			save_scope_as = corps_government_ally
-			root = {
-				add_to_variable_list = {
-					name = corps_government_list
-					target = scope:corps_government_ally
-				}
-			}
-		}
-		every_vassal = {
-			limit = { 
-				is_landed = yes
-				highest_held_title_tier >= tier_county
-				is_bureau_government_trigger = yes
-			}
-			save_scope_as = bureau_government_ally
-			root = {
-				add_to_variable_list = {
-					name = bureau_government_list
-					target = scope:bureau_government_ally
-				}
-			}
-		}
-		every_vassal = {
-			limit = { 
-				is_landed = yes
-				highest_held_title_tier >= tier_county
-				NOT = { 
-					has_government = imperial_government
-				}
-			}
-			save_scope_as = imperial_government_ally
-			root = {
-				add_to_variable_list = {
-					name = imperial_government_list
-					target = scope:imperial_government_ally
-				}
-			}
-		}
-	}
-}
 
-
-
-show_BureaucracyEmpire_button = {
-	scope = character
-	is_shown = {
-		OR = {
-		   has_title = title:e_celestia
-		   has_title = title:e_tang
-		   has_title = title:e_song
-		   has_title = title:e_han
-		   AND = { 
-			highest_held_title_tier = tier_empire
-			has_government = imperial_government
-		   }
-		   has_government = ulus_government					
+		top_liege = {
+			every_vassal = {
+				limit = {
+					is_landed = yes
+					highest_held_title_tier >= tier_county
+					government_has_flag = government_is_celestial
+					is_bureau_government_trigger = no
+				}
+				root = {
+					add_to_variable_list = {
+						name = legion_government_list
+						target = prev
+					}
+				}
+			}
+			every_vassal = {
+				limit = {
+					is_landed = yes
+					highest_held_title_tier >= tier_county
+					is_bureau_government_trigger = yes
+				}
+				root = {
+					add_to_variable_list = {
+						name = bureau_government_list
+						target = prev
+					}
+				}
+			}
+			every_vassal = {
+				limit = {
+					is_landed = yes
+					highest_held_title_tier >= tier_county
+					NOT = {
+						government_has_flag = government_is_celestial
+					}
+				}
+				root = {
+					add_to_variable_list = {
+						name = celestial_government_list
+						target = prev
+					}
+				}
+			}
 		}
 	}
 }
 
 east_update_harem_list = {
 	scope = character
-	
+
+	is_valid = {
+		highest_held_title_tier >= tier_kingdom
+		government_has_flag = government_is_celestial
+	}
+
 	effect = {
 		# Clears lists
 		clear_variable_list = harem_spouse_list
 		clear_variable_list = harem_concubine_list
 		clear_variable_list = harem_spouse_house_list
-		
-		every_living_character = {
-			limit = { 
-				is_spouse_of = root
+
+		every_spouse = {
+			limit = {
+				NOT = { ROOT.primary_spouse ?= this }
 			}
-			save_scope_as = spouse_ally
 			root = {
 				add_to_variable_list = {
 					name = harem_spouse_list
-					target = scope:spouse_ally
+					target = prev
 				}
 			}
 		}
-		ordered_living_character = {
-			limit = { 
-				is_landed = yes
-				exists = scope:spouse_ally.house
-				OR = { 
-					house = scope:spouse_ally.house
-					is_close_family_of = scope:spouse_ally
-				}
-				highest_held_title_tier >= tier_county
+		every_concubine = {
+			limit = {
+				NOT = { is_spouse_of = prev }
 			}
-			order_by = tier
-			max = 10
-			save_scope_as = spouse_ally_house
-			root = {
-				add_to_variable_list = {
-					name = harem_spouse_house_list
-					target = scope:spouse_ally_house
-				}
-			}
-		}
-		every_living_character = {
-			limit = { 
-				#has_relation_lover = root
-				is_consort_of = root
-				NOT = { is_spouse_of = root }
-			}
-			save_scope_as = concubine_ally
 			root = {
 				add_to_variable_list = {
 					name = harem_concubine_list
-					target = scope:concubine_ally
+					target = prev
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = primary_spouse
+			}
+			ordered_living_character = {
+				limit = {
+					is_landed = yes
+					highest_held_title_tier >= tier_county
+					house ?= ROOT.primary_spouse.house
+				}
+				order_by = tier
+				max = 4
+				root = {
+					add_to_variable_list = {
+						name = harem_spouse_house_list
+						target = prev
+					}
 				}
 			}
 		}
 	}
 }
+
 update_Bureaucracy_list = {
 	scope = character
-	
+
 	effect = {
 		clear_variable_list = bureau_official_list
-		
-		
+
 		every_vassal = {
-			limit = { 
+			limit = {
 				is_landed = yes
 				highest_held_title_tier >= tier_county
-				has_government = imperial_government
+				government_has_flag = government_is_celestial
 				has_realm_law = official_succession_law
 			}
-			save_scope_as = bureau_official_ally
 			root = {
 				add_to_variable_list = {
 					name = bureau_official_list
-					target = scope:bureau_official_ally
+					target = prev
 				}
 			}
 		}
 	}
 }
+
 Bureaucracy_Manager_ruler = {
     scope = character
     is_shown = {
@@ -198,7 +207,7 @@ Bureaucracy_Manager_ruler = {
             set_global_variable = Bureaucracy_Manager_ruler
         }
         else = {
-            remove_global_variable  = Bureaucracy_Manager_ruler
+            remove_global_variable = Bureaucracy_Manager_ruler
         }
     }
 }
@@ -219,7 +228,7 @@ Bureaucracy_Manager_noruler = {
             set_global_variable = Bureaucracy_Manager_noruler
         }
         else = {
-            remove_global_variable  = Bureaucracy_Manager_noruler
+            remove_global_variable = Bureaucracy_Manager_noruler
         }
     }
 }
@@ -240,7 +249,7 @@ Bureaucracy_Manager_onlyone = {
             set_global_variable = Bureaucracy_Manager_onlyone
         }
         else = {
-            remove_global_variable  = Bureaucracy_Manager_onlyone
+            remove_global_variable = Bureaucracy_Manager_onlyone
         }
     }
 }
@@ -261,68 +270,68 @@ Bureaucracy_Manager_court = {
             set_global_variable = Bureaucracy_Manager_court
         }
         else = {
-            remove_global_variable  = Bureaucracy_Manager_court
+            remove_global_variable = Bureaucracy_Manager_court
 		}
     }
 }
-			Bureaucracy_Manager_noterm = {
-				scope = character
-				is_shown = {
-					NOT = {
-						has_global_variable = Bureaucracy_Manager_term
-					}
-				}
-				effect = {
-					if = {
-						limit = {
-								has_global_variable = Bureaucracy_Manager_term
-						}
-						 remove_global_variable  =  Bureaucracy_Manager_term
-					}
-				}
-			}
-			Bureaucracy_Manager_term_4 = {
-				scope = character
-				is_shown = {
-					exists = global_var:Bureaucracy_Manager_term
-					global_var:Bureaucracy_Manager_term = 4
-				}
-				effect = {
-				   set_global_variable = {
-						name = Bureaucracy_Manager_term
-						value = 4
-					}
-				}
-			}
-			Bureaucracy_Manager_term_6 = {
-				scope = character
-				is_shown = {
-					exists = global_var:Bureaucracy_Manager_term
-					global_var:Bureaucracy_Manager_term = 6
-				}
-				effect = {
-				   set_global_variable = {
-						name = Bureaucracy_Manager_term
-						value = 6
-					}
-				}
-			}
-			Bureaucracy_Manager_term_8 = {
-				scope = character
-				is_shown = {
-					exists = global_var:Bureaucracy_Manager_term
-					global_var:Bureaucracy_Manager_term = 8
-				}
-				effect = {
-				   set_global_variable = {
-						name = Bureaucracy_Manager_term
-						value = 8
-					}
-				}
-			}
-			Bureaucracy_has_term = {
-				scope = character
-				is_shown = {
-					exists = var:Bureaucracy_term
-    }
-}
+#			Bureaucracy_Manager_noterm = {
+#				scope = character
+#				is_shown = {
+#					NOT = {
+#						has_global_variable = Bureaucracy_Manager_term
+#					}
+#				}
+#				effect = {
+#					if = {
+#						limit = {
+#								has_global_variable = Bureaucracy_Manager_term
+#						}
+#						 remove_global_variable =  Bureaucracy_Manager_term
+#					}
+#				}
+#			}
+#			Bureaucracy_Manager_term_4 = {
+#				scope = character
+#				is_shown = {
+#					exists = global_var:Bureaucracy_Manager_term
+#					global_var:Bureaucracy_Manager_term = 4
+#				}
+#				effect = {
+#				   set_global_variable = {
+#						name = Bureaucracy_Manager_term
+#						value = 4
+#					}
+#				}
+#			}
+#			Bureaucracy_Manager_term_6 = {
+#				scope = character
+#				is_shown = {
+#					exists = global_var:Bureaucracy_Manager_term
+#					global_var:Bureaucracy_Manager_term = 6
+#				}
+#				effect = {
+#				   set_global_variable = {
+#						name = Bureaucracy_Manager_term
+#						value = 6
+#					}
+#				}
+#			}
+#			Bureaucracy_Manager_term_8 = {
+#				scope = character
+#				is_shown = {
+#					exists = global_var:Bureaucracy_Manager_term
+#					global_var:Bureaucracy_Manager_term = 8
+#				}
+#				effect = {
+#				   set_global_variable = {
+#						name = Bureaucracy_Manager_term
+#						value = 8
+#					}
+#				}
+#			}
+#			Bureaucracy_has_term = {
+#				scope = character
+#				is_shown = {
+#					exists = var:Bureaucracy_term
+#    }
+#}

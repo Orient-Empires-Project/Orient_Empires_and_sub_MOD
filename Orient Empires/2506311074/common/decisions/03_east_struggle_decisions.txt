@@ -1,0 +1,641 @@
+﻿secure_tartaria_foothold_decision = {
+	title = secure_tartaria_foothold_decision_title
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_destiny_goal.dds"
+	}
+	desc = secure_tartaria_foothold_decision_desc
+	selection_tooltip = secure_tartaria_foothold_decision_tooltip
+	sort_order = 80
+
+	decision_group_type = struggle
+
+	is_shown = {
+		is_landless_adventurer = no
+		# DLC check
+		#has_fp2_dlc_trigger = yes
+		# Struggle is active
+		exists = struggle:tartaria_struggle
+		# Not Involved and capital lies outside Iberia
+		custom_tooltip = {
+			text = oe_struggle_uninvolved_or_external_tt
+			NOR = {
+				any_character_struggle = {
+					is_struggle_type = tartaria_struggle
+					involvement = involved
+				}
+			}
+		}
+		# Hold land near Iberia
+		any_sub_realm_county = {
+			title_province = {
+				OR = {
+					geographical_region = world_steppe
+					geographical_region = world_steppe_tartaria
+					geographical_region = world_tibet
+				}
+			}
+		}
+		NOT = { has_title = title:e_celestia }
+	}
+
+	is_valid = {
+		##### General triggers #####
+
+		# Need lots of likes
+		#TODO prestige_level >= high_prestige_level
+		# Struggle phase must be right
+		custom_tooltip = {
+			text = oe_struggle_uninvolved_or_external_tt
+			exists = capital_province
+			NOT = {
+				capital_province = { geographical_region = world_struggle_tartaria }
+			}
+		}
+		custom_tooltip = {
+			text = fp2_struggle_secure_tartaria_foothold_empire_tt
+			any_held_title = {
+				tier = tier_empire
+				NOT = { this = title:e_celestia }
+			}
+		}
+		# If my religion is involved, I need to own the better portion of those counties
+		trigger_if = {
+			limit = {
+				religion = {
+					any_faith = {
+						struggle:tartaria_struggle = { is_faith_involved_in_struggle = prev }
+					}
+				}
+			}
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_religion_tt
+				fp2_struggle_secure_tartaria_foothold_religion_percent_value >= fp2_struggle_secure_tartaria_foothold_religion_target_percent_decimal_value
+			}
+		}
+		# Otherwise, I need to own a big chunk of the peninsula
+		trigger_else = {
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_outsider_tt
+				any_county_in_region = {
+					region = world_struggle_tartaria
+					percent >= fp2_struggle_secure_tartaria_foothold_outsider_target_percent_decimal_value
+					holder.top_liege = root
+				}
+			}
+		}
+
+		##### tartaria kingdom triggers #####
+
+		# Any de jure kingdom of Iberia is completely controlled
+		custom_tooltip = {
+			text = fp2_struggle_secure_tartaria_foothold_kingdom_tartaria_tt
+			any_held_title = { fp2_struggle_secure_tartaria_foothold_tartaria_kingdom_trigger = yes count >= 3 }
+		}
+		# Real tooltips
+		trigger_if = {
+			limit = { exists = scope:tartaria_kingdom_temp }
+			# That kingdom is mostly my faith
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_kingdom_faith_tt
+				fp2_struggle_secure_tartaria_foothold_faith_trigger = yes
+			}
+			# Borders held lands in a non-tartaria kingdom you hold
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_kingdom_border_tt
+				scope:tartaria_kingdom_temp = { fp2_struggle_secure_tartaria_foothold_outsider_kingdom_trigger = yes }
+			}
+			# Held that kingdom for a while
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_kingdom_held_tt
+				scope:tartaria_kingdom_temp = { title_held_years >= 15 }
+			}
+		}
+		# Fake tooltips
+		trigger_else = {
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_kingdom_faith_tt
+				always = no
+			}
+			# Borders held lands in a non-tartaria kingdom you hold
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_kingdom_border_tt
+				always = no
+			}
+			custom_tooltip = {
+				text = fp2_struggle_secure_tartaria_foothold_kingdom_held_tt
+				always = no
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		trigger_if = {
+			limit = { exists = struggle:tartaria_struggle }
+			custom_tooltip = {
+				text = fp2_struggle_phase_hostility_or_opportunity_tt
+				struggle:tartaria_struggle = {
+					has_struggle_phase_parameter = unlocks_secure_tartaria_foothold_decision
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				any_held_title = { tier = tier_empire }
+			}
+			custom_tooltip = fp2_struggle_secure_tartaria_foothold_empire_held_effect_tt
+		}
+		else = { custom_tooltip = fp2_struggle_secure_tartaria_foothold_empire_dejure_effect_tt }
+
+		trigger_event = {
+			id = oe_struggle.1000
+		}
+
+		custom_tooltip = fp2_struggle_secure_tartaria_foothold_ends_the_struggle_tt
+	}
+
+	cost = {}
+
+	ai_check_interval = 120
+	
+	ai_potential = {}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+#############################################
+# 征服结局
+
+struggle_tartaria_ending_hostility_decision = {
+	decision_group_type = struggle
+	title = struggle_tartaria_ending_hostility_decision
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/fp2_decision_struggle_hostility.dds"
+	}
+	extra_picture = "gfx/interface/illustrations/struggle_decisions_buttons/fp2_decision_hostility.dds"
+	desc = struggle_tartaria_ending_hostility_decision_desc
+	selection_tooltip = struggle_tartaria_ending_hostility_decision_tooltip
+	confirm_click_sound = "event:/DLC/FP2/SFX/UI/fp2_struggle_ending_decision_confirm"
+	is_invisible = yes
+	sort_order = 80
+
+	is_shown = {
+		#has_fp2_dlc_trigger = yes
+	}
+
+	is_valid = {
+		is_independent_ruler = yes
+
+		custom_tooltip = {
+			text = struggle_tartaria_ending_hostility_decision_correct_phase_tt
+			any_character_struggle = {
+				involvement = involved
+				is_struggle_type = tartaria_struggle
+				is_struggle_phase = struggle_tartaria_phase_hostility
+			}
+		}
+
+		custom_tooltip = {
+			text = struggle_tartaria_ending_decision_correct_involvement_tt
+			any_character_struggle = {
+				involvement = involved
+				is_struggle_type = tartaria_struggle
+			}
+		}
+
+		# Hold and completely control two de jure kingdoms of Hispania
+		OR = {
+			custom_tooltip = { #
+				text = struggle_tartaria_ending_hostility_decision_kingdom_tt
+				completely_controls = title:e_mongolia
+				completely_controls = title:e_celestia
+			}
+			custom_tooltip = {
+				text = struggle_tartaria_ending_hostility_decision_united_chinese_throne_tt
+				OR = {
+					primary_title = title:e_cathay
+					AND = {
+						exists = global_var:steppe_chinese_empire_decision_title
+						primary_title = global_var:steppe_chinese_empire_decision_title
+					}
+				}
+				completely_controls = title:e_celestia
+			}
+		}
+
+
+		# All your capital kingdom's de jure counties are of your culture and faith		
+		custom_tooltip = {
+			text = struggle_tartaria_ending_hostility_decision_county_tt
+			capital_county.de_jure_liege.de_jure_liege = {
+				any_de_jure_county = {
+					percent = 1
+					culture = root.culture
+					faith = root.faith
+				}
+			}
+		}
+
+		# No other realm controls more than 20% of the Iberia region
+		custom_tooltip = {
+			text = struggle_tartaria_ending_hostility_decision_region_tt
+			NOT = {
+				struggle:tartaria_struggle = {
+					any_involved_ruler = {
+						NOT = { this = root }
+						is_independent_ruler = yes
+						exists = primary_title
+						primary_title = { is_mercenary_company = no }
+						save_temporary_scope_as = chinese_realm
+						any_county_in_region = {
+							region = world_europe_west_iberia
+							percent > fp2_struggle_hostility_region_percent_decimal_value
+							holder.top_liege = scope:chinese_realm
+						}
+					}
+				}
+			}
+		}
+
+		# Completely control at least 2 of the important Iberian duchies
+		calc_true_if = {
+			amount >= 5
+			completely_controls = title:d_youzhou
+			completely_controls = title:d_xijing
+			completely_controls = title:d_xuanshe
+			completely_controls = title:d_biansong
+			completely_controls = title:d_xichuan
+			completely_controls = title:d_xarmoron
+			completely_controls = title:d_xia
+		}
+	}
+
+	effect = {
+		##### Major Effects #####
+		show_as_tooltip = {
+			dynasty = { add_dynasty_prestige = 10000 }
+			give_nickname = nick_the_tengrikhagan
+		}
+		# Hispania is available!
+		#custom_tooltip = oe_struggle_can_create_empire_of_cathay_tt
+		custom_description_no_bullet = { text = fp2_struggle_house_tt }
+		# Keep the Struggle Clash for your House
+		custom_tooltip = fp2_struggle_can_keep_using_struggle_clash_tt
+		# Boost to culture and faith conversion
+		custom_tooltip = oe_struggle_hostility_conversion_tt
+		# Damage opinion with other culture/faiths
+		custom_tooltip = fp2_struggle_hostility_opinion_tt
+		custom_tooltip = fp2_struggle_hostility_opinion_negative_tt
+		# Choose Holy War boost, Culture War boost, or both
+		custom_description_no_bullet = { text = fp2_struggle_hostility_list_tt }
+		custom_tooltip = fp2_struggle_hostility_holy_cb_joint_tt
+		custom_tooltip = fp2_struggle_hostility_culture_cb_tt
+
+
+
+		show_as_tooltip = {
+			stress_impact = {
+				humble = medium_stress_impact_gain
+				cynical = medium_stress_impact_gain
+			}
+		}
+
+		# Trigger a player facing event as a coda
+		trigger_event = oe_struggle.0900
+
+	}
+
+	cost = {}
+
+	ai_check_interval = 120
+
+	ai_potential = { always = yes }
+
+	ai_will_do = { base = 100 }
+}
+
+#############################################
+# 妥协结局
+
+struggle_tartaria_ending_compromise_decision = {
+	decision_group_type = struggle
+	title = struggle_tartaria_ending_compromise_decision
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/fp2_decision_struggle_compromise.dds"
+	}
+	extra_picture = "gfx/interface/illustrations/struggle_decisions_buttons/fp2_decision_compromise.dds"
+	desc = struggle_tartaria_ending_compromise_decision_desc
+	selection_tooltip = struggle_tartaria_ending_compromise_decision_tooltip
+	confirm_click_sound = "event:/DLC/FP2/SFX/UI/fp2_struggle_ending_decision_confirm"
+	is_invisible = yes
+
+	sort_order = 80
+
+	is_shown = {
+		#has_fp2_dlc_trigger = yes
+	}
+
+	is_valid = {
+		is_independent_ruler = yes
+		NAND = { has_primary_title = title:e_celestia is_ai = yes }
+		custom_tooltip = {
+			text = struggle_tartaria_ending_compromise_decision_correct_phase_tt
+			any_character_struggle = {
+				is_struggle_type = tartaria_struggle
+				is_struggle_phase = struggle_tartaria_phase_compromise
+			}
+		}
+
+		custom_tooltip = {
+			text = struggle_ending_decision_correct_involvement_tt
+			any_character_struggle = {
+				involvement = involved
+				is_struggle_type = tartaria_struggle
+			}
+		}
+
+		OR = {
+			# Exalted among Men or higher
+			prestige_level >= very_high_prestige_level
+			# Hold and completely control a de jure kingdom of Hispania
+			custom_tooltip = {
+				text = struggle_tartaria_ending_compromise_decision_kingdom_tt
+				oe_struggle_ending_hold_de_jure_kingdom_trigger = yes
+			}
+		}
+
+		# Control more than 70% of Tartaria
+		#custom_tooltip = {
+			#text = struggle_tartaria_ending_compromise_decision_region_tt
+			#oe_struggle_ending_percent_tartaria_trigger = yes
+		#}
+
+		# No one else controls more than 50% of Iberia
+		custom_tooltip = {
+			text = struggle_tartaria_ending_compromise_decision_other_region_tt
+			oe_struggle_ending_other_percent_tartaria_trigger = yes
+		}
+
+		# No Independent Involved rulers are at war with each other
+		custom_tooltip = {
+			text = struggle_tartaria_ending_compromise_truce_tt
+			NOT = {
+				struggle:tartaria_struggle = {
+					any_involved_ruler = {
+						is_independent_ruler = yes
+						primary_title = { is_mercenary_company = no }
+						any_primary_war_enemy = {
+							is_independent_ruler = yes
+							any_character_struggle = {
+								involvement = involved
+								is_struggle_type = tartaria_struggle
+							}
+							primary_title = { is_mercenary_company = no }
+						}
+					}
+				}
+			}
+		}
+
+		OR = {
+			# Every other involved independent ruler in Iberia has at least 60 opinion of you or is strong hooked
+			custom_tooltip = {
+				text = struggle_tartaria_ending_compromise_decision_opinion_tt
+				struggle:tartaria_struggle = {
+					NOT = {
+						any_involved_ruler = {
+							NOT = { this = root }
+							is_independent_ruler = yes
+							primary_title = { is_holy_order = no }
+							primary_title = { is_mercenary_company = no }
+							save_temporary_scope_as = this_character
+							NOR = {
+								root = { has_strong_hook = scope:this_character }
+								opinion = {
+									target = root
+									value >= struggle_tartaria_ending_compromise_decision_opinion_value
+								}
+							}
+						}
+					}
+				}
+			}
+			# No other independent ruler in Iberia is a king or above
+			custom_tooltip = {
+				text = struggle_tartaria_ending_compromise_decision_independent_tt
+				struggle:tartaria_struggle = {
+					any_involved_ruler = {
+						NOT = { this = root }
+						is_independent_ruler = yes
+						primary_title = { is_mercenary_company = no }
+						primary_title.tier >= tier_empire
+					}
+				}
+			}
+			# More than 25% of Iberia is controlled by Interloper or Uninvolved rulers
+			#custom_tooltip = {
+				#text = struggle_tartaria_ending_compromise_decision_interloper_tt
+				#any_county_in_region = {
+					#region = world_europe_west_iberia
+					#percent > fp2_struggle_compromise_uninvolved_percent_decimal_value
+					#holder.top_liege = { fp2_character_interloper_in_struggle_trigger = yes }
+				#}
+			#}
+		}
+
+		# Completely control any of the important Iberian duchies
+		calc_true_if = {
+			amount >= 3
+			completely_controls = title:d_youzhou
+			completely_controls = title:d_xijing
+			completely_controls = title:d_xuanshe
+			completely_controls = title:d_biansong
+			completely_controls = title:d_xichuan
+			completely_controls = title:c_degere
+			completely_controls = title:d_xia
+		}
+	}
+
+	effect = {
+		##### Major Effects #####
+		# Personal effects for ruler
+		show_as_tooltip = { fp2_struggle_compromise_ender_effect = yes }
+		# Independent/Split De Jure Duchies will become De Jure Kingdoms
+		#if = {
+			#limit = {
+				#title:e_spain = {
+					#any_in_de_jure_hierarchy = { fp2_struggle_ending_compromise_independent_duchy_trigger = yes }
+				#}
+			#}
+			#custom_tooltip = fp2_struggle_compromise_create_new_kingdoms_tt
+		#}
+		# Other Tooltips!
+		found_steppe_chinese_empire_effect = yes
+
+		##### Minor Effects #####
+		# Self-sufficiency/defensive modifiers for each independent realm
+		show_as_tooltip = { oe_struggle_compromise_modifier_rewards_effect = yes }
+
+		show_as_tooltip = {
+			stress_impact = {
+				arrogant = medium_stress_impact_gain
+			}
+		}
+
+		# Achievements
+		add_achievement_global_variable_effect = {
+			VARIABLE = fp2_iberian_compromise_achievement_unlocked
+			VALUE = yes
+		}
+		fp2_holiday_in_iberia_check = yes
+
+		# Trigger a player facing event as a coda
+		trigger_event = oe_struggle.0901
+	}
+
+	cost = {}
+
+	ai_check_interval = 120
+
+	ai_potential = { always = yes }
+
+	ai_will_do = { base = 100 }
+}
+
+#############################################
+# 涵化结局
+
+struggle_tartaria_ending_conciliation_decision = {
+	decision_group_type = struggle
+	title = struggle_tartaria_ending_conciliation_decision
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/fp2_decision_struggle_conciliation.dds"
+	}
+	extra_picture = "gfx/interface/illustrations/struggle_decisions_buttons/fp2_decision_conciliation.dds"
+	desc = struggle_tartaria_ending_conciliation_decision_desc
+	selection_tooltip = struggle_tartaria_ending_conciliation_decision_tooltip
+	confirm_click_sound = "event:/DLC/FP2/SFX/UI/fp2_struggle_ending_decision_confirm"
+	is_invisible = yes
+
+	sort_order = 80
+
+	is_shown = {
+		#has_fp2_dlc_trigger = yes
+	}
+
+	is_valid = {
+		is_independent_ruler = yes
+		has_title = title:e_celestia
+
+		custom_tooltip = {
+			text = primary_spouse_same_culture_tt
+			AND = {
+				exists = primary_spouse
+				primary_spouse = {
+					is_independent_ruler = yes
+					#any_character_struggle = {
+						#involvement = involved
+						#is_struggle_type = tartaria_struggle
+					#}
+					highest_held_title_tier >= tier_kingdom
+				}
+				struggle:tartaria_struggle = {
+					any_involved_ruler = {
+						is_independent_ruler = yes
+						highest_held_title_tier >= tier_kingdom
+						NOT = { culture = root.culture }
+						primary_spouse = root					
+					}
+				}
+			}
+		}
+
+		custom_tooltip = {
+			text = struggle_tartaria_ending_conciliation_decision_correct_phase_tt
+			any_character_struggle = {
+				is_struggle_type = tartaria_struggle
+				is_struggle_phase = struggle_tartaria_phase_conciliation
+			}
+		}
+
+		custom_tooltip = {
+			text = struggle_ending_decision_correct_involvement_tt
+			any_character_struggle = {
+				involvement = involved
+				is_struggle_type = tartaria_struggle
+			}
+		}
+
+		prestige_level >= very_high_prestige_level # Exalted among Men or higher
+
+		# Hold and completely control a de jure kingdom of Hispania
+		custom_tooltip = {
+			text = struggle_tartaria_ending_compromise_decision_kingdom_tt
+			oe_struggle_ending_hold_de_jure_kingdom_trigger = yes
+		}
+
+		# Every other independent involved ruler in Iberia is allied to you
+		custom_tooltip = {
+			text = struggle_tartaria_ending_conciliation_decision_alliance_tt
+			struggle:tartaria_struggle = {
+				NOT = {
+					any_involved_ruler = {
+						is_independent_ruler = yes
+						primary_title = { is_mercenary_company = no }
+						primary_title = { is_holy_order = no }
+						NOR = {
+							this = root
+							is_allied_to = root
+							any_relation = { type = tributary }
+						}						
+					}
+				}
+			}
+		}
+
+		# Control more than 70% of Iberia
+		custom_tooltip = {
+			text = struggle_tartaria_ending_compromise_decision_region_tt
+			oe_struggle_ending_percent_tartaria_trigger = yes
+		}
+	}
+
+	effect = {
+		##### Major Effects #####
+		show_as_tooltip = {
+			fp2_struggle_conciliation_ender_effect = yes
+			oe_struggle_conciliation_tooltip_effect = yes
+			oe_struggle_conciliation_modifier_rewards_effect = yes
+		}
+
+		show_as_tooltip = {
+			stress_impact = {
+				arrogant = medium_stress_impact_gain
+				zealous = medium_stress_impact_gain
+			}
+		}
+
+		# Achievements
+		add_achievement_global_variable_effect = {
+			VARIABLE = fp2_iberian_conciliation_achievement_unlocked
+			VALUE = yes
+		}
+		fp2_holiday_in_iberia_check = yes
+
+
+		# Trigger a player facing event as a coda
+		trigger_event = oe_struggle.0902
+	}
+
+	cost = {}
+
+	ai_check_interval = 120
+
+	ai_potential = { always = yes }
+
+	ai_will_do = { base = 100 }
+}

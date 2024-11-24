@@ -1,0 +1,431 @@
+﻿oe_migration_cb = {
+	group = invasion	#Switching this to event will render the CB invisible.
+
+	cost = {
+		piety = {
+			add = fp1_varangian_adventure_base_piety_cost
+
+			multiply = common_cb_piety_cost_multiplier
+		}
+		prestige = {
+			value = varangian_adventurer_cb_cost
+			multiply = common_cb_prestige_cost_multiplier
+		}
+	}
+
+	allowed_for_character = {
+		#is_at_war = no
+		#is_independent_ruler = yes
+		is_ai = no
+		OR = {
+			culture = { has_cultural_pillar = heritage_mongolic }
+			culture = { has_cultural_pillar = heritage_turkic }
+		}
+		OR = {
+			government_has_flag = government_is_tribal
+			government_has_flag = government_is_ulus
+			liege = {
+				OR = {
+					government_has_flag = government_is_tribal
+					government_has_flag = government_is_ulus
+				}
+			}
+		}
+		highest_held_title_tier >= tier_duchy
+		#faith = { has_doctrine_parameter = unreformed }
+		custom_description = {
+			text = used_lifetime_migration
+			subject = scope:attacker
+			NOT = {
+				scope:attacker = {
+					has_variable = used_lifetime_migration
+					var:used_lifetime_migration > 2
+				}
+			}
+		}
+		NOT = {
+			government_has_flag = government_is_landless_adventurer
+		}
+	}
+
+	allowed_against_character = {
+		scope:defender = {
+			exists = capital_province
+			capital_province = {
+				OR = {
+					geographical_region = world_steppe
+					geographical_region = world_steppe_tartaria
+				}
+			}
+			#highest_held_title_tier <= scope:attacker.highest_held_title_tier
+			NOT = { character_is_land_realm_neighbor = scope:attacker }
+			is_ai = yes
+		}
+	}
+
+	target_titles = all
+	target_title_tier = all
+	target_de_jure_regions_above = yes
+	ignore_effect = change_title_holder
+	use_de_jure_wargoal_only = yes
+	combine_into_one = yes
+	ai_can_target_all_titles = { always = yes }
+	ai_score_mult = { value = varangian_adventure_ai_targeting_value }
+
+	#Configure war-score. This is a bit different to usual, focusing mostly on battles and almost not at all on back-capping the attacker: the Mogyers literally do not care at all if you occupy their homelands, they're moving their whole people to Pannonia anyway.
+
+	max_attacker_score_from_battles = 200
+	max_defender_score_from_battles = 200
+	max_defender_score_from_occupation = 25
+	full_occupation_by_defender_gives_victory = no
+	landless_attacker_needs_armies = no
+	attacker_capital_gives_war_score = no
+
+	#valid_to_start = {
+	#}
+
+	should_invalidate = {
+		NOT = {
+			any_in_list = {
+				list = target_titles
+				any_in_de_jure_hierarchy = {
+					tier = tier_county
+					holder = {
+						target_is_same_character_or_above = scope:defender
+					}
+				}
+			}
+		}
+		#Emperors do not deign to migrate. Plus it'll mess up title destruction.
+		scope:attacker = { highest_held_title_tier >= tier_empire }
+	}
+
+	on_invalidated = {
+	}
+
+	on_invalidated_desc = msg_invasion_war_invalidated_message
+
+	
+	on_declaration = {
+		on_declared_war = yes
+		scope:attacker = {
+			scope:attacker = {
+				change_variable = {
+					name = used_lifetime_migration
+					add = 1
+				}				
+			}
+		}
+	
+		if = {
+			limit = {
+				exists = scope:war	
+			}
+			scope:attacker = {
+				every_vassal = { #所有对你好感大于等于50，且有马上之王传统的封臣均会参战
+					limit = {
+						culture = {
+							has_cultural_tradition = tradition_horse_lords
+						}
+						is_ai = yes
+						is_at_war = no 
+						NOT = {
+							is_at_war_with = scope:defender
+						}
+						opinion = {
+							target = scope:attacker
+							value >= 50
+						}
+					}
+					scope:war = { add_attacker = prev }
+				}
+			}
+		}
+	}
+
+	on_victory_desc = {
+		desc = MIGRATION_INVASION_desc
+	}
+	
+	on_victory = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+
+		# Legitimacy
+		add_legitimacy_attacker_victory_effect = yes
+		
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
+
+		scope:attacker = {
+			every_courtier = { add_to_list = followers_list }
+		}
+
+		if = {
+			limit = { #让不独立的先独立
+				scope:attacker = { is_independent_ruler = no }
+			}
+			scope:attacker = { 
+				create_title_and_vassal_change = {
+					type = independency
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				becomes_independent = {
+					change = scope:change
+				}
+				resolve_title_and_vassal_change = scope:change
+			}
+		}
+
+		scope:attacker = {
+			every_held_title = {
+				limit = {
+					tier = tier_county
+				}
+				add_county_modifier = { #用于定位迁徙前的领地
+					modifier = oe_migration_01_modifier #大迁徙
+					years = 1
+				}
+			}
+			every_held_title = {
+				limit = {
+					tier >= tier_county
+					tier <= tier_duchy
+				}
+				add_to_list = seceding_duchy_list
+			}
+		}
+
+		scope:defender = { #防御方领土变化
+			capital_county = {
+				save_scope_as = new_capital
+			}
+			every_sub_realm_county = {
+				limit = {
+					duchy = scope:new_capital.duchy
+				}
+				set_county_culture = scope:attacker.culture
+				set_county_faith = scope:attacker.faith
+			}
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change
+				add_claim_on_loss = no
+			}
+			every_held_title = {
+				limit = {
+					tier >= tier_county
+					#tier <= scope:attacker.highest_held_title_tier
+				}
+				change_title_holder = {
+					holder = scope:attacker
+					change = scope:change
+				}
+			}
+			resolve_title_and_vassal_change = scope:change
+		}
+		scope:attacker = {
+			set_capital_county = scope:new_capital
+			every_vassal = { #未参战封臣独立
+				limit = {
+					NOT = {
+						is_at_war_with = scope:defender
+					}
+				}
+				create_title_and_vassal_change = {
+					type = independency
+					save_scope_as = indpendence_change
+					add_claim_on_loss = no
+				}
+				becomes_independent = {
+					change = scope:indpendence_change
+				}
+				resolve_title_and_vassal_change = scope:indpendence_change
+			}
+		}
+
+		scope:attacker = {
+
+			every_vassal = { #参战封臣获得威望
+				limit = {
+					is_at_war_with = scope:defender
+				}
+				hidden_effect = {
+					add_to_list = followers_list #参战封臣名单
+					add_gold = 50
+
+					every_courtier = {
+						add_to_list = followers_list #参战封臣宫廷
+					}
+					every_vassal_or_below = {
+						add_to_list = followers_list #参战封臣宫廷
+						oe_migration_effect = yes #封臣把之前的地都扔了
+					}
+					oe_migration_effect = yes #封臣把之前的地都扔了
+				}
+
+				add_prestige = 500
+
+				scope:attacker = {
+					pay_short_term_gold = { #给参战封臣金钱
+						gold = {
+							value = 50
+						}
+						target = prev
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			every_in_list = { #所有参战封臣加入你的宫廷
+				list = followers_list
+				scope:attacker = {
+					add_courtier = prev
+				}
+				return_to_court = yes
+				set_location = {
+					location = scope:attacker.capital_province
+					stick_to_location = yes
+				}
+			}
+		}
+
+		scope:defender = { #防御方封臣变化
+			create_title_and_vassal_change = {
+				type = conquest
+				save_scope_as = change2
+				add_claim_on_loss = no
+			}
+			every_vassal = {
+				#limit = { highest_held_title_tier < scope:attacker.highest_held_title_tier }
+				change_liege = {
+					liege = scope:attacker
+					change = scope:change
+				}
+			}
+			resolve_title_and_vassal_change = scope:change2
+		}
+
+		scope:attacker = { #把多余的地扔干净
+			oe_migration_effect = yes
+		}
+	
+		# Truce
+		add_truce_attacker_victory_effect = yes
+
+		# FP1: note the victory for future memorialisation via stele (if applicable).
+		scope:attacker = { fp1_remember_recent_conquest_victory_effect = yes }
+	}
+
+	on_white_peace_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = invasion_war_white_peace_desc_defender
+			}
+			desc = invasion_war_white_peace_desc
+		}
+	}
+	
+	on_white_peace = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
+		# Prestige for the attacker's war allies
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:attacker # Not important as the scales are identical
+			FAME_BASE = major_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		# Truce
+		add_truce_white_peace_effect = yes
+
+		scope:attacker = {
+			add_prestige = mongol_invasion_cb_prestige_white_peace
+		}
+	}
+
+	on_defeat_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = invasion_war_white_peace_desc_defender
+			}
+			desc = invasion_war_white_peace_desc
+		}
+	}
+	
+	on_defeat = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+		
+		# Legitimacy
+		add_legitimacy_attacker_defeat_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:defender = { accolade_defender_war_end_glory_gain_med_effect = yes }
+
+		# Prestige loss for the attacker
+		scope:attacker = {
+			pay_short_term_gold_reparations_effect = {
+				GOLD_VALUE = 5
+			}
+			add_prestige = {
+				value = massive_prestige_value
+				multiply = -1.0
+			}
+		}
+		
+		setup_invasion_cb = {
+			titles = target_titles
+			attacker = scope:attacker
+			defender = scope:defender
+			claimant = scope:claimant
+			victory = no
+		}
+
+		# Attacker loses Prestige, all other war participants gain Prestige (Defender gains full prestige, all allies on both sides gain based on war contribution).
+		modify_all_participants_fame_values = {
+			WINNER = scope:defender
+			LOSER = scope:attacker
+			FAME_BASE = scope:cb_prestige_factor # Set by 'setup_claim_cb'
+			IS_RELIGIOUS_WAR = no
+			WINNER_FAME_SCALE = scale_10_war_defender_win
+			LOSER_FAME_SCALE = -10
+			WINNER_ALLY_FAME_SCALE = 10
+			LOSER_ALLY_FAME_SCALE = 10
+		}
+	
+		add_truce_attacker_defeat_effect = yes
+		
+		scope:attacker = {
+			save_temporary_scope_as = loser
+		}
+		on_lost_aggression_war_discontent_loss = yes
+	}
+	
+	transfer_behavior = transfer
+	
+	on_primary_attacker_death = inherit
+	on_primary_defender_death = inherit
+	transfer_behavior = transfer
+	
+	attacker_allies_inherit = yes
+	defender_allies_inherit = yes
+	
+	war_name = "MIGRATION_INVASION_WAR_NAME"
+	war_name_base = "MIGRATION_INVASION_WAR_BASE_NAME"
+	cb_name = "MIGRATION_INVASION_CB_NAME"
+	
+	interface_priority = 100
+	
+	use_de_jure_wargoal_only = yes
+	
+	attacker_wargoal_percentage = 0.5
+	max_ai_diplo_distance_to_title = 2000
+}

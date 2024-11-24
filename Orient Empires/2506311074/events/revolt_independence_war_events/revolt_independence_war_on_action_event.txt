@@ -23,18 +23,22 @@ revolt_independence_war.01 = {
 	immediate = {
 		#如果该公爵领内有伯爵领正在被围攻，延后该事件30天再触发 - 暂未能实现
 		scope:county.duchy = { 
-			ordered_de_jure_county_holder = { #保存公爵领内领地最大的伯爵
-				order_by = highest_held_title_tier
-				limit = {
-					NOT = { this = root }
-					is_vassal_or_below_of = root
-					any_held_title = {
-						tier <= tier_county
-						duchy = scope:county.duchy
-						count = all
+			holder = {
+				if = {
+					limit = { any_vassal = { exists = this } }
+					ordered_vassal = { #保存公爵领内领地最大的伯爵
+						order_by = realm_size #语句修改
+						limit = {
+							NOT = { this = root }
+							any_held_title = {
+								tier <= tier_county
+								duchy = scope:county.duchy
+								count = all
+							}
+						}
+						save_scope_as = max_county_holder 
 					}
 				}
-				save_scope_as = max_county_holder 
 			}
 			random_claimant = { #保存领地里的宣称者
 				limit = {

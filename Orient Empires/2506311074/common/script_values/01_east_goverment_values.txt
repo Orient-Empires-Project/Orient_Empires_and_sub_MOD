@@ -7,12 +7,28 @@ great_misit_min_realm_size = {
 	value = {
 		add = root.liege.sub_realm_size 
 		multiply = 0.4	
-		min = 40	
+		#min = 40	
+	}
+}
+house_sub_realm_size = {
+	value = {
+		add = root.sub_realm_size 
+		add = {
+			every_house_member = {
+				limit = { top_liege = root.top_liege }
+				add = sub_realm_size
+			}
+		}
 	}
 }
 
 lifestyle_perk_points = {
 	value = perk_points_assigned
+	add = perks_in_diplomacy_lifestyle
+	add = perks_in_martial_lifestyle
+	add = perks_in_stewardship_lifestyle
+	add = perks_in_intrigue_lifestyle
+	add = perks_in_learning_lifestyle
 }
 
 #imperial government values
@@ -26,35 +42,87 @@ imperial_government_tax_min_ca_1 = -0.1
 imperial_government_tax_min_ca_2 = -0.05
 imperial_government_tax_min_ca_3 = -0.025
 
+celestial_government_tax_collector_aptitude_multiplier = {
+	value =	{
+		if = {
+			limit = {
+				check_tax_collector_aptitude = {
+					CHARACTER = scope:tax_collector
+					VALUE = 5
+				}
+			}
+			add = 15
+		}
+		else_if = {
+			limit = {
+				check_tax_collector_aptitude = {
+					CHARACTER = scope:tax_collector
+					VALUE = 4
+				}
+			}
+			add = 10
+		}
+		else_if = {
+			limit = {
+				check_tax_collector_aptitude = {
+					CHARACTER = scope:tax_collector
+					VALUE = 3
+				}
+			}
+			add = 6
+		}
+		else_if = {
+			limit = {
+				check_tax_collector_aptitude = {
+					CHARACTER = scope:tax_collector
+					VALUE = 2
+				}
+			}
+			add = 3
+		}
+		else_if = {
+			limit = {
+				check_tax_collector_aptitude = {
+					CHARACTER = scope:tax_collector
+					VALUE = 1
+				}
+			}
+			add = 1
+		}
+		else = {
+			add = 0
+		}
+	}
+}
 
-#corps government values
-corps_government_levies_default = 0.2
-corps_government_levies_player = 0.15
-corps_government_levies_opinion_scale_positive = 0.0035
-corps_government_levies_opinion_scale_negative = 0.004
-corps_government_levies_min_ca_1 = 0.05
-corps_government_levies_min_ca_2 = 0.15
-corps_government_levies_min_ca_3 = 0.25
+#legion government values
+legion_government_levies_default = 0.2
+legion_government_levies_player = 0.15
+legion_government_levies_opinion_scale_positive = 0.0035
+legion_government_levies_opinion_scale_negative = 0.004
+legion_government_levies_min_ca_1 = 0.05
+legion_government_levies_min_ca_2 = 0.15
+legion_government_levies_min_ca_3 = 0.25
 
-corps_government_tax_default = 0.2
-corps_government_tax_player = 0.05
-corps_government_tax_opinion_scale_positive = 0.001
-corps_government_tax_opinion_scale_negative = 0.005
-corps_government_tax_min_ca_1 = 0.025
-corps_government_tax_min_ca_2 = 0.05
-corps_government_tax_min_ca_3 = 0.1
+legion_government_tax_default = 0.2
+legion_government_tax_player = 0.05
+legion_government_tax_opinion_scale_positive = 0.001
+legion_government_tax_opinion_scale_negative = 0.005
+legion_government_tax_min_ca_1 = 0.025
+legion_government_tax_min_ca_2 = 0.05
+legion_government_tax_min_ca_3 = 0.1
 
-corps_government_tax_max_possible = {
-	value = corps_government_tax_default
+legion_government_tax_max_possible = {
+	value = legion_government_tax_default
 	add = {
-		value = corps_government_tax_opinion_scale_positive
+		value = legion_government_tax_opinion_scale_positive
 		multiply = 100
 	}
 }
-corps_government_levies_max_possible = {
-	value = corps_government_levies_default
+legion_government_levies_max_possible = {
+	value = legion_government_levies_default
 	add = {
-		value = corps_government_levies_opinion_scale_positive
+		value = legion_government_levies_opinion_scale_positive
 		multiply = 100
 	}
 }
@@ -65,25 +133,55 @@ bureau_government_tax_player = 0.0
 
 bureau_government_levies_default = 0.2
 
-
-
-
 bureaucracy_exp_value = {
-	value = 0
-	if = {
-		limit = { has_variable = BureaucracyEmpire_bureaucrat_exp }
-		value = var:BureaucracyEmpire_bureaucrat_exp
-	}
+	value = { add = age divide = 10 } 
 
 	add = Bureaucrat_highest_held_title_tier_value
 	add = Bureaucrat_councillor_value
-	add = Bureaucrat_development_level_value
-	add = Bureaucrat_combined_building_level_value
 	add = Bureaucrat_any_heir_title_value
 	add = Bureaucrat_piety_level_value
 	add = Bureaucrat_prestige_level_value
+	add = Bureaucrat_influence_value
 	add = Bureaucrat_dynasty_prestige_level_value
-	#add = Bureaucrat_diplomacy_lifestyle_perk_points_value
+	add = Bureaucrat_diplomacy_value
+	add = Bureaucrat_stewardship_lifestyle_perk_points_value
+	add = Bureaucrat_emperor_opinion_value
+	add = Bureaucrat_councillor_opinion_value
+	add = Bureaucrat_county_opinion_value
+	add = Bureaucrat_physically_value
+	add = Bureaucrat_illegal_criminal_value
+}
+
+bureaucracy_exp_value_levelup = {
+	value = 0
+	if = {
+		limit = { bureaucracy_exp_value < 7 }
+		value = 7
+		subtract = bureaucracy_exp_value
+	}
+	else_if = {
+		limit = { bureaucracy_exp_value < 14 }
+		value = 14
+		subtract = bureaucracy_exp_value
+	}
+	else_if = {
+		limit = { bureaucracy_exp_value < 21 }
+		value = 21
+		subtract = bureaucracy_exp_value
+	}
+	else_if = {
+		limit = { bureaucracy_exp_value < 42 }
+		value = 42
+		subtract = bureaucracy_exp_value
+	}
+	else_if = {
+		limit = { bureaucracy_exp_value < 63 }
+		value = 63
+		subtract = bureaucracy_exp_value
+	}
+	else = {
+		value = 0
+	}
 }
 
 Bureaucrat_highest_held_title_tier_value = {
@@ -91,27 +189,31 @@ Bureaucrat_highest_held_title_tier_value = {
 	desc = Bureaucrat_highest_held_title_tier_value_desc
 }
 Bureaucrat_councillor_value = {
+	value = 0
 	if = {
 		limit = { is_councillor = yes }
-		add = 6
+		add = 5
 	}
 	desc = Bureaucrat_councillor_value_desc
 }
 Bureaucrat_development_level_value = {
+	value = 0
 	if = {
 		limit = { is_landed = yes }
-		add = 6
+		add = capital_county.development_level  #6
 	}
 	desc = Bureaucrat_development_level_value_desc
 }
 Bureaucrat_combined_building_level_value = {
+	value = 0
 	if = {
 		limit = { is_landed = yes }
-		add = 6
+		add = capital_province.combined_building_level #6
 	}
 	desc = Bureaucrat_combined_building_level_value_desc
 }
 Bureaucrat_any_heir_title_value = {
+	value = 0
 	if = {
 		limit = { any_heir_title = { count >= 1 } }
 		add = 3
@@ -120,18 +222,471 @@ Bureaucrat_any_heir_title_value = {
 }
 Bureaucrat_piety_level_value = {
 	add = piety_level
+	multiply = 3
 	desc = Bureaucrat_piety_level_value_desc
 }
 Bureaucrat_prestige_level_value = {
 	add = prestige_level
+	multiply = 3
 	desc = Bureaucrat_prestige_level_value_desc
 }
 Bureaucrat_dynasty_prestige_level_value = {
-	add = dynasty.dynasty_prestige_level
+	if = {
+		limit = {
+			exists = dynasty
+			NOT = { dynasty = top_liege.dynasty }
+			dynasty = { dynasty_prestige_level >= 3 }
+		}
+	}
+	add = 3
+	multiply = dynasty.dynasty_prestige_level
 	desc = Bureaucrat_dynasty_prestige_level_value_desc
 }
-#Bureaucrat_diplomacy_lifestyle_perk_points_value = {
-#	add = diplomacy_lifestyle_perk_points
-#	divide = 5
-#	desc = Bureaucrat_diplomacy_lifestyle_perk_points_value_desc
-#}
+Bureaucrat_diplomacy_value = {
+	add = diplomacy
+	divide = 2
+	desc = Bureaucrat_diplomacy_value_desc
+}
+Bureaucrat_stewardship_lifestyle_perk_points_value = {
+	add = stewardship_lifestyle_perks
+	multiply = 2
+	desc = Bureaucrat_stewardship_lifestyle_perk_points_value_desc
+}
+Bureaucrat_emperor_opinion_value = {
+	value = 0
+	if = {
+		limit = {
+			exists = top_liege
+			OR = {
+				has_relation_friend = top_liege
+				has_relation_lover = top_liege
+				has_relation_guardian = top_liege
+				has_relation_ward = top_liege
+			}
+		}
+		add = 5
+	}
+	else_if = {
+		limit = {
+			exists = top_liege
+			OR = {
+				has_relation_best_friend = top_liege
+				has_relation_soulmate = top_liege
+			}
+		}
+		add = 10
+	}
+	else_if = {
+		limit = {
+			exists = top_liege
+			OR = {
+				has_relation_rival = top_liege
+				has_relation_nemesis = top_liege
+			}
+		}
+		add = -100
+	}
+	desc = Bureaucrat_emperor_opinion_value
+}
+Bureaucrat_councillor_opinion_value = {
+	value = 0
+	if = {
+		limit = {
+			exists = top_liege
+			top_liege = {
+				any_councillor = {
+					OR = {
+						has_relation_friend = root
+						has_relation_lover = root
+						has_relation_guardian = root
+						has_relation_ward = root
+					}
+				}
+			}
+		}
+		add = 3
+	}
+	else_if = {
+		limit = {
+			exists = top_liege
+			top_liege = {
+				any_councillor = {
+					OR = {
+						has_relation_best_friend = root
+						has_relation_soulmate = root
+					}
+				}
+			}
+		}
+		add = 5
+	}
+	else_if = {
+		limit = {
+			exists = top_liege
+			top_liege = {
+				any_councillor = {
+					OR = {
+						has_relation_rival = root
+						has_relation_nemesis = root
+					}
+				}
+			}
+		}
+		add = -50
+	}
+	else_if = {
+		limit = {
+			exists = top_liege
+			NOT = { dynasty = top_liege.dynasty }
+			any_close_or_extended_family_member = {
+				is_alive = yes
+				OR = {
+					is_councillor_of = root.top_liege
+					target_is_liege_or_above = root.top_liege
+				}
+			}
+		}
+		add = 30 
+	}
+	desc = Bureaucrat_emperor_opinion_value
+}
+Bureaucrat_county_opinion_value = {
+	value = 0
+	if = {
+		limit = { exists = capital_county }
+		add = capital_county.county_opinion
+	}
+	divide = 3
+	desc = Bureaucrat_county_opinion_value
+}
+
+Bureaucrat_influence_value = {
+	value = influence_level
+	factor = 3
+	desc = "[influence_level|E]"
+}
+
+Bureaucrat_physically_value = {
+	value = 0
+	if = {
+		limit = {
+			OR = {
+				is_physically_able = no
+				has_trait = lunatic #纯质
+				has_trait = possessed #中邪
+				has_trait = incapable #失能
+			}
+		}
+		add = -50
+	}
+	desc = Bureaucrat_physically_value
+}
+Bureaucrat_illegal_criminal_value = {
+	value = 0
+	if = {
+		limit = {
+			OR = {
+				has_trait = peasant_leader #大逆
+				is_oe_illegal_criminal_trigger = yes #众所周知的罪行
+			}
+		}
+		add = -100
+	}
+	desc = Bureaucrat_illegal_criminal_value
+}
+
+#头衔职位排行
+bureaucrat_title_score = { #root = temp_holder
+	value = 0
+	add = {
+		value = 50
+		multiply = primary_title.tier
+	}
+	add = capital_county.development_level
+	add = capital_county.county_opinion #？
+	subtract = { value = CorruptionSystem_distance_value divide = 50 }
+
+	if = {
+		limit = {
+			exists = capital_county
+			NOT = { capital_county.culture = top_liege.culture }
+		}
+		desc = "They're a different culture from me"
+		add = -50
+	}
+	if = {
+		limit = {
+			is_powerful_vassal = yes
+		}
+		add = 20
+	}
+	if = {
+		limit = {
+			is_councillor = no
+			is_landed = no
+			primary_title = {
+				is_oe_aristocrat_title = yes
+			}
+		}
+		factor = 0
+	}
+}
+
+#官阶数值
+bureaucrat_level_value = {
+	value = 0
+	if = {
+		limit = {
+			lifestyle_bureaucrat_7_trigger = yes
+		}
+		add = 7
+	}
+	else_if = {
+		limit = {
+			lifestyle_bureaucrat_6_trigger = yes
+		}
+		add = 6
+	}
+	else_if = {
+		limit = {
+			lifestyle_bureaucrat_5_trigger = yes
+		}
+		add = 5
+	}
+	else_if = {
+		limit = {
+			lifestyle_bureaucrat_4_trigger = yes
+		}
+		add = 4
+	}
+	else_if = {
+		limit = {
+			lifestyle_bureaucrat_3_trigger = yes
+		}
+		add = 3
+	}
+	else_if = {
+		limit = {
+			lifestyle_bureaucrat_2_trigger = yes
+		}
+		add = 2
+	}
+	else_if = {
+		limit = {
+			lifestyle_bureaucrat_1_trigger = yes
+		}
+		add = 1
+	}
+}
+
+#流官排位分数
+bureaucracy_score = {
+	value = 0
+	#原考绩 - 转入经验增长
+	add = bureaucracy_exp_value
+	#生活方式
+	#add = lifestyle_perk_points
+	#门第
+	if = {
+		limit = {
+			exists = top_liege
+			exists = dynasty
+			NOT = { dynasty = top_liege.dynasty }
+			dynasty = { dynasty_prestige_level >= 3 }
+		}
+		add = 30 
+		factor = dynasty.dynasty_prestige_level
+	}
+	#朝中有人
+	if = {
+		limit = {
+			exists = top_liege
+			exists = dynasty
+			NOT = { dynasty = top_liege.dynasty }
+			any_close_or_extended_family_member = {
+				is_alive = yes
+				exists = top_liege
+				OR = {
+					is_councillor_of = top_liege
+					target_is_liege_or_above = top_liege
+				}
+			}
+		}
+		add = 30
+	}
+	#进士
+	if = {
+		limit = {
+			has_trait = jinshi
+		}
+		add = 20
+	}
+	#状元
+	if = {
+		limit = {
+			has_trait = zhuangyuan
+		}
+		add = 50
+	}
+	#官阶州等对位
+	if = {
+		limit = { lifestyle_bureaucrat_1_trigger = yes }
+		if = {
+			limit = { is_landed = no }
+			add = 20
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value >= 3 }
+			add = -250
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_2_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 3 }
+			add = 20
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value >= 3 }
+			add = -100
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_3_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 3 }
+			add = 30
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value > 3 }
+			add = -30
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_4_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 4 }
+			add = 40
+		}
+		if = {
+			limit = { bureaucrat_title_rank_value > 4 }
+			add = -40
+		}
+	}
+	if = {
+		limit = { lifestyle_bureaucrat_5_trigger = yes }
+		if = {
+			limit = { bureaucrat_title_rank_value < 5 }
+			add = 100
+		}
+	}
+	if = {
+		limit = { is_oe_landed_bureaucrat_trigger = no }
+		multiply = 0
+	}
+}
+
+#州等 数值
+bureaucrat_title_rank_value = {
+	if = {
+		limit = { bureaucrat_title_rank_1 = yes }
+		add = 1
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_2 = yes }
+		add = 2
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_3 = yes }
+		add = 3
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_4 = yes }
+		add = 4
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_5 = yes }
+		add = 5
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_6 = yes }
+		add = 6
+	}
+	else_if = {
+		limit = { bureaucrat_title_rank_7 = yes }
+		add = 7
+	}
+}
+
+
+#同官阶考绩排名=升迁顺位 X
+#同州等 官阶x考绩 排名=升迁顺位
+bureaucracy_exp_rank = {
+	value = 1
+	if = {
+		limit = {
+			is_ai = no
+		}
+		every_ruler = {
+			if = {
+				limit = {
+					NOT = { this = root }
+					is_oe_landed_bureaucrat_trigger = yes
+					has_trait = lifestyle_bureaucrat
+					bureaucrat_title_rank_value = root.bureaucrat_title_rank_value
+					bureaucracy_exp_value > root.bureaucracy_exp_value
+				}
+				add = 1
+			}
+		}
+	}
+	else = {
+		every_ruler = {
+			if = {
+				limit = {
+					NOT = { this = root }
+					is_oe_landed_bureaucrat_trigger = yes
+					has_trait = lifestyle_bureaucrat
+					bureaucrat_title_rank_value = root.bureaucrat_title_rank_value
+					bureaucracy_score > root.bureaucracy_score
+				}
+				add = 1
+			}
+		}
+	}
+}
+
+#原考绩的效率化
+bureaucrat_efficiency = {
+	value = bureaucracy_exp_value
+	subtract = 50
+	divide = 100
+}
+
+#总督效率 governor_efficiency
+
+#考绩加分
+bureaucrat_xp_add_min = {
+	value = 10
+	factor = bureaucrat_efficiency
+}
+bureaucrat_xp_add_medium = {
+	value = 20
+	factor = bureaucrat_efficiency
+}
+bureaucrat_xp_add_max = {
+	value = 50
+	factor = bureaucrat_efficiency
+}
+
+#家族人员数
+house_member_num_even_dead = {
+	value = 0
+	house = {
+		every_house_member = {
+			even_if_dead = yes
+			add = 1
+		}
+	}
+	
+}

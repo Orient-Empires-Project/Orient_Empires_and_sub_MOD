@@ -4,153 +4,491 @@
 
 #WLTDJ20220123
 
-#二、朝贡机制
-#
-#在宗主国-朝贡国关系中，双方获得的影响
-#朝贡国将在收入、革新、发展度上获得收益，但会损失威望、宗族威望，朝贡国所在文化有机会获得新的革新（详情见“因素影响机制-第7类”的说明）
-#玩家作为宗主国时，将定期面临是否支付金钱维持朝贡关系抉择，但在面临该抉择时，还可以选择追加金钱投入获得来自朝贡国的事件兵（详情见“因素影响机制-第5类”的说明）
-#
-#对于统治者A、B，A可以成为B的朝贡国以及可以维持B的朝贡国地位的条件为：
-#A为独立统治者，等级大于男爵
-#A、B之间没有任何直接/间接的领主-封臣关系
-#A的主头衔级别低于B
-#A、B间不在交战，也没有因为劫掠而保持敌对
-#
-#若一个统治者已有宗主国，其无法向另一个统治者提出成为其朝贡国
-#系统定期判定双方是否仍满足宗主国-朝贡国关系的维持条件，若不满足，自动解除关系
-#宣战、加入战争、劫掠这类敌对行为将自动解除宗主国-朝贡国关系
-#
-#强迫成为朝贡国战争
-#进攻方、防御方徐满足上述“A可以成为B的朝贡国以及可以维持B的朝贡国地位的条件”，且进攻方、防御方不是同盟关系、未在战争中处于同一方或正在与对方交战
-#只有玩家才能发动该战争
-#注意：每次一旦开战，进攻方都会获得一项负面修正，而且会叠加，开战请三思！
+is_suzerain = {
+	has_trait = suzerain
+}
 
+is_tributary = {
+	OR = {
+		exists = var:my_suzerain
+		has_trait = tributary
+	}
+}
 
+has_suzerain = {
+	any_relation = {
+		type = suzerain
+		count > 0
+	}
+}
 
-#每拥有一个朝贡国，宗主国将获得正面修正（详情见“因素影响机制-第8类”的说明）
-#若防御方已有宗主国，则进攻方胜利后将使得防守方解除与原宗主国朝贡关系。进攻方与该原宗主国关系恶化
+has_tributaries = {
+	any_relation = {
+		type = tributary
+		count > 0
+	}
+}
+
+is_permanent_tributary = {
+	has_variable = tributary_type
+	var:tributary_type = flag:permanent
+}
+
+is_non_permanent_tributary = {
+	has_variable = tributary_type
+	var:tributary_type = flag:non_permanent
+}
+
+has_permanent_tributaries = {
+	any_relation = {
+		type = tributary
+		is_permanent_tributary = yes
+		count > 0
+	}
+}
+
+has_non_permanent_tributaries = {
+	any_relation = {
+		type = tributary
+		is_non_permanent_tributary = yes
+		count > 0
+	}
+}
+
+can_be_tributary_trigger = {
+	is_landed = yes
+	is_independent_ruler = yes
+	is_suzerain = no
+	is_alive = yes
+	highest_held_title_tier <= tier_kingdom	
+	highest_held_title_tier > tier_barony
+	NOR = {
+		has_government = theocracy_government
+		has_government = holy_order_government
+		has_government = mercenary_government
+		has_government = landless_adventurer_government
+	}
+}
+
+can_be_tributary_of = {#可以成为其朝贡国
+	can_be_tributary_trigger = yes
+	NOT = { is_vassal_or_below_of = $TARGET$ } 
+	NOT = { is_liege_or_above_of = $TARGET$ }
+	NOT = { this = $TARGET$ }
+	NOT = { is_at_war_with = $TARGET$ }
+	NOT = { is_causing_raid_hostility_towards = $TARGET$ }
+	$TARGET$ = {
+		can_be_suzerain_trigger = yes
+	}
+
+	tier_difference = {
+		target = $TARGET$
+		value < 0
+	}
+}
+
+can_be_suzerain_trigger = {
+	is_landed = yes
+	is_independent_ruler = yes
+	is_tributary = no
+	is_alive = yes		
+	highest_held_title_tier >= tier_kingdom
+	NOT = { primary_title = title:e_hre }
+}
+
+can_be_suzerain_of = {#可以成为其宗主国
+	can_be_suzerain_trigger = yes
+	NOT = { is_vassal_or_below_of = $TARGET$ } 
+	NOT = { is_liege_or_above_of = $TARGET$ }
+	NOT = { this = $TARGET$ }
+	NOT = { is_at_war_with = $TARGET$ }
+	NOT = { is_causing_raid_hostility_towards = $TARGET$ }
+	$TARGET$ = {
+		can_be_tributary_trigger = yes
+	}
+
+	tier_difference = {
+		target = $TARGET$
+		value > 0
+	}
+}
 
 
 TributeSystem_can_attack_to_force_to_be_suzerain_of_trigger = {
-#	has_perk = forced_vassalage_perk
-	is_ai = no
-	TributeSystem_can_ask_to_be_suzerain_of_trigger = { TRIBUTARY = $TRIBUTARY$ }
-	NOT = { is_at_war_with = scope:$TRIBUTARY$ }
-	NOT = { is_allied_in_war = scope:$TRIBUTARY$ }
-	NOT = { is_allied_to = scope:$TRIBUTARY$ }
+	#	has_perk = forced_vassalage_perk
+		is_ai = no
+		can_be_suzerain_of = { TARGET = $TRIBUTARY$ }
+		NOT = { is_at_war_with = $TRIBUTARY$ }
+		NOT = { is_allied_in_war = $TRIBUTARY$ }
+		NOT = { is_allied_to = $TRIBUTARY$ }
 }
 
 
-TributeSystem_can_ask_to_be_tributary_of_trigger = {#可以提出成为其朝贡国
-	TributeSystem_can_be_tributary_of_trigger = { SUZERAIN = $SUZERAIN$ }
-	NOT = { any_relation = { type = WLTDJ_suzerain is_alive = yes } }
-	NOT = { has_relation_WLTDJ_suzerain = scope:$SUZERAIN$ }
+#同宗朝贡国
+TributeSystem_is_same_heritage_tributary_of_trigger = {
+	has_relation_suzerain = $SUZERAIN$
+	OR = {
+		#culture = { has_same_culture_heritage = $SUZERAIN$.culture }
+		has_faith = $SUZERAIN$.faith
+		dynasty = $SUZERAIN$.dynasty
+		is_allied_to = $SUZERAIN$
+	}
+
+}
+#怀柔宗主国
+TributeSystem_suzerain_is_civilized_trigger = {
+	#is_suzerain = yes
+	exists = this
+	has_royal_court = yes
+	OR = {
+		has_court_type = court_scholarly
+		has_court_type = court_diplomatic
+	}
+}
+#会盟宗主国
+TributeSystem_suzerain_is_league_trigger = {
+	#is_suzerain = yes
+	exists = this
+	OR = {
+		AND = {
+			has_royal_court = yes
+			has_court_type = court_administrative
+		}		
+		has_government = republic_government
+	}
+}
+#霸主宗主国
+TributeSystem_suzerain_is_hegemony_trigger = {
+	#is_suzerain = yes
+	exists = this
+	has_royal_court = yes
+	OR = {
+		has_court_type = court_intrigue
+		has_court_type = court_tribal
+		has_court_type = court_warlike
+	}
 }
 
-TributeSystem_can_be_tributary_of_trigger = {#可以成为其朝贡国
-	is_independent_ruler = yes
-	primary_title.tier > tier_barony
-	NOT = { is_vassal_or_below_of = scope:$SUZERAIN$ } 
-	NOT = { is_liege_or_above_of = scope:$SUZERAIN$ }
-	NOT = { this = scope:$SUZERAIN$ }
-	NOT = {
-		any_held_title = {
-			tier = holder.primary_title.tier
-			any_this_title_or_de_jure_above = {
-				holder = scope:$SUZERAIN$
+#宗主国等级最小经验值
+TributeSystem_suzerain_EXP_MIN_trigger = {
+	is_suzerain = yes
+	OR = {
+		has_trait_xp = {
+			trait = suzerain
+			track = civilized_suzerain
+			value >= $MIN$
+		}
+		has_trait_xp = {
+			trait = suzerain
+			track = league_suzerain
+			value >= $MIN$
+		}
+		has_trait_xp = {
+			trait = suzerain
+			track = hegemony_suzerain
+			value >= $MIN$
+		}
+	}
+}
+
+#二级宗主国
+TributeSystem_level_2_suzerain_trigger = {
+	TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 30 }
+}
+#三级宗主国
+TributeSystem_level_3_suzerain_trigger = {
+	TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 60 }
+}
+#四级宗主国
+TributeSystem_level_4_suzerain_trigger = {
+	TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 100 }
+}
+
+##############################
+#不完全分类，朝贡页面用
+#王化朝贡国
+TributeSystem_civilized_tributary_trigger = {
+	is_tributary = yes
+	OR = {
+		AND = {
+			has_trait_xp = {
+				trait = tributary
+				track = civilized
+				value >= 30
+			}
+			has_trait_xp = {
+				trait = tributary
+				track = league
+				value < 30
+			}
+			has_trait_xp = {
+				trait = tributary
+				track = hegemony
+				value < 30
+			}
+		}
+		has_trait_xp = {
+			trait = tributary
+			track = civilized
+			value >= 60
+		}
+	}
+}
+#互市朝贡国
+TributeSystem_league_tributary_trigger = {
+	is_tributary = yes
+	OR = {
+		AND = {
+			has_trait_xp = {
+				trait = tributary
+				track = civilized
+				value < 30
+			}
+			has_trait_xp = {
+				trait = tributary
+				track = league
+				value >= 30
+			}
+			has_trait_xp = {
+				trait = tributary
+				track = hegemony
+				value < 30
+			}
+		}
+		has_trait_xp = {
+			trait = tributary
+			track = league
+			value >= 60
+		}
+	}
+}
+#臣道朝贡国
+TributeSystem_hegemony_tributary_trigger = {
+	is_tributary = yes
+	OR = {
+		AND = {
+			has_trait_xp = {
+				trait = tributary
+				track = civilized
+				value < 30
+			}
+			has_trait_xp = {
+				trait = tributary
+				track = league
+				value < 30
+			}
+			has_trait_xp = {
+				trait = tributary
+				track = hegemony
+				value >= 30
+			}
+		}
+		has_trait_xp = {
+			trait = tributary
+			track = hegemony
+			value >= 60
+		}
+	}
+}
+
+##############################
+
+#对等宗藩 经验值最小值
+TributeSystem_true_tributary_EXP_MIN_trigger = {
+	is_tributary = yes
+	OR = {
+		AND = {
+			var:my_suzerain = { TributeSystem_suzerain_is_civilized_trigger = yes }
+			has_trait_xp = {
+				trait = tributary
+				track = civilized
+				value >= $MIN$
+			}
+		}
+		AND = {
+			var:my_suzerain = { TributeSystem_suzerain_is_league_trigger = yes }
+			has_trait_xp = {
+				trait = tributary
+				track = league
+				value >= $MIN$
+			}
+		}
+		AND = {
+			var:my_suzerain = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+			has_trait_xp = {
+				trait = tributary
+				track = hegemony
+				value >= $MIN$
 			}
 		}
 	}
-	tier_difference = {
-		target = scope:$SUZERAIN$
-		value < 0
-	}
-	NOT = { is_at_war_with = scope:$SUZERAIN$ }
-	NOT = { is_causing_raid_hostility_towards = scope:$SUZERAIN$ }
-	scope:$SUZERAIN$ = {
-		is_independent_ruler = yes
-		primary_title.tier > tier_barony
-	}
+}
+
+#对等宗藩 二级朝贡国
+TributeSystem_true_level_2_tributary_trigger = {
+	TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 30 }
+}
+
+#对等宗藩 三级朝贡国
+TributeSystem_true_level_3_tributary_trigger = {
+	TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 60 }
+}
+
+#对等宗藩 四级朝贡国
+TributeSystem_true_level_4_tributary_trigger = {
+	TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 100 }
 }
 
 
-TributeSystem_can_ask_to_be_suzerain_of_trigger = {#可以提出成为其宗主国
-	TributeSystem_can_be_suzerain_of_trigger = { TRIBUTARY = $TRIBUTARY$ }
-	NOT = { has_relation_WLTDJ_tributary = scope:$TRIBUTARY$ }
-}
-
-
-TributeSystem_can_be_suzerain_of_trigger = {#可以成为其宗主国
-	save_temporary_scope_as = temp_suzerain
-	is_independent_ruler = yes
-	primary_title.tier > tier_barony
-	NOT = { is_vassal_or_below_of = scope:$TRIBUTARY$ } 
-	NOT = { is_liege_or_above_of = scope:$TRIBUTARY$ }
-	NOT = { this = scope:$TRIBUTARY$ }
-	tier_difference = {
-		target = scope:$TRIBUTARY$
-		value > 0
-	}
-	NOT = {
-		scope:$TRIBUTARY$ = {
-			any_held_title = {
-				tier = holder.primary_title.tier
-				any_this_title_or_de_jure_above = {
-					holder = scope:temp_suzerain
-				}
-			}
+#一般朝贡国 第一级以下
+TributeSystem_general_tributary_trigger = {
+	is_tributary = yes
+	NOR = {
+		has_trait_xp = {
+			trait = tributary
+			track = civilized
+			value >= 30
+		}
+		has_trait_xp = {
+			trait = tributary
+			track = league
+			value >= 30
+		}
+		has_trait_xp = {
+			trait = tributary
+			track = hegemony
+			value >= 30
 		}
 	}
-	NOT = { is_at_war_with = scope:$TRIBUTARY$ }
-	NOT = { is_causing_raid_hostility_towards = scope:$TRIBUTARY$ }
-	scope:$TRIBUTARY$ = {
-		is_independent_ruler = yes
-		primary_title.tier > tier_barony
-	}
 }
 
-TributeSystem_can_offer_allegiance_trigger = {
-#	has_perk = defensive_negotiations_perk
-#	dynasty.dynasty_prestige_level >= 5
-#	prestige_level >= 3
-	diplomacy >= 0
-}
-
-
-TributeSystem_can_demand_allegiance_trigger= {
-#	has_perk = defensive_negotiations_perk
-#	dynasty.dynasty_prestige_level >= 5
-#	prestige_level >= 3
-	diplomacy >= 0
-}
-
-
-TributeSystem_is_type_01_tributary_of_trigger = {
-	has_relation_WLTDJ_suzerain = scope:$suzerain$
+#朝贡国等级最小经验值
+TributeSystem_tributary_EXP_MIN_trigger = {
+	is_tributary = yes
 	OR = {
-		culture = { has_same_culture_pillar_same = scope:$suzerain$.culture }
-		has_faith = scope:$suzerain$.faith
-		dynasty = scope:$suzerain$.dynasty
-		is_allied_to = scope:$suzerain$
+		has_trait_xp = {
+			trait = tributary
+			track = civilized
+			value >= $MIN$
+		}
+		has_trait_xp = {
+			trait = tributary
+			track = league
+			value >= $MIN$
+		}
+		has_trait_xp = {
+			trait = tributary
+			track = hegemony
+			value >= $MIN$
+		}
 	}
-
 }
 
-TributeSystem_is_type_02_tributary_of_trigger = {
-	has_relation_WLTDJ_suzerain = scope:$suzerain$
-	has_government = tribal_government
+#二级朝贡国
+TributeSystem_level_2_tributary_trigger = {
+	TributeSystem_tributary_EXP_MIN_trigger = { MIN = 30 }
 }
 
-TributeSystem_is_type_03_tributary_of_trigger = {
-	has_relation_WLTDJ_suzerain = scope:$suzerain$
-	has_government = feudal_government
+#三级朝贡国
+TributeSystem_level_3_tributary_trigger = {
+	TributeSystem_tributary_EXP_MIN_trigger = { MIN = 60 }
 }
 
-TributeSystem_is_type_04_tributary_of_trigger = {
-	has_relation_WLTDJ_suzerain = scope:$suzerain$
+#四级朝贡国 - 可合邦
+TributeSystem_level_4_tributary_trigger = {
+	TributeSystem_tributary_EXP_MIN_trigger = { MIN = 100 }
+}
+
+#合邦条件 朝贡国侧 双方满级
+TributeSystem_can_annex_tributary_trigger = {
+	is_tributary = yes
 	OR = {
-		has_government = imperial_government
-		has_government = bureau_government
-		has_government = corps_government
+		AND = { #永久朝贡国
+			is_permanent_tributary = yes
+			TributeSystem_level_4_tributary_trigger = yes
+		}
+		TributeSystem_true_level_4_tributary_trigger = yes
 	}
+}
+
+#宗主国低级索取：霸主任意、互市二级、王化二级
+TributeSystem_suzerain_can_demand_medium_trigger = {
+	OR = {
+		custom_description = {
+			text = trait_track_hegemony_suzerain
+			TributeSystem_suzerain_is_hegemony_trigger = yes
+		}
+		AND = {
+			custom_description = {
+				text = trait_track_league_suzerain
+				TributeSystem_suzerain_is_league_trigger = yes
+			}
+			custom_description = {
+				text = is_level_2_suzerain
+				TributeSystem_level_2_suzerain_trigger = yes
+			}
+		}
+		AND = {
+			custom_description = {
+				text = trait_track_civilized_suzerain
+				TributeSystem_suzerain_is_civilized_trigger = yes
+			}
+			custom_description = {
+				text = is_level_2_suzerain
+				TributeSystem_level_2_suzerain_trigger = yes
+			}				
+		}
+	}
+}
+
+#宗主国高级索取：霸主任意、互市二级、王化三级
+TributeSystem_suzerain_can_demand_high_trigger = {
+	OR = {
+		custom_description = {
+			text = trait_track_hegemony_suzerain
+			TributeSystem_suzerain_is_hegemony_trigger = yes
+		}
+		AND = {
+			custom_description = {
+				text = trait_track_league_suzerain
+				TributeSystem_suzerain_is_league_trigger = yes
+			}
+			custom_description = {
+				text = is_level_2_suzerain
+				TributeSystem_level_2_suzerain_trigger = yes
+			}
+		}
+		AND = {
+			custom_description = {
+				text = trait_track_civilized_suzerain
+				TributeSystem_suzerain_is_civilized_trigger = yes
+			}
+			custom_description = {
+				text = is_level_3_suzerain
+				TributeSystem_level_3_suzerain_trigger = yes
+			}				
+		}
+	}
+}
+
+
+
+# Petition is still valid
+petition_suzerain_valid_trigger = {
+	is_alive = yes
+	is_imprisoned = no
+	has_variable = my_suzerain
+	any_relation = {
+		type = suzerain
+		this = var:my_suzerain
+	}
+	var:my_suzerain = {
+		is_imprisoned = no
+		has_royal_court = yes
+	}
+}
+
+TributeSystem_chinese_tributary_trigger = {
+	scope:actor = { capital_province = { geographical_region = world_asia_china } }
+	scope:recipient = {	capital_province = { geographical_region = world_asia_china } }
 }

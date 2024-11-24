@@ -14,16 +14,16 @@ east_on_contract_attend_on_action = {
 				limit = {
 					NOT = { is_at_war_with = scope:defender }
 					OR = {
-						vassal_contract_has_flag = imperial_corps_1
+						vassal_contract_has_flag = imperial_legion_1
 					}
 				}
-				trigger_event = { id = east_crops.0005 days = 5 }
+				trigger_event = { id = east_legions.0005 days = 5 }
 			}
 			every_vassal_or_below = {
 				limit = {
 					NOT = { is_at_war_with = scope:defender }
 					OR = {
-						vassal_contract_has_flag = imperial_corps_2
+						vassal_contract_has_flag = imperial_legion_2
 					}
 				}
 				save_scope_as = defender_temp
@@ -36,13 +36,13 @@ east_on_contract_attend_on_action = {
 									OR = {
 										holder.liege = scope:defender_temp
 										holder = scope:defender_temp
-										holder.primary_title.kingdom = scope:defender_temp.primary_title.kingdom
+										holder.capital_province.kingdom = scope:defender_temp.capital_province.kingdom
 									}
 								}
 							}
 						}	
 					}
-					trigger_event = { id = east_crops.0004 days = 5 }
+					trigger_event = { id = east_legions.0004 days = 5 }
 				}
 			}
 		}
@@ -55,16 +55,16 @@ east_on_contract_attend_on_action = {
 				limit = {
 					NOT = { is_at_war_with = scope:defender }
 					OR = {
-						vassal_contract_has_flag = imperial_corps_1
+						vassal_contract_has_flag = imperial_legion_1
 					}
 				}
-				trigger_event = { id = east_crops.0006 days = 5 }
+				trigger_event = { id = east_legions.0006 days = 5 }
 			}
 			every_vassal_or_below = {
 				limit = {
 					NOT = { is_at_war_with = scope:attacker }
 					OR = {
-						vassal_contract_has_flag = imperial_corps_2
+						vassal_contract_has_flag = imperial_legion_2
 					}
 				}
 				save_scope_as = defender_temp
@@ -77,19 +77,19 @@ east_on_contract_attend_on_action = {
 									OR = {
 										holder.liege = scope:defender_temp
 										holder = scope:defender_temp
-										holder.primary_title.kingdom = scope:defender_temp.primary_title.kingdom
+										holder.capital_province.kingdom = scope:defender_temp.capital_province.kingdom
 									}
 								}
 							}
 						}	
 					}
-					trigger_event = { id = east_crops.0003 days = 5 }
+					trigger_event = { id = east_legions.0003 days = 5 }
 				}
 			}
 		}
 	}
 }	
-on_game_start_after_lobby = { #by 糜三小姐
+on_game_start = { #by 糜三小姐
 	on_actions = {
 		east_on_contract_lobby_effects
 	}
@@ -99,54 +99,58 @@ on_game_start_after_lobby = { #by 糜三小姐
 east_on_contract_lobby_effects = {	
 	effect = {
 		every_ruler = {
-			if = {
-				limit = { #藩镇契约转换
-					is_independent_ruler = no
-					#culture = { has_cultural_pillar = heritage_chinese }
-					current_date > 763.1.1
-					current_date <= 1067.1.1
-					is_corps_government_trigger = yes
-					liege = { 
-						is_independent_ruler = yes
-		 			}
-				}
-				change_government = imperial_government
-				vassal_contract_set_obligation_level = {
-					type = special_imperial_contract
-					level = 1
-				}
-				if = {
-					top_liege = { has_government = imperial_government }
-					vassal_contract_set_obligation_level = {
-						type = special_imperial_corps
-						level = 2
-					} 
-				}
-			}
-			if = {
-				limit = { #民州契约转换
-					is_independent_ruler = no
-					#culture = { has_cultural_pillar = heritage_chinese }
-					current_date > 763.1.1
-					current_date <= 1067.1.1
-					is_bureau_government_trigger = yes
-					liege = { 
-						is_independent_ruler = yes
-					}
-				}
-				change_government = imperial_government
-				vassal_contract_set_obligation_level = {
-					type = special_imperial_contract
-					level = 0
-				}
-			}
+			#if = {
+				#limit = { #藩镇契约转换
+					#is_independent_ruler = no
+					#NOT = { has_trait = peasant_leader }
+					##culture = { has_cultural_pillar = heritage_chinese }
+					#government_has_flag = government_is_legion
+					#liege = { 
+						#is_independent_ruler = yes
+						#government_has_flag = government_is_celestial
+						#is_oe_imperial_government_trigger = yes
+		 			#}
+				#}
+				#change_to_celes_government_effect = yes
+				#vassal_contract_set_obligation_level = {
+					#type = special_imperial_contract
+					#level = 1
+				#}
+				#vassal_contract_set_obligation_level = {
+					#type = special_imperial_legion
+					#level = 2
+				#}
+				##if = {
+					##limit = {
+						##NOT = { has_realm_law = legion_succession_law }
+					##}
+					##add_realm_law_skip_effects = official_succession_law
+				##}
+			#}
+			#if = {
+				#limit = { #民州契约转换
+					#is_independent_ruler = no
+					#NOT = { has_trait = peasant_leader }
+					##culture = { has_cultural_pillar = heritage_chinese }
+					#government_has_flag = government_is_bureau
+					#tier >= tier_county
+					#liege = { 
+						#is_independent_ruler = yes
+						#government_has_flag = government_is_celestial
+						#is_oe_imperial_government_trigger = yes
+					#}
+				#}
+				#change_to_celes_government_effect = yes
+				#vassal_contract_set_obligation_level = {
+					#type = special_imperial_contract
+					#level = 0
+				#}
+			#}
 			if = {
 				limit = { #都护契约转换
 					is_independent_ruler = no
 					culture = { has_cultural_pillar = heritage_chinese }
-					current_date > 763.1.1
-					current_date <= 1067.1.1
-					top_liege = { 
+					liege = { 
 						is_oe_imperial_government_trigger = yes
 					}
 					OR = {
@@ -170,7 +174,7 @@ east_on_contract_lobby_effects = {
 					level = 1
 				}
 				vassal_contract_set_obligation_level = {
-					type = special_imperial_corps
+					type = special_imperial_legion
 					level = 4
 				} 
 			}
@@ -185,13 +189,22 @@ on_title_gain = {
 }	
 oe_contract_title_gain_effects = {
 	trigger = {
-		scope:transfer_type = flag:granted #被授予头衔
-		has_government = imperial_government
-		liege = {
-			has_government = imperial_government
-			highest_held_title_tier = tier_empire
+		OR = {
+			scope:transfer_type = flag:granted #被授予头衔
+			scope:transfer_type = flag:appointment #任命
 		}
-		NOT = { has_variable = oe_contract_title } 
+		scope:title.tier >= primary_title.tier
+		government_has_flag = government_is_celestial
+		liege = {
+			government_has_flag = government_is_celestial
+			highest_held_title_tier >= tier_kingdom
+		}
+		NOT = { has_variable = oe_contract_title }
+		NOT = { has_variable = oe_contract_title_set }
+		scope:title = {
+			is_oe_noble_family_title = no
+			is_landless_type_title = no
+		}
 	}
 	effect = {
 		save_scope_as = recipient
@@ -205,7 +218,16 @@ oe_contract_title_gain_effects = {
 			
 			trigger_event = {
 				id = east_contract.0004
-			}	
+			}
+			if = {
+				limit = {
+					is_ai = no
+					scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+				}
+				trigger_event = {
+					id = east_contract.0006
+				}
+			}
 		}
 	}	
 }	

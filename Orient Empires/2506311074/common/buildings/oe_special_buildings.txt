@@ -1,4 +1,4 @@
-holy_site_dashuyuan_01 = {
+﻿holy_site_dashuyuan_01 = {
 
 	asset = {
 		type = pdxmesh
@@ -17,12 +17,12 @@ holy_site_dashuyuan_01 = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
-		scope:holder = {
+		county.holder = {
 			culture = {
-				has_innovation = innovation_crop_rotation
+				has_cultural_tradition = tradition_chinese_succession
 			}
 		}
 	}
@@ -31,7 +31,7 @@ holy_site_dashuyuan_01 = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
 	}
@@ -41,9 +41,14 @@ holy_site_dashuyuan_01 = {
 	character_modifier = {
 		monthly_piety = 0.25
 		monthly_dynasty_prestige_mult = 0.05
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.05
 		clergy_opinion = 5
-		monthly_county_control_change_factor = 0.05
+		monthly_county_control_growth_factor = 0.05
 		monthly_lifestyle_xp_gain_mult = 0.1
+		legitimacy_gain_mult = 0.1
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
 	}
 	
 	county_modifier = {
@@ -58,16 +63,104 @@ holy_site_dashuyuan_01 = {
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_learning
+	flag = celestial_university
+}
+
+celestial_university = {
+	construction_time = very_slow_construction_time
+	effect_desc = {
+		desc = unlocks_building_desc
+		triggered_desc = {
+			trigger = { has_dlc_feature = tours_and_tournaments }
+			desc = university_toto_effect_desc
+		}
+		triggered_desc = {
+			trigger = { has_dlc_feature = royal_court }
+			desc = university_roco_effect_desc
+		}
+		desc = university_effect_desc
+	}
+
+	type_icon = "becp_icon_miao2.dds"
+	
+	can_construct_potential = {
+		building_requirement_tribal = no
+		building_university_requirement = yes
+	}
+	
+	can_construct = {
+		county.holder = {
+			is_oe_imperial_court_trigger = yes
+		}
+		custom_description = {
+			text = is_capital_barony_trigger
+			county = county.holder.capital_county
+		}
+	}
+	
+	show_disabled = yes
+	
+	on_complete = {
+		county.holder = {
+			save_scope_as = founder
+
+			found_university_decision_event_effect = yes
+
+			every_player = {
+				limit = {
+					NOT = { this = scope:founder }
+					is_within_diplo_range = { CHARACTER = scope:founder }
+				}
+				trigger_event = major_decisions.2002
+			}
+		}
+	}
+	
+	cost_gold = 1000
+
+	character_modifier = {
+		learning_per_prestige_level = 1
+		monthly_lifestyle_xp_gain_mult = 0.1
+		cultural_head_fascination_mult = 0.05
+		monthly_dynasty_prestige = 0.25
+		legitimacy_gain_mult = 0.1
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
+	}
+	
+	county_modifier = {
+		development_growth_factor = 0.1
+		development_growth = 0.1
+	}
+	
+	ai_value = {
+		base = 8
+		modifier = { # Fill all building slots before going for special buildings
+			factor = 0
+			free_building_slots > 0
+		}
+	}
+	
+	type = duchy_capital
+
+	flag = travel_point_of_interest_learning
+	flag = celestial_university
 }
 
 holy_site_wenmiao_01 = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_structure_cathedral_indian.dds"
+	type_icon = "becp_icon_shuyuan.dds"
 	
 	can_construct_potential = {
 		building_requirement_tribal = no
@@ -77,10 +170,10 @@ holy_site_wenmiao_01 = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
-		scope:holder = {
+		county.holder = {
 			culture = {
 				has_innovation = innovation_crop_rotation
 			}
@@ -91,7 +184,7 @@ holy_site_wenmiao_01 = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
 	}
@@ -100,8 +193,10 @@ holy_site_wenmiao_01 = {
 
 	character_modifier = {
 		monthly_piety = 0.5
-		monthly_dynasty_prestige_mult = 0.1
-		monthly_county_control_change_factor = 0.1
+		monthly_dynasty_prestige_mult = 0.05
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.05
+		monthly_county_control_growth_factor = 0.1
 		short_reign_duration_mult = -0.1
 	}
 	
@@ -116,11 +211,83 @@ holy_site_wenmiao_01 = {
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 
+##########
+# 天师宫
+##########
+
+tianshigong = {
+
+	construction_time = very_slow_construction_time
+
+	type_icon = "becp_icon_miao2.dds"
+	
+	can_construct_potential = {
+		building_requirement_tribal = no
+	}
+	
+	can_construct = {
+		custom_description = {
+			text = holy_site_building_trigger
+			barony = {
+				is_holy_site_of = county.holder.faith
+			}
+		}
+	}
+	
+	is_enabled = {
+		custom_description = {
+			text = holy_site_building_trigger
+			barony = {
+				is_holy_site_of = county.holder.faith
+			}
+		}
+		religion = religion:taoism_religion
+	}
+	
+	cost_gold = 1000
+
+	character_modifier = {
+		monthly_piety = 0.25
+		clergy_opinion = 25
+		monthly_county_control_growth_factor = 0.05
+		monthly_lifestyle_xp_gain_mult = 0.1
+		negate_health_penalty_add = 0.5
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.1
+	}
+	
+	county_modifier = {
+	    levy_size = 0.2
+	}
+	
+	province_modifier = {
+		
+	}
+	
+	ai_value = {
+		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
+	}
+	
+	type = special
+
+	flag = travel_point_of_interest_learning
+	flag = travel_point_of_interest_religious
+}
 
 ##########
 # 大明宫
@@ -137,15 +304,15 @@ daminggong_01 = {
 	}
 	
 	is_enabled = {
-		culture = {
-			has_innovation = innovation_centralization_of_authority
-		}
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier = tier_empire
+			culture = {
+				has_innovation = innovation_centralization_of_authority
+			}
 		}
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}		
 	}
 	
@@ -159,6 +326,10 @@ daminggong_01 = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	next_building = daminggong_02
@@ -170,7 +341,7 @@ daminggong_02 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_palace_of_aachen_mesh"
+		name = "wonder_forbidden_city_01_mesh"
 	}
 
 	construction_time = very_slow_construction_time
@@ -182,15 +353,15 @@ daminggong_02 = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier = tier_empire
-		}
-		culture = {
-			has_innovation = innovation_centralization_of_authority
+			culture = {
+				has_innovation = innovation_centralization_of_authority
+			}
 		}
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}
 	}
 	
@@ -203,10 +374,13 @@ daminggong_02 = {
 	character_modifier = {
 		stewardship_per_prestige_level = 2
 		diplomacy = 2
-		monthly_dynasty_prestige_mult = 0.1
+		monthly_dynasty_prestige_mult = 0.05
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
 		monthly_prestige = 1
 		vassal_limit = 6
-		direct_vassal_opinion = 10
+		courtly_opinion = 20
+		barons_and_minor_landholders_opinion = -10
 		same_culture_opinion = 5
 	}
 	
@@ -216,15 +390,17 @@ daminggong_02 = {
 		tax_mult = 0.3
 	}
 	
-	duchy_capital_county_modifier = {
-		tax_mult = 0.15
-	}
-	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_wonder
 }
 
 ##########
@@ -250,6 +426,10 @@ shence_01 = {
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	next_building = shence_02
@@ -289,9 +469,15 @@ shence_02 = {
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 		
 	type = duchy_capital
+
+	flag = travel_point_of_interest_martial
 }
 
 ##########
@@ -309,8 +495,9 @@ kongmiao_01 = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			religion = religion:confucianism_religion
+		custom_description = {
+			text = is_confucianism_religion
+			county.holder.faith = { religion = religion:confucianism_religion }
 		}
 	}
 	
@@ -323,13 +510,21 @@ kongmiao_01 = {
 		monthly_lifestyle_xp_gain_mult = 0.2
 		religious_vassal_opinion = 10
 		monthly_piety = 2
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
 	}
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 
 ##########
@@ -347,11 +542,9 @@ longmenshiku_01 = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			OR = {
-				religion = religion:buddhism_religion
-				religion = religion:confucianism_religion
-			}
+		custom_description = {
+			text = is_buddhism_religion
+			county.holder.faith = { religion_tag = buddhism_religion }
 		}	
 	}
 	
@@ -363,6 +556,8 @@ longmenshiku_01 = {
 		different_culture_opinion = 10
 		monthly_piety = 0.5
 		monthly_dynasty_prestige_mult = 0.05
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.05
 	}
 	
 	county_modifier = {
@@ -373,9 +568,15 @@ longmenshiku_01 = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_learning
 }
 
 ##########
@@ -401,6 +602,10 @@ tiance_01 = {
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	next_building = tiance_02
@@ -430,13 +635,15 @@ tiance_02 = {
 
     character_modifier = {
 		knight_limit = 5
-		knight_effectiveness_mult = 0.2				
-		heavy_cavalry_toughness_mult = 0.3
-		heavy_cavalry_damage_mult = 0.3
+		knight_effectiveness_mult = 0.2
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
 	}
 	province_modifier = {
 		garrison_size = 0.5	
-        monthly_county_control_change_factor = 0.1		
+        monthly_county_control_growth_factor = 0.1
+		stationed_heavy_cavalry_toughness_mult = 0.3
+		stationed_heavy_cavalry_damage_mult = 0.3
 	}
 	county_modifier = {
 		levy_size = 0.2
@@ -445,9 +652,15 @@ tiance_02 = {
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 		
 	type = duchy_capital
+
+	flag = travel_point_of_interest_martial
 }
 
 ##########
@@ -484,9 +697,15 @@ dujiangyan_01 = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_economic
 }
 
 ##########
@@ -511,13 +730,18 @@ yumenguan = {
 	province_modifier = {
 		fort_level = 2
 		garrison_size = 0.2
-		defender_advantage = normal_building_advantage_tier_2
 	}
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}	
 	type = special
+
+	flag = travel_point_of_interest_martial
 }
 
 yangguan = {
@@ -538,13 +762,18 @@ yangguan = {
 	province_modifier = {
 		fort_level = 2
 		garrison_size = 0.2
-		defender_advantage = normal_building_advantage_tier_2
 	}
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}	
 	type = special
+
+	flag = travel_point_of_interest_martial
 }
 
 #大相国寺
@@ -559,12 +788,13 @@ daxiangguosi = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
+		custom_description = {
+			text = is_buddhism_religion
 			OR = {
-				religion = religion:buddhism_religion
-				religion = religion:confucianism_religion
+				county.holder.faith = { religion_tag = buddhism_religion }
+				county.holder.faith = { religion_tag = confucianism_religion }
 			}
-		}	
+		}
 	}
 	
 	show_disabled = yes
@@ -575,6 +805,8 @@ daxiangguosi = {
 		different_culture_opinion = 10
 		monthly_piety = 0.5
 		monthly_dynasty_prestige_mult = 0.05
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
 	}
 	
 	county_modifier = {
@@ -586,9 +818,15 @@ daxiangguosi = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_learning
 }
 
 #黄帝陵
@@ -603,8 +841,10 @@ huangdiling = {
 	}
 	
 	is_enabled = {
-		culture = {
+		county.holder = {
+			culture = {
 				has_innovation = innovation_centralization_of_authority
+			}
 		}
 	}
 	
@@ -613,12 +853,13 @@ huangdiling = {
 	cost_gold = 1000
 
 	character_modifier = {
-		domain_limit = 2
 		monthly_piety = 0.5
-		monthly_dynasty_prestige_mult = 0.1
 		monthly_prestige = 1
 		diplomacy = 2
 		same_culture_opinion = 10
+		monthly_dynasty_prestige_mult = 0.05
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.05
 	}
 	
 	county_modifier = {
@@ -628,9 +869,15 @@ huangdiling = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_learning
 }
 
 #长白山神庙
@@ -638,7 +885,7 @@ changbaishenmiao_1 = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_structure_great_mosque_of_samarra.dds"
+	type_icon = "becp_icon_tongyongshan.dds"
 	
 	can_construct_potential = {
 	}
@@ -662,9 +909,14 @@ changbaishenmiao_1 = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
 }
 
 changbaishenmiao_2 = {
@@ -687,17 +939,25 @@ changbaishenmiao_2 = {
 		monthly_war_income_mult = 0.1
 		clergy_opinion = 10
 		monthly_piety = 2
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	
 	county_modifier = {
-		monthly_county_control_change_add = 0.5	
+		monthly_county_control_growth_add = 0.5	
 	}
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 		
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 #灵渠
 lingqu_1 = {
@@ -726,6 +986,10 @@ lingqu_1 = {
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
@@ -757,9 +1021,15 @@ lingqu_2 = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_economic
 }
 
 #毗伽可汗碑
@@ -774,10 +1044,15 @@ pijiakehanbei = {
 	}
 	
 	is_enabled = {
-	OR ={ 
-			culture = { has_cultural_pillar = heritage_mongolic }
-			culture = { has_cultural_pillar = heritage_turkic }			
-			culture = {	has_cultural_pillar = heritage_tunguse }
+		custom_description = {
+			text = has_steppe_heritage
+			county.holder = {
+				OR ={ 
+					culture = { has_cultural_pillar = heritage_mongolic }
+					culture = { has_cultural_pillar = heritage_turkic }			
+					culture = {	has_cultural_pillar = heritage_tunguse }
+				}
+			}
 		}
 	}
 	
@@ -795,13 +1070,21 @@ pijiakehanbei = {
 	   dynasty_house_opinion = 5
 	   player_heir_opinion = 5
 	   monthly_prestige = 5
+	   monthly_influence = 0.5
+	   monthly_influence_mult = 0.5
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_martial
 }
 
 #狼居胥石碑
@@ -816,15 +1099,13 @@ langjuxubei = {
 	}
 	
 	is_enabled = {
-	   OR ={ 
-			culture = {
-				has_innovation = innovation_centralization_of_authority
-			}
-			culture = {
-				has_cultural_pillar = heritage_mongolic
-			}
-			culture = {
-				has_cultural_pillar = heritage_tunguse
+		custom_description = {
+			text = chinese_conquester
+			OR = {
+				county.holder = { faith = faith:rangyi }
+				county.holder = { culture = { has_innovation = innovation_centralization_of_authority } }
+				county.holder = { is_oe_imperial_court_trigger = yes }
+				county.holder = { primary_title = { has_variable = steppe_chinese_empire } }
 			}
 		}
 	}
@@ -841,13 +1122,21 @@ langjuxubei = {
 	   knight_effectiveness_mult = 0.01
 	   monthly_prestige_gain_mult = 1
 	   prowess_per_prestige_level = 1
+	   monthly_influence = 0.2
+	   monthly_influence_mult = 0.5
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_martial
 }
 
 #燕然勒石
@@ -862,16 +1151,15 @@ yanranleshi = {
 	}
 	
 	is_enabled = {
-	   OR ={ 
-		   	scope:holder.faith = faith:rangyi
-			culture = {
-				has_innovation = innovation_centralization_of_authority
-			}
-			culture = {
-				has_cultural_pillar = heritage_mongolic
-			}
-			culture = {
-				has_cultural_pillar = heritage_tunguse
+		custom_description = {
+			text = chinese_conquester
+			county.holder = {
+				OR = {
+					faith = faith:rangyi
+					culture = { has_innovation = innovation_centralization_of_authority }
+					is_oe_imperial_court_trigger = yes
+					primary_title = { has_variable = steppe_chinese_empire }
+				}
 			}
 		}
 	}
@@ -888,13 +1176,21 @@ yanranleshi = {
 	  monthly_prestige_gain_per_knight_mult = 0.5
 	  knight_limit = 2
 	  monthly_prestige_gain_mult = 1
+	  monthly_influence = 0.1
+	  monthly_influence_mult = 0.2
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_martial
 }
 
 #天宁寺
@@ -909,10 +1205,10 @@ tianningsi = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			OR = {
-				religion = religion:confucianism_religion
-				religion = religion:buddhism_religion
+		custom_description = {
+			text = is_buddhism_religion
+			county.holder = {
+				faith = { religion_tag = buddhism_religion }
 			}
 		}
 	}
@@ -936,9 +1232,15 @@ tianningsi = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 
 #云冈石窟
@@ -953,11 +1255,9 @@ yungangshiku = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			OR = {
-				religion = religion:buddhism_religion
-				religion = religion:confucianism_religion
-			}
+		custom_description = {
+			text = is_buddhism_religion
+			county.holder.faith = { religion_tag = buddhism_religion }
 		}
 	}
 	
@@ -967,8 +1267,7 @@ yungangshiku = {
 
 	character_modifier = {
 		monthly_piety = 1
-		monthly_dynasty_prestige_mult = 0.1
-		monthly_county_control_change_factor = 0.05
+		monthly_county_control_growth_factor = 0.05
 		monthly_prestige_gain_mult = 1
 	}
 	
@@ -983,9 +1282,15 @@ yungangshiku = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_wonder
 }
 
 #莫高窟
@@ -1003,9 +1308,10 @@ mogaoku = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			religion = religion:buddhism_religion
-		}	
+		custom_description = {
+			text = is_buddhism_religion
+			county.holder.faith = { religion_tag = buddhism_religion }
+		}
 	}
 	
 	show_disabled = yes
@@ -1015,8 +1321,8 @@ mogaoku = {
 	character_modifier = {
 		monthly_piety = 1
 		men_at_arms_maintenance = -0.1
-		monthly_county_control_change_factor = 0.1
-		same_faith_opinion = 10
+		monthly_county_control_growth_factor = 0.1
+		same_faith_opinion = 30
 	}
 	
 	county_modifier = {
@@ -1030,9 +1336,15 @@ mogaoku = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_wonder
 }
 
 #苏巴什佛寺
@@ -1047,9 +1359,10 @@ subashifosi = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			religion = religion:buddhism_religion
-		}	
+		custom_description = {
+			text = is_buddhism_religion
+			county.holder.faith = { religion_tag = buddhism_religion }
+		}
 	}
 	
 	cost_gold = 1000
@@ -1071,9 +1384,15 @@ subashifosi = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 
 #热瓦克佛寺
@@ -1088,9 +1407,10 @@ rewakefosi = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			religion = religion:buddhism_religion
-		}	
+		custom_description = {
+			text = is_buddhism_religion
+			county.holder.faith = { religion_tag = buddhism_religion }
+		}
 	}
 	
 	cost_gold = 1000
@@ -1112,9 +1432,15 @@ rewakefosi = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 
 #鲜卑石室
@@ -1122,7 +1448,7 @@ xianbeishishi = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_structure_walls_of_benin.dds"
+	type_icon = "becp_icon_tongyongshan.dds"
 	
 	can_construct_potential = {
 	}
@@ -1145,19 +1471,30 @@ xianbeishishi = {
 	
 	character_modifier = {
 		monthly_dynasty_prestige_mult = 0.05
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.05
 		long_reign_bonus_mult = 0.05
 		monthly_prestige_gain_mult = 1
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_diplomatic
 }
 #紫微宫
 ziweigong = {
-
+	asset = {
+		type = pdxmesh
+		name = "wonder_forbidden_city_01_mesh"
+	}
 	construction_time = very_slow_construction_time
 
 	type_icon = "king_palace3.dds"
@@ -1166,15 +1503,16 @@ ziweigong = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier = tier_empire
 		}
 		culture = {
 			has_innovation = innovation_centralization_of_authority
 		}
+
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}
 	}
 	
@@ -1186,25 +1524,29 @@ ziweigong = {
 		opinion_of_vassal = 10
 		happy_powerful_vassal_tax_contribution_mult = 0.2
 		vassal_limit = 4
+		monthly_piety = 1
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	
 	county_modifier = {
 		development_growth_factor = 0.3
 		development_growth = 0.3
 		tax_mult = 0.2
-		monthly_piety = 1
-	}
-	
-	duchy_capital_county_modifier = {
-		tax_mult = 0.2
 	}
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	
 	type = special
+
+	flag = travel_point_of_interest_diplomatic
 }
 
 #武侯祠
@@ -1212,7 +1554,7 @@ wuhouci = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_building_palisades.dds"
+	type_icon = "king_palace3.dds"
 	
 	can_construct_potential = {
 	}
@@ -1234,21 +1576,30 @@ wuhouci = {
 		learning = 2
 		monthly_income_per_stress_level_mult = 0.1
 		men_at_arms_maintenance = -0.05
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_diplomatic
 }
 #建康宫遗址
 jiankanggong_1 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_hagia_sophia_mesh"
+		name = "wonder_forbidden_city_01_mesh"
 	}
+
 	construction_time = very_slow_construction_time
 
 	type_icon = "king_palace.dds"
@@ -1258,15 +1609,15 @@ jiankanggong_1 = {
 	}
 	
 	is_enabled = {
-		culture = {
-			has_innovation = innovation_centralization_of_authority
-		}
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier = tier_empire
+			culture = {
+				has_innovation = innovation_centralization_of_authority
+			}
 		}
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}
 	}
 	
@@ -1280,6 +1631,10 @@ jiankanggong_1 = {
 		
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	next_building = jiankanggong_2
@@ -1291,7 +1646,7 @@ jiankanggong_2 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_hagia_sophia_minarets_mesh"
+		name = "wonder_forbidden_city_01_mesh"
 	}
 
 	construction_time = very_slow_construction_time
@@ -1303,15 +1658,15 @@ jiankanggong_2 = {
 	}
 
 	is_enabled = {
-		culture = {
-			has_innovation = innovation_centralization_of_authority
-		}
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier = tier_empire
+			culture = {
+				has_innovation = innovation_centralization_of_authority
+			}
 		}
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}
 	}
 	
@@ -1324,10 +1679,13 @@ jiankanggong_2 = {
 	character_modifier = {
 		diplomacy_per_prestige_level = 2
 		stewardship = 2
-		monthly_dynasty_prestige_mult = 0.1
 		vassal_limit = 2
 		knight_limit = 2
 		embarkation_cost_mult = -0.5
+		courtly_opinion = 20
+		barons_and_minor_landholders_opinion = -10
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
 	}
 	
 	county_modifier = {
@@ -1336,15 +1694,17 @@ jiankanggong_2 = {
 		tax_mult = 0.2
 	}
 	
-	duchy_capital_county_modifier = {
-		tax_mult = 0.3
-	}
-	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_diplomatic
 }
 #华清宫
 huaqinggong = {
@@ -1377,53 +1737,59 @@ huaqinggong = {
  	}
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_diplomatic
 }
 #布达拉宫
-budalagong = {
-
-	construction_time = very_slow_construction_time
-
-	type_icon = "icon_siro_potala_palace.dds"
-	
-	can_construct_potential = {
-	   barony = title:b_lhasa
-	}
-	
-	    is_enabled = {
-			scope:holder = {
-				religion = religion:buddhism_religion
-			}	
-	    }
-	
-	show_disabled = yes
-	
-	cost_gold = 1200
-
-	max_garrison = 500
-	duchy_capital_county_modifier = {
-		tax_mult = 0.15
-	}
-	province_modifier = {
-		fort_level = 3
-		garrison_size = 0.3
-	}
-	county_modifier = {
-		levy_size = 0.2
-		monthly_county_control_change_add = 1				
-	}
-	character_modifier = {
-	    knight_limit = 2
-		army_maintenance_mult = -0.05
- 	}
-	ai_value = {
-		base = 100
-	}
-	
-	type = duchy_capital
-}
+#budalagong = {
+#
+#	construction_time = very_slow_construction_time
+#
+#	type_icon = "icon_siro_potala_palace.dds"
+#	
+#	can_construct_potential = {
+#	   barony = title:b_lhasa
+#	}
+#	
+#	    is_enabled = {
+#			county.holder = {
+#				religion = religion:buddhism_religion
+#			}	
+#	    }
+#	
+#	show_disabled = yes
+#	
+#	cost_gold = 1200
+#
+#	max_garrison = 500
+#	duchy_capital_county_modifier = {
+#		tax_mult = 0.15
+#	}
+#	province_modifier = {
+#		fort_level = 3
+#		garrison_size = 0.3
+#	}
+#	county_modifier = {
+#		levy_size = 0.2
+#		monthly_county_control_growth_add = 1				
+#	}
+#	character_modifier = {
+#	    knight_limit = 2
+#		army_maintenance_mult = -0.05
+# 	}
+#	ai_value = {
+#		base = 100
+#	}
+#	
+#	type = special
+#}
 #大昭寺
 dazhaosi = {
 
@@ -1435,9 +1801,10 @@ dazhaosi = {
 	}
 	
 	    is_enabled = {
-			scope:holder = {
-				religion = religion:buddhism_religion
-			}	
+			custom_description = {
+				text = is_buddhism_religion
+				county.holder.faith = { religion_tag = buddhism_religion }
+			}
 	    }
 	
 	show_disabled = yes
@@ -1460,9 +1827,15 @@ dazhaosi = {
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 #炎帝陵
 yandiling = {
@@ -1474,11 +1847,13 @@ yandiling = {
 	can_construct_potential = {
 	}
 	
-	    is_enabled = {
+	is_enabled = {
+		county.holder = {
 			culture = {
 				has_innovation = innovation_centralization_of_authority
 			}
-	    }
+		}
+	}
 	
 	show_disabled = yes
 	
@@ -1491,7 +1866,7 @@ yandiling = {
 	}
 	
 	character_modifier = {
-		monthly_county_control_change_add = 1
+		monthly_county_control_growth_add = 1
 		hard_casualty_modifier = -0.05
 		positive_inactive_inheritance_chance = 0.05
 		opinion_of_same_culture = 10
@@ -1499,16 +1874,22 @@ yandiling = {
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_diplomatic
 }
 #岳阳楼
 yueyanglou_1 = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_structure_great_mosque_of_samarra.dds"
+	type_icon = "becp_icon_teshulouge.dds"
 	
 	can_construct_potential = {
 	}
@@ -1530,6 +1911,10 @@ yueyanglou_1 = {
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	next_building = yueyanglou_2
@@ -1541,7 +1926,7 @@ yueyanglou_2 = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_structure_great_mosque_of_samarra.dds"
+	type_icon = "becp_icon_teshulouge.dds"
 	
 	can_construct_potential = {
 	}
@@ -1564,20 +1949,28 @@ yueyanglou_2 = {
 		learning_per_piety_level = 1
 		stewardship_per_piety_level = 1
 		stewardship = 2
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_learning
 }
 #黄鹤楼
 huanghelou = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_structure_great_mosque_of_samarra.dds"
+	type_icon = "becp_icon_teshulouge.dds"
 	
 	can_construct_potential = {
 	}
@@ -1599,20 +1992,28 @@ huanghelou = {
 		cultural_head_fascination_mult = 0.1
 		learning_per_piety_level = 1
 		learning = 2
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_learning
 }
 #滕王阁
 tengwangge = {
 
 	construction_time = very_slow_construction_time
 
-	type_icon = "icon_structure_great_mosque_of_samarra.dds"
+	type_icon = "becp_icon_teshulouge.dds"
 	
 	can_construct_potential = {
 	}
@@ -1634,13 +2035,21 @@ tengwangge = {
 		cultural_head_fascination_mult = 0.1
 		learning_per_piety_level = 1
 		diplomacy = 2
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 				
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_learning
 }
 #娲皇宫
 wohuanggong = {
@@ -1653,21 +2062,15 @@ wohuanggong = {
 	}
 	
 	is_enabled = {
-		scope:holder = {
-			OR = {
-				religion = religion:taoism_religion
-				religion = religion:confucianism_religion
-			}
+		custom_description = {
+			text = is_sino_religion
+			county.holder = { religion = { is_in_family = rf_sino } }
 		}	
 	}
 	
 	show_disabled = yes
 	
 	cost_gold = 1200
-
-	county_modifier = {
-		defender_advantage = 2
-	}
 	
 	character_modifier = {
 		monthly_prestige_gain_mult = 0.1
@@ -1677,1697 +2080,17 @@ wohuanggong = {
 				
 	ai_value = {
 		base = 100
-	}
-	
-	type = special
-}
-#山丹马场
-shandanmachang = {
-
-	construction_time = very_slow_construction_time
-
-	type_icon = "icon_building_jousting_lists.dds"
-	
-	can_construct_potential = {
-	}
-	
-	is_enabled = {
-	}
-	
-	show_disabled = yes
-	
-	cost_gold = 1200
-
-	county_modifier = {
-		development_growth = 0.2
-		development_growth_factor = 0.1
-	}
-	
-	character_modifier = {
-		army_maintenance_mult = -0.1
-		knight_limit = 4
-		knight_effectiveness_mult = 0.25
-	}
-				
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-##########
-# 首山铜矿
-##########
-shoushan_mines_01 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		
-		building_requirement_tribal = no
-		building_requirement_castle_city_church = { LEVEL = 01 }
-		culture = {
-			has_innovation = innovation_crop_rotation
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
 		}
 	}
 	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = copper_mine_building_tax_tier_1
-	}
-	county_modifier = {
-		tax_mult = 0.05
-		development_growth_factor = 0.05
-	}
-	character_modifier = {
-	       knight_limit = 1
-	}
-	
-	next_building = shoushan_mines_02
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-shoushan_mines_02 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-		culture = {
-			has_innovation = innovation_manorialism
-		}
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = copper_mine_building_tax_tier_2
-	}
-	county_modifier = {
-		tax_mult = 0.1
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-	       knight_limit = 2
-	}
-	
-	next_building = shoushan_mines_03
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-shoushan_mines_03 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-		culture = {
-			has_innovation = innovation_windmills
-		}
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = copper_mine_building_tax_tier_3
-	}
-	county_modifier = {
-		tax_mult = 0.15
-		development_growth_factor = 0.15
-	}
-	character_modifier = {
-	       knight_limit = 3
-	}
-	
-	next_building = shoushan_mines_04
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-shoushan_mines_04 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-		culture = {
-			has_innovation = innovation_cranes
-		}
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = copper_mine_building_tax_tier_4
-	}
-	county_modifier = {
-		tax_mult = 0.20
-		development_growth_factor = 0.2
-	}
-	character_modifier = {
-	       knight_limit = 4
-	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-##########
-# 大冶矿
-##########
-daye_mines_01 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-		building_requirement_castle_city_church = { LEVEL = 01 }
-		culture = {
-			has_innovation = innovation_crop_rotation
-		}
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_1
-	}
-	county_modifier = {
-		development_growth_factor = 0.05
-	}
-	character_modifier = {
-	       prowess = 1
-	}
-	
-	next_building = daye_mines_02
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-daye_mines_02 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-		culture = {
-			has_innovation = innovation_manorialism
-		}
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_2
-	}
-	county_modifier = {
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-	       prowess = 2
-	}
-	
-	next_building = daye_mines_03
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-daye_mines_03 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-		culture = {
-			has_innovation = innovation_windmills
-		}
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_3
-	}
-	county_modifier = {
-		development_growth_factor = 0.15
-	}
-	character_modifier = {
-	       prowess = 3
-	}
-	
-	next_building = daye_mines_04
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-daye_mines_04 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-		culture = {
-			has_innovation = innovation_cranes
-		}
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_4
-	}
-	county_modifier = {
-		development_growth_factor = 0.2
-	}
-	character_modifier = {
-	       prowess = 4
-	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-##########
-# 太原矿
-##########
-taiyuan_mines_01 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-		building_requirement_castle_city_church = { LEVEL = 01 }
-		culture = {
-			has_innovation = innovation_crop_rotation
-		}
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = 2
-	}
-	county_modifier = {
-		development_growth_factor = 0.05
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.1
-	}
-	
-	next_building = taiyuan_mines_02
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-taiyuan_mines_02 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-		culture = {
-			has_innovation = innovation_manorialism
-		}
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = 4
-	}
-	county_modifier = {
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.1
-	}
-	
-	next_building = taiyuan_mines_03
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-taiyuan_mines_03 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-		culture = {
-			has_innovation = innovation_windmills
-		}
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = 6
-	}
-	county_modifier = {
-		development_growth_factor = 0.15
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.15
-	}
-	
-	next_building = taiyuan_mines_04
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-taiyuan_mines_04 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-		culture = {
-			has_innovation = innovation_cranes
-		}
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = 8
-	}
-	county_modifier = {
-		development_growth_factor = 0.2
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.2
-	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-##########
-# 胶东金矿
-##########
-jiaodong_mines_01 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-		building_requirement_castle_city_church = { LEVEL = 01 }
-		culture = {
-			has_innovation = innovation_crop_rotation
-		}
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = 5
-	}
-	county_modifier = {
-		tax_mult = 0.2
-		development_growth_factor = 0.05
-	}
-	
-	next_building = jiaodong_mines_02
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-jiaodong_mines_02 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-		culture = {
-			has_innovation = innovation_manorialism
-		}
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = 8
-	}
-	county_modifier = {
-		tax_mult = 0.25
-		development_growth_factor = 0.05
-	}
-	
-	next_building = jiaodong_mines_03
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-jiaodong_mines_03 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-		culture = {
-			has_innovation = innovation_windmills
-		}
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = 12
-	}
-	county_modifier = {
-		tax_mult = 0.3
-		development_growth_factor = 0.1
-	}
-	
-	next_building = jiaodong_mines_04
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-jiaodong_mines_04 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-		culture = {
-			has_innovation = innovation_cranes
-		}
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = 16
-	}
-	county_modifier = {
-		tax_mult = 0.35
-		development_growth_factor = 0.15
-	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-##########
-# 卫城铁矿
-##########
-weicheng_mines_01 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 01 }
-		
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = 2
-	}
-	county_modifier = {
-		development_growth_factor = 0.05
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.1
-	}
-	
-	next_building = weicheng_mines_02
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-weicheng_mines_02 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-		culture = {
-			has_innovation = innovation_manorialism
-		}
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = 4
-	}
-	county_modifier = {
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.1
-	}
-	
-	next_building = weicheng_mines_03
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-weicheng_mines_03 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-		culture = {
-			has_innovation = innovation_windmills
-		}
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = 6
-	}
-	county_modifier = {
-		development_growth_factor = 0.15
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.15
-	}
-	
-	next_building = weicheng_mines_04
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-weicheng_mines_04 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-		culture = {
-			has_innovation = innovation_cranes
-		}
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = 8
-	}
-	county_modifier = {
-		development_growth_factor = 0.2
-	}
-	character_modifier = {
-	       men_at_arms_maintenance = -0.2
-	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-
-##########
-# 韶州银矿
-##########
-shaozhou_mines_01 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 01 }
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = 5
-	}
-	county_modifier = {
-		tax_mult = 0.2
-		development_growth_factor = 0.05
-	}
-	
-	next_building = shaozhou_mines_02
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-shaozhou_mines_02 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-		culture = {
-			has_innovation = innovation_manorialism
-		}
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = 8
-	}
-	county_modifier = {
-		tax_mult = 0.25
-		development_growth_factor = 0.05
-	}
-	
-	next_building = shaozhou_mines_03
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-shaozhou_mines_03 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-		culture = {
-			has_innovation = innovation_windmills
-		}
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = 12
-	}
-	county_modifier = {
-		tax_mult = 0.3
-		development_growth_factor = 0.1
-	}
-	
-	next_building = shaozhou_mines_04
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-shaozhou_mines_04 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-		culture = {
-			has_innovation = innovation_cranes
-		}
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = 16
-	}
-	county_modifier = {
-		tax_mult = 0.35
-		development_growth_factor = 0.15
-	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-
-##########
-# 辽东银铁矿
-##########
-liaodong_mines_01 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 01 }
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = 5
-	}
-	county_modifier = {
-		tax_mult = 0.2
-		development_growth_factor = 0.05
-	}
-	
-	next_building = liaodong_mines_02
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-liaodong_mines_02 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-		culture = {
-			has_innovation = innovation_manorialism
-		}
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = 8
-	}
-	county_modifier = {
-		tax_mult = 0.25
-		development_growth_factor = 0.05
-	}
-	
-	next_building = liaodong_mines_03
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-liaodong_mines_03 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-		culture = {
-			has_innovation = innovation_windmills
-		}
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = 12
-	}
-	county_modifier = {
-		tax_mult = 0.3
-		development_growth_factor = 0.1
-	}
-	
-	next_building = liaodong_mines_04
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-liaodong_mines_04 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-		culture = {
-			has_innovation = innovation_cranes
-		}
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = 16
-	}
-	county_modifier = {
-		tax_mult = 0.35
-		development_growth_factor = 0.15
-	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-### 榷场
-bianzhen = {
-
-    asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-	construction_time = slow_construction_time
-
-	can_construct_potential = {
-	}
-
-	can_construct = {
-	}
-	
-	can_construct_showing_failures_only = {
-	}
-
-	cost_gold = normal_building_tier_8_cost
-	
-    is_enabled = {
-		scope:holder = {
-		   OR = {
-			   has_government = bureau_government
-			   has_government = imperial_government
-			   has_government = corps_government
-		   }
-		}
-	}
-
-	province_modifier = {
-		garrison_size = 0.5
-		supply_capacity_mult = 0.5
-	}
-	county_modifier = {
-		levy_size = 0.02
-	}
-	character_modifier = {
-	}
-	
-	
-	ai_value = {
-		base = 3
-		ai_general_building_modifier = yes
-	}
-	
-	type_icon = "icon_building_curtain_walls.dds"
-	
-}
-
-quechang = {
-    asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}	
-	construction_time = slow_construction_time
-
-	can_construct_potential = {
-	}
-
-	can_construct = {
-	}
-	
-	can_construct_showing_failures_only = {
-	}
-
-	cost_gold = normal_building_tier_8_cost
-	
-	is_enabled = {
-		scope:holder = {
-		  NOR = {
-			  has_government = bureau_government
-			  has_government = imperial_government
-			  has_government = corps_government
-		  }
-		}
-	}
-	
-	province_modifier = {
-		monthly_income = 3
-		tax_mult = 0.25
-	}
-	county_modifier = {
-		development_growth = 0.1
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-		character_capital_county_monthly_development_growth_add = 0.2
-		monthly_prestige_gain_mult = 0.1
-		cultural_head_fascination_mult = 0.05
-	}
-	
-	ai_value = {
-		base = 3
-		ai_general_building_modifier = yes
-	}
-	
-	type_icon = "icon_building_market_villages.dds"
-	
-}
-#马市
-machang = {
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_building_jousting_lists.dds"
-
-	can_construct_potential = {
-		building_requirement_castle_city_church = { LEVEL = 01 }
-	}
-	
-	is_enabled = {
-	   	scope:holder = {
-			OR = {
-				has_government = bureau_government
-				has_government = imperial_government
-				has_government = corps_government
-			}
-    	}
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = 5
-		monthly_income_mult = 0.2
-	}
-	county_modifier = {
-		tax_mult = 0.1
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-		heavy_cavalry_toughness_mult = 0.05
-		light_cavalry_toughness_mult = 0.05
-		men_at_arms_maintenance = -0.02
-	}
-	
-	
-	ai_value = {
-		base = 100
-	}
-	
-}
-
-mashi = {
-	construction_time = slow_construction_time
-
-	type_icon = "icon_building_camel_farms.dds"
-
-	can_construct_potential = {
-		building_requirement_castle_city_church = { LEVEL = 01 }
-	}
-	
-	is_enabled = {
-	    scope:holder= {
-			has_government = tribal_government
-	  }
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-	    monthly_income = 5
-		monthly_income_mult = 0.2
-	}
-	county_modifier = {
-		tax_mult = 0.1
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-		monthly_prestige = 8
-		monthly_prestige_gain_mult = 0.5
-		monthly_prestige_from_buildings_mult =0.2
-	}
-	
-	
-	ai_value = {
-		base = 100
-	}
-	
-}
-
-#盐场
-yankuang_1 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_castle_city_church = { LEVEL = 01 }
-	}
-	
-	cost_gold = expensive_building_tier_3_cost
-	
-	province_modifier = {
-		monthly_income = 2
-	}
-	county_modifier = {
-		tax_mult = 0.2
-		development_growth_factor = 0.1
-	}
-	character_modifier = {
-		army_maintenance_mult = -0.02
-		monthly_prestige = 0.5
- 	}
-	
-	next_building = yankuang_2
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-yankuang_2 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 02 }
-	}
-	
-	cost_gold = expensive_building_tier_4_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_1
-	}
-	county_modifier = {
-		tax_mult = 0.2
-		development_growth_factor = 0.2
-	}
-	character_modifier = {
-		army_maintenance_mult = -0.04
-		monthly_prestige = 1
- 	}
-	
-	next_building = yankuang_3
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-yankuang_3 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 03 }
-	}
-	
-	cost_gold = expensive_building_tier_5_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_2
-	}
-	county_modifier = {
-		tax_mult = 0.2
-		development_growth_factor = 0.3
-	}
-	character_modifier = {
-		army_maintenance_mult = -0.06
-		monthly_prestige = 1.5
- 	}
-	
-	next_building = yankuang_4
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-yankuang_4 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_3
-	}
-	county_modifier = {
-		tax_mult = 0.2
-		development_growth_factor = 0.4
-	}
-	character_modifier = {
-		army_maintenance_mult = -0.1
-		monthly_prestige = 2.5
- 	}
-	
-	next_building = yankuang_5
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special	
-}
-
-yankuang_5 = {
-
-	asset = {
-		type = pdxmesh
-		name = "building_special_mines_mesh"
-	}
-
-	construction_time = slow_construction_time
-
-	type_icon = "icon_structure_mines.dds"
-
-	can_construct_potential = {
-		building_requirement_tribal = no
-	}
-	can_construct = {
-		building_requirement_castle_city_church = { LEVEL = 04 }
-	}
-	
-	cost_gold = expensive_building_tier_6_cost
-	
-	province_modifier = {
-		monthly_income = silver_mine_building_tax_tier_4
-	}
-	county_modifier = {
-		tax_mult = 0.3
-		development_growth_factor = 0.5
-	}
-	character_modifier = {
-		army_maintenance_mult = -0.2
-		monthly_prestige = 5
- 	}
-	
-	ai_value = {
-		base = 100
-	}
-	
-	type = special
-}
-
-
-#### 窑口 ####
-
-becp_special_dingyao = { 
-	construction_time = standard_construction_time #建筑时间-根据规模
-	type_icon = "becp_icon_yao.dds"
-
-	type = special
-	cost_gold = normal_building_tier_2_cost #建筑费用-根据规模
-
-	county_modifier = { 
-		tax_mult = 0.05 
-		development_growth = 0.2 
-		county_opinion_add = 3 #民众好感度（county_modifier）
-	}
-
-	character_modifier = { 
-		stewardship = 2
-		same_culture_opinion = 5 
-	}
-	ai_value = {
-		base = 6
-	}
-}
-becp_special_ruyao = { 
-	construction_time = standard_construction_time #建筑时间-根据规模
-	type_icon = "becp_icon_yao.dds"
-
-	type = special
-	cost_gold = normal_building_tier_2_cost #建筑费用-根据规模
-
-	county_modifier = { 
-		tax_mult = 0.05 
-		development_growth = 0.2 
-		county_opinion_add = 3 #民众好感度（county_modifier）
-	}
-
-	character_modifier = { 
-		stewardship = 2
-		same_culture_opinion = 5 
-	}
-	ai_value = {
-		base = 6
-	}
-}
-becp_special_yaozhouyao = { 
-	construction_time = standard_construction_time #建筑时间-根据规模
-	type_icon = "becp_icon_yao.dds"
 	type = special
 
-	cost_gold = normal_building_tier_2_cost #建筑费用-根据规模
-
-	county_modifier = { 
-		tax_mult = 0.05 
-		development_growth = 0.2 
-		county_opinion_add = 3 #民众好感度（county_modifier）
-	}
-
-	character_modifier = { 
-		stewardship = 2
-		same_culture_opinion = 5 
-	}
-	ai_value = {
-		base = 6
-	}
+	flag = travel_point_of_interest_learning
 }
-becp_regular_junyao_01 = { 
-	construction_time = standard_construction_time #建筑时间-根据规模
-	type_icon = "becp_icon_yao.dds"
-	type = regular
 
-	cost_gold = normal_building_tier_3_cost #建筑费用-根据规模
-
-	can_construct_potential = { 
-		barony = title:b_Xuchang
-	}
-
-	county_modifier = { 
-		tax_mult = 0.05 
-		development_growth = 0.2 
-		county_opinion_add = 3 #民众好感度（county_modifier）
-	}
-
-	character_modifier = { 
-		stewardship = 2
-		same_culture_opinion = 5 
-	}
-	ai_value = {
-		base = 6
-	}
-}
-becp_regular_yueyao_01 = { 
-	construction_time = standard_construction_time #建筑时间-根据规模
-	type_icon = "becp_icon_yao.dds"
-	type = regular
-	
-	cost_gold = normal_building_tier_3_cost #建筑费用-根据规模
-
-	can_construct_potential = { 
-		barony = title:b_Zhuji
-	}
-
-	county_modifier = { 
-		tax_mult = 0.05 
-		development_growth = 0.2 
-		county_opinion_add = 3 #民众好感度（county_modifier）
-	}
-
-	character_modifier = { 
-		stewardship = 2
-		same_culture_opinion = 5 
-	}
-	ai_value = {
-		base = 6
-	}
-}
 
 ### Yamato ###
 #安艺-严岛神社
@@ -3377,7 +2100,7 @@ becp_special_yandaoshenshe = {
 	type = special
 
 	can_construct = {
-		scope:holder = {
+		county.holder = {
 			religion = religion:shinto_religion
 		}
 	}
@@ -3396,11 +2119,15 @@ becp_special_yandaoshenshe = {
 		clergy_opinion = 10 
 		general_opinion	= 5 
 		same_faith_opinion = 10 
-		religious_vassal_opinion = 10 
+		religious_vassal_opinion = 10
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+
+	flag = travel_point_of_interest_religious
 }
 
 #镰仓-鹤冈八幡宫
@@ -3410,7 +2137,7 @@ becp_special_hegangbafangong = {
 	type = special
 	
 	can_construct = {
-		scope:holder = {
+		county.holder = {
 			religion = religion:shinto_religion
 		}
 	}
@@ -3429,11 +2156,15 @@ becp_special_hegangbafangong = {
 		clergy_opinion = 10 
 		general_opinion	= 5 
 		same_faith_opinion = 10 
-		religious_vassal_opinion = 10 
+		religious_vassal_opinion = 10
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+
+	flag = travel_point_of_interest_learning
 }
 
 #伊势-伊勢神宮
@@ -3442,17 +2173,14 @@ becp_special_yishishengong = {
 	type_icon = "becp_icon_yishishengong.dds"
 	type = special
 	
-	asset = {
-		type = pdxmesh
-	}
 	can_construct = {
-		custom_description = {
-			text = holy_site_building_trigger
-			barony = {
-				is_holy_site_of = scope:holder.faith
-			}
-		}
-		scope:holder = {
+		#custom_description = {
+			#text = holy_site_building_trigger
+			#barony = {
+				#is_holy_site_of = county.holder.faith
+			#}
+		#}
+		county.holder = {
 			religion = religion:shinto_religion
 			culture = {
 				has_innovation = innovation_development_01 
@@ -3463,7 +2191,7 @@ becp_special_yishishengong = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
 	}
@@ -3488,11 +2216,15 @@ becp_special_yishishengong = {
 		tolerance_advantage_mod = 2 
 		piety_level_impact_mult = 0.2 #奉献等级影响 %
 		court_grandeur_baseline_add = 5
-		vassal_limit = 1 
+		vassal_limit = 1
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+
+	flag = travel_point_of_interest_diplomatic
 }
 
 #早良-太宰府天满宫
@@ -3501,17 +2233,14 @@ becp_special_taizaifutianmangong = {
 	type_icon = "becp_icon_tianmangong.dds"
 	type = special
 
-	asset = {
-		type = pdxmesh
-	}
 	can_construct = {
-		custom_description = {
-			text = holy_site_building_trigger
-			barony = {
-				is_holy_site_of = scope:holder.faith
-			}
-		}
-		scope:holder = {
+		#custom_description = {
+			#text = holy_site_building_trigger
+			#barony = {
+				#is_holy_site_of = county.holder.faith
+			#}
+		#}
+		county.holder = {
 			religion = religion:shinto_religion
 			culture = {
 				has_innovation = innovation_development_01 
@@ -3522,7 +2251,7 @@ becp_special_taizaifutianmangong = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
 	}
@@ -3542,10 +2271,14 @@ becp_special_taizaifutianmangong = {
 		clergy_opinion = 10 
 		general_opinion	= 5 
 		same_faith_opinion = 10 
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+
+	flag = travel_point_of_interest_economic
 }
 
 #诸-雾岛神宫
@@ -3555,7 +2288,7 @@ becp_special_wudaoshengong = {
 	type = special
 	
 	can_construct = {
-		scope:holder = {
+		county.holder = {
 			religion = religion:shinto_religion
 		}
 	}
@@ -3575,10 +2308,14 @@ becp_special_wudaoshengong = {
 		general_opinion	= 5 
 		same_faith_opinion = 10 
 		religious_vassal_opinion = 5 
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+
+	flag = travel_point_of_interest_diplomatic
 }
 
 #出云-出云大社
@@ -3587,18 +2324,15 @@ becp_special_chuyundashe = {
 	type_icon = "becp_icon_miaojp2.dds"
 	type = special
 	
-	asset = {
-		type = pdxmesh
-	}
 	
 	can_construct = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
-		scope:holder = {
+		county.holder = {
 			religion = religion:shinto_religion
 			culture = {
 				has_innovation = innovation_development_01 
@@ -3609,7 +2343,7 @@ becp_special_chuyundashe = {
 		custom_description = {
 			text = holy_site_building_trigger
 			barony = {
-				is_holy_site_of = scope:holder.faith
+				is_holy_site_of = county.holder.faith
 			}
 		}
 	}
@@ -3631,10 +2365,14 @@ becp_special_chuyundashe = {
 		religious_vassal_opinion = 10 
 		tolerance_advantage_mod = 1 
 		piety_level_impact_mult = 0.1 #奉献等级影响 %
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+
+	flag = travel_point_of_interest_wonder
 }
 
 becpe_special_falongsi = { 
@@ -3643,7 +2381,7 @@ becpe_special_falongsi = {
 	type = special
 
 	can_construct = {
-		scope:holder = {
+		county.holder = {
 			religion = religion:shinto_religion
 		}
 	}
@@ -3663,10 +2401,14 @@ becpe_special_falongsi = {
 		general_opinion	= 5 
 		same_faith_opinion = 10 
 		religious_vassal_opinion = 5 
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+
+	flag = travel_point_of_interest_religious
 }
 
 ### Goryeo ###
@@ -3678,19 +2420,21 @@ becp_special_manyuetai = {
 	type = special
 
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier >= tier_kingdom
 		}
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}
 	}
 	show_disabled = yes
 	
 	can_construct ={ #建造条件 2
-		culture = {
-			has_innovation = innovation_manorialism 
+		county.holder = {
+			culture = {
+				has_innovation = innovation_manorialism 
+			}
 		}
 	}
 
@@ -3703,7 +2447,7 @@ becp_special_manyuetai = {
 	}
 	province_modifier = { 
 		garrison_size = 0.1 #守军规模 %
-		monthly_county_control_change_factor = 0.05 #控制力增长 %
+		monthly_county_control_growth_factor = 0.05 #控制力增长 %
 	}
 	character_modifier = { 
 		monthly_dynasty_prestige_mult = 0.02 
@@ -3717,10 +2461,13 @@ becp_special_manyuetai = {
 		clergy_opinion = 10 
 		dynasty_house_opinion = 10 
 		martial_per_prestige_level = 1 #每级威望等级使军事+
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+	flag = travel_point_of_interest_wonder
 }
 
 #平城-安国寺遗址
@@ -3740,10 +2487,13 @@ becp_special_anguosi = {
 		clergy_opinion = 10 
 		general_opinion	= 5 
 		same_faith_opinion = 10 
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.5
 	}
 	ai_value = {
 		base = 6
 	}
+	flag = travel_point_of_interest_learning
 }
 
 #平壤-安鹤宫
@@ -3753,20 +2503,22 @@ becp_special_anhegong = {
 	type = special
 
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier >= tier_kingdom
 		}
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}
 	}
 	show_disabled = yes
 	
 	can_construct ={ #建造条件 2
-		culture = {
-			has_innovation = innovation_currency_02 
-			has_innovation = innovation_manorialism 
+		county.holder = {
+			culture = {
+				has_innovation = innovation_currency_02 
+				has_innovation = innovation_manorialism 
+			}
 		}
 	}
 
@@ -3779,7 +2531,7 @@ becp_special_anhegong = {
 	}
 	province_modifier = { 
 		garrison_size = 0.15 #守军规模 %
-		monthly_county_control_change_factor = 0.08 #控制力增长 %
+		monthly_county_control_growth_factor = 0.08 #控制力增长 %
 	}
 	character_modifier = { 
 		monthly_dynasty_prestige_mult = 0.02 
@@ -3793,10 +2545,13 @@ becp_special_anhegong = {
 		dynasty_house_opinion = 10 
 		attraction_opinion = 6 
 		martial_per_prestige_level = 1 #每级威望等级使军事+
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+	flag = travel_point_of_interest_learning
 }
 
 #大伽耶-海印寺
@@ -3822,6 +2577,7 @@ becp_special_haiyinsi = {
 	ai_value = {
 		base = 6
 	}
+	flag = travel_point_of_interest_religious
 }
 
 #尉犁-景福宫
@@ -3831,22 +2587,24 @@ becp_special_jingfugong = {
 	type = special
 
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			highest_held_title_tier >= tier_kingdom
 		}
 		custom_description = {
 			text = is_capital_barony_trigger
-			county = scope:holder.capital_county
+			county = county.holder.capital_county
 		}
 	}
 
 	show_disabled = yes
 	
 	can_construct ={ #建造条件 2
-		culture = {
-			has_innovation = innovation_manorialism 
-			has_innovation = innovation_royal_prerogative 
-			has_innovation = innovation_cranes 
+		county.holder = {
+			culture = {
+				has_innovation = innovation_manorialism 
+				has_innovation = innovation_royal_prerogative 
+				has_innovation = innovation_cranes 
+			}
 		}
 	}
 
@@ -3859,7 +2617,7 @@ becp_special_jingfugong = {
 	}
 	province_modifier = { 
 		garrison_size = 0.2 #守军规模 %
-		monthly_county_control_change_factor = 0.1 #控制力增长 %
+		monthly_county_control_growth_factor = 0.1 #控制力增长 %
 	}
 	character_modifier = { 
 		monthly_dynasty_prestige_mult = 0.08 
@@ -3874,10 +2632,13 @@ becp_special_jingfugong = {
 		attraction_opinion = 8 
 		learning_per_prestige_level	= 1 #每级威望等级使学识+
 		monthly_learning_lifestyle_xp_gain_mult	= 0.05 #每月生活方式经验值 %
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	ai_value = {
 		base = 6
 	}
+	flag = travel_point_of_interest_diplomatic
 }
 
 ### Angkor ###
@@ -3886,18 +2647,18 @@ Angkor_01 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_prambanan_temple_mesh"
+		name = "wonder_angkorwat_01_mesh"
 	}
 
 	construction_time = slow_construction_time
 
-	type_icon = "icon_siro_ajanta_caves.dds"
+	type_icon = "icon_sea_angkor_wat.dds"
 
 	can_construct_potential = {
 		building_requirement_castle_city_church = { LEVEL = 01 }
 	}
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			religion = { is_in_family = rf_eastern }
 		}
 	}
@@ -3906,8 +2667,10 @@ Angkor_01 = {
 	character_modifier = {
 		monthly_piety_gain_mult = 0.05
 		monthly_piety_gain_per_knight_add = 0.1
-		monthly_county_control_change_factor = 0.05
+		monthly_county_control_growth_factor = 0.05
 		cultural_head_fascination_mult = 0.05
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	
 	county_modifier = {
@@ -3919,25 +2682,31 @@ Angkor_01 = {
 		monthly_income = 2
 	}
 	
-	next_building = Angkor_2
+	next_building = Angkor_02
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 
 Angkor_02 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_prambanan_temple_mesh"
+		name = "wonder_angkorwat_01_mesh"
 	}
 
 	construction_time = slow_construction_time
 
-	type_icon = "icon_siro_ajanta_caves.dds"
+	type_icon = "icon_sea_angkor_wat.dds"
 
 	can_construct_potential = {
 		building_requirement_tribal = no
@@ -3946,7 +2715,7 @@ Angkor_02 = {
 		building_requirement_castle_city_church = { LEVEL = 02 }
 	}
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			religion = { is_in_family = rf_eastern }
 		}
 	}
@@ -3958,8 +2727,10 @@ Angkor_02 = {
 	character_modifier = {
 		monthly_piety_gain_mult = 0.1
 		monthly_piety_gain_per_knight_add = 0.15
-		monthly_county_control_change_factor = 0.1
+		monthly_county_control_growth_factor = 0.1
 		cultural_head_fascination_mult = 0.1
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	
 	county_modifier = {
@@ -3967,25 +2738,31 @@ Angkor_02 = {
 		development_growth = 0.15
 	}
 	
-	next_building = Angkor_3
+	next_building = Angkor_03
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_wonder
 }
 
 Angkor_03 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_borobudur_temple_mesh"
+		name = "wonder_angkorwat_01_mesh"
 	}
 
 	construction_time = slow_construction_time
 
-	type_icon = "icon_siro_ajanta_caves.dds"
+	type_icon = "icon_sea_angkor_wat.dds"
 
 	can_construct_potential = {
 		building_requirement_tribal = no
@@ -3994,7 +2771,7 @@ Angkor_03 = {
 		building_requirement_castle_city_church = { LEVEL = 03 }
 	}
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			religion = { is_in_family = rf_eastern }
 		}
 	}
@@ -4006,8 +2783,10 @@ Angkor_03 = {
 	character_modifier = {
 		monthly_piety_gain_mult = 0.25
 		monthly_piety_gain_per_knight_add = 0.25
-		monthly_county_control_change_factor = 0.2
+		monthly_county_control_growth_factor = 0.2
 		cultural_head_fascination_mult = 0.3
+		monthly_influence = 0.1
+		monthly_influence_mult = 0.2
 	}
 	
 	county_modifier = {
@@ -4015,25 +2794,31 @@ Angkor_03 = {
 		development_growth = 0.3
 	}
 	
-	next_building = Angkor_4
+	next_building = Angkor_04
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_wonder
 }
 
 Angkor_04 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_borobudur_temple_mesh"
+		name = "wonder_angkorwat_01_mesh"
 	}
 
 	construction_time = slow_construction_time
 
-	type_icon = "icon_siro_ajanta_caves.dds"
+	type_icon = "icon_sea_angkor_wat.dds"
 
 	can_construct_potential = {
 		building_requirement_tribal = no
@@ -4042,7 +2827,7 @@ Angkor_04 = {
 		building_requirement_castle_city_church = { LEVEL = 04 }
 	}
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			religion = { is_in_family = rf_eastern }
 		}
 	}
@@ -4054,8 +2839,10 @@ Angkor_04 = {
 	character_modifier = {
 		monthly_piety_gain_mult = 0.5
 		monthly_piety_gain_per_knight_add = 0.5
-		monthly_county_control_change_factor = 0.4
+		monthly_county_control_growth_factor = 0.4
 		cultural_head_fascination_mult = 0.5
+		monthly_influence = 0.2
+		monthly_influence_mult = 0.3
 	}
 	
 	county_modifier = {
@@ -4063,25 +2850,31 @@ Angkor_04 = {
 		development_growth = 0.45
 	}
 	
-	next_building = Angkor_5
+	next_building = Angkor_05
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
-	type = special	
+	type = special
+
+	flag = travel_point_of_interest_wonder
 }
 
 Angkor_05 = {
 
 	asset = {
 		type = pdxmesh
-		name = "building_special_borobudur_temple_mesh"
+		name = "wonder_angkorwat_01_mesh"
 	}
 
 	construction_time = slow_construction_time
 
-	type_icon = "icon_siro_ajanta_caves.dds"
+	type_icon = "icon_sea_angkor_wat.dds"
 
 	can_construct_potential = {
 		building_requirement_tribal = no
@@ -4090,7 +2883,7 @@ Angkor_05 = {
 		building_requirement_castle_city_church = { LEVEL = 04 }
 	}
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			religion = { is_in_family = rf_eastern }
 		}
 	}
@@ -4102,8 +2895,10 @@ Angkor_05 = {
 	character_modifier = {
 		monthly_piety_gain_mult = 1
 		monthly_piety_gain_per_knight_add = 1
-		monthly_county_control_change_factor = 0.6
+		monthly_county_control_growth_factor = 0.6
 		cultural_head_fascination_mult = 1
+		monthly_influence = 1
+		monthly_influence_mult = 0.5
 	}
 	
 	county_modifier = {
@@ -4113,9 +2908,15 @@ Angkor_05 = {
 	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_wonder
 }
 
 Banteay_Srei = {
@@ -4127,7 +2928,7 @@ Banteay_Srei = {
 
 	construction_time = slow_construction_time
 
-	type_icon = "icon_siro_ajanta_caves.dds"
+	type_icon = "icon_sea_angkor_wat.dds"
 
 	can_construct_potential = {
 		building_requirement_tribal = no
@@ -4136,7 +2937,7 @@ Banteay_Srei = {
 		building_requirement_castle_city_church = { LEVEL = 02 }
 	}
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			religion = { is_in_family = rf_eastern }
 		}
 	}
@@ -4148,7 +2949,7 @@ Banteay_Srei = {
 	character_modifier = {
 		monthly_piety_gain_mult = 0.1
 		monthly_piety_gain_per_knight_add = 0.15
-		monthly_county_control_change_factor = 0.1
+		monthly_county_control_growth_factor = 0.1
 		cultural_head_fascination_mult = 0.1
 	}
 	
@@ -4157,13 +2958,17 @@ Banteay_Srei = {
 		development_growth = 0.15
 	}
 	
-	next_building = Angkor_3
-	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_religious
 }
 
 Beng_Mealea = {
@@ -4175,7 +2980,7 @@ Beng_Mealea = {
 
 	construction_time = slow_construction_time
 
-	type_icon = "icon_siro_ajanta_caves.dds"
+	type_icon = "icon_sea_angkor_wat.dds"
 
 	can_construct_potential = {
 		building_requirement_tribal = no
@@ -4184,7 +2989,7 @@ Beng_Mealea = {
 		building_requirement_castle_city_church = { LEVEL = 02 }
 	}
 	is_enabled = {
-		scope:holder = {
+		county.holder = {
 			religion = { is_in_family = rf_eastern }
 		}
 	}
@@ -4196,7 +3001,7 @@ Beng_Mealea = {
 	character_modifier = {
 		monthly_piety_gain_mult = 0.1
 		monthly_piety_gain_per_knight_add = 0.15
-		monthly_county_control_change_factor = 0.1
+		monthly_county_control_growth_factor = 0.1
 		cultural_head_fascination_mult = 0.1
 	}
 	
@@ -4205,11 +3010,15 @@ Beng_Mealea = {
 		development_growth = 0.15
 	}
 	
-	next_building = Angkor_3
-	
 	ai_value = {
 		base = 100
+		modifier = { # Fill all building slots before going for duchy buildings
+			factor = 0
+			free_building_slots > 0
+		}
 	}
 	
 	type = special
+
+	flag = travel_point_of_interest_diplomatic
 }

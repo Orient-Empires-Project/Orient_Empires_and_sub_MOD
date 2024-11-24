@@ -12,12 +12,16 @@ east_title.0001 = {
 
 	trigger = {
 		is_at_war_with_liege = no
+		exists = capital_province
+		capital_province = { geographical_region = world_asia_china }
+		exists = title:e_celestia.holder
 	}
 	immediate = {
 		save_scope_as = china_vassal
+		title:e_celestia.holder = { save_scope_as = new_ruler }
 	}
 	override_background = {
-		event_background = battlefield
+		reference = battlefield
 	}
 
 	left_portrait = {
@@ -47,7 +51,7 @@ east_title.0001 = {
 					divide = { value = scope:china_vassal.max_military_strength min = 1 }
 					subtract = 1
 					multiply = 100
-					max = 30
+					max = 300
 				}
 			}
 
@@ -58,7 +62,7 @@ east_title.0001 = {
 					divide = { value = scope:china_vassal.sub_realm_size min = 1 }
 					subtract = 1
 					multiply = 100
-					max = 30
+					max = 100
 				}
 			}
 			#招降加成
@@ -179,9 +183,16 @@ east_title.0001 = {
 			modifier = { #I am a King!
 				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
 				trigger = {
+					scope:china_vassal = { is_oe_imperial_government_trigger = yes }
+				}
+				add = -100
+			}
+			modifier = { #I am a King!
+				desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+				trigger = {
 					scope:china_vassal = { highest_held_title_tier >= tier_kingdom }
 				}
-				add = -50
+				add = -100
 			}
 			modifier = { #We just fought against each other.
 				desc = offer_vassalization_interaction_aibehavior_recent_war_tt
@@ -193,6 +204,15 @@ east_title.0001 = {
 					}
 				}
 				add = -2000
+			}
+			modifier = { #We just fought against each other.
+				desc = offer_vassalization_interaction_aibehavior_recent_war_tt
+				trigger = {
+					scope:china_vassal = {
+						is_at_war_with = scope:new_ruler
+					}
+				}
+				add = -500
 			}
 			modifier = { #I fought an independence war against you.
 				desc = offer_vassalization_interaction_aibehavior_independence_war_tt
@@ -219,10 +239,7 @@ east_title.0001 = {
 			modifier = { # Is the Rightful Liege of recipient
 				desc = offer_vassalization_interaction_aibehavior_rightfulliegetitleholder_tt
 				trigger = {
-					is_rightful_liege_of_trigger = {
-						VASSAL = scope:china_vassal
-						LIEGE = scope:new_ruler
-					}
+					scope:new_ruler = { is_rightful_liege_of = scope:china_vassal }
 				}
 				add = 10
 			}
@@ -230,10 +247,7 @@ east_title.0001 = {
 				desc = offer_vassalization_interaction_aibehavior_not_rightfulliegetitleholder_tt
 				trigger = {
 					NOT = {
-						is_rightful_liege_of_trigger = {
-							VASSAL = scope:china_vassal
-							LIEGE = scope:new_ruler
-						}
+						scope:new_ruler = { is_rightful_liege_of = scope:china_vassal }
 					}
 				}
 				add = -20
@@ -267,11 +281,11 @@ east_title.0001 = {
 	  	  		add = {
 					value = 1
 						subtract = {
-						value = scope:china_vassal.max_military_strength
-						divide = { value = scope:new_ruler.max_military_strength min = 1 }
+						value = scope:china_vassal.current_military_strength
+						divide = { value = scope:new_ruler.current_military_strength min = 1 }
 						}
-					multiply = 20
-					ceiling = yes
+					multiply = 100
+					#ceiling = yes
 	  			}
 			}
 
@@ -321,7 +335,7 @@ east_title.0001 = {
 						dynasty = scope:new_ruler.dynasty
 					}
 				}
-				add = 5
+				add = 15
 			}
 			modifier = { #Cultural modifiers.
 				add = -10
@@ -428,15 +442,6 @@ east_title.0001 = {
 				target = scope:new_ruler
 				opinion = -50
 			}
-#			create_title_and_vassal_change = {
-#				type = independency
-#				save_scope_as = change
-#			}
-#			change_liege_or_become_independent = {
-#				CHANGE = scope:change
-#				VASSAL = this
-#			}
-#			resolve_title_and_vassal_change = scope:change
 			if = {
 				limit = {
 					highest_held_title_tier < scope:new_ruler.highest_held_title_tier
@@ -528,509 +533,49 @@ east_title.0001 = {
 		}
 	}
 }
-east_title.0002 = { #狗脚朕
+
+east_title.0002 = {
 	type = character_event
-	hidden = yes
-	
+	title = east_title.0001.t
+	desc = east_title.0001.desc
+	theme = crown
 	trigger = {
-		
-		OR = {
-			has_title = title:e_celestia
-			has_title = title:e_song
-		}	
+		is_ai = yes
+		NOT = { has_title = title:e_celestia }
+		NOT = { is_at_war_with = title:e_celestia.holder }
+		current_date > 1121.1.1
+		current_date < 1143.1.1
 	}
 	immediate = {
-		if = { #年号
-			limit = {
-				has_character_flag = nianhao_81
-			}
-			change_first_name = short_nianhao_81[character_name]
-		}	
-		if = {
-			limit = {
-				has_character_flag = nianhao_1
-			}
-			change_first_name = short_nianhao_1[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_2
-			}
-			change_first_name = short_nianhao_2[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_3
-			}
-			change_first_name = short_nianhao_3[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_4
-			}
-			change_first_name = short_nianhao_4[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_5
-			}
-			change_first_name = short_nianhao_5[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_6
-			}
-			change_first_name = short_nianhao_6[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_7
-			}
-			change_first_name = short_nianhao_7[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_8
-			}
-			change_first_name = short_nianhao_8[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_9
-			}
-			change_first_name = short_nianhao_9[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_10
-			}
-			change_first_name = short_nianhao_10[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_11
-			}
-			change_first_name = short_nianhao_11[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_12
-			}
-			change_first_name = short_nianhao_12[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_13
-			}
-			change_first_name = short_nianhao_13[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_14
-			}
-			change_first_name = short_nianhao_14[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_15
-			}
-			change_first_name = short_nianhao_15[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_16
-			}
-			change_first_name = short_nianhao_16[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_17
-			}
-			change_first_name = short_nianhao_17[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_18
-			}
-			change_first_name = short_nianhao_18[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_19
-			}
-			change_first_name = short_nianhao_19[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_20
-			}
-			change_first_name = short_nianhao_20[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_21
-			}
-			change_first_name = short_nianhao_21[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_22
-			}
-			change_first_name = short_nianhao_22[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_23
-			}
-			change_first_name = short_nianhao_23[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_24
-			}
-			change_first_name = short_nianhao_24[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_25
-			}
-			change_first_name = short_nianhao_25[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_26
-			}
-			change_first_name = short_nianhao_26[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_27
-			}
-			change_first_name = short_nianhao_27[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_28
-			}
-			change_first_name = short_nianhao_28[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_29
-			}
-			change_first_name = short_nianhao_29[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_30
-			}
-			change_first_name = short_nianhao_30[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_31
-			}
-			change_first_name = short_nianhao_31[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_32
-			}
-			change_first_name = short_nianhao_32[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_33
-			}
-			change_first_name = short_nianhao_33[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_34
-			}
-			change_first_name = short_nianhao_34[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_35
-			}
-			change_first_name = short_nianhao_35[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_36
-			}
-			change_first_name = short_nianhao_36[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_37
-			}
-			change_first_name = short_nianhao_37[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_38
-			}
-			change_first_name = short_nianhao_38[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_39
-			}
-			change_first_name = short_nianhao_39[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_40
-			}
-			change_first_name = short_nianhao_40[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_41
-			}
-			change_first_name = short_nianhao_41[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_42
-			}
-			change_first_name = short_nianhao_42[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_43
-			}
-			change_first_name = short_nianhao_43[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_44
-			}
-			change_first_name = short_nianhao_44[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_45
-			}
-			change_first_name = short_nianhao_45[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_46
-			}
-			change_first_name = short_nianhao_46[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_47
-			}
-			change_first_name = short_nianhao_47[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_48
-			}
-			change_first_name = short_nianhao_48[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_49
-			}
-			change_first_name = short_nianhao_49[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_50
-			}
-			change_first_name = short_nianhao_50[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_51
-			}
-			change_first_name = short_nianhao_51[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_52
-			}
-			change_first_name = short_nianhao_52[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_53
-			}
-			change_first_name = short_nianhao_53[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_54
-			}
-			change_first_name = short_nianhao_54[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_55
-			}
-			change_first_name = short_nianhao_55[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_56
-			}
-			change_first_name = short_nianhao_56[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_57
-			}
-			change_first_name = short_nianhao_57[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_58
-			}
-			change_first_name = short_nianhao_58[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_59
-			}
-			change_first_name = short_nianhao_59[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_60
-			}
-			change_first_name = short_nianhao_60[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_61
-			}
-			change_first_name = short_nianhao_61[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_62
-			}
-			change_first_name = short_nianhao_62[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_63
-			}
-			change_first_name = short_nianhao_63[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_64
-			}
-			change_first_name = short_nianhao_64[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_65
-			}
-			change_first_name = short_nianhao_65[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_66
-			}
-			change_first_name = short_nianhao_66[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_67
-			}
-			change_first_name = short_nianhao_67[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_68
-			}
-			change_first_name = short_nianhao_68[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_69
-			}
-			change_first_name = short_nianhao_69[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_70
-			}
-			change_first_name = short_nianhao_70[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_71
-			}
-			change_first_name = short_nianhao_71[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_72
-			}
-			change_first_name = short_nianhao_72[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_73
-			}
-			change_first_name = short_nianhao_73[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_74
-			}
-			change_first_name = short_nianhao_74[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_75
-			}
-			change_first_name = short_nianhao_75[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_76
-			}
-			change_first_name = short_nianhao_76[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_77
-			}
-			change_first_name = short_nianhao_77[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_78
-			}
-			change_first_name = short_nianhao_78[character_name]
-		}
-		if = {
-			limit = {
-				has_character_flag = nianhao_79
-			}
-			change_first_name = short_nianhao_79[character_name]
-		}
 		if = {
 			limit = {
-				has_character_flag = nianhao_80
+				dynasty = dynasty:1051112
+				is_ai = yes
+			}
+			random = {
+				chance = 50
+				modifier = {
+					add = 20
+					gold > 100
+				}
+				modifier = {
+					add = 20
+					has_trait = ambitious
+				}
+				modifier = {
+					add = 25
+					ai_has_warlike_personality = yes
+				}
+				jurchen_war_target_evaluation_and_declaration_effect = yes
 			}
-			change_first_name = short_nianhao_80[character_name]
 		}
 	}
+	option = {}
 }
+
 east_title.0003 = {
 	type = character_event
-	 title = east_title.0003.opening
+	title = east_title.0003.opening
 	
 	desc = east_title.0003.desc
 	theme = learning
@@ -1057,7 +602,7 @@ east_title.0003 = {
 				culture = { has_cultural_pillar = heritage_yues }
 			}
 				highest_held_title_tier > tier_kingdom
-				has_government = imperial_government
+				government_has_flag = government_is_celestial
 			}					
 		}
 	}
@@ -1073,11 +618,11 @@ east_title.0003 = {
 				set_variable = { name = china_offical_salary value = 0 }
 			}
 		}
-		else = {}
+		#else = {}
 		if = {
 			limit = {
 				primary_title = {
-					not = { var:china_offical_salary = { compare_value >= 100 } }
+					NOT = { var:china_offical_salary >= 100 }
 				}
 			}
 			primary_title = { 
@@ -1091,12 +636,12 @@ east_title.0003 = {
 		}
 		#china_offical_salary_effect = yes
 		
-		every_councillor = {
-			limit = {
-				has_variable = china_council_salary_wealth
-			}
-			add_gold = liege.var:china_council_salary_wealth
-		}	
+		#every_councillor = {
+			#limit = {
+				#has_variable = china_council_salary_wealth
+			#}
+			#add_gold = liege.var:china_council_salary_wealth
+		#}	
 	}
 }
 # 拟定国号
@@ -1128,6 +673,7 @@ east_title.0004 = {
 				}
 			}
 			add_trait = founding_monarch
+			house = { add_house_modifier = cust_dynasty }
 		}
 		else_if = {
 			limit = {
@@ -1137,7 +683,7 @@ east_title.0004 = {
 		}
 	}
 	override_background = {
-		event_background = battlefield
+		reference = battlefield
 	}
 
 	left_portrait = {
@@ -1146,12 +692,18 @@ east_title.0004 = {
 	}
 
 	option = {
+		name = east_title.0004.new # 再选
+		trigger = { is_ai = no }
+		trigger_event = guohao.1
+	}
+
+	option = {
 		name = east_title.0004.a # 唐帝国
 		house = {
 			add_house_modifier = e_tang #唐皇族
 		}
 		title:e_celestia = { set_title_name = e_tang }
-		title:e_celestia = { set_coa = e_tang }
+		title:e_celestia = { set_coa = title:e_tang }
 	}	
 	option = {
 		name = east_title.0004.b # 宋帝国
@@ -1159,7 +711,7 @@ east_title.0004 = {
 			add_house_modifier = e_song #宋皇族
 		}
 		title:e_celestia = { set_title_name = e_song }
-		title:e_celestia = { set_coa = d_biansong }
+		title:e_celestia = { set_coa = title:d_biansong }
 		title:e_celestia = { set_color_from_title = title:d_biansong }
 	}
 	option = {
@@ -1168,7 +720,7 @@ east_title.0004 = {
 			add_house_modifier = e_grand_liao #大辽皇族
 		}
 		title:e_celestia = { set_title_name = e_grand_liao }
-		title:e_celestia = { set_coa = k_liao }
+		title:e_celestia = { set_coa = title:k_liao }
 		title:e_celestia = { set_color_from_title = title:k_liao }
 	}
 	option = {
@@ -1176,9 +728,9 @@ east_title.0004 = {
 		house = {
 			add_house_modifier = k_zhao #赵皇族
 		}
-		title:e_celestia = { set_title_name = k_zhao }
-		title:e_celestia = { set_coa = k_zhao }
-		title:e_celestia = { set_color_from_title = title:k_zhao }
+		title:e_celestia = { set_title_name = e_zhao }
+		title:e_celestia = { set_coa = title:e_zhao }
+		title:e_celestia = { set_color_from_title = title:e_zhao }
 	}
 	option = {
 		name = east_title.0004.f # 燕帝国
@@ -1186,7 +738,7 @@ east_title.0004 = {
 			add_house_modifier = k_yan #燕皇族
 		}
 		title:e_celestia = { set_title_name = k_yan }
-		title:e_celestia = { set_coa = k_yan }
+		title:e_celestia = { set_coa = title:k_yan }
 		title:e_celestia = { set_color_from_title = title:k_yan }
 	}
 	option = {
@@ -1195,7 +747,7 @@ east_title.0004 = {
 			add_house_modifier = k_wei #魏皇族
 		}
 		title:e_celestia = { set_title_name = k_wei }
-		title:e_celestia = { set_coa = k_wei }
+		title:e_celestia = { set_coa = title:k_wei }
 		title:e_celestia = { set_color_from_title = title:k_wei }
 	}
 	option = {
@@ -1204,7 +756,7 @@ east_title.0004 = {
 			add_house_modifier = k_tengri #代皇族
 		}
 		title:e_celestia = { set_title_name = k_tengri }
-		title:e_celestia = { set_coa = k_tengri }
+		title:e_celestia = { set_coa = title:k_tengri }
 		title:e_celestia = { set_color_from_title = title:k_tengri }
 	}
 	option = {
@@ -1213,7 +765,7 @@ east_title.0004 = {
 			add_house_modifier = k_jin #晋皇族
 		}
 		title:e_celestia = { set_title_name = k_jin }
-		title:e_celestia = { set_coa = d_hezhong }
+		title:e_celestia = { set_coa = title:d_hezhong }
 		title:e_celestia = { set_color_from_title = title:d_hezhong }
 	}
 	
@@ -1223,7 +775,7 @@ east_title.0004 = {
 			add_house_modifier = k_xia_east #夏皇族
 		}
 		title:e_celestia = { set_title_name = k_xia_east }
-		title:e_celestia = { set_coa = k_xia_east }
+		title:e_celestia = { set_coa = title:k_xia_east }
 		title:e_celestia = { set_color_from_title = title:k_xia_east }
 	}
 	option = {
@@ -1232,16 +784,16 @@ east_title.0004 = {
 			add_house_modifier = k_qin #秦皇族
 		}
 		title:e_celestia = { set_title_name = k_qin }
-		title:e_celestia = { set_coa = k_qin }
+		title:e_celestia = { set_coa = title:k_qin }
 		title:e_celestia = { set_color_from_title = title:k_qin }
 	}
 	option = {
 		name = east_title.0004.l # 凉帝国
 		house = {
-			add_house_modifier = e_qiang #大凉皇族
+			add_house_modifier = e_hexi #大凉皇族
 		}
 		title:e_celestia = { set_title_name = k_xia }
-		title:e_celestia = { set_coa = k_xia }
+		title:e_celestia = { set_coa = title:k_xia }
 		title:e_celestia = { set_color_from_title = title:k_xia }
 	}
 	option = {
@@ -1250,7 +802,34 @@ east_title.0004 = {
 			add_house_modifier = e_liang #大梁皇族
 		}
 		title:e_celestia = { set_title_name = k_liang }
-		title:e_celestia = { set_coa = k_liang }
+		title:e_celestia = { set_coa = title:k_liang }
+		title:e_celestia = { set_color_from_title = title:k_liang }
+	}
+	option = {
+		name = east_title.0004.l2 # 鲁帝国
+		house = {
+			add_house_modifier = e_lu #大鲁皇族
+		}
+		title:e_celestia = { set_title_name = e_lu }
+		title:e_celestia = { set_coa = title:k_liang }
+		title:e_celestia = { set_color_from_title = title:k_liang }
+	}
+	option = {
+		name = east_title.0004.l3 # 卫帝国
+		house = {
+			add_house_modifier = e_weei #大卫皇族
+		}
+		title:e_celestia = { set_title_name = e_weei }
+		title:e_celestia = { set_coa = title:k_liang }
+		title:e_celestia = { set_color_from_title = title:k_liang }
+	}
+	option = {
+		name = east_title.0004.l4 # 陈帝国
+		house = {
+			add_house_modifier = e_chen #大陈皇族
+		}
+		title:e_celestia = { set_title_name = e_chen }
+		title:e_celestia = { set_coa = title:k_liang }
 		title:e_celestia = { set_color_from_title = title:k_liang }
 	}
 	option = {
@@ -1259,7 +838,7 @@ east_title.0004 = {
 			add_house_modifier = e_han #汉皇族
 		}
 		title:e_celestia = { set_title_name = e_han }
-		title:e_celestia = { set_coa = d_hanzhong }
+		title:e_celestia = { set_coa = title:d_hanzhong }
 		title:e_celestia = { set_color_from_title = title:d_hanzhong }
 	}
 	option = {
@@ -1268,7 +847,7 @@ east_title.0004 = {
 			add_house_modifier = e_sui #隋皇族
 		}
 		title:e_celestia = { set_title_name = e_sui }
-		title:e_celestia = { set_coa = d_jingxiang }
+		title:e_celestia = { set_coa = title:d_jingxiang }
 		title:e_celestia = { set_color_from_title = title:d_jingxiang }
 	}
 	option = {
@@ -1277,7 +856,7 @@ east_title.0004 = {
 			add_house_modifier = k_shu #蜀皇族
 		}
 		title:e_celestia = { set_title_name = k_shu }
-		title:e_celestia = { set_coa = k_shu }
+		title:e_celestia = { set_coa = title:k_shu }
 		title:e_celestia = { set_color_from_title = title:k_shu }
 	}
 	option = {
@@ -1286,7 +865,7 @@ east_title.0004 = {
 			add_house_modifier = k_chu #楚皇族
 		}
 		title:e_celestia = { set_title_name = k_chu }
-		title:e_celestia = { set_coa = k_chu }
+		title:e_celestia = { set_coa = title:k_chu }
 		title:e_celestia = { set_color_from_title = title:k_chu }
 	}
 	
@@ -1296,7 +875,7 @@ east_title.0004 = {
 			add_house_modifier = k_zhou #周皇族
 		}
 		title:e_celestia = { set_title_name = k_zhou }
-		title:e_celestia = { set_coa = k_zhou }
+		title:e_celestia = { set_coa = title:k_zhou }
 		title:e_celestia = { set_color_from_title = title:d_shaanguo }
 	}
 	option = {
@@ -1305,7 +884,7 @@ east_title.0004 = {
 			add_house_modifier = e_cao #曹皇族
 		}
 		title:e_celestia = { set_title_name = e_cao }
-		title:e_celestia = { set_coa = d_pucao }
+		title:e_celestia = { set_coa = title:d_pucao }
 		title:e_celestia = { set_color_from_title = title:d_pucao }
 	}
 	
@@ -1315,7 +894,7 @@ east_title.0004 = {
 			add_house_modifier = e_xuu #徐皇族
 		}
 		title:e_celestia = { set_title_name = e_xuu }
-		title:e_celestia = { set_coa = d_xusi }
+		title:e_celestia = { set_coa = title:d_xusi }
 		title:e_celestia = { set_color_from_title = title:d_xusi }
 	}
 	option = {
@@ -1324,7 +903,7 @@ east_title.0004 = {
 			add_house_modifier = k_qi #齐皇族
 		}
 		title:e_celestia = { set_title_name = k_qi }
-		title:e_celestia = { set_coa = k_qi }
+		title:e_celestia = { set_coa = title:k_qi }
 		title:e_celestia = { set_color_from_title = title:d_ziqing }
 	}
 	option = {
@@ -1333,7 +912,7 @@ east_title.0004 = {
 			add_house_modifier = k_wu #吴皇族
 		}
 		title:e_celestia = { set_title_name = k_wu }
-		title:e_celestia = { set_coa = k_wu }
+		title:e_celestia = { set_coa = title:k_wu }
 		title:e_celestia = { set_color_from_title = title:d_huainan }
 	}
 	option = {
@@ -1342,7 +921,7 @@ east_title.0004 = {
 			add_house_modifier = e_wuyue #吴越皇族
 		}
 		title:e_celestia = { set_title_name = e_wuyue }
-		title:e_celestia = { set_coa = d_zhenhai }
+		title:e_celestia = { set_coa = title:d_zhenhai }
 		title:e_celestia = { set_color_from_title = title:k_yue }
 	}
 	option = {
@@ -1351,7 +930,7 @@ east_title.0004 = {
 			add_house_modifier = e_gan #赣皇族
 		}
 		title:e_celestia = { set_title_name = e_gan }
-		title:e_celestia = { set_coa = d_jiangxi }
+		title:e_celestia = { set_coa = title:d_jiangxi }
 		title:e_celestia = { set_color_from_title = title:d_jiangxi }
 	}
 	option = {
@@ -1360,7 +939,7 @@ east_title.0004 = {
 			add_house_modifier = k_nanyue #南越皇族
 		}
 		title:e_celestia = { set_title_name = k_nanyue }
-		title:e_celestia = { set_coa = k_nanyue }
+		title:e_celestia = { set_coa = title:k_nanyue }
 		title:e_celestia = { set_color_from_title = title:k_nanyue }
 	}
 	option = {
@@ -1369,7 +948,7 @@ east_title.0004 = {
 			add_house_modifier = e_viet #大越皇族 #大越皇族
 		}
 		title:e_celestia = { set_title_name = e_viet }
-		title:e_celestia = { set_coa = k_nanyue }
+		title:e_celestia = { set_coa = title:k_nanyue }
 		title:e_celestia = { set_color_from_title = title:k_nanyue }
 	}
 	option = {
@@ -1378,8 +957,94 @@ east_title.0004 = {
 			add_house_modifier = cn_pu #雒皇族
 		}
 		title:e_celestia = { set_title_name = cn_pu }
-		title:e_celestia = { set_coa = k_nanyue }
+		title:e_celestia = { set_coa = title:k_nanyue }
 		title:e_celestia = { set_color_from_title = title:k_nanyue }
+	}
+
+	#文化绑定国号
+	option = {
+		name = cn_liao
+		trigger = {	culture = { has_name_list = name_list_khitan } }
+		house = { add_house_modifier = cn_liao }
+		title:e_celestia = { set_title_name = cn_liao }
+	}
+	option = {
+		name = cn_jin
+		trigger = {	culture = { has_name_list = name_list_jurchen } }
+		house = { add_house_modifier = cn_jin }
+		title:e_celestia = { set_title_name = cn_jin }
+	}
+	option = {
+		name = cn_yuan
+		trigger = {	culture = { has_name_list = name_list_mongol } }
+		house = { add_house_modifier = cn_yuan }
+		title:e_celestia = { set_title_name = cn_yuan }
+	}
+	option = {
+		name = cn_liao
+		trigger = {	culture = { has_name_list = name_list_balhae } }
+		house = { add_house_modifier = cn_liao }
+		title:e_celestia = { set_title_name = cn_liao }
+	}
+	option = {
+		name = cn_qing
+		trigger = {	culture = { has_name_list = name_list_heishui } }
+		house = { add_house_modifier = cn_qing }
+		title:e_celestia = { set_title_name = cn_qing }
+	}
+	option = {
+		name = e_qiang
+		trigger = {	culture = { has_name_list = name_list_qiangic } }
+		house = { add_house_modifier = e_qiang }
+		title:e_celestia = { set_title_name = e_qiang }
+	}
+	option = {
+		name = cn_xia
+		trigger = {	culture = { has_name_list = name_list_tangut } }
+		house = { add_house_modifier = cn_xia }
+		title:e_celestia = { set_title_name = cn_xia }
+	}
+	option = {
+		name = cn_dalli
+		trigger = {	culture = { has_name_list = name_list_bai } }
+		house = { add_house_modifier = cn_dalli }
+		title:e_celestia = { set_title_name = cn_dalli }
+	}
+	option = {
+		name = cn_cuan
+		trigger = {	culture = { has_name_list = name_list_wuman } }
+		house = { add_house_modifier = cn_cuan }
+		title:e_celestia = { set_title_name = cn_cuan }
+	}
+	option = {
+		name = cn_yin
+		trigger = {	culture = { has_name_list = name_list_min } }
+		house = { add_house_modifier = cn_yin }
+		title:e_celestia = { set_title_name = cn_yin }
+	}
+	option = {
+		name = cn_jiuli
+		trigger = {	culture = { has_name_list = name_list_mon } }
+		house = { add_house_modifier = cn_jiuli }
+		title:e_celestia = { set_title_name = cn_jiuli }
+	}
+	option = {
+		name = cn_yue
+		trigger = {	culture = { has_name_list = name_list_jiaozhi } }
+		house = { add_house_modifier = cn_yue }
+		title:e_celestia = { set_title_name = cn_yue }
+	}
+	option = {
+		name = cn_jiuli
+		trigger = {	culture = { has_name_list = name_list_yi } }
+		house = { add_house_modifier = cn_jiuli }
+		title:e_celestia = { set_title_name = cn_jiuli }
+	}
+	option = {
+		name = e_shang
+		trigger = {	culture = { has_name_list = name_list_goguryeo } }
+		house = { add_house_modifier = e_shang }
+		title:e_celestia = { set_title_name = e_shang }
 	}
 }
 
@@ -1413,38 +1078,28 @@ east_title.0005 = {
 			save_scope_as = change
 		}
 		scope:china_vassal = {
+			every_held_title = {
+				limit = { tier >= scope:new_ruler.primary_title.tier }
+				add_to_list = titles_to_destroy
+			}
+		}
+		every_in_list = {
+			list = titles_to_destroy
+			scope:new_ruler = {
+				destroy_title = prev
+			}
+		}
+		scope:china_vassal = {
 			change_liege = {
 				liege = scope:new_ruler
 				change = scope:change
 			}
-			every_held_title = {
-				limit = { tier > tier_kingdom }
-				add_to_list = titles_to_destroy
-			}
-		}
-		every_in_list = {
-			list = titles_to_destroy
-			scope:new_ruler = {
-				destroy_title = prev
-			}
 		}
 		resolve_title_and_vassal_change = scope:change
 
-		scope:china_vassal = {
-			every_held_title = {
-				limit = { tier = tier_kingdom }
-				add_to_list = titles_to_destroy
-			}
-		}
-		every_in_list = {
-			list = titles_to_destroy
-			scope:new_ruler = {
-				destroy_title = prev
-			}
-		}
-		scope:china_vassal = {
-			add_realm_law_skip_effects = official_succession_law
-		}
+		#scope:china_vassal = {
+			#add_realm_law_skip_effects = official_succession_law
+		#}
 
 		ai_chance = 100
 	}
@@ -1485,6 +1140,19 @@ east_title.0006 = {
 				add_pressed_claim = scope:china_vassal.primary_title #WLTDJFIX往来天地间修正
 			}
 		}
+		ai_chance = 100
+	}
+}
+
+east_title.0007 = {
+	type = letter_event
+	opening = east_title.0007.opening
+	desc = east_title.0007.desc
+	sender = root
+	immediate = {
+	}
+	option = {
+		name = east_title.0007.a
 		ai_chance = 100
 	}
 }

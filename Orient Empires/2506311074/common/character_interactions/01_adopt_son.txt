@@ -3,6 +3,7 @@ set_son_interaction = {
 	category = interaction_category_diplomacy
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
+	icon = icon_entrench_regency
 
 	send_name = set_son_interaction
 
@@ -15,15 +16,18 @@ set_son_interaction = {
 	is_shown = {
 		scope:recipient = {
 			NOT = { this = scope:actor }
-			is_knight_of = scope:actor
+			OR = {
+				is_courtier_of = scope:actor
+				is_vassal_of = scope:actor
+			}
 		}
 		scope:actor = {
 			is_ruler = yes
 			NOT = { is_parent_of = scope:recipient }
 			OR = {
-				has_government = imperial_government
-				has_government = corps_government
-				has_government = tribal_government
+				government_has_flag = government_is_celestial
+				government_has_flag = government_is_legion
+				government_has_flag = government_is_tribal
 			}
 			OR = {
 				is_ai = no
@@ -35,7 +39,7 @@ set_son_interaction = {
 	is_valid_showing_failures_only = {
 		scope:recipient = {
 			is_knight_of = scope:actor
-			#is_imprisoned = no
+			is_imprisoned = no
 		}
 		scope:actor = {
 			is_landed = yes
@@ -44,11 +48,8 @@ set_son_interaction = {
 			NOT = {
 				is_at_war_with = scope:recipient
 			}
-#			any_child = {
-#				count < 1
-#			}
 		}
-		scope:recipient = { is_diplomatically_available = yes }
+		scope:recipient = { is_available_for_activity_trigger = yes }
 		custom_description = {
 			text = "has_already_rejected_renegotiation"
 			subject = scope:recipient
@@ -65,7 +66,11 @@ set_son_interaction = {
 
 	is_valid = { #To give some clarity to the tooltip that states "blood ties"		
 		scope:recipient = {
-			is_knight_of = scope:actor
+			OR = {
+				is_knight_of = scope:actor
+				has_relation_guardian = scope:actor
+				has_relation_mentor = scope:actor
+			}
 		}
 	}
 
@@ -88,9 +93,8 @@ set_son_interaction = {
 	send_options_exclusive = no
 		
 	on_accept = {
-#WLTDJFIX往来天地间修正（开始）
 		scope:recipient = {
-			add_trait = child_of_adoption
+			add_trait = adopted
 			if = {
 				limit = { scope:actor = { is_male = yes } }
 				set_father = scope:actor
@@ -99,8 +103,11 @@ set_son_interaction = {
 				set_mother = scope:actor
 			}
 			set_house = scope:actor.house
+			add_opinion = {
+				modifier = perk_negotiated_alliance_opinion
+				target = scope:actor
+			}
 		}
-#WLTDJFIX往来天地间修正（开始）
 	}
 	
 	on_decline = {
@@ -439,8 +446,8 @@ set_son_interaction = {
 	  	  	add = {
 				value = 1
 					subtract = {
-					value = scope:recipient.max_military_strength
-					divide = { value = scope:actor.max_military_strength min = 1 }
+					value = scope:recipient.current_military_strength
+					divide = { value = scope:actor.current_military_strength min = 1 }
 					}
 				multiply = 10
 	  		}
@@ -449,7 +456,7 @@ set_son_interaction = {
 		# Recipient is a Claimant to Actor's titles.
 		modifier = {
 			scope:recipient = {
-				NOT = { has_government = clan_government }
+				NOT = { government_has_flag = government_is_clan }
 				any_claim = {
 					holder = scope:actor
 				}
@@ -542,11 +549,14 @@ set_son_interaction = {
 
 	ai_potential = {
 		is_at_war = no
+		any_child = {
+			count < 1
+		}
 	}
 	
 	ai_targets = {
 		ai_recipients = dynasty
-		max = 20
+		max = 10
 	}
 	
 	ai_targets = {
@@ -554,9 +564,6 @@ set_son_interaction = {
 		max = 10
 	}
 	
-	ai_targets = {
-		ai_recipients = spouses
-	}
 	ai_frequency = 72
 	
 	ai_will_do = {

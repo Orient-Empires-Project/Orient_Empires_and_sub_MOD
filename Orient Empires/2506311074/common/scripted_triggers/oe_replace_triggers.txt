@@ -1,0 +1,540 @@
+﻿#barony_cannot_construct_holding = {
+#	OR = {
+#		barony = title:b_hamadat_tinghert
+#		barony = title:b_tidikelt
+#		barony = title:b_wadi_irawan
+#		barony = title:b_erg_ghati
+#	}
+#}
+
+#############################################
+
+can_be_councillor_basics_trigger = {
+	is_capable_adult = yes
+	is_imprisoned = no
+	is_at_war_with_liege = no
+	trigger_if = {
+		limit = { has_variable = block_hire_councillor }
+		NOT = { var:block_hire_councillor = liege }
+	}
+	trigger_if = {
+		limit = { culture = { has_clothing_gfx = yamato_clothing_gfx } }
+		NOT = { has_title = title:d_gosho }
+	}
+}
+
+######### TRAVELLING ##########################
+
+#####################################################################
+
+eligible_for_fp2_dynasty_legacies_trigger = {
+	has_fp2_dlc_trigger = yes
+	dynasty = {
+		OR = {
+			dynast = {
+				OR = {
+					any_character_struggle = {
+						involvement = involved
+						is_struggle_type = tartaria_struggle
+					}
+					any_character_struggle = {
+						involvement = involved
+						is_struggle_type = iberian_struggle
+					}
+					culture = {
+						has_cultural_pillar = heritage_iberian
+					}
+					AND = {
+						exists = capital_province
+						capital_province = {
+							geographical_region = world_europe_west_iberia
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+######################################################################
+# Government
+######################################################################
+
+building_requirement_tribal_ulus = {
+	scope:holder = {
+		OR = {
+			government_has_flag = government_is_tribal
+			government_has_flag = government_is_ulus
+		}
+	}
+}
+
+#can_be_marshal_trigger = {
+#	can_be_councillor_basics_trigger = yes
+#	is_hostage = no	
+#	NAND = {
+#		has_council_position = councillor_court_chaplain
+#		faith = { has_doctrine_parameter = clerical_appointment_fixed }
+#	}
+#	NOT = {
+#		OR = { 
+#			has_council_position = councillor_spouse
+#			AND = {
+#				this = liege.diarch
+#				liege = { has_diarchy_active_parameter = diarchy_is_vizierate }
+#			}
+#		}
+#	}
+#	NAND = {
+#		liege ?= { is_oe_imperial_government_trigger = yes }
+#		is_legion_government_trigger = yes
+#	}
+#	OR = {
+#		is_ruler = yes
+#		AND = {
+#			is_female = yes
+#			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = male_dominated_council } }
+#		}
+#		AND = {
+#			is_male = yes
+#			$COURT_OWNER$.faith = { NOT = { has_doctrine_parameter = female_dominated_council } }
+#		}
+#		AND = {
+#			has_trait = shieldmaiden
+#			$COURT_OWNER$.culture = { has_cultural_parameter = has_access_to_shieldmaidens }
+#		}
+#	}
+#}
+
+######################################################################
+# interaction
+######################################################################
+
+title_revocation_is_tyrannical_trigger = {
+	NOR = {
+		exists = scope:administrative_revocation
+		has_revoke_title_reason = scope:recipient
+		trigger_if = {
+			limit = { exists = scope:landed_title }
+			has_claim_on = scope:landed_title
+		}
+		title_revocation_is_admin_governor_trigger = { VASSAL = $VASSAL$ }
+		faith = {
+			$VASSAL$ = {
+				NOT = { vassal_contract_has_flag = religiously_protected}
+			}
+			OR = {
+				AND = {
+					has_doctrine_parameter = pluralism_righteous_revocation_tyranny_reduced
+					faith_hostility_level = {
+						target = $VASSAL$.faith
+						value = faith_evil_level
+					}
+				}
+				AND = {
+					has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal
+					faith_hostility_level = {
+						target = $VASSAL$.faith
+						value >= faith_hostile_level
+					}
+				}
+			}
+		}
+		oe_revocation_is_NOT_tyrannical_trigger = yes
+	}
+}
+
+title_revocation_is_admin_governor_trigger = {
+	allows_imperial_bureaucracy = yes
+	is_independent_ruler = yes
+	save_temporary_scope_as = liege_temp
+	$VASSAL$ = {
+		is_landed_or_landless_administrative = yes
+		target_is_liege_or_above = scope:liege_temp
+	}
+}
+
+vassal_revocation_is_tyrannical_trigger = {
+	NOR = {
+		exists = scope:administrative_revocation
+		AND = {
+			allows_imperial_bureaucracy = yes
+			$VASSAL$ = {
+			 	allows_imperial_bureaucracy = yes
+			}
+		}	
+		has_revoke_title_reason = $VASSAL$
+		faith = {
+			OR = {
+				AND = {								
+					has_doctrine_parameter = pluralism_righteous_revocation_tyranny_reduced
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value = faith_evil_level
+					}
+				}
+				AND = {								
+					has_doctrine_parameter = pluralism_fundamentalist_revocation_tyranny_minimal
+					faith_hostility_level = {
+						target = scope:recipient.faith
+						value >= faith_hostile_level
+					}
+				}
+			}
+		}
+		oe_revocation_is_NOT_tyrannical_trigger = yes
+	}
+}
+
+### Legal trigger list
+#继承法，否则二级官僚制会改世袭
+can_change_succession_laws_realm_flag_trigger = {
+	trigger_if = {
+		limit = { realm_law_use_tribal_authority = yes }
+		custom_description = {
+			text = "has_tribal_law_allowing_succession_law_change"
+			has_realm_law_flag = can_change_succession_laws
+		}
+	}
+	trigger_else_if = {
+		limit = { realm_law_use_imperial_bureaucracy = yes }
+		custom_description = {
+			text = has_imperial_bureaucracy_law_allowing_succession_law_change
+			has_realm_law_flag = can_change_succession_laws
+		}
+	}
+	trigger_else = {
+		custom_description = {
+			text = "has_crown_law_allowing_succession_law_change"
+			has_realm_law_flag = can_change_succession_laws		
+		}
+	}
+	custom_description = {
+		text = "ACTOR_REFUSAL_IS_BUREAU"
+		NOT = { has_realm_law_flag = celestial_bureaucrat }
+	}
+}
+
+######################################################################
+# contract_obligation
+######################################################################
+
+building_tea_plantation_requirement_terrain = {
+	OR = {
+		terrain = hills
+		terrain = farmlands
+		terrain = floodplains
+		terrain = forest
+	}
+	geographical_region = world_tea_plantation
+}
+building_silk_plantation_requirement_terrain = {
+	OR = {
+		terrain = wetlands
+		terrain = plains
+		terrain = farmlands
+		terrain = floodplains
+		terrain = hills
+		terrain = forest
+	}
+	geographical_region = world_silk_plantation
+}
+building_spice_plantation_requirement_terrain = {
+	OR = {
+		terrain = jungle
+		terrain = plains
+	}
+	geographical_region = world_asia_southeast
+}
+
+### HUNT ###
+
+hunt_animal_tiger_trigger = {
+	OR = {
+		geographical_region = world_asia
+		geographical_region = world_steppe
+		geographical_region = world_india
+		geographical_region = world_burma
+		geographical_region = world_middle_east_persia
+	}
+	OR = {
+		terrain = jungle
+		terrain = forest
+		terrain = taiga
+		terrain = mountains
+		terrain = hills
+	}
+	NOR = {
+		terrain = farmlands
+		terrain = floodplains
+	}
+}
+
+hunt_animal_leopard_trigger = {
+	OR = {
+		geographical_region = world_africa_north_west
+		geographical_region = world_africa_east
+		geographical_region = world_africa_west
+		geographical_region = world_middle_east
+		geographical_region = world_india
+		geographical_region = world_burma
+		geographical_region = world_asia
+	}
+	NOR = {
+		terrain = farmlands
+		terrain = floodplains
+		terrain = desert_mountains
+	}
+}
+
+hunt_animal_steppe_trigger = { # Saiga/etc.
+	OR = {
+		geographical_region = world_steppe
+		geographical_region = world_steppe_tartaria
+	}
+	OR = {
+		terrain = steppe
+		terrain = hills
+		terrain = desert
+		terrain = wetlands
+	}
+}
+
+### Buildings
+
+building_hill_forts_requirement_terrain = {
+	OR = {
+		terrain = mountains
+		terrain = desert_mountains
+		terrain = hills
+		terrain = pass
+	}
+}
+
+
+has_university_building_trigger = {
+	OR = {
+		has_building_with_flag = { flag = celestial_university }
+		has_building_or_higher = holy_site_dashuyuan_01
+		has_building_or_higher = generic_university
+		has_building_or_higher = al_azhar_university
+		has_building_or_higher = sankore_university
+		has_building_or_higher = siena_university
+		has_building_or_higher = nalanda_university
+		has_building_or_higher = house_of_wisdom_01
+	}
+}
+
+
+is_religious_studies_location = {
+	OR = {
+		has_building_or_higher = holy_site_cathedral_01
+		has_building_or_higher = holy_site_mosque_01
+		has_building_or_higher = holy_site_pagan_grand_temple_01
+		has_building_or_higher = holy_site_indian_grand_temple_01
+		has_building_or_higher = holy_site_other_grand_temple_01
+		has_building_or_higher = holy_site_mahabodhi_temple_01
+		has_building_or_higher = brihadeeswarar_temple_01
+		has_building_or_higher = holy_site_cologne_cathedral_01
+		has_building_or_higher = holy_site_canterbury_cathedral_01
+		has_building_or_higher = temple_of_uppsala_01
+		has_building_or_higher = lund_cathedral_01
+		has_building_or_higher = notre_dame_01
+		has_building_or_higher = holy_site_imam_ali_mosque_01
+		has_building_or_higher = holy_site_great_mosque_of_mecca_01
+		has_building_or_higher = holy_site_great_mosque_of_cordoba_01
+		has_building_or_higher = holy_site_great_mosque_of_djenne_01
+		has_building_or_higher = holy_site_great_mosque_of_samarra_01
+		has_building_or_higher = holy_site_prophetic_mosque_01
+		has_building_or_higher = shwedagon_pagoda_01
+		has_building_or_higher = ananda_temple_01
+		has_building_or_higher = the_friday_mosque_01
+		has_building_or_higher = khajuraho_01
+		has_building_or_higher = hagia_sophia_01
+		has_building_or_higher = temple_in_jerusalem_01
+		has_building_or_higher = holy_site_basilica_santiago_01
+		has_building_or_higher = imam_reza_shrine_01
+		
+		#has_building_or_higher = holy_site_wenmiao_01
+		has_building_or_higher = daminggong_01
+		has_building_or_higher = kongmiao_01
+		has_building_or_higher = longmenshiku_01
+		has_building_or_higher = jiankanggong_1
+		has_building_or_higher = pijiakehanbei
+		has_building_or_higher = yungangshiku
+		has_building_or_higher = mogaoku
+		has_building_or_higher = subashifosi
+		has_building_or_higher = rewakefosi
+		has_building_or_higher = pabonka_hermitage_01
+		has_building_or_higher = becp_special_manyuetai
+		has_building_or_higher = becp_special_haiyinsi
+		has_building_or_higher = becpe_special_falongsi
+		has_building_or_higher = Angkor_01
+		has_building_or_higher = borobudur_temple_01
+	}
+}
+
+has_any_special_mine_trigger = {
+	OR = {
+		has_building_or_higher = rammelsberg_mines_01
+		has_building_or_higher = kutna_hora_mines_01
+		has_building_or_higher = kremnica_mines_01
+		has_building_or_higher = falun_mines_01
+		has_building_or_higher = schwaz_mines_01
+		has_building_or_higher = argentiera_mines_01
+		has_building_or_higher = kollur_mines_01
+		has_building_or_higher = siderokausia_mines_01
+		has_building_or_higher = mali_mines_01
+		has_building_or_higher = konasamudram_mines_01
+		has_building_or_higher = dean_mines_01
+		has_building_or_higher = zawar_mines_01
+		has_building_or_higher = takkeda_mines_01
+		has_building_or_higher = khetri_mines_01
+		has_building_or_higher = taghaza_mines_01
+		has_building_or_higher = ijil_mines_01
+		has_building_or_higher = turda_mines_01
+		has_building_or_higher = phocaea_mines_01
+		has_building_or_higher = pansjhir_mines_01
+		has_building_or_higher = trepca_mines_01
+		has_building_or_higher = rudnik_mines_01
+		has_building_or_higher = cevennes_mines_01
+		has_building_or_higher = allaq_mines_01
+		has_building_or_higher = verespatak_mines_01
+		has_building_or_higher = nishapur_mines_01
+		has_building_or_higher = srebrenica_mines_01
+		has_building_or_higher = ratnapura_mines_01
+		
+		has_building_or_higher = shoushan_mines_01
+		has_building_or_higher = daye_mines_01
+		has_building_or_higher = taiyuan_mines_01
+		has_building_or_higher = jiaodong_mines_01
+		has_building_or_higher = weicheng_mines_01
+		has_building_or_higher = shaozhou_mines_01
+		has_building_or_higher = liaodong_mines_01
+		has_building_or_higher = gold_mines_01
+		has_building_or_higher = sea_salt_mines_01
+		has_building_or_higher = silver_mines_01
+	}
+}
+
+county_has_any_special_mine_building_trigger = {
+	OR = {
+		# Rammelsberg Mines
+		has_building_or_higher = rammelsberg_mines_01
+		# Kutna_hora Mines
+		has_building_or_higher = kutna_hora_mines_01
+		# Kremnica Mines
+		has_building_or_higher = kremnica_mines_01
+		# Falun Mines
+		has_building_or_higher = falun_mines_01
+		# Schwaz Mines
+		has_building_or_higher = schwaz_mines_01
+		# Argentiera Mines
+		has_building_or_higher = argentiera_mines_01
+		# Kollur Mines
+		has_building_or_higher = kollur_mines_01
+		# Siderokausia Mines
+		has_building_or_higher = siderokausia_mines_01
+		# Mali Mines
+		has_building_or_higher = mali_mines_01
+		# Konasamudram Mines
+		has_building_or_higher = konasamudram_mines_01
+		# Dean Mines
+		has_building_or_higher = dean_mines_01
+		# Zawar Mines
+		has_building_or_higher = zawar_mines_01
+		# Takkeda Mines
+		has_building_or_higher = takkeda_mines_01
+		# Khetri Mines
+		has_building_or_higher = khetri_mines_01
+		# Taghaza Mines
+		has_building_or_higher = taghaza_mines_01
+		# Ijil Mines
+		has_building_or_higher = ijil_mines_01
+		# Turda Mines
+		has_building_or_higher = turda_mines_01
+		# Phocaea Mines
+		has_building_or_higher = phocaea_mines_01
+		# Pansjhir Mines
+		has_building_or_higher = pansjhir_mines_01
+		# Trepca Mines
+		has_building_or_higher = trepca_mines_01
+		# Rudnik Mines
+		has_building_or_higher = rudnik_mines_01
+		# Cevennes Mines
+		has_building_or_higher = cevennes_mines_01
+		# Allaq Mines
+		has_building_or_higher = allaq_mines_01
+		# Verespatak Mines
+		has_building_or_higher = verespatak_mines_01
+		# Nishapur Mines
+		has_building_or_higher = nishapur_mines_01
+		# Srebrenica Mines
+		has_building_or_higher = srebrenica_mines_01
+		# Ratnapura Mines
+		has_building_or_higher = ratnapura_mines_01
+
+		has_building_or_higher = shoushan_mines_01
+		has_building_or_higher = daye_mines_01
+		has_building_or_higher = taiyuan_mines_01
+		has_building_or_higher = jiaodong_mines_01
+		has_building_or_higher = weicheng_mines_01
+		has_building_or_higher = shaozhou_mines_01
+		has_building_or_higher = liaodong_mines_01
+		has_building_or_higher = gold_mines_01
+		has_building_or_higher = sea_salt_mines_01
+		has_building_or_higher = silver_mines_01
+	}
+}
+
+
+# BuildingGFX-based triggers
+artifact_use_indian_building_visuals_trigger = {
+	exists = culture
+	OR = {
+		culture = { has_building_gfx = indian_building_gfx }
+		culture = { has_building_gfx = chinese_building_gfx }
+	}
+
+}
+artifact_use_indian_unit_visuals_trigger = {
+	exists = culture
+	OR = {
+		culture = { has_unit_gfx = indian_unit_gfx }
+		culture = { has_unit_gfx = austronesian_unit_gfx }
+	}
+}
+
+
+artifact_use_chinese_building_visuals_trigger = {
+	exists = culture
+	culture = { has_building_gfx = chinese_building_gfx }
+}
+
+artifact_use_austronesian_unit_visuals_trigger = {
+	exists = culture
+	OR = {
+		culture = { has_unit_gfx = indian_unit_gfx }
+		culture = { has_unit_gfx = austronesian_unit_gfx }
+	}
+}
+
+######################################
+# We use a hard trigger so that this can be easily adjusted without overwriting the rest of the fp2_interactions file by modders.
+struggle_can_access_unlocks_bargain_fealty_interaction_trigger = {
+	# Just uhh, use an OR if you add something else.
+	OR = {
+		is_struggle_type = iberian_struggle
+		is_struggle_type = tartaria_struggle
+	}
+}
+
+#####################################
+#革新？法统？君权？
+#has_too_many_held_duchies_trigger = {
+	#highest_held_title_tier >= tier_kingdom
+	#any_held_title = {
+		#count >= 3
+		#title_counts_towards_too_many_duchies_trigger = yes
+	#}
+#}

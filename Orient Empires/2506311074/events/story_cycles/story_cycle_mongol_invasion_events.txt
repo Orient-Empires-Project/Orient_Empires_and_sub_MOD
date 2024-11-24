@@ -1,0 +1,802 @@
+﻿namespace = mongol_invasion
+
+#Events for the mongol invasion Story Cycle
+
+### Spawn Temujin, aka Genghis Khan, with the associated story...
+mongol_invasion.0001 = {
+	scope = none
+	hidden = yes
+
+	trigger = {
+		NOT = { # Stop Temujin destroying a stronk Mongol player
+			any_player = {
+				THIS = culture:mongol.culture_head
+				realm_size >= 100
+			}
+		}
+	}
+
+	immediate = {
+		debug_log = "Mongols appeared!"
+		debug_log_date = yes
+		spawn_temujin_character_effect = yes
+		if = {
+			limit = {
+				scope:temujin = { is_ai = yes }
+			}
+			scope:temujin = {
+				save_scope_as = story_owner # Do I really need to do this? Isn't it set automatically?
+				create_story = story_mongol_invasion
+			}
+		}
+	}
+}
+
+# Event for handling new army spawning on succession
+mongol_invasion.0100 = {
+	hidden = yes
+	immediate = {
+		spawn_mongol_troops_effect = yes
+	}
+}
+
+##################
+# Notification Events
+# 1000-1999
+##################
+
+### The Khan is dead - a new Khan rises...
+# by Petter Vilberg
+mongol_invasion.1001 = {
+	title = mongol_invasion.1001.title
+	
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					target_is_liege_or_above = scope:new_khan
+					OR = {
+						religion = scope:old_khan.religion
+						culture = scope:old_khan.culture
+					}
+				}
+				desc = mongol_invasion.1001.sympathetic.desc # We have lost a great hero! (/we remain scared) /for allies of faith or subjects
+			}
+			triggered_desc = {
+				trigger = {
+					in_diplomatic_range = scope:new_khan
+				}
+				desc = mongol_invasion.1001.generic.desc  # Thank [god]. Maybe the next one will be more chill...
+			}
+			desc = mongol_invasion.1001.generic.oblivious.desc # Who? /vague info
+		}
+	}
+
+	theme = war
+	override_background = {
+		reference = wilderness_steppe
+	}
+	left_portrait = {
+		character = scope:new_khan
+		animation = personality_bold
+	}
+	right_portrait = scope:old_khan
+
+	trigger = {
+		in_diplomatic_range = scope:new_khan
+		NOT = { root = scope:new_khan }
+	}
+	
+	option = {
+		name = mongol_invasion.1001.a
+		trigger = {
+			scope:old_khan.faith.religion = root.faith.religion
+		}
+		fallback = yes
+	}
+	
+	option = {
+		name = mongol_invasion.1001.b
+		trigger = {
+			target_is_liege_or_above = scope:new_khan
+		}
+	}
+	
+	option = {
+		name = mongol_invasion.1001.c # Good riddance
+		trigger = {
+			NOT = {
+				scope:old_khan.faith.religion = root.faith.religion
+			}
+		}
+	}
+}
+
+### Appearance of Genghis Khan
+# by Petter Vilberg
+mongol_invasion.1002 = {
+	type = character_event
+	title = mongol_invasion.1002.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					any_realm_province = {
+						OR = {
+							geographical_region = special_mongol_empire_start_region
+							geographical_region = special_mongol_empire_conquest_region_prio_0
+							geographical_region = special_mongol_empire_conquest_region_prio_1
+							geographical_region = special_mongol_empire_conquest_region_prio_2
+						}
+					}
+				}
+				desc = {
+					desc = mongol_invasion.1002.desc.close
+					first_valid = {
+						triggered_desc = {
+							trigger = {
+								any_realm_province = {
+									geographical_region = special_mongol_empire_start_region
+								}
+							}
+							desc = mongol_invasion.1002.desc.close_mongolia
+						}
+						desc = mongol_invasion.1002.desc.close_steppes
+					}
+					desc = mongol_invasion.1002.desc.close.end
+				}
+			}
+			desc = mongol_invasion.1002.desc.far
+		}
+	}
+	theme = war
+	override_background = {
+		reference = ep2_travel_settlement_steppe
+	}
+	left_portrait = {
+		character = scope:temujin
+		animation = personality_callous
+	}
+	right_portrait = {
+		character = scope:mongol_warrior
+		animation = marshal
+		hide_info = yes
+	}
+
+	immediate = {
+		#Add a warrior friend for the herd to look more menacing
+		scope:temujin = { save_scope_as = value_target }
+		create_character = {
+			location = scope:temujin.location
+			template = new_commander_character
+			trait = giant
+			faith = scope:temujin.faith
+			culture = scope:temujin.culture
+			gender_female_chance = scope_value_target_soldier_female_chance
+			save_scope_as = mongol_warrior
+		}
+		scope:mongol_warrior = {
+			add_character_flag = { flag = need_military_outfit }
+		}
+	}
+	
+	option = { # Option for characters in Mongolia
+		name = {
+			trigger = { has_trait = craven }
+			text = mongol_invasion.1002.craven
+		}
+		name = {
+			text = mongol_invasion.1002.a
+		}
+		exclusive = yes
+		trigger = {
+			any_realm_province = {
+				geographical_region = special_mongol_empire_start_region
+			}
+		}
+		custom_tooltip = mongol_invasion.1002.genghis_khan_tt
+	}
+
+	option = { # Option for close characters
+		name = {
+			trigger = { has_trait = craven }
+			text = mongol_invasion.1002.craven
+		}
+		name = {
+			text = mongol_invasion.1002.b
+		}
+		trigger = {
+			any_realm_province = {
+				OR = {
+					geographical_region = special_mongol_empire_conquest_region_prio_0
+					geographical_region = special_mongol_empire_conquest_region_prio_1
+					geographical_region = special_mongol_empire_conquest_region_prio_2
+				}
+			}
+		}
+		exclusive = yes
+		custom_tooltip = mongol_invasion.1002.genghis_khan_tt
+	}
+	
+	option = { # Options for distant characters
+		name = {
+			text = mongol_invasion.1002.craven
+			trigger = { has_trait = craven }
+		}
+		name = {
+			text = mongol_invasion.1002.c
+		}
+		custom_tooltip = mongol_invasion.1002.genghis_khan_tt
+	}
+	
+	after = {
+		scope:mongol_warrior = { silent_disappearance_effect = yes }
+	}
+}
+
+
+### Breakup of the Mongol Empire
+# by Petter Vilberg
+mongol_invasion.1004 = {
+	type = character_event
+	title = mongol_invasion.1004.t
+	desc = mongol_invasion.1004.desc
+	theme = war
+	override_background = {
+		reference = wilderness_steppe
+	}
+	left_portrait = scope:old_mongol_emperor
+	right_portrait = {
+		character = scope:successor_1
+		animation = personality_bold
+	}
+	lower_left_portrait = scope:successor_2
+	lower_center_portrait = scope:successor_3
+	lower_right_portrait = scope:successor_4
+	
+	option = { # The empire will rise again
+		name = mongol_invasion.1004.a
+		trigger = {
+			faith = scope:successor_1.faith
+			OR = {
+				top_liege = scope:old_khan
+				top_liege = scope:successor_1
+				top_liege = scope:successor_2
+				top_liege = scope:successor_3
+				top_liege = scope:successor_4
+			}
+		}
+	}
+
+	option = { # Thank HighGod
+		name = mongol_invasion.1004.b
+		trigger = {
+			always = no
+		}
+		fallback = yes
+	}
+}
+
+
+### The Empire "breaks up" when it's too small to do so
+# by Petter Vilberg
+mongol_invasion.1005 = {
+	type = character_event
+	title = mongol_invasion.1005.t
+	desc = mongol_invasion.1005.desc
+	theme = war
+	override_background = {
+		reference = wilderness_steppe
+	}
+	left_portrait = {
+		character = scope:new_khan
+		animation = personality_bold
+	}
+	right_portrait = scope:old_khan
+
+	trigger = {
+		in_diplomatic_range = scope:new_khan
+		NOT = { root = scope:new_khan }
+	}
+
+	option = {
+		name = mongol_invasion.1005.a
+		custom_tooltip = mongol_invasion.1005.a.tt
+	}
+}
+
+
+##############################
+# Demands for Subjugation
+# 2000-2999
+# by Petter Vilberg
+##############################
+
+# The Khan demands subjugation
+mongol_invasion.2001 = {
+	type = letter_event
+	opening = mongol_invasion.2001.opening
+	desc = mongol_invasion.2001.desc
+	sender = {
+		character = scope:mongol_emperor
+		animation = personality_bold
+	}
+
+	trigger = {
+		NOT = { is_at_war_with = scope:mongol_emperor }
+		NOT = { root = scope:mongol_emperor }
+	}
+
+	immediate = {
+		save_scope_as = demand_recipient
+		scope:mongol_emperor = {
+			remove_list_variable = {
+				name = subjugation_offer_under_consideration
+				target = root
+			}
+		}
+	}
+
+	option = { # Submit
+		name = mongol_invasion.2001.a
+		custom_tooltip = mongol_invasion.2001.a.tt
+		hidden_effect = {
+			scope:mongol_emperor = {
+				trigger_event = mongol_invasion.2002
+			}
+		}
+		ai_chance = {
+			base = 100
+			# More likely for Altaic group to join the big 'un
+			modifier = {
+				add = 200
+				culture = { has_cultural_pillar = heritage_mongolic }
+			}
+			# More likely if you're just a count
+			modifier = {
+				add = 300
+				highest_held_title_tier = tier_county
+			}
+			# More likely if you're a duke
+			modifier = {
+				add = 100
+				highest_held_title_tier = tier_duchy
+			}
+			# Unlikely if you're Arrogant
+			modifier = {
+				factor = 0.2
+				has_trait = arrogant
+			}
+			# Unlikely if you're brave
+			modifier = {
+				factor = 0.2
+				has_trait = brave
+			}
+			# Likely if you're a Craven
+			modifier = {
+				factor = 1.2
+				has_trait = craven
+			}
+			# Lower chance if you're decently large
+			modifier = {
+				factor = 0.5
+				realm_size >= 35 # Poland-sized
+			}
+			# No chance of accepting if you're large
+			modifier = {
+				factor = 0
+				realm_size >= 55 # Hungary-sized
+			}
+		}
+	}
+
+	option = { # Resist
+		name = mongol_invasion.2001.b
+		custom_tooltip = mongol_invasion.2001.b.tt
+		add_internal_flag = dangerous
+		hidden_effect = {
+			scope:mongol_emperor = {
+				trigger_event = mongol_invasion.2003
+			}
+		}
+		ai_chance = {
+			base = 300
+		}
+	}
+}
+
+# Subjugation accepted
+mongol_invasion.2002 = {
+	type = letter_event
+	opening = mongol_invasion.2002.opening
+	desc = mongol_invasion.2002.desc
+	sender = scope:demand_recipient
+
+	immediate = {
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			save_scope_as = title_change
+			add_claim_on_loss = no
+		}
+		scope:demand_recipient = {
+			change_liege = {
+				liege = root
+				change = scope:title_change
+			}
+		}
+		resolve_title_and_vassal_change = scope:title_change
+		# Remove from the list blocking war declarations
+		remove_list_variable = {
+			name = subjugation_offer_under_consideration
+			target = scope:demand_recipient
+		}
+
+		debug_log = "Someone accepted Mongol subjugation"
+		debug_log_scopes = yes
+	}
+
+	option = { # Wise choice
+		name = mongol_invasion.2002.a
+	}
+}
+
+# Subjugation refused
+mongol_invasion.2003 = {
+	type = letter_event
+	opening = mongol_invasion.2003.opening
+	desc = mongol_invasion.2003.desc
+	sender = {
+		character = scope:demand_recipient
+		animation = personality_bold
+	}
+
+	immediate = {
+		hidden_effect = {
+			scope:demand_recipient.primary_title = {
+				save_scope_as = target_title
+			}
+		}
+		# Remove from the list blocking war declarations
+		remove_list_variable = {
+			name = subjugation_offer_under_consideration
+			target = scope:demand_recipient
+		}
+
+		debug_log = "Someone refused Mongol subjugation"
+		debug_log_scopes = yes
+	}
+
+	option = { # War it is
+		name = mongol_invasion.2003.a
+		if = {
+			limit = {
+				exists = scope:target_title.empire
+			}
+			start_war = {
+				cb = mongol_realm_invasion_war
+				target = scope:target_title.holder
+				target_title = scope:target_title.empire
+			}
+		}
+		else = {
+			debug_log = "Failed to find a target empire for a Mongol invasion!"
+			debug_log_scopes = yes
+
+			start_war = {
+				cb = mongol_realm_invasion_war
+				target = scope:target_title.holder
+				target_title = scope:target_title.holder.capital_province.empire
+			}
+		}
+	}
+}
+
+
+######################################
+# Subjugation or a Broken Alliance - King or lower
+# by Petter Vilberg
+######################################
+
+# The Khan demands subjugation
+mongol_invasion.2101 = {
+	type = letter_event
+	opening = mongol_invasion.2001.opening
+	desc = mongol_invasion.2101.desc
+	sender = {
+		character = scope:mongol_emperor
+		animation = personality_bold
+	}
+
+	trigger = {
+		NOT = { root = scope:mongol_emperor }
+	}
+
+	immediate = {
+		save_scope_as = demand_recipient
+	}
+
+	option = { # Submit
+		name = mongol_invasion.2101.a
+		custom_tooltip = mongol_invasion.2001.a.tt
+		hidden_effect = {
+			scope:mongol_emperor = {
+				trigger_event = mongol_invasion.2102
+			}
+		}
+		ai_chance = {
+			base = 100
+			# More likely for Altaic group to join the big 'un
+			modifier = {
+				add = 300
+				culture = { has_cultural_pillar = heritage_mongolic }
+			}
+			# More likely if you're just a count
+			modifier = {
+				add = 1000
+				highest_held_title_tier = tier_county
+			}
+			# More likely if you're a duke
+			modifier = {
+				add = 400
+				highest_held_title_tier = tier_duchy
+			}
+			# Unlikely if you're Arrogant
+			modifier = {
+				factor = 0.2
+				has_trait = arrogant
+			}
+			# Unlikely if you're brave
+			modifier = {
+				factor = 0.2
+				has_trait = brave
+			}
+			# Likely if you're a Craven
+			modifier = {
+				factor = 2
+				has_trait = craven
+			}
+			# Lower chance if you're decently large
+			modifier = {
+				factor = 0.5
+				realm_size >= 35 # Poland-sized
+			}
+			# No chance of accepting if you're large
+			modifier = {
+				factor = 0
+				realm_size >= 55 # Hungary-sized
+			}
+		}
+	}
+
+	option = {
+		name = mongol_invasion.2101.b
+		add_internal_flag = dangerous
+		custom_tooltip = mongol_invasion.2101.b.tt
+		hidden_effect = {
+			scope:mongol_emperor = {
+				trigger_event = mongol_invasion.2103
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+}
+
+# Subjugation accepted
+mongol_invasion.2102 = {
+	type = letter_event
+	opening = mongol_invasion.2002.opening
+	desc = mongol_invasion.2002.desc
+	sender = scope:demand_recipient
+
+	immediate = {
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			save_scope_as = title_change
+			add_claim_on_loss = no
+		}
+		scope:demand_recipient = {
+			change_liege = {
+				liege = root
+				change = scope:title_change
+			}
+		}
+		resolve_title_and_vassal_change = scope:title_change
+		# Remove from the list blocking war declarations
+		remove_list_variable = {
+			name = subjugation_offer_under_consideration
+			target = scope:demand_recipient
+		}
+
+		debug_log = "Someone accepted Mongol subjugation"
+		debug_log_scopes = yes
+	}
+
+	option = { # Wise choice
+		name = mongol_invasion.2002.a
+	}
+}
+
+# Subjugation refused
+mongol_invasion.2103 = {
+	type = letter_event
+	opening = mongol_invasion.2003.opening
+	desc = mongol_invasion.2003.desc
+	sender = {
+		character = scope:demand_recipient
+		animation = personality_bold
+	}
+
+	immediate = {
+		# Remove from the list blocking war declarations
+		remove_list_variable = {
+			name = subjugation_offer_under_consideration
+			target = scope:demand_recipient
+		}
+		break_alliance = scope:demand_recipient
+
+		debug_log = "Someone refused Mongol subjugation"
+		debug_log_scopes = yes
+	}
+
+	# War it is
+	option = {
+		name = mongol_invasion.2103.a
+		start_war = {
+			cb = mongol_realm_invasion_war
+			target = scope:target_title.holder
+			target_title = scope:target_title.empire
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+
+	# Just you wait...
+	option = {
+		name = mongol_invasion.2103.b
+		ai_chance = {
+			base = 0
+		}
+	}
+}
+
+######################################
+# Subjugation or a Broken Alliance - Emperor
+# by Petter Vilberg
+######################################
+
+# The Khan demands subjugation
+mongol_invasion.2111 = {
+	type = letter_event
+	opening = mongol_invasion.2001.opening
+	desc = mongol_invasion.2101.desc
+	sender = {
+		character = scope:mongol_emperor
+		animation = personality_bold
+	}
+
+	trigger = {
+		NOT = { root = scope:mongol_emperor }
+	}
+
+	immediate = {
+		save_scope_as = demand_recipient
+	}
+
+	# Outrageous!
+	option = {
+		name = mongol_invasion.2111.b
+		custom_tooltip = mongol_invasion.2111.b.tt
+		hidden_effect = {
+			scope:mongol_emperor = {
+				trigger_event = mongol_invasion.2112
+			}
+		}
+	}
+}
+
+# Subjugation refused
+mongol_invasion.2112 = {
+	type = letter_event
+	opening = mongol_invasion.2003.opening
+	desc = mongol_invasion.2112.desc
+	sender = scope:demand_recipient
+
+	immediate = {
+		# Remove from the list blocking war declarations
+		remove_list_variable = {
+			name = subjugation_offer_under_consideration
+			target = scope:demand_recipient
+		}
+
+		debug_log = "Someone refused Mongol subjugation - Broke alliance"
+		debug_log_scopes = yes
+	}
+
+	option = { # Our alliance is over
+		name = mongol_invasion.2112.a
+		break_alliance = scope:demand_recipient
+	}
+}
+
+
+
+
+### Destroy the Mongol Empire title if appropriate
+mongol_invasion.9999 = {
+	type = character_event
+	hidden = yes
+
+	trigger = {
+		exists = global_var:mongol_empire_was_broken_up
+	}
+	
+	immediate = {
+		
+	# Final cleanup
+		if = {
+			limit = {
+				exists = title:e_mongol_empire.holder
+			}
+			title:e_mongol_empire.holder = {
+				if = {
+					limit = {
+						any_held_title = {
+							tier = tier_county
+						}
+					}
+					create_title_and_vassal_change = {
+						type = granted
+						save_scope_as = title_change_cleanup
+						add_claim_on_loss = no
+					}
+					every_vassal_or_below = {
+						change_liege = {
+							liege = scope:mongolia_ruler
+							change = scope:title_change_cleanup
+						}
+					}
+					every_held_title = {
+						limit = {
+							tier = tier_county
+						}
+						add_to_list = mongol_final_cleanup
+					}
+					every_in_list = {
+						list = mongol_final_cleanup
+						change_title_holder = {
+							holder = scope:mongolia_ruler
+							change = scope:title_change_cleanup
+							take_baronies = yes
+						}
+					}
+					resolve_title_and_vassal_change = scope:title_change_cleanup
+				}
+			}
+		}
+		if = {
+			limit = {
+				any_held_title = {
+					this = title:e_mongolia
+				}
+				any_held_title = {
+					this = title:e_mongol_empire
+				}
+			}
+		}
+		title:e_mongol_empire = {
+			every_in_de_jure_hierarchy = {
+				continue = {
+					tier > tier_kingdom
+				}
+				limit = {
+					tier = tier_kingdom
+				}
+				set_de_jure_liege_title = title:e_mongolia
+			}
+		}
+		destroy_title = title:e_mongol_empire
+	}
+}

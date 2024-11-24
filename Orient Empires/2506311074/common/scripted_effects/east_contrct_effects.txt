@@ -1,5 +1,15 @@
-﻿change_government_bureau_government_effect = {
-	change_government = imperial_government
+﻿change_to_celes_government_effect = { #重要转换
+	if = {
+		limit = { has_dlc_feature = roads_to_power }
+		change_government = imperial_government	
+	}
+	else = {
+		change_government = celestial_government
+	}
+}
+
+change_government_bureau_government_effect = {
+	change_to_celes_government_effect = yes
 	vassal_contract_set_obligation_level = {
 		type = special_imperial_contract
 		level = 0
@@ -8,23 +18,28 @@
 		type = special_imperial_bureau
 		level = 0
 	}
-	hidden_effect = { set_vassal_contract_modification_blocked = yes }
+	#hidden_effect = { set_vassal_contract_modification_blocked = yes }
 }
 	
-change_government_corps_government_effect = {
-	change_government = imperial_government
+change_government_legion_government_effect = {
+	change_to_celes_government_effect = yes
 	vassal_contract_set_obligation_level = {
 		type = special_imperial_contract
 		level = 1
 	}
 	vassal_contract_set_obligation_level = {
-		type = special_imperial_corps
+		type = special_imperial_legion
 		level = 2
 	}
+	vassal_contract_set_obligation_level = {
+		type = heir_succession_rights
+		level = 1
+	}
+	add_realm_law_skip_effects = legion_succession_law
 	if = {
 		limit = { 
 			exists = vassal_contract_obligation_level:special_contract 
-			#liege.culture = { has_innovation = innovation_scutage }
+			liege.culture = { has_innovation = innovation_scutage }
 		}
 		vassal_contract_set_obligation_level = {
 			type = special_contract
@@ -33,8 +48,11 @@ change_government_corps_government_effect = {
 	}
 	if = {
 		limit = { 
-			exists = vassal_contract_obligation_level:fortification_rights 
-			#liege.culture = { has_innovation = innovation_battlements }
+			exists = vassal_contract_obligation_level:fortification_rights
+			OR = {
+				liege.culture = { has_innovation = innovation_battlements } #防报错
+				liege.culture = { has_innovation = innovation_centralization_of_authority } #防报错
+			} 
 		}
 		vassal_contract_set_obligation_level = {
 			type = fortification_rights
@@ -48,56 +66,82 @@ change_government_corps_government_effect = {
 			level = 1
 		}
 	}
-	hidden_effect = { set_vassal_contract_modification_blocked = yes }
+	#hidden_effect = { set_vassal_contract_modification_blocked = yes }
 }
 
-change_government_legion_government_effect = {
-	change_government = imperial_government
+change_government_milita_government_effect = {
+	change_to_celes_government_effect = yes
 	vassal_contract_set_obligation_level = {
 		type = special_imperial_contract
 		level = 1
 	}
 	vassal_contract_set_obligation_level = {
-		type = special_imperial_corps
+		type = special_imperial_legion
 		level = 0
 	}
-	hidden_effect = { set_vassal_contract_modification_blocked = yes }
+	#hidden_effect = { set_vassal_contract_modification_blocked = yes }
 }
 
 change_government_tribute_government_effect = {
-	change_government = imperial_government
+	change_to_celes_government_effect = yes
 	vassal_contract_set_obligation_level = {
 		type = special_imperial_contract
 		level = 1
 	}
 	vassal_contract_set_obligation_level = {
-		type = special_imperial_corps
+		type = special_imperial_legion
 		level = 3
 	}
-	hidden_effect = { set_vassal_contract_modification_blocked = yes }
+	#hidden_effect = { set_vassal_contract_modification_blocked = yes }
 }
 
 change_government_royal_government_effect = {
-	change_government = imperial_government
+	change_to_celes_government_effect = yes
 	vassal_contract_set_obligation_level = {
 		type = special_imperial_contract
 		level = 2
 	}
 	vassal_contract_set_obligation_level = {
 		type = special_imperial_royal
-		level = 2
+		level = 0
 	}
-	hidden_effect = { set_vassal_contract_modification_blocked = yes }
+	#hidden_effect = { set_vassal_contract_modification_blocked = yes }
 }
 
+change_government_fanwang_effect = {
+	change_to_celes_government_effect = yes
+	vassal_contract_set_obligation_level = {
+		type = special_imperial_contract
+		level = 2
+	}
+	vassal_contract_set_obligation_level = {
+		type = special_imperial_royal
+		level = 1
+	}
+	#hidden_effect = { set_vassal_contract_modification_blocked = yes }
+}
+
+change_government_aristo_effect = {
+	change_to_celes_government_effect = yes
+	vassal_contract_set_obligation_level = {
+		type = special_imperial_contract
+		level = 0
+	}
+	vassal_contract_set_obligation_level = {
+		type = special_imperial_royal
+		level = 3
+	}
+	#hidden_effect = { set_vassal_contract_modification_blocked = yes }
+}
 
 save_east_contract_effect = {
 	remove_other_contract_effect = yes
+	save_temporary_scope_as = bureaucrat
 	if = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_contract_0 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_contract_0
 				value = yes
@@ -108,7 +152,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_contract_1 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_contract_1
 				value = yes
@@ -119,7 +163,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_contract_2 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_contract_2
 				value = yes
@@ -128,55 +172,55 @@ save_east_contract_effect = {
 	}
 	if = {
 		limit = {
-			scope:bureaucrat = { vassal_contract_has_flag = imperial_corps_0 }
+			scope:bureaucrat = { vassal_contract_has_flag = imperial_legion_0 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
-				name = imperial_corps_0
+				name = imperial_legion_0
 				value = yes
 			}
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat = { vassal_contract_has_flag = imperial_corps_1 }
+			scope:bureaucrat = { vassal_contract_has_flag = imperial_legion_1 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
-				name = imperial_corps_1
+				name = imperial_legion_1
 				value = yes
 			}
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat = { vassal_contract_has_flag = imperial_corps_2 }
+			scope:bureaucrat = { vassal_contract_has_flag = imperial_legion_2 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
-				name = imperial_corps_2
+				name = imperial_legion_2
 				value = yes
 			}
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat = { vassal_contract_has_flag = imperial_corps_3 }
+			scope:bureaucrat = { vassal_contract_has_flag = imperial_legion_3 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
-				name = imperial_corps_3
+				name = imperial_legion_3
 				value = yes
 			}
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat = { vassal_contract_has_flag = imperial_corps_4 }
+			scope:bureaucrat = { vassal_contract_has_flag = imperial_legion_4 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
-				name = imperial_corps_4
+				name = imperial_legion_4
 				value = yes
 			}
 		}
@@ -185,7 +229,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_bureau_0 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_bureau_0
 				value = yes
@@ -196,7 +240,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_bureau_1 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_bureau_1
 				value = yes
@@ -207,7 +251,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_bureau_2 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_bureau_2
 				value = yes
@@ -218,7 +262,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_bureau_3 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_bureau_3
 				value = yes
@@ -229,7 +273,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_royal_0 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_royal_0
 				value = yes
@@ -240,7 +284,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_royal_1 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_royal_1
 				value = yes
@@ -251,7 +295,7 @@ save_east_contract_effect = {
 		limit = {
 			scope:bureaucrat = { vassal_contract_has_flag = imperial_royal_2 }
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			set_variable = { #To unlock the building
 				name = imperial_royal_2
 				value = yes
@@ -260,159 +304,161 @@ save_east_contract_effect = {
 	}
 }
 remove_other_contract_effect = {
+	save_temporary_scope_as = bureaucrat
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_contract_0 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_contract_0
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_contract_1 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_contract_1
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_contract_2 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_contract_2
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
-				has_variable = imperial_corps_0 
+			scope:bureaucrat.primary_title ?= {
+				has_variable = imperial_legion_0 
 			}
 		}
-		scope:bureaucrat.primary_title = {
-			remove_variable = imperial_corps_0
+		scope:bureaucrat.primary_title ?= {
+			remove_variable = imperial_legion_0
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
-				has_variable = imperial_corps_1 
+			scope:bureaucrat.primary_title ?= {
+				has_variable = imperial_legion_1 
 			}
 		}
-		scope:bureaucrat.primary_title = {
-			remove_variable = imperial_corps_1
+		scope:bureaucrat.primary_title ?= {
+			remove_variable = imperial_legion_1
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
-				has_variable = imperial_corps_2 
+			scope:bureaucrat.primary_title ?= {
+				has_variable = imperial_legion_2 
 			}
 		}
-		scope:bureaucrat.primary_title = {
-			remove_variable = imperial_corps_2
+		scope:bureaucrat.primary_title ?= {
+			remove_variable = imperial_legion_2
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
-				has_variable = imperial_corps_3 
+			scope:bureaucrat.primary_title ?= {
+				has_variable = imperial_legion_3 
 			}
 		}
-		scope:bureaucrat.primary_title = {
-			remove_variable = imperial_corps_3
+		scope:bureaucrat.primary_title ?= {
+			remove_variable = imperial_legion_3
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
-				has_variable = imperial_corps_4
+			scope:bureaucrat.primary_title ?= {
+				has_variable = imperial_legion_4
 			}
 		}
-		scope:bureaucrat.primary_title = {
-			remove_variable = imperial_corps_4
+		scope:bureaucrat.primary_title ?= {
+			remove_variable = imperial_legion_4
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_bureau_0 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_bureau_0
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_bureau_1 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_bureau_1
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_bureau_2 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_bureau_2
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_bureau_3 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_bureau_3
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_royal_0 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_royal_0
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_royal_1 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_royal_1
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat.primary_title = {
+			scope:bureaucrat.primary_title ?= {
 				has_variable = imperial_royal_2 
 			}
 		}
-		scope:bureaucrat.primary_title = {
+		scope:bureaucrat.primary_title ?= {
 			remove_variable = imperial_royal_2
 		}
 	}
 }
 
 inter_east_contract_effect = {
+	save_temporary_scope_as = lucky
 	if = {
 		limit = {
 			scope:lucky.primary_title = {
@@ -438,7 +484,7 @@ inter_east_contract_effect = {
 				type = special_imperial_contract
 				level = 1
 			}
-			inter_east_contract_corps_effect = yes
+			inter_east_contract_legion_effect = yes
 		}
 	}
 	if = {
@@ -456,16 +502,16 @@ inter_east_contract_effect = {
 		}
 	}
 }	
-inter_east_contract_corps_effect = {
+inter_east_contract_legion_effect = {
 	if = {
 		limit = {
 			scope:lucky.primary_title = {
-				has_variable = imperial_corps_0
+				has_variable = imperial_legion_0
 			}
 		}
 		scope:lucky = {
 			vassal_contract_set_obligation_level = {
-				type = special_imperial_corps
+				type = special_imperial_legion
 				level = 0
 			}
 		}
@@ -473,12 +519,12 @@ inter_east_contract_corps_effect = {
 	if = {
 		limit = {
 			scope:lucky.primary_title = {
-				has_variable = imperial_corps_1
+				has_variable = imperial_legion_1
 			}
 		}
 		scope:lucky = {
 			vassal_contract_set_obligation_level = {
-				type = special_imperial_corps
+				type = special_imperial_legion
 				level = 1
 			}
 		}
@@ -486,25 +532,25 @@ inter_east_contract_corps_effect = {
 	if = {
 		limit = {
 			scope:lucky.primary_title = {
-				has_variable = imperial_corps_2
+				has_variable = imperial_legion_2
 			}
 		}
 		scope:lucky = {
 			vassal_contract_set_obligation_level = {
-				type = special_imperial_corps
+				type = special_imperial_legion
 				level = 2
 			}
 		}
 	}
 	if = {
 		limit = {
-			scope:bureaucrat = {
-				has_character_flag = char_imperial_corps_2
+			scope:lucky = {
+				has_character_flag = imperial_legion_2
 			}	
 		}
-		scope:bureaucrat = {
+		scope:lucky = {
 			vassal_contract_set_obligation_level = {
-				type = special_imperial_corps
+				type = special_imperial_legion
 				level = 2
 			}
 		}
@@ -512,12 +558,12 @@ inter_east_contract_corps_effect = {
 	if = {
 		limit = {
 			scope:lucky.primary_title = {
-				has_variable = imperial_corps_3
+				has_variable = imperial_legion_3
 			}
 		}
 		scope:lucky = {
 			vassal_contract_set_obligation_level = {
-				type = special_imperial_corps
+				type = special_imperial_legion
 				level = 3
 			}
 		}
@@ -525,12 +571,12 @@ inter_east_contract_corps_effect = {
 	if = {
 		limit = {
 			scope:lucky.primary_title = {
-				has_variable = imperial_corps_4
+				has_variable = imperial_legion_4
 			}
 		}
 		scope:lucky = {
 			vassal_contract_set_obligation_level = {
-				type = special_imperial_corps
+				type = special_imperial_legion
 				level = 4
 			}
 		}

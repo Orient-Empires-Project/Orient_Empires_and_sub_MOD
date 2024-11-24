@@ -1,0 +1,365 @@
+﻿#medium_gold_value
+#major_gold_value
+#massive_gold_value
+
+tiny_tribute_exp_value = 1
+minor_tribute_exp_value = 3
+medium_tribute_exp_value = 7
+major_tribute_exp_value = 10
+massive_tribute_exp_value = 15
+monumental_tribute_exp_value = 30
+
+tiny_tribute_exp_value_negative = -1
+minor_tribute_exp_value_negative = -3
+medium_tribute_exp_value_negative = -7
+major_tribute_exp_value_negative = -10
+massive_tribute_exp_value_negative = -15
+monumental_tribute_exp_value_negative = -30
+
+
+suzerain_exp_value_negative = {
+	add = 0
+	add = {
+		if = {
+			limit = { TributeSystem_suzerain_is_civilized_trigger = yes }
+			add = scope:tributary.sub_realm_size
+			divide = 5
+			multiply = -1
+		}
+		if = {
+			limit = { TributeSystem_suzerain_is_league_trigger = yes }
+			add = scope:tributary.sub_realm_size
+			divide = 10
+			multiply = -1
+		}
+	}
+	min = -30
+	ceiling = yes
+}
+
+
+#发起方花费朝贡点数
+tribute_exp_loss = {
+	value = 0
+	if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_county
+		}
+		add = minor_tribute_exp_value_negative
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_duchy
+		}
+		add =  medium_tribute_exp_value_negative
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_kingdom
+		}
+		add = major_tribute_exp_value_negative
+	}
+	else = {
+		add = massive_tribute_exp_value_negative
+	}
+
+}
+tribute_exp_cost = {
+	value = tribute_exp_loss
+	multiply = -1
+}
+
+#接收方花费朝贡点数
+recipient_tribute_exp_loss = {
+	value = 0
+	if = {
+		limit = {
+			scope:actor.primary_title.tier = tier_county
+		}
+		add = minor_tribute_exp_value_negative
+	}
+	else_if = {
+		limit = {
+			scope:actor.primary_title.tier = tier_duchy
+		}
+		add = medium_tribute_exp_value_negative
+	}
+	else_if = {
+		limit = {
+			scope:actor.primary_title.tier = tier_kingdom
+		}
+		add = major_tribute_exp_value_negative
+	}
+	else = {
+		add = massive_tribute_exp_value_negative
+	}
+}
+recipient_tribute_exp_cost = {
+	value = recipient_tribute_exp_loss
+	multiply = -1
+}
+
+
+#之后替换为 scale modifier
+#二级宗主行动花费
+medium_suzerain_cost = {
+	value = 60
+	if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_county
+		}
+		multiply = 2
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_duchy
+		}
+		multiply = 3
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_kingdom
+		}
+		multiply = 4
+	}
+	else = {
+		multiply = 5
+	}
+}
+
+#三级宗主行动花费
+major_suzerain_cost = {
+	value = 100
+	if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_county
+		}
+		multiply = 2
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_duchy
+		}
+		multiply = 3
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_kingdom
+		}
+		multiply = 4
+	}
+	else = {
+		multiply = 5
+	}
+}
+#四级宗主行动花费
+massive_suzerain_cost = {
+	value = 200
+	if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_county
+		}
+		multiply = 2
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_duchy
+		}
+		multiply = 3
+	}
+	else_if = {
+		limit = {
+			scope:recipient.primary_title.tier = tier_kingdom
+		}
+		multiply = 4
+	}
+	else = {
+		multiply = 5
+	}
+}
+
+#侍女的朝贡价值 scope:secondary_actor
+tribute_courtier_beauty_value = {
+	value = 0
+	#add = hostage_secondary_actor_place_in_succession #继承顺位
+	add = genetic_character_value #先天特质
+	add = scope:secondary_actor.num_of_good_genetic_traits #正面特质
+	subtract = scope:secondary_actor.num_of_bad_genetic_traits #负面特质
+	add = scope:secondary_actor.dynasty.dynasty_prestige_level #家族威望
+	#add = {
+		#add = 2
+		#scope:recipient = {
+			#is_attracted_to_gender_of = scope:secondary_actor
+		#}
+	#}
+	#multiply = {
+		#value = 2
+		#scope:recipient = {
+			#is_close_family_of = scope:secondary_actor
+		#}
+	#}
+}
+
+tribute_courtier_beauty_gold_value = {
+	value = tribute_courtier_beauty_value
+	multiply = 40
+}
+
+#宝物的朝贡价值 scope:target
+tribute_artifact_value = {
+	value = 0
+	if = {
+		limit = {
+			scope:target = { is_unique = yes }
+		}
+		add = 50
+	}
+	else_if = {
+		limit = {
+			scope:target = { rarity = masterwork }
+		}
+		add = 30
+	}
+	else_if = {
+		limit = {
+			scope:target = { rarity = famed }
+		}
+		add = 20
+	}
+	else_if = {
+		limit = {
+			scope:target = { rarity = illustrious }
+		}
+		add = 10
+	}
+}
+
+#摆动点数
+
+swing_tribute_exp_discounts_multiplier_value = {
+	# Landless characters pay a fraction.
+	if = {
+		limit = { is_landed = no }
+		value = 0.75
+	}
+	# Otherwise we give the AI mate's rates to encourage them to use the system.
+	else_if = {
+		limit = { is_ai = yes }
+		value = 0.5
+	}
+	# Otherwise no discounts.
+	else = { value = 1 }
+}
+
+swing_tribute_exp_prestige_cost_value = {
+	value = 0
+	## Count.
+	if = {
+		limit = { highest_held_title_tier <= tier_county }
+		add = minor_prestige_value
+	}
+	## Duke.
+	else_if = {
+		limit = { highest_held_title_tier <= tier_duchy }
+		add = medium_prestige_value
+	}
+	## King or Emperor
+	else = { add = major_prestige_value }
+}
+
+swing_tribute_exp_piety_cost_value = {
+	# Various ways to be charged piety.
+	## Pure route.
+	if = {
+		limit = {
+			OR = {
+				always = scope:swing_piety
+				# And if we're in the important_action...
+				NOT = { exists = scope:swing_piety }
+			}
+		}
+		value = 0
+		# Gate by liege tier.
+		## Count.
+		if = {
+			limit = { highest_held_title_tier <= tier_county }
+			add = minor_piety_value
+		}
+		## Duke.
+		else_if = {
+			limit = { highest_held_title_tier <= tier_duchy }
+			add = medium_piety_value
+		}
+		## King or Emperor
+		else = { add = major_piety_value }
+	}
+	## Hybrid HoF route.
+	else_if = {
+		limit = { always = scope:swing_hof }
+		value = 0
+		# Gate by liege tier.
+		## Count.
+		if = {
+			limit = { highest_held_title_tier <= tier_county }
+			add = minor_piety_value
+		}
+		## Duke.
+		else_if = {
+			limit = { highest_held_title_tier <= tier_duchy }
+			add = medium_piety_value
+		}
+		## King or Emperor
+		else = { add = major_piety_value }
+	}
+}
+
+swing_tribute_exp_cash_cost_value = {
+	# Various ways to be charged piety.
+	## Pure route.
+	if = {
+		limit = {
+			OR = {
+				always = scope:swing_gold
+				# And if we're in the important action...
+				NOT = { exists = scope:swing_gold }
+			}
+		}
+		value = 0
+		# Gate by liege tier.
+		## Count.
+		if = {
+			limit = { highest_held_title_tier <= tier_county }
+			add = medium_gold_value
+		}
+		## Duke.
+		else_if = {
+			limit = { highest_held_title_tier <= tier_duchy }
+			add = major_gold_value
+		}
+		## King or Emperor
+		else = { add = massive_gold_value }
+	}
+	## Hybrid HoF route.
+	else_if = {
+		limit = { always = scope:swing_hof }
+		value = 0
+		# Gate by liege tier.
+		## Count.
+		if = {
+			limit = { highest_held_title_tier <= tier_county }
+			add = minor_gold_value
+		}
+		## Duke.
+		else_if = {
+			limit = { highest_held_title_tier <= tier_duchy }
+			add = medium_gold_value
+		}
+		## King or Emperor
+		else = { add = major_gold_value }
+	}
+}
+
+tribute_weight = {
+	value = sub_realm_size
+	multiply = 0.5
+}

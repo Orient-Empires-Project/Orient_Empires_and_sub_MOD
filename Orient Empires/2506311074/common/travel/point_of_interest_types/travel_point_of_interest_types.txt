@@ -1,0 +1,1226 @@
+﻿
+# Update points_of_interest_tracker_effect when you change this!
+
+# Capitals
+poi_capitals = {
+	build_province_list = {
+		every_kingdom = {
+			limit = {
+				this = this.holder.primary_title
+			}
+			holder.capital_province ?= {
+				add_to_list = provinces
+			}
+		}
+		every_empire = {
+			limit = {
+				this = this.holder.primary_title
+			}
+			holder.capital_province ?= {
+				add_to_list = provinces
+			}
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_capitals.visit
+			left_icon = root
+
+			scope:province.barony.holder = {
+				if = {
+					limit = {
+						primary_title = {
+							tier = tier_empire
+						}
+					}
+					save_temporary_scope_value_as = {
+						name = xp_gain_amount
+						value = root.travel_major_xp
+					}
+				}
+				else = {
+					save_temporary_scope_value_as = {
+						name = xp_gain_amount
+						value = root.travel_medium_xp
+					}
+				}
+
+				if = {
+					limit = {
+						OR = {
+							has_royal_court = no
+							has_court_type = court_diplomatic
+						}
+					}
+					root = {
+						poi_lifestyle_experience_effect = {
+							LIFESTYLE = diplomacy
+							VALUE = scope:xp_gain_amount
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						OR = {
+							has_court_type = court_warlike
+							has_court_type = court_tribal
+						}
+					}
+					root = {
+						poi_lifestyle_experience_effect = {
+							LIFESTYLE = martial
+							VALUE = scope:xp_gain_amount
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_administrative
+					}
+					root = {
+						poi_lifestyle_experience_effect = {
+							LIFESTYLE = stewardship
+							VALUE = scope:xp_gain_amount
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_intrigue
+					}
+					root = {
+						poi_lifestyle_experience_effect = {
+							LIFESTYLE = intrigue
+							VALUE = scope:xp_gain_amount
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						has_court_type = court_scholarly
+					}
+					root = {
+						poi_lifestyle_experience_effect = {
+							LIFESTYLE = learning
+							VALUE = scope:xp_gain_amount
+						}
+					}
+				}
+				else = {
+					root = {
+						poi_lifestyle_experience_effect = {
+							LIFESTYLE = diplomacy
+							VALUE = scope:xp_gain_amount
+						}
+					}
+				}
+				# Prestige for Wanderers
+				wanderer_lifestyle_destination_effect = yes
+			}
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = centralization_perk
+				}
+				custom_tooltip = {
+					text = adventurers_centralization_perk.effect
+				}
+				every_courtier = {
+					hidden_effect = {
+						scope:province.barony.holder = {
+							if = {
+								limit = {
+									has_royal_court = yes
+									has_court_type = court_diplomatic
+								}
+								prev = {
+									add_diplomacy_skill = 1
+									force_character_skill_recalculation = yes
+								}
+							}
+							else_if = {
+								limit = {
+									has_royal_court = yes
+									has_court_type = court_warlike
+								}
+								prev = {
+									add_martial_skill = 1
+									force_character_skill_recalculation = yes
+								}
+							}
+							else_if = {
+								limit = {
+									has_royal_court = yes
+									has_court_type = court_administrative
+								}
+								prev = {
+									add_stewardship_skill = 1
+									force_character_skill_recalculation = yes
+								}
+							}
+							else_if = {
+								limit = {
+									has_royal_court = yes
+									has_court_type = court_intrigue
+								}
+								prev = {
+									add_intrigue_skill = 1
+									force_character_skill_recalculation = yes
+								}
+							}
+							else_if = {
+								limit = {
+									has_royal_court = yes
+									has_court_type = court_scholarly
+								}
+								prev = {
+									add_learning_skill = 1
+									force_character_skill_recalculation = yes
+								}
+							}
+							else_if = {
+								limit = {
+									has_royal_court = yes
+									has_court_type = court_tribal
+								}
+								prev = {
+									add_prowess_skill = 1
+									force_character_skill_recalculation = yes
+								}
+							}
+							else = {
+								prev = {
+									random_list = {
+										1 = {
+											add_prowess_skill = 1
+										}
+										1 = {
+											add_learning_skill = 1
+										}
+										1 = {
+											add_intrigue_skill = 1
+										}
+										1 = {
+											add_stewardship_skill = 1
+										}
+										1 = {
+											add_martial_skill = 1
+										}
+										1 = {
+											add_diplomacy_skill = 1
+										}
+									}
+									force_character_skill_recalculation = yes
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Walls and Forts
+poi_special_buildings_martial = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				OR = {
+					has_building_with_flag = { flag = travel_point_of_interest_martial }
+					has_building_with_flag = { flag = travel_point_of_interest_martial_minor }
+				}
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+			if = {
+				# Walls and Forts
+				limit = {
+					scope:province = {
+						has_building_with_flag = { flag = travel_point_of_interest_martial }
+					}
+				}
+				add_poi_martial_experience_effect = yes
+				traveler_danger_xp_effect = {
+					MIN = 3
+					MAX = 5
+				}
+			}
+			else_if = {
+				# Minor POI (mostly for multi-province defenses like Hadrian's wall)
+				limit = {
+					scope:province = {
+						has_building_with_flag = { flag = travel_point_of_interest_martial_minor }
+					}
+				}
+				poi_lifestyle_experience_effect = {
+					LIFESTYLE = martial
+					VALUE = miniscule_lifestyle_xp
+				}
+				traveler_travel_xp_effect = {
+					MIN = 1
+					MAX = 1
+				}
+			}
+			else = {
+				# Rest / Fallback
+				add_poi_learning_experience_effect = yes
+				traveler_travel_xp_effect = {
+					MIN = 3
+					MAX = 5
+				}
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+			
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+		}
+		
+		#For Cilician Gates and other EP3 monuments
+		trigger_event = {
+			on_action = on_visited_ep3_monument
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Universities & places of general learning
+poi_special_buildings_learning = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_learning }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			if = {
+				limit = {
+					 has_lifestyle = diplomacy_lifestyle
+				}
+				add_poi_diplomacy_experience_effect = yes
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = martial_lifestyle
+				}
+				add_poi_martial_experience_effect = yes
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = stewardship_lifestyle
+				}
+				add_poi_stewardship_experience_effect = yes
+			}
+			else_if = {
+				limit = {
+					has_lifestyle = intrigue_lifestyle
+				}
+				add_poi_intrigue_experience_effect = yes
+			}
+			else = {
+				add_poi_learning_experience_effect = yes
+			}
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Religious sites
+poi_special_buildings_religious = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_religious }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_poi_learning_experience_effect = yes
+			if = {
+				limit = {
+					scope:province.barony ?= {
+						is_holy_site_of = root.faith
+					}
+				}
+				add_piety = point_of_interest_piety_value
+			}
+			
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+
+			if = {
+				limit = {
+					has_trait = lifestyle_mystic
+				}
+				add_trait_xp = {
+					trait = lifestyle_mystic
+					value = lifestyle_mystic_xp_gain_minor_value
+				}
+			}
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+			if = {
+				limit = {
+					has_perk = church_and_state_perk
+					is_landless_adventurer = yes
+				}
+				add_piety = major_piety_gain
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Palaces & Political places
+poi_special_buildings_diplomatic = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_diplomatic }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_poi_diplomacy_experience_effect = yes
+
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Grand Cities
+poi_grand_city = {
+	build_province_list = {
+		province:4828 = { add_to_list = provinces } #Baghdad
+		province:2575 = { add_to_list = provinces } #Rome
+		province:496 = { add_to_list = provinces } #Constantinople
+		province:9859 = { add_to_list = provinces } #Changan
+		province:10175 = { add_to_list = provinces } #Jianye
+		province:11243 = { add_to_list = provinces } #Kyoto
+		province:11736 = { add_to_list = provinces } #
+		province:11617 = { add_to_list = provinces } #
+	}
+
+	on_visit = {
+		trigger_event = {
+			on_action = on_visited_grand_city
+		}
+		if = {
+			limit = {
+				NOT = { scope:province.county.holder = root } #If I own it then it does not make sense to visit it.
+			}
+			custom_tooltip = poi_grand_city_visit_event_tt
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_trait = lifestyle_traveler
+				}
+			}
+			send_interface_toast = {
+				title = poi_grand_city.visit
+				left_icon = root
+				add_trait = lifestyle_traveler
+				traveler_travel_xp_effect = {
+					MIN = 1
+					MAX = 3
+				}
+				if = {
+					limit = {
+						is_landless_adventurer = yes
+						has_perk = organized_muster_rolls_perk
+					}
+					add_gold = minor_gold_laamps_value
+				}
+			}
+		}
+		else = {
+			send_interface_toast = {
+				title = poi_grand_city.visit
+				left_icon = root
+
+				traveler_travel_xp_effect = {
+					MIN = 3
+					MAX = 5
+				}
+				if = {
+					limit = {
+						is_landless_adventurer = yes
+						has_perk = organized_muster_rolls_perk
+					}
+					add_gold = minor_gold_laamps_value
+				}
+			}
+		}
+		# Prestige for Wanderers
+		wanderer_lifestyle_destination_effect = yes
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Ancient / New wonders
+poi_special_buildings_wonder = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_wonder }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_poi_stewardship_experience_effect = yes
+			point_of_interest_prestige_effect = yes
+
+			if = {
+				limit = {
+					has_trait = lifestyle_mystic
+				}
+				add_trait_xp = {
+					trait = lifestyle_mystic
+					value = lifestyle_mystic_xp_gain_minor_value
+				}
+			}
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Economic Buildings (mines, ports)
+poi_special_buildings_economic = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_economic }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_special_buildings.visit
+			left_icon = root
+
+			add_poi_stewardship_experience_effect = yes
+
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+
+			traveler_danger_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+poi_mausoleum_at_halicarnassus = {
+	on_visit = {
+		send_interface_toast = {
+			title = poi_mausoleum_at_halicarnassus.visit
+			left_icon = root
+
+			add_poi_stewardship_experience_effect = yes
+			point_of_interest_prestige_effect = yes
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+poi_lighthouse_of_alexandria = {
+	on_visit = {
+		send_interface_toast = {
+			title = poi_lighthouse_of_alexandria.visit
+			left_icon = root
+
+			add_poi_stewardship_experience_effect = yes
+			point_of_interest_prestige_effect = yes
+
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Natural features, e.g. Mount X, Lake X
+poi_oe_natural_feature = {
+	build_province_list = {
+		province:9688 = { add_to_list = provinces }
+		province:9697 = { add_to_list = provinces }
+		province:9694 = { add_to_list = provinces }
+		province:10633 = { add_to_list = provinces }
+		province:10706 = { add_to_list = provinces }
+		province:10176 = { add_to_list = provinces }
+		province:10175 = { add_to_list = provinces }
+		province:10183 = { add_to_list = provinces }
+		province:10179 = { add_to_list = provinces }
+		province:10186 = { add_to_list = provinces }
+		province:10178 = { add_to_list = provinces }
+		province:10132 = { add_to_list = provinces }
+		province:10192 = { add_to_list = provinces }
+		province:10204 = { add_to_list = provinces }
+		province:10203 = { add_to_list = provinces }
+		province:10214 = { add_to_list = provinces }
+		province:10197 = { add_to_list = provinces }
+		province:10210 = { add_to_list = provinces }
+		province:10238 = { add_to_list = provinces }
+		province:10170 = { add_to_list = provinces }
+		province:10150 = { add_to_list = provinces }
+		province:12157 = { add_to_list = provinces }
+		province:10227 = { add_to_list = provinces }
+		province:10219 = { add_to_list = provinces }
+		province:12377 = { add_to_list = provinces }
+		province:10240 = { add_to_list = provinces }
+		province:10239 = { add_to_list = provinces }
+		province:10243 = { add_to_list = provinces }
+		province:10244 = { add_to_list = provinces }
+		province:10250 = { add_to_list = provinces }
+		province:10245 = { add_to_list = provinces }
+		province:12154 = { add_to_list = provinces }
+		province:10259 = { add_to_list = provinces }
+		province:10122 = { add_to_list = provinces }
+		province:10114 = { add_to_list = provinces }
+		province:12200 = { add_to_list = provinces }
+		province:10054 = { add_to_list = provinces }
+		province:10057 = { add_to_list = provinces }
+		province:10065 = { add_to_list = provinces }
+		province:10039 = { add_to_list = provinces }
+		province:10093 = { add_to_list = provinces }
+		province:9995 = { add_to_list = provinces }
+		province:10274 = { add_to_list = provinces }
+		province:10272 = { add_to_list = provinces }
+		province:10005 = { add_to_list = provinces }
+		province:10281 = { add_to_list = provinces }
+		province:10285 = { add_to_list = provinces }
+		province:10325 = { add_to_list = provinces }
+		province:10287 = { add_to_list = provinces }
+		province:10397 = { add_to_list = provinces }
+		province:10032 = { add_to_list = provinces }
+		province:9936 = { add_to_list = provinces }
+		province:9937 = { add_to_list = provinces }
+		province:9891 = { add_to_list = provinces }
+		province:9957 = { add_to_list = provinces }
+		province:9852 = { add_to_list = provinces }
+		province:10327 = { add_to_list = provinces }
+		province:10497 = { add_to_list = provinces }
+		province:10487 = { add_to_list = provinces }
+		province:9870 = { add_to_list = provinces }
+		province:9849 = { add_to_list = provinces }
+		province:9828 = { add_to_list = provinces }
+		province:9476 = { add_to_list = provinces }
+		province:9502 = { add_to_list = provinces }
+		province:10164 = { add_to_list = provinces }
+		province:9905 = { add_to_list = provinces } 
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_oe_natural_feature.visit
+			left_icon = root
+			add_poi_wanderer_experience_effect = yes
+			stress_impact = { base = minor_stress_impact_loss }
+
+			if = {
+				limit = {
+					NOT = {
+						has_trait = lifestyle_traveler
+					}
+				}
+				send_interface_toast = {
+					title = poi_oe_natural_feature.visit
+					left_icon = root
+					add_trait = lifestyle_traveler
+					traveler_travel_xp_effect = {
+						MIN = 1
+						MAX = 3
+					}
+					if = {
+						limit = {
+							is_landless_adventurer = yes
+							has_perk = organized_muster_rolls_perk
+						}
+						add_gold = minor_gold_laamps_value
+					}
+				}
+			}
+			else = {
+				send_interface_toast = {
+					title = poi_oe_natural_feature.visit
+					left_icon = root
+					traveler_travel_xp_effect = {
+						MIN = 3
+						MAX = 5
+					}
+					if = {
+						limit = {
+							is_landless_adventurer = yes
+							has_perk = organized_muster_rolls_perk
+						}
+						add_gold = minor_gold_laamps_value
+					}
+				}
+			}
+
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Natural features, e.g. Mount X, Lake X
+poi_natural_feature = {
+	build_province_list = {
+		every_special_building_province = {
+			limit = {
+				has_building_with_flag = { flag = travel_point_of_interest_natural_feature }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_natural_feature.visit
+			left_icon = root
+			add_poi_wanderer_experience_effect = yes
+			stress_impact = { base = minor_stress_impact_loss }
+
+			if = {
+				limit = {
+					NOT = {
+						has_trait = lifestyle_traveler
+					}
+				}
+				send_interface_toast = {
+					title = poi_natural_feature.visit
+					left_icon = root
+					add_trait = lifestyle_traveler
+					traveler_travel_xp_effect = {
+						MIN = 1
+						MAX = 3
+					}
+					if = {
+						limit = {
+							is_landless_adventurer = yes
+							has_perk = organized_muster_rolls_perk
+						}
+						add_gold = minor_gold_laamps_value
+					}
+				}
+			}
+			else = {
+				send_interface_toast = {
+					title = poi_natural_feature.visit
+					left_icon = root
+					traveler_travel_xp_effect = {
+						MIN = 3
+						MAX = 5
+					}
+					if = {
+						limit = {
+							is_landless_adventurer = yes
+							has_perk = organized_muster_rolls_perk
+						}
+						add_gold = minor_gold_laamps_value
+					}
+				}
+			}
+
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+# Legend stuff
+poi_legend_capitals = {
+	build_province_list = {
+		every_legend = {
+			limit = {
+				OR = {
+					legend_quality = illustrious
+					legend_quality = mythical
+				}
+			}
+			legend_owner.capital_province ?= {
+				add_to_list = provinces
+			}
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_legend_capitals.visit
+			left_icon = root
+
+			add_poi_diplomacy_experience_effect = yes
+			traveler_travel_xp_effect = {
+				MIN = 3
+				MAX = 5
+			}
+			if = {
+				limit = {
+					is_landless_adventurer = yes
+					has_perk = organized_muster_rolls_perk
+				}
+				add_gold = see_how_its_done_gold_reward_value
+			}
+		}
+		visiting_poi_effect = yes
+	}
+}
+
+poi_battles = {
+	build_province_list = {
+		every_in_global_list = {
+			variable = battle_poi_list
+			limit = {
+				has_variable = battle_poi_winner
+				has_variable = battle_poi_loser
+				has_variable = battle_poi_date_day
+				has_variable = battle_poi_date_month
+				has_variable = battle_poi_date_year
+				NOT = { has_travel_point_of_interest = poi_battles_historical }
+			}
+			add_to_list = provinces
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = poi_battles.visit
+			left_icon = root
+
+			if = {
+				limit = {
+					OR = {
+						has_variable = battle_poi_trait_gained
+						number_of_commander_traits > 1
+					}
+				}
+				poi_lifestyle_experience_effect = {
+					LIFESTYLE = martial
+					VALUE = travel_major_xp
+				}
+			}
+			else = {
+				add_poi_martial_experience_effect = yes
+			}
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+		}
+
+		if = {
+			limit = {
+				NOR = {
+					has_variable = battle_poi_trait_gained
+					number_of_commander_traits > 1
+				}
+			}
+			scope:province = {
+				random_list = {
+					80 = {
+						root = { add_poi_martial_experience_effect = yes }
+					}
+					20 = {
+						switch = {
+							trigger = terrain
+							forest = { battle_poi_trait_effect = { TRAIT = forest_fighter } }
+							taiga = { battle_poi_trait_effect = { TRAIT = forest_fighter } }
+							farmlands = { battle_poi_trait_effect = { TRAIT = open_terrain_expert } }
+							plains = { battle_poi_trait_effect = { TRAIT = open_terrain_expert } }
+							steppe = { battle_poi_trait_effect = { TRAIT = open_terrain_expert } }
+							hills = { battle_poi_trait_effect = { TRAIT = rough_terrain_expert } }
+							mountains = { battle_poi_trait_effect = { TRAIT = rough_terrain_expert } }
+							wetlands = { battle_poi_trait_effect = { TRAIT = rough_terrain_expert } }
+							drylands = { battle_poi_trait_effect = { TRAIT = desert_warrior } }
+							desert = { battle_poi_trait_effect = { TRAIT = desert_warrior } }
+							desert_mountains = { battle_poi_trait_effect = { TRAIT = desert_warrior } }
+							oasis = { battle_poi_trait_effect = { TRAIT = desert_warrior } }
+							jungle = { battle_poi_trait_effect = { TRAIT = jungle_stalker } }
+							floodplains = { battle_poi_trait_effect = { TRAIT = flexible_leader } }
+						}
+					}
+				}
+			}
+			set_variable = battle_poi_trait_gained
+		}
+
+		traveler_danger_xp_effect = {
+			MIN = 1
+			MAX = 3
+		}
+
+		visiting_poi_effect = yes
+	}
+}
+
+poi_battles_historical = {
+	build_province_list = {
+		# Note, please try to keep these in chronological order
+		if = { # Battle of Yarmuk
+			limit = { game_start_date > 636.8.20 }
+			province:5954 = { add_to_list = provinces }
+		}
+		if = { # Battle of Aror
+			limit = { game_start_date > 711.1.1 }
+			province:1175 = { add_to_list = provinces }
+		}
+		if = { # Battle of Tours
+			limit = { game_start_date > 732.10.10 }
+			province:2253 = { add_to_list = provinces }
+		}
+		if = { # Battle of Talas
+			limit = { game_start_date > 751.1.1 }
+			province:7132 = { add_to_list = provinces }
+		}
+		if = { # Battle of Lechfeld
+			limit = { game_start_date > 955.8.10 }
+			province:2778 = { add_to_list = provinces }
+		}
+		if = { # Battle of Svolder
+			limit = { game_start_date > 999.9.9 }
+			province:2811 = { add_to_list = provinces }
+		}
+		if = { # Battle of Dandanaqan
+			limit = { game_start_date > 1040.5.23 }
+			province:4008 = { add_to_list = provinces }
+		}
+		if = { # Battle of Civitate
+			limit = { game_start_date > 1053.6.18 }
+			province:2605 = { add_to_list = provinces }
+		}
+		if = { # The Battle of Stamford Bridge
+			limit = { game_start_date > 1066.9.25 }
+			province:1595 = { add_to_list = provinces }
+		}
+		if = { # The Battle of Hastings
+			limit = { game_start_date > 1066.10.14 }
+			province:1509 = { add_to_list = provinces }
+		}
+		if = { # The Battle of Manzikert
+			limit = { game_start_date > 1071.8.26 }
+			province:701 = { add_to_list = provinces }
+		}
+
+		if = { # Changping
+			limit = { game_start_date > 1.12.31 }
+			province:9757 = { add_to_list = provinces }
+		}
+		if = { # Gaixia
+			limit = { game_start_date > 1.12.31 }
+			province:12169 = { add_to_list = provinces }
+		}
+		if = { #Chibi
+			limit = { game_start_date > 208.12.31 } 
+			province:10271 = { add_to_list = provinces }
+		}
+		if = { #Jieting
+			limit = { game_start_date > 228.12.31 } 
+			province:9820 = { add_to_list = provinces }
+		}
+		if = { #Feishui
+			limit = { game_start_date > 383.12.31 } 
+			province:10148 = { add_to_list = provinces }
+		}
+		if = { #Canhebei
+			limit = { game_start_date > 395.12.31 } 
+			province:9682 = { add_to_list = provinces }
+		}
+		if = { #Yubi
+			limit = { game_start_date > 546.12.31 } 
+			province:9737 = { add_to_list = provinces }
+		}
+		if = { #Hulaoguan
+			limit = { game_start_date > 620.12.31 } 
+			province:10055 = { add_to_list = provinces }
+		}
+		if = { #Anshicheng
+			limit = { game_start_date > 645.12.31 } 
+			province:10666 = { add_to_list = provinces }
+		}
+		if = { #Baijiangkou
+			limit = { game_start_date > 663.12.31 } 
+			province:10895 = { add_to_list = provinces }
+		}
+		if = { #Dafeichuan
+			limit = { game_start_date > 670.12.31 } 
+			province:9426 = { add_to_list = provinces }
+		}
+		if = { #Lianyunbao
+			limit = { game_start_date > 620.12.31 } 
+			province:7956 = { add_to_list = provinces }
+		}
+		if = { #Yengisar
+			limit = { game_start_date > 998.12.31 } 
+			province:7958 = { add_to_list = provinces }
+		}
+		if = { #Baitengjiang
+			limit = { game_start_date > 981.12.31 } 
+			province:10436 = { add_to_list = provinces }
+		}
+		if = { #Chuhedian
+			limit = { game_start_date > 1114.12.31 } 
+			province:10733 = { add_to_list = provinces }
+		}
+		if = { #Qatwan
+			limit = { game_start_date > 1141.12.31 } 
+			province:4406 = { add_to_list = provinces }
+		}
+	}
+
+	on_visit = {
+		send_interface_toast = {
+			title = travel_point_historical_name_visit_message
+			left_icon = root
+
+			if = {
+				limit = {
+					OR = {
+						has_variable = battle_poi_trait_gained
+						number_of_commander_traits > 1
+					}
+				}
+				add_poi_martial_experience_effect = yes
+			}
+			else = {
+				poi_lifestyle_experience_effect = {
+					LIFESTYLE = martial
+					VALUE = travel_minor_lifestyle_xp
+				}
+			}
+
+			if = {
+				limit = {
+					NOR = {
+						has_variable = battle_poi_trait_gained
+						number_of_commander_traits > 1
+					}
+				}
+				random_list = {
+					80 = {
+						add_poi_martial_experience_effect = yes
+					}
+					20 = {
+						scope:province = {
+							switch = {
+								trigger = this
+								# Tours
+								province:2253 = { battle_poi_trait_effect = { TRAIT = unyielding_defender } }
+								# Lechfeld
+								province:2778 = { battle_poi_trait_effect = { TRAIT = open_terrain_expert } }
+								# Hastings
+								province:1509 = { battle_poi_trait_effect = { TRAIT = aggressive_attacker } }
+								# Stamford Bridge
+								province:1595 = { battle_poi_trait_effect = { TRAIT = organizer } }
+								# Manzikert
+								province:701 = { battle_poi_trait_effect = { TRAIT = flexible_leader } }
+								# Yarmuk
+								province:5954 = { battle_poi_trait_effect = { TRAIT = reckless } }
+								# Dandanaqan
+								province:4008 = { battle_poi_trait_effect = { TRAIT = desert_warrior } }
+								# Battle of Aror
+								province:1175 = { battle_poi_trait_effect = { TRAIT = flexible_leader } }
+								# Battle of Svolder
+								province:2811 = { battle_poi_trait_effect = { TRAIT = holy_warrior } }
+								# Battle of Civitate
+								province:2605 = { battle_poi_trait_effect = { TRAIT = open_terrain_expert } }
+								# Battle of Talas
+								province:7132 = { battle_poi_trait_effect = { TRAIT = desert_warrior } }
+								
+								# Changping
+								province:9757 = { battle_poi_trait_effect = { TRAIT = cautious_leader } }
+								# Gaixia
+								province:12169 = { battle_poi_trait_effect = { TRAIT = unyielding_defender } }
+								#Chibi
+								province:10271 = { battle_poi_trait_effect = { TRAIT = forder } }
+								#Jieting
+								province:9820 = { battle_poi_trait_effect = { TRAIT = cautious_leader  } }
+								#Feishui											
+								province:10148 = { battle_poi_trait_effect = { TRAIT = organizer } }
+								#Canhebei
+								province:9682 = { battle_poi_trait_effect = { TRAIT = winter_soldier } }
+								#Yubi
+								province:9737 = { battle_poi_trait_effect = { TRAIT = reckless } }
+								#Hulaoguan
+								province:10055 = { battle_poi_trait_effect = { TRAIT = aggressive_attacker } }
+								#Anshicheng
+								province:10666 = { battle_poi_trait_effect = { TRAIT = unyielding_defender } }
+								#Baijiangkou
+								province:10895 = { battle_poi_trait_effect = { TRAIT = flexible_leader } }
+								#Dafeichuan
+								province:9426 = { battle_poi_trait_effect = { TRAIT = organizer } }
+								#Lianyunbao
+								province:7956 = { battle_poi_trait_effect = { TRAIT = rough_terrain } }
+								#Yengisar
+								province:7958 = { battle_poi_trait_effect = { TRAIT = holy_warrior } }
+								#Baitengjiang
+								province:10436 = { battle_poi_trait_effect = { TRAIT = flexible_leader } }
+								#Chuhedian
+								province:10733 = { battle_poi_trait_effect = { TRAIT = forest_fighter } }
+								#Qatwan
+								province:4406 = { battle_poi_trait_effect = { TRAIT = desert_warrior } }
+							}
+						}
+					}
+				}
+				set_variable = battle_poi_trait_gained
+			}
+
+			traveler_danger_xp_effect = {
+				MIN = 1
+				MAX = 3
+			}
+
+			# Prestige for Wanderers
+			wanderer_lifestyle_destination_effect = yes
+		}
+
+		visiting_poi_effect = yes
+	}
+}

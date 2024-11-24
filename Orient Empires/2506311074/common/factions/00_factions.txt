@@ -27,8 +27,8 @@
 			FACTION_TYPE2 = liberty_faction
 			FACTION_TYPE3 = populist_faction
 		}
-	}
-
+	}	
+	
 	demand = {
 		save_scope_as = faction
 
@@ -87,6 +87,10 @@
 		}
 	}
 
+	is_valid = {
+		has_valid_faction_members_trigger = yes
+	}
+
 	ai_demand_chance = {
 		base = 0
 
@@ -107,6 +111,16 @@
 			add = 100
 			faction_target = {
 				is_at_war = yes # Independence Factions are opportunistic bastards!
+			}
+		}
+		# 敌对阶段
+		modifier = {
+			add = -100
+			faction_target = {
+				any_character_struggle = {
+					involvement = involved
+					has_struggle_phase_parameter = unlocks_oe_factions
+				}
 			}
 		}
 	}
@@ -139,6 +153,28 @@
 		independence_faction_modifiers = {
 			FACTION_TARGET = scope:target
 		}
+
+		#House Hostility from Armenian tradition
+	    modifier = {
+			desc = "FACTION_REASON_HOUSE_HOSTILITY"
+
+			scope:target.house ?= {
+				NOT = { this = root.house }
+			}
+			culture = { has_cultural_parameter = house_hostility_more_common }
+
+			factor = 1.25
+	    }
+
+	    # EP3 - Grand Ambitions Story Cycle
+	    modifier = {
+	    	desc = "EP3_GRAND_AMBITIONS_STORY"
+	    	any_owned_story = {
+	    		story_type = grand_ambitions_story_cycle
+	    		var:target_char ?= scope:target
+	    	}
+	    	factor = 1.5
+	    }
 	}
 
 	ai_join_score = {
@@ -168,25 +204,62 @@
 
 		# Small multiplier for my neighbors already in the Faction
 		modifier = {
+			desc = "FACTION_REASON_NEIGHBORS"
+
+			scope:faction = {
+				any_faction_member = { #suppress the description printout if factor is 1
+					any_neighboring_realm_same_rank_owner = {
+						this = root
+					}
+				}
+			}
+
 			factor = {
 				value = 1
-		    	every_faction_member = {
-		    		if = {
-		    			limit = {
-			    			any_neighboring_realm_same_rank_owner = {
-			    				this = root
-			    			}
-						}
-		    			add = 0.25
-		    		}		
+				scope:faction = {
+			    	every_faction_member = {
+			    		if = {
+			    			limit = {
+				    			any_neighboring_realm_same_rank_owner = {
+				    				this = root
+				    			}
+							}
+			    			add = 0.25
+			    		}		
+			    	}
 		    	}
 	    	}
 	    }
 
 	    modifier = {
+			desc = "FACTION_REASON_POWERFUL_VASSAL"
 	    	factor = 2
 			is_powerful_vassal_of = scope:faction.faction_target
 	    }
+
+	    struggle_faction_modifiers = yes
+
+	    #House Hostility from Armenian tradition
+	    modifier = {
+			desc = "FACTION_REASON_HOUSE_HOSTILITY"
+
+			scope:faction.faction_target.house ?= {
+				NOT = { this = root.house }
+			}
+			culture = { has_cultural_parameter = house_hostility_more_common }
+
+			factor = 1.25
+	    }
+		#EP3 admin legitimacy event
+		modifier = {
+			desc = "FACTION_REASON_LOW_LEGITIMACY_CHALLENGER"
+			add = 25
+			scope:faction = {
+				any_faction_member = {
+					has_character_flag = low_legitimacy_admin_factions_flag
+				}
+			}
+		}
 	}
 
 	is_character_valid = {
@@ -195,15 +268,44 @@
 		}
 	}
 
+	can_character_create_ui = {
+		base_faction_trigger = { FACTION_TYPE = independence_faction }
+
+		common_can_character_create_trigger = {
+			FACTION_TARGET = scope:target
+		}
+
+		liege = {
+			is_independent_ruler = yes
+		}
+		
+		trigger_if = {
+			limit = {
+				faith.religion = religion:islam_religion
+				liege = { has_title = title:d_sunni }
+				title:d_sunni = {
+					has_variable = dar_al_islam
+				}
+			}
+			liege = {
+				NOT = {
+					has_title = title:d_sunni
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				government_allows = administrative
+			}
+			custom_tooltip = {
+				text = admin_cannot_create_target_faction
+				NOT = { government_allows = administrative }
+			}
+		}
+	}
+
 	can_character_create = {
-		common_character_validity_trigger = {
-			FACTION_TARGET = scope:target
-		}
-
-		common_can_character_join_trigger = {
-			FACTION_TARGET = scope:target
-		}
-
 		common_can_character_create_trigger = {
 			FACTION_TARGET = scope:target
 		}
@@ -212,29 +314,129 @@
 			is_independent_ruler = yes
 		}
 
-	    OR = {
-	        is_ai = no
-	        NOT = { culture = scope:target.culture }
-	        NOT = { faith = scope:target.faith }
-	        NOT = {
-	            is_rightful_liege_of_trigger = {
-	                VASSAL = root
-	                LIEGE = scope:target
-	            }
-	        }
-	        any_sub_realm_county = {
-	            percent <= 0.5
-	            save_temporary_scope_as = current_county
-	            scope:target.primary_title = {
-	                any_in_de_jure_hierarchy = { this = scope:current_county }
-	            }
-	        }
-    	}
+		custom_description = {
+			text = character_blocked_from_joining # will never be displayed but without it, errors are triggered
+			OR = {
+		        is_ai = no
+		        NOT = { culture = scope:target.culture }
+		        NOT = { faith = scope:target.faith }
+		        NOT = {
+		            scope:target = {
+		                is_rightful_liege_of = root
+		            }
+		        }
+		        any_sub_realm_county = {
+		            percent <= 0.5
+		            save_temporary_scope_as = current_county
+		            scope:target.primary_title = {
+		                any_in_de_jure_hierarchy = { this = scope:current_county }
+		            }
+		        }
+	    	}
+		}
+		
+		trigger_if = {
+			limit = {
+				faith.religion = religion:islam_religion
+				liege = { has_title = title:d_sunni }
+				title:d_sunni = {
+					has_variable = dar_al_islam
+				}
+			}
+			liege = {
+				NOT = {
+					has_title = title:d_sunni
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				government_allows = administrative
+			}
+			custom_tooltip = {
+				text = admin_cannot_create_target_faction
+				NOT = { government_allows = administrative }
+			}
+		}
+		#敌对阶段
+		NOT = {
+			any_character_struggle = {
+				involvement = involved
+				has_struggle_phase_parameter = unlocks_oe_factions
+			}
+		}
 	}
 
 	can_character_join = {
 		common_can_character_join_trigger = {
 			FACTION_TARGET = scope:faction.faction_target
+		}
+		
+		trigger_if = {
+			limit = {
+				faith.religion = religion:islam_religion
+				liege = { has_title = title:d_sunni }
+				title:d_sunni = {
+					has_variable = dar_al_islam
+				}
+			}
+			liege = {
+				NOT = {
+					has_title = title:d_sunni
+				}
+			}
+		}
+		#敌对阶段
+		NOT = {
+			any_character_struggle = {
+				involvement = involved
+				has_struggle_phase_parameter = unlocks_oe_factions
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				government_allows = administrative
+			}
+			custom_tooltip = {
+				text = admin_cannot_join_target_faction
+				NOT = { government_allows = administrative }
+			}
+		}
+	}
+
+	on_creation = {
+		save_scope_as = faction
+		if = {
+			limit = {
+				any_player = {
+					is_landless_adventurer = yes
+					is_within_diplo_range = { CHARACTER = scope:faction.faction_target }
+					OR = {
+						has_contact = scope:faction.faction_leader
+						NOT = { has_contact = scope:faction.faction_target }
+					}
+					any_character_task_contract = {
+						has_task_contract_type = laamp_join_faction_contract
+						count <= 3
+					}
+					can_create_task_contract = {
+						type_name = laamp_join_faction_contract
+						employer = scope:faction.faction_leader
+					}
+					save_temporary_scope_as = player_laamp
+				}
+			}
+			scope:player_laamp = {
+				create_task_contract = {
+					task_contract_type = laamp_join_faction_contract
+					task_contract_tier = scope:faction.faction_leader.task_contract_tier_value
+					location = scope:faction.faction_leader.primary_title.title_province
+					task_contract_employer = scope:faction.faction_leader
+					target = scope:faction.faction_target
+				}
+			}
 		}
 	}
 
@@ -245,7 +447,47 @@
 liberty_faction = {
 	casus_belli = liberty_faction_war
 
-	short_effect_desc = liberty_faction_short_effect_desc
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					faction_target = { government_has_flag = government_is_administrative }
+				}
+				desc = liberty_faction_desc_admin
+			}
+			triggered_desc = {
+				trigger = {
+					faction_target = { government_has_flag = government_is_tribal }
+				}
+				desc = liberty_faction_desc_tribal
+			}
+			triggered_desc = {
+				trigger = {
+					faction_target = { government_has_flag = government_is_feudal }
+				}
+				desc = liberty_faction_desc_feudal
+			}
+			desc = liberty_faction_desc
+		}
+	}
+
+	short_effect_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					faction_target = { government_has_flag = government_is_administrative }
+				}
+				desc = liberty_faction_short_effect_desc_admin
+			}
+			triggered_desc = {
+				trigger = {
+					faction_target = { government_has_flag = government_is_tribal }
+				}
+				desc = liberty_faction_short_effect_desc_tribal
+			}
+			desc = liberty_faction_short_effect_desc
+		}
+	}
 
 	sort_order = 4
 
@@ -274,6 +516,10 @@ liberty_faction = {
 		}
 	}
 
+	is_valid = {
+		has_valid_faction_members_trigger = yes
+	}
+
 	demand = {
 		save_scope_as = faction
 
@@ -293,7 +539,7 @@ liberty_faction = {
 			}
 			trigger_event = faction_demand.0105
 		}
-		
+
 		# Send the actual demand in 5 days
 		if = {
 			limit = { 
@@ -361,33 +607,138 @@ liberty_faction = {
 		}
 	}
 
+	on_war_start = {
+		every_faction_member = {
+			limit = {
+				has_variable = gathered_support_for_faction
+				var:gathered_support_for_faction = root
+			}
+			spawn_army = {
+				name = gathered_support_for_faction_army
+				levies = {
+					value = this.massive_influence_value
+					multiply = 3
+				}
+				men_at_arms = {
+					type = light_footmen
+					stacks = 2
+				}
+				location = this.location
+				war = root.faction_war
+				inheritable = yes
+			}
+		}
+	}
+
 	is_character_valid = {
 		common_character_validity_trigger = {
 			FACTION_TARGET = scope:faction.faction_target
 		}
 	}
 
-	can_character_create = {
-		common_character_validity_trigger = {
-			FACTION_TARGET = scope:target
-		}
-
-		common_can_character_join_trigger = {
-			FACTION_TARGET = scope:target
-		}
+	can_character_create_ui = {
+		base_faction_trigger = { FACTION_TYPE = liberty_faction }
 
 		common_can_character_create_trigger = {
 			FACTION_TARGET = scope:target
 		}
 
+		trigger_if = {
+			limit = { scope:target = { government_has_flag = government_is_administrative } }
+			custom_description = {
+				text = has_lowest_imperial_bureaucracy
+				subject = scope:target
+				scope:target = {
+					OR = {
+						has_realm_law = imperial_bureaucracy_1
+						has_realm_law = imperial_bureaucracy_2
+						has_realm_law = imperial_bureaucracy_3
+					}
+				}
+			}
+		}
+		trigger_else = {
+			custom_description = {
+				text = has_lowest_crown_authority
+				subject = scope:target
+				scope:target = {
+					OR = {
+						has_realm_law = crown_authority_1
+						has_realm_law = crown_authority_2
+						has_realm_law = crown_authority_3
+					}
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				scope:target = { government_has_flag = government_is_administrative }
+			}
+			scope:target = {
+				is_independent_ruler = yes
+			}
+		}
 		custom_description = {
-			text = has_lowest_crown_authority
+			text = government_is_celestial
 			subject = scope:target
 			scope:target = {
-				OR = {
-					has_realm_law = crown_authority_1
-					has_realm_law = crown_authority_2
-					has_realm_law = crown_authority_3
+				NOR = {
+					government_has_flag = government_is_celestial
+					government_has_flag = government_is_ulus
+				}
+			}
+		}
+	}
+
+	can_character_create = {
+		common_can_character_create_trigger = {
+			FACTION_TARGET = scope:target
+		}
+
+		trigger_if = {
+			limit = { scope:target = { government_has_flag = government_is_administrative } }
+			custom_description = {
+				text = has_lowest_imperial_bureaucracy
+				subject = scope:target
+				scope:target = {
+					OR = {
+						has_realm_law = imperial_bureaucracy_1
+						has_realm_law = imperial_bureaucracy_2
+						has_realm_law = imperial_bureaucracy_3
+					}
+				}
+			}
+		}
+		trigger_else = {
+			custom_description = {
+				text = has_lowest_crown_authority
+				subject = scope:target
+				scope:target = {
+					OR = {
+						has_realm_law = crown_authority_1
+						has_realm_law = crown_authority_2
+						has_realm_law = crown_authority_3
+					}
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				scope:target = { government_has_flag = government_is_administrative }
+			}
+			scope:target = {
+				is_independent_ruler = yes
+			}
+		}
+		custom_description = {
+			text = government_is_celestial
+			subject = scope:target
+			scope:target = {
+				NOR = {
+					government_has_flag = government_is_celestial
+					government_has_flag = government_is_ulus
 				}
 			}
 		}
@@ -397,15 +748,33 @@ liberty_faction = {
 		common_can_character_join_trigger = {
 			FACTION_TARGET = scope:faction.faction_target
 		}
-
 		OR = {
 			is_ai = no
 			scope:faction.faction_target = {
-				OR = {
-					has_realm_law = crown_authority_1
-					has_realm_law = crown_authority_2
-					has_realm_law = crown_authority_3
+				trigger_if = {
+					limit = { government_has_flag = government_is_administrative }
+					OR = {
+						has_realm_law = imperial_bureaucracy_1
+						has_realm_law = imperial_bureaucracy_2
+						has_realm_law = imperial_bureaucracy_3
+					}
 				}
+				trigger_else = {
+					OR = {
+						has_realm_law = crown_authority_1
+						has_realm_law = crown_authority_2
+						has_realm_law = crown_authority_3
+					}
+				}
+			}
+		}
+		
+		trigger_if = {
+			limit = {
+				scope:faction.faction_target = { government_has_flag = government_is_administrative }
+			}
+			scope:faction.faction_target = {
+				is_independent_ruler = yes
 			}
 		}
 	}
@@ -437,7 +806,18 @@ liberty_faction = {
 
 		liberty_faction_modifiers = {
 			FACTION_TARGET = scope:target
-		}		
+		}
+		#House Hostility from Armenian tradition
+	    modifier = {
+			desc = "FACTION_REASON_HOUSE_HOSTILITY"
+
+			scope:target.house ?= {
+				NOT = { this = root.house }
+			}
+			culture = { has_cultural_parameter = house_hostility_more_common }
+
+			factor = 1.25
+	    }		
 	}
 
 	ai_join_score = {
@@ -464,6 +844,64 @@ liberty_faction = {
 
 		liberty_faction_modifiers = {
 			FACTION_TARGET = scope:faction.faction_target
+		}
+
+		struggle_faction_modifiers = yes
+
+		#House Hostility from Armenian tradition
+	    modifier = {
+			desc = "FACTION_REASON_HOUSE_HOSTILITY"
+
+			scope:faction.faction_target.house ?= {
+				NOT = { this = root.house }
+			}
+			culture = { has_cultural_parameter = house_hostility_more_common }
+
+			factor = 1.25
+	    }
+		#EP3 admin legitimacy event
+		modifier = {
+			desc = "FACTION_REASON_LOW_LEGITIMACY_CHALLENGER"
+			add = 25
+			scope:faction = {
+				any_faction_member = {
+					has_character_flag = low_legitimacy_admin_factions_flag
+				}
+			}
+		}
+	}
+
+	on_creation = {
+		save_scope_as = faction
+		if = {
+			limit = {
+				any_player = {
+					is_landless_adventurer = yes
+					is_within_diplo_range = { CHARACTER = scope:faction.faction_target }
+					OR = {
+						has_contact = scope:faction.faction_leader
+						NOT = { has_contact = scope:faction.faction_target }
+					}
+					any_character_task_contract = {
+						has_task_contract_type = laamp_join_faction_contract
+						count <= 3
+					}
+					can_create_task_contract = {
+						type_name = laamp_join_faction_contract
+						employer = scope:faction.faction_leader
+					}
+					save_temporary_scope_as = player_laamp
+				}
+			}
+			scope:player_laamp = {
+				create_task_contract = {
+					task_contract_type = laamp_join_faction_contract
+					task_contract_tier = scope:faction.faction_leader.task_contract_tier_value
+					location = scope:faction.faction_leader.primary_title.title_province
+					task_contract_employer = scope:faction.faction_leader
+					target = scope:faction.faction_target
+				}
+			}
 		}
 	}
 
@@ -515,7 +953,25 @@ claimant_faction = {
 			special_character = {
 				is_alive = yes
 				#has_claim_on = root.special_title
-				NOT = { has_trait = incapable }
+				NOR = { 
+					has_trait = incapable
+					this = root.faction_target
+				}
+				# Byzantium does not brook
+				trigger_if = {
+					limit = {
+						root.special_title = {
+							OR = {
+								has_title_law = acclamation_succession_law
+								holder ?= { has_realm_law = acclamation_succession_law }
+							}
+						}
+					}
+					NOR = {
+						is_eunuch_trigger = yes
+						has_trait = blind
+					}
+				}
 				trigger_if = { #If they're imprisoned by the faction target they can only be so for five years before invalidating
 					limit = {
 						is_imprisoned_by = root.faction_target
@@ -527,6 +983,7 @@ claimant_faction = {
 			}
 			exists = faction_war
 		}
+		has_valid_faction_members_trigger = yes
 	}
 
 	demand = { # The effect of pressing demand
@@ -594,7 +1051,7 @@ claimant_faction = {
 			}
 		}
 	}
-	
+
 	ai_demand_chance = {
 		base = 0
 
@@ -604,6 +1061,20 @@ claimant_faction = {
 			faction_target = {
 				any_prisoner = {
 					this = root.special_character
+				}
+			}
+		}
+
+		# Won't start a war is the Realm is fighting against a Dissolution faction or Independent factions: you want to get the best realm possible. Better wait a bit longer
+		modifier = {
+			add = -1000
+			faction_target = {
+				any_character_war = {
+					OR = {
+						using_cb = independence_faction_war
+						using_cb = independence_war
+						using_cb = nation_fracturing_faction_war
+					}
 				}
 			}
 		}
@@ -632,24 +1103,61 @@ claimant_faction = {
 				}
 			}
 		}
+		modifier = {
+			add = 100
+			root.faction_target = {
+				is_imprisoned = yes
+				is_oe_imperial_court_trigger = yes
+			}
+		}
 	}
 
-	on_war_start = {}
+	on_war_start = {
+		every_faction_member = {
+			limit = {
+				has_variable = gathered_support_for_faction
+				var:gathered_support_for_faction = root
+			}
+			spawn_army = {
+				name = gathered_support_for_faction_army
+				levies = {
+					value = this.massive_influence_value
+					multiply = 3
+				}
+				men_at_arms = {
+					type = light_footmen
+					stacks = 2
+				}
+				location = this.location
+				war = root.faction_war
+				inheritable = yes
+			}
+		}
+	}
 
 	is_character_valid = { # Is the character valid to stay in the faction? This is also checked when creating it...
 		common_character_validity_trigger = {
 			FACTION_TARGET = scope:faction.faction_target
 		}
+		
+		trigger_if = {
+			limit = {
+				government_allows = administrative
+			}
+			scope:faction.faction_target ?= {
+				is_independent_ruler = yes
+			}
+		}
+	}
+
+	can_character_create_ui = {
+		is_character_interaction_valid = {
+			recipient = scope:target
+			interaction = create_claimant_faction_against_interaction
+		}
 	}
 
 	can_character_create = { # If a character is allowed to create the faction. The 'is_character_valid' block is also checked in conjunction with this when creating a faction.
-		common_character_validity_trigger = {
-			FACTION_TARGET = scope:target
-		}
-
-		common_can_character_join_trigger = {
-			FACTION_TARGET = scope:target
-		}
 
 		common_can_character_create_trigger = {
 			FACTION_TARGET = scope:target
@@ -682,14 +1190,7 @@ claimant_faction = {
 	}
 
 	can_character_become_leader = {
-		is_landed = yes
-	}
-
-	can_character_create_ui = {
-		is_character_interaction_valid = {
-			recipient = scope:target
-			interaction = create_claimant_faction_against_interaction
-		}
+		is_playable_character = yes
 	}
 
 	ai_create_score = { # How likely is an AI to create a faction?
@@ -725,52 +1226,15 @@ claimant_faction = {
 			FACTION_TITLE = scope:title
 		}
 
-		# If another Claimant Faction already exists, prefer to side with it
-		modifier = {
-			add = -100
-			scope:target = {
-				any_targeting_faction = {
-			  		faction_is_type = claimant_faction
-				  	NOT = {
-			  			any_faction_member = {
-			  				is_ai = no
-			  			}
-			  		}
-					  special_character = {
-						OR = {
-							OR = {
-								has_relation_soulmate = root
-								has_relation_best_friend = root
-							}
-							AND = {
-								root = {
-									save_temporary_opinion_value_as = { name = opinion_of_current_liege target = scope:target }
-									opinion = { target = prev value > scope:opinion_of_current_liege }
-								}
-								OR = {
-									AND = {
-										root.faith = {
-											has_doctrine = doctrine_pluralism_pluralistic
-										}
-										faith = {
-											has_doctrine = doctrine_pluralism_pluralistic
-										}
-									}
-									faith = root.faith
-								}
-								culture = {
-									OR = {
-										this = root.culture
-										cultural_acceptance = { target = root.culture value >= 90 } # Essentially the same culture
-									}
-								}
-							}
-						}
-					}
-		  		}
-		  	}
+		admin_faction_modifiers = {
+			FACTION_TARGET = scope:target
+			FACTION_TYPE = claimant_faction
 		}
 
+		admin_claimant_faction_modifiers = {
+			FACTION_TARGET = scope:target
+			FACTION_CLAIMANT = scope:claimant
+		}
 	}
 
 	ai_join_score = { # How likely is an AI to join an existing faction?
@@ -794,24 +1258,57 @@ claimant_faction = {
 		}
 
 		claimant_faction_modifiers = {
-			FACTION_TARGET = scope:faction.faction_target 
-			FACTION_CLAIMANT = scope:faction.special_character 
+			FACTION_TARGET = scope:faction.faction_target
+			FACTION_CLAIMANT = scope:faction.special_character
 			FACTION_TITLE = scope:faction.special_title
+		}
+
+		admin_faction_modifiers = {
+			FACTION_TARGET = scope:faction.faction_target
+			FACTION_TYPE = claimant_faction
 		}		
 
-		##########################
+		admin_claimant_faction_modifiers = {
+			FACTION_TARGET = scope:faction.faction_target
+			FACTION_CLAIMANT = scope:faction.special_character
+		}
+
 		# Faction 'Stacking' Factors, attempts to cluster AI rulers into several powerful factions instead of many weak ones.
+		join_faction_stacking_modifiers = yes
+		
+		modifier = { # CE1 Divine Mandate perk
+			desc = "FACTION_REASON_LEGITIMACY_LEGACY_4"
+			liege.dynasty = { has_dynasty_perk = ce1_legitimacy_legacy_4 }
+			add = -10
+		}
+		
+		struggle_faction_modifiers = yes
+		
+		#EP3 admin legitimacy event
 		modifier = {
-			scope:faction.faction_power >= scope:faction.faction_power_halfway_threshold
-			factor = faction_weight_factor_power_halfway_threshold
+			desc = "FACTION_REASON_LOW_LEGITIMACY_CHALLENGER"
+			add = 25
+			scope:faction = {
+				any_faction_member = {
+					has_character_flag = low_legitimacy_admin_factions_flag
+				}
+			}
+		}
+
+		#EP3 King of England disgruntled vassals/life threatened modifiers
+		modifier = {
+			desc = "FACTION_REASON_CLAIMANT_DISGRUNTLED_VASSALS"
+			add = 25
+			liege = {
+				has_character_modifier = ep3_disgruntled_vassals_modifier
+			}
 		}
 		modifier = {
-			scope:faction.faction_power >= scope:faction.faction_power_pushing_threshold
-			factor = faction_weight_factor_power_pushing_threshold
-		}
-		modifier = {
-			scope:faction.faction_power >= scope:faction.faction_power_threshold
-			factor = faction_weight_factor_power_exceeds_threshold
+			desc = "FACTION_REASON_CLAIMANT_DISGRUNTLED_VASSALS"
+			add = 25
+			liege = {
+				has_character_modifier = ep3_life_threatened_modifier
+			}
 		}
 	}
 
@@ -825,11 +1322,12 @@ claimant_faction = {
 		target_is_de_jure_liege_or_above = scope:faction.special_title
 	}
 
-	county_join_score = {
+	county_join_score =  {
 		base = -80 # Needs to be less than the weight set in 00_populist_faction.txt, or counties will never join a claimant faction over a populist faction.
 
 		# Up to +3 join score per negative opinion (+80 at -27 opinion) if different culture. 
 		compare_modifier = {
+			desc = "FACTION_REASON_CLAIMANT_COUNTY_SHARED_CULTURE"
 			trigger = {
 				NOT = { scope:faction.faction_target.culture = this.title_province.culture }
 				scope:faction.special_character.culture = this.title_province.culture 
@@ -838,6 +1336,7 @@ claimant_faction = {
 			multiplier = -2.0
 		}
 		compare_modifier = {
+			desc = "FACTION_REASON_CLAIMANT_COUNTY_SHARED_HERITAGE"
 			trigger = {
 				NOT = { this.title_province.culture = { has_same_culture_heritage = scope:faction.faction_target.culture } }
 				this.title_province.culture = { has_same_culture_heritage = scope:faction.special_character.culture }
@@ -848,6 +1347,7 @@ claimant_faction = {
 
 		# If we have better relations with the claimant's faith than our current liege's, gain up to +5 join score per negative opinion (at Righteous) down to +1 join score per negative opinion (at Hostile).
 		compare_modifier = {
+			desc = "FACTION_REASON_LIKE_CLAIMANT_FAITH"
 			trigger = {
 				faith = {
 					faith_hostility_level_comparison = {
@@ -893,12 +1393,14 @@ claimant_faction = {
 
 		# Greatly reduced chance for a character's capital county to form a faction against them (extra -25 opinion needed).
 		modifier = {
+			desc = "FACTION_REASON_CAPITAL_COUNTY"
 			add = -200
 			this.title_province = scope:faction.faction_target.capital_province
 		}
 		
 		# More likely to support adult claimants when a child is on the throne.
 		modifier = {
+			desc = "FACTION_REASON_ADULT_CLAIMANT_CHILD_RULER"
 			add = 10
 			exists = scope:faction.faction_target
 			exists = scope:faction.special_character
@@ -908,6 +1410,7 @@ claimant_faction = {
 
 		# Peasants perfer magnanimous rulers over harsh or cruel ones.
 		compare_modifier = {
+			desc = "FACTION_REASON_CLAIMANT_KINDNESS"
 			factor = {
 				# Gets a value between 0 (max greedy/dishonorable/vengeful/cruel) and 800 (max honorable/compassionate/generous/forgiving).
 				value = 400
@@ -922,6 +1425,41 @@ claimant_faction = {
 
 			# How big the factor is for supporting this claimant over other factions at max support. 
 			multiplier = 2
+		}
+	}
+
+	on_creation = {
+		save_scope_as = faction
+		if = {
+			limit = {
+				any_player = {
+					is_landless_adventurer = yes
+					is_within_diplo_range = { CHARACTER = scope:faction.faction_target }
+					OR = {
+						has_contact = scope:faction.faction_leader
+						has_contact = scope:faction.special_character
+						NOT = { has_contact = scope:faction.faction_target }
+					}
+					any_character_task_contract = {
+						has_task_contract_type = laamp_join_faction_contract
+						count <= 3
+					}
+					can_create_task_contract = {
+						type_name = laamp_join_faction_contract
+						employer = scope:faction.faction_leader
+					}
+					save_temporary_scope_as = player_laamp
+				}
+			}
+			scope:player_laamp = {
+				create_task_contract = {
+					task_contract_type = laamp_join_faction_contract
+					task_contract_tier = scope:faction.faction_leader.task_contract_tier_value
+					location = scope:faction.faction_leader.primary_title.title_province
+					task_contract_employer = scope:faction.faction_leader
+					target = scope:faction.faction_target
+				}
+			}
 		}
 	}
 

@@ -1,51 +1,79 @@
-﻿imperial_government = {
-	create_cadet_branches = yes
-	rulers_should_have_dynasty = yes
-	dynasty_named_realms = no
-	royal_court = yes
+﻿celestial_government = {
+
+	government_rules = {
+		create_cadet_branches = yes
+		rulers_should_have_dynasty = yes
+		dynasty_named_realms = no
+		royal_court = yes
+		#administrative = yes
+		#landless_playable = yes
+		legitimacy = yes
+		#state_faith = yes
+		#use_as_base_on_landed = yes
+		#use_as_base_on_rank_up = yes
+		#inherit_from_dynastic_government = no
+		
+	}
+
+	domicile_type = estate
 
 	fallback = 2
 
-	primary_heritages = { heritage_chinese heritage_goryeo }	
 	primary_holding = castle_holding
-	valid_holdings = { castle_holding city_holding }
-	required_county_holdings = { castle_holding city_holding }
+	primary_heritages = { heritage_chinese heritage_goryeo heritage_yamato }
+	preferred_religions = { confucianism_religion }	
+
+	valid_holdings = { city_holding }
+	required_county_holdings = { castle_holding }
+
+	ai = {
+		use_legends = yes
+	}
+
+	tax_slot_type = celestial_tax_slot
 
 	vassal_contract = {
 		imperial_government_taxes
 		imperial_government_levies
 
 		special_imperial_contract
-		special_imperial_corps
+		special_imperial_legion
 		special_imperial_royal
 		special_imperial_bureau
 
-		#special_contract
-		religious_rights
 		fortification_rights
 		coinage_rights
 		succession_rights
+		heir_succession_rights
+
+		#special_contract
+		religious_rights
 		war_declaration_rights
 		council_rights
 		title_revocation_rights
-		jizya_special_rights
 		marriage_favor_rights
 	}
 
 	character_modifier = {
-		#domain_limit = -6
-		#knight_limit = 12
-		vassal_limit = 20	
-	
-		claim_throne_scheme_resistance_mult = -0.2
 		religious_head_opinion = 15
-		powerful_vassal_opinion = 15
+				
+		levy_size = -0.5
+		feudal_government_tax_contribution_mult = -0.5
+		feudal_government_levy_contribution_mult = -0.5
+		clan_government_tax_contribution_mult = -0.5
+		clan_government_levy_contribution_mult = -0.5
+		vassal_limit = 50
 
-		#development_growth_factor = small_development_growth_loss
-		#monthly_county_control_change_factor = 0.2
 
 		ai_war_chance = 0.5
 	}
+
+	flag = may_elevate_co_monarch
+
+	flag = government_is_celestial
+	#flag = autocracy	#皇权大一统
+	flag = government_use_bureaucracy	#流官制度
+	flag = government_use_estate #东方庄园
 
 	color = { 250 250 00 }
 
@@ -53,19 +81,27 @@
 
 
 
-corps_government = {
-	create_cadet_branches = yes
-	rulers_should_have_dynasty = no
-	dynasty_named_realms = yes
-	royal_court = yes
+legion_government = {
+	government_rules = {
+		create_cadet_branches = yes
+		rulers_should_have_dynasty = no
+		dynasty_named_realms = yes
+		royal_court = yes
+		legitimacy = yes
 
-	fallback = 2
-
-	can_get_government = {
-		highest_held_title_tier <= tier_kingdom
+		#administrative = yes
+		#landless_playable = yes
 	}
 
-	primary_heritages = { heritage_yamato }	
+	domicile_type = estate
+
+	fallback = 3
+
+	can_get_government = {
+		#highest_held_title_tier <= tier_kingdom
+	}
+
+	#primary_heritages = { heritage_yamato }	
 
 	primary_holding = castle_holding
 	valid_holdings = { castle_holding tribal_holding }
@@ -73,34 +109,37 @@ corps_government = {
 	court_generate_spouses = yes
 	court_generate_commanders = 3
 
+	ai = {
+		use_legends = yes
+	}
+
 	flag = government_can_raid_rule
 
 	vassal_contract = {
-		clan_government_obligations
-		special_contract
+		legion_government_obligations
+		#special_contract
 		religious_rights
 		war_declaration_rights
 		council_rights
 		title_revocation_rights
 
-		jizya_special_rights
-		iqta_special_rights
-		ghazi_special_rights
-		marriage_favor_rights
-
 		fortification_rights
 		coinage_rights
 		succession_rights
+		heir_succession_rights
+		marriage_favor_rights
 	}
 
 	character_modifier = {
-		domain_limit = 1
 		knight_limit = 12
 		vassal_limit = 3	
 		tax_mult = -0.2
 		levy_size = 0.2
 
 		ai_war_chance = 2
+		ai_war_cooldown = -0.5
+		army_pursuit_mult = 0.2
+		army_siege_value_mult = 0.2
 		supply_limit_mult = 0.2
 		opinion_of_liege = -15
 
@@ -118,75 +157,270 @@ corps_government = {
 					limit = {
 						is_powerful_vassal = yes
 					}
-					value = -30
+					value = clan_powerful_vassal_no_alliance_opinion_penalty_value
 				}
 				else = {
-					value = -15
+					value = clan_vassal_no_alliance_opinion_penalty_value
 				}
 			}
 		}
 	}
+	opinion_of_liege_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:vassal = {
+						NOT = {
+							is_allied_to = scope:liege
+						}
+						is_powerful_vassal = yes
+					}
+				}
+				desc = "GOVERNMENT_CLAN_NOT_ALLIED_POWERFUL"
+			}
+			triggered_desc = {
+				trigger = {
+					scope:vassal = {
+						NOT = {
+							is_allied_to = scope:liege
+						}
+						is_powerful_vassal = no
+					}
+				}
+				desc = "GOVERNMENT_CLAN_NOT_ALLIED"
+			}
+		}
+	}
 
+	flag = may_elevate_co_monarch
+	
+	flag = government_is_legion
 	color = { 137 75 19 }
 }
 
 
 bureau_government = {
-	create_cadet_branches = no
-	rulers_should_have_dynasty = no
-	royal_court = no
+	government_rules = {
+		create_cadet_branches = no
+		rulers_should_have_dynasty = no
+		royal_court = no
+		landless_playable = yes	
+	}
+
+	#domicile_type = estate
 
 	fallback = 5
 
-#	can_get_government = {
-#		highest_held_title_tier < tier_county
-#	}
-	primary_heritages = { heritage_chinese }
+	#primary_heritages = { heritage_chinese }
 	primary_holding = city_holding
-	valid_holdings = { castle_holding }
-	required_county_holdings = { city_holding castle_holding }
+	valid_holdings = { castle_holding church_holding }
+	required_county_holdings = { city_holding }
 
 	preferred_religions = { confucianism_religion }
+
+	can_get_government = {
+		is_independent_ruler = no
+		highest_held_title_tier <= tier_duchy
+	}
 	
+	character_modifier = {#民州
+		domain_limit = -5
+		levy_size = -0.5 #休养生息
+		knight_limit = -2 #以文致治
+		liege_opinion = 20
+	}
 	ai = {
 		arrange_marriage = no
 		use_goals = no
 		use_scripted_guis = no
 		perform_religious_reformation = no
+		use_legends = no
 	}
+
 	vassal_contract = { republic_government_obligations }
 	color = { 124 222 127 }
+	flag = government_is_bureau
 }
 
 ulus_government = {
-	rulers_should_have_dynasty = yes
-	#affected_by_development = no
-	regiments_prestige_as_gold = yes
+	government_rules = {
+		rulers_should_have_dynasty = yes
+		regiments_prestige_as_gold = yes
+		royal_court = yes
+		legitimacy = yes
+	}
+
 	supply_limit_mult_for_others = -0.5
 	primary_holding = tribal_holding
-	valid_holdings = { castle_holding }
-	required_county_holdings = { tribal_holding }
-	royal_court = yes
-	dynasty_named_realms = yes
+	valid_holdings = { castle_holding city_holding }
+	#required_county_holdings = { tribal_holding }
+	affected_by_development = no
 
 	fallback = 5
 
-	prestige_opinion_override = { -10 0 5 10 15 30 }
+	prestige_opinion_override = { -5 0 10 15 30 45 }
+
+	vassal_contract = {
+		tribal_government_obligations
+		special_contract
+		religious_rights
+		war_declaration_rights
+		council_rights
+		title_revocation_rights
+
+		marriage_favor_rights
+	}
+
+	ai = {
+		use_legends = yes
+	}
+
+	tax_slot_type = celestial_tax_slot
+
+	character_modifier = {
+		title_creation_cost_mult = -0.5
+		army_maintenance_mult = -0.5
+
+		tribal_government_vassal_opinion = 15
+		feudal_government_vassal_opinion = 10
+		powerful_vassal_opinion = 30
+	
+		ai_war_chance = 0.5
+		monthly_prestige = 1
+		monthly_income = 2
+	}
+	
+	flag = government_can_raid_rule
+	flag = government_is_ulus
+	color = hsv{ 0.32 0.25 0.36 }
+}
+
+tribal_government = {
+	government_rules = {
+		rulers_should_have_dynasty = yes
+		regiments_prestige_as_gold = yes
+		royal_court = yes
+		dynasty_named_realms = yes
+		legitimacy = yes
+	}
+
+	supply_limit_mult_for_others = -0.5
+	primary_holding = tribal_holding
+	required_county_holdings = { tribal_holding }
+	valid_holdings = { castle_holding }
+
+	prestige_opinion_override = { -10 0 3 5 10 20 }
+	always_use_patronym = yes
+	affected_by_development = no
 
 	vassal_contract = { tribal_government_obligations }
+
+	ai = {
+		use_legends = yes
+	}
 	
 	character_modifier = {
 		title_creation_cost_mult = -0.5
 		army_maintenance_mult = -0.5
 
-		tribal_government_vassal_opinion = 10
-		feudal_government_vassal_opinion = 10
-		powerful_vassal_opinion = 30
+		feudal_government_vassal_opinion = -20
+		clan_government_vassal_opinion = -20
+		republic_government_vassal_opinion = -20	
+			
+		character_travel_safety = 10
 	
-		ai_war_chance = 0.5
-		monthly_prestige = 0.5
+		ai_war_chance = 0.25
+		monthly_prestige = 0.2
 	}
 	
 	flag = government_can_raid_rule
-	color = hsv{ 0.32 0.25 0.36 }
+	flag = may_elevate_co_monarch
+	# Use flags instead of has_government for moddability if possible (i.e., wherever not visible to the player).
+	flag = government_is_tribal
+	color = hsv{ 0.02 0.75 0.36 }
+}
+
+
+#无奈的律令制
+imperial_government = {
+
+	government_rules = {
+		create_cadet_branches = yes
+		rulers_should_have_dynasty = yes
+		dynasty_named_realms = no
+		royal_court = yes
+		administrative = yes
+		#landless_playable = yes
+		legitimacy = yes
+		state_faith = yes
+		use_as_base_on_landed = yes
+		#use_as_base_on_rank_up = yes
+		#inherit_from_dynastic_government = no
+		
+	}
+
+	domicile_type = estate
+
+	fallback = 2
+
+	primary_holding = castle_holding
+	primary_heritages = { heritage_chinese heritage_goryeo heritage_yamato }
+	preferred_religions = { confucianism_religion }	
+
+	valid_holdings = { city_holding }
+	required_county_holdings = { castle_holding }
+
+	ai = {
+		use_legends = yes
+	}
+
+	tax_slot_type = celestial_tax_slot
+
+	vassal_contract = {
+		imperial_government_taxes
+		imperial_government_levies
+
+		special_imperial_contract
+		special_imperial_legion
+		special_imperial_royal
+		special_imperial_bureau
+
+		fortification_rights
+		coinage_rights
+		succession_rights
+		heir_succession_rights
+
+		#special_contract
+		religious_rights
+		war_declaration_rights
+		council_rights
+		title_revocation_rights
+		marriage_favor_rights
+	}
+
+	character_modifier = {
+		religious_head_opinion = 15
+				
+		levy_size = -0.5
+		feudal_government_tax_contribution_mult = -0.5
+		feudal_government_levy_contribution_mult = -0.5
+		clan_government_tax_contribution_mult = -0.5
+		clan_government_levy_contribution_mult = -0.5
+		vassal_limit = 50
+
+
+		ai_war_chance = 0.5
+	}
+	flag = government_is_celestial
+	#flag = autocracy	#皇权大一统
+	flag = government_use_bureaucracy	#流官制度
+	flag = government_use_estate #东方庄园
+
+	# These flags only exist for loc and in-game descriptions
+	flag = government_has_influence
+	flag = government_has_title_men_at_arms
+	flag = government_has_powerful_families
+
+	color = { 250 200 100 }
+
 }

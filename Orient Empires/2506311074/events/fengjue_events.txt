@@ -1,4 +1,5 @@
 ﻿namespace = fengjue
+#给予自定义绰号
 fengjue.1 = {
 	type = character_event
 	title = fengjue.1.t
@@ -14,7 +15,7 @@ fengjue.1 = {
 	}
 
 	widget = {
-		gui = "event_window_widget_enter_text"
+		gui = "event_window_widget_enter_nickname"
 		container = "dynamic_birth_name"
 		controller = {
 			type = text
@@ -27,7 +28,7 @@ fengjue.1 = {
 					localization_key = fengjue_shu
 				}
 				default = {
-					localization_key = fengjue_shu
+					localization_key = fengjue_wu
 				}
 			}
 		}
@@ -63,5 +64,554 @@ fengjue.1 = {
 			}
 		}
 		resolve_title_and_vassal_change = scope:change
+	}
+}
+
+
+#封爵荣誉头衔 有地望
+fengjue.2 = {
+	type = character_event
+	title = fengjue.2.t
+	desc = fengjue.2.desc
+	theme = crown
+	left_portrait = {
+		character = scope:actor
+	}
+	right_portrait = {
+		character = scope:recipient
+	}
+	immediate = {
+		scope:target = {
+			save_scope_as = old_title
+		}
+	}
+
+	option = {
+		name = grant_kingdom_guo
+
+		trigger = {
+			scope:kingdom = yes
+		}
+		create_kingdom_guo_effect = yes
+		scope:recipient = {
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion_to_actor_receive_kingdom = yes
+		}
+	}
+
+	option = {
+		name = grant_kingdom_jun
+
+		trigger = {
+			scope:kingdom = yes
+		}
+
+		scope:recipient = {
+			create_kingdom_jun_effect = yes
+
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion_to_actor_receive_kingdom = yes
+		}
+
+	}
+
+	option = {
+		name = grant_duchy_guo
+		trigger = {
+			NAND = {
+				scope:recipient.primary_title ?= { has_variable = titular_title }
+				scope:recipient.primary_title ?= { tier = tier_duchy }
+			}
+			scope:duchy = yes
+		}
+		create_duchy_guo_effect = yes
+		scope:recipient = {
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion_to_actor_receive_duchy = yes
+		}
+	}
+
+	option = {
+		name = grant_duchy_jun
+
+		trigger = {
+			NAND = {
+				scope:recipient.primary_title ?= { has_variable = titular_title }
+				scope:recipient.primary_title ?= { tier = tier_duchy }
+			}
+			scope:duchy = yes
+		}
+		create_duchy_jun_effect = yes
+		scope:recipient = {
+			add_realm_law_skip_effects = partition_succession_law
+
+			add_opinion_to_actor_receive_duchy = yes
+		}
+	}
+
+	#自定义
+	option = {
+		name = guohao.002.title
+		trigger = {
+			exists = scope:target
+		}
+		scope:recipient = {
+			save_scope_as = holder
+		}
+		scope:actor = {
+			hidden_effect = {
+				if = {
+					limit = {
+						scope:kingdom = yes
+					}
+					add_prestige = 500
+				}
+				else = {
+					add_prestige = 200
+				}
+				add_piety = {
+					value = 200
+				}
+			}
+			trigger_event = fengjue.3
+		}
+	}
+
+	option = {
+		name = cancel
+
+		scope:actor = {
+			hidden_effect = {
+				if = {
+					limit = {
+						scope:kingdom = yes
+					}
+					add_prestige = 500
+				}
+				else = {
+					add_prestige = 200
+				}
+				add_piety = {
+					value = 200
+				}
+			}
+		}
+	}
+
+	after = {
+		scope:recipient = { remove_character_flag = titular_holder }
+		
+	}
+
+}
+
+
+#自定义 荣誉王国、公国
+fengjue.3 = {
+	type = character_event
+	title = fengjue.4.t
+	desc = fengjue.4.desc
+
+	theme = crown
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+
+	right_portrait = {
+		character = scope:holder
+		animation = personality_forgiving
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:recipient = { save_scope_as = holder }
+		}
+		else = {
+			root = { save_scope_as = holder }
+		}
+	}
+
+	option = {
+		name = found_kingdom_decision
+		trigger_event = fengjue.5
+		add_prestige = -500
+		add_piety = -200
+	}
+	option = {
+		name = found_duchy_decision
+		trigger_event = fengjue.6
+		add_prestige = -200
+		add_piety = -200
+	}
+
+	option = { 
+		name = guohao.2.b
+		is_cancel_option = yes
+
+		#hidden_effect = {
+			#if = {
+				#limit = {
+					#scope:kingdom = yes
+				#}
+				#add_prestige = 500
+			#}
+			#else = {
+				#add_prestige = 200
+			#}
+			#add_piety = {
+				#value = 200
+			#}
+		#}
+	}
+
+	after = {
+	}
+
+}
+
+
+#自定义王爵名
+fengjue.5 = {
+	type = character_event
+	title = fengjue.4.t
+	desc = fengjue.4.kingdom.desc
+	theme = crown
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+	right_portrait = {
+		character = scope:holder
+		animation = personality_forgiving
+	}
+
+	option = { 
+		name = single_word
+		hidden_effect = {
+			scope:actor.capital_barony = {
+				save_scope_as = target
+				change_random_guohao_effect = yes
+			}
+		}
+
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_kingdom_decision
+				oe_create_titular_title_effect = { TIER = kingdom HOLDER = scope:holder }
+			}			
+		}
+		root = { save_scope_as = actor }
+		scope:holder = { add_opinion_to_actor_receive_kingdom = yes }
+		scope:holder = {
+			change_to_celes_government_effect = yes
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { 
+		name = multiply_word
+		hidden_effect = {
+			scope:actor.capital_barony = {
+				save_scope_as = target
+				change_random_junhao_effect = yes
+			}
+		}
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_kingdom_decision
+				oe_create_titular_title_effect = { TIER = kingdom HOLDER = scope:holder }
+			}		
+		}
+		root = { save_scope_as = actor }
+		scope:holder = { add_opinion_to_actor_receive_kingdom = yes }
+		scope:holder = {
+			change_to_celes_government_effect = yes
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { 
+		name = zhou_name
+		hidden_effect = {
+			scope:actor.capital_barony = {
+				save_scope_as = target
+				change_random_zhou_effect = yes
+			}
+		}
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_kingdom_decision
+				oe_create_titular_title_effect = { TIER = kingdom HOLDER = scope:holder }
+			}		
+		}
+		root = { save_scope_as = actor }
+		scope:holder = { add_opinion_to_actor_receive_kingdom = yes }
+		scope:holder = {
+			change_to_celes_government_effect = yes
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { 
+		name = guohao.2.b
+		is_cancel_option = yes
+	}
+}
+
+#自定义公爵名
+fengjue.6 = {
+	type = character_event
+	title = fengjue.4.t
+	desc = fengjue.4.duchy.desc
+	theme = crown
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+	right_portrait = {
+		character = scope:holder
+		animation = personality_forgiving
+	}
+
+	option = { 
+		name = single_word
+		hidden_effect = {
+			scope:actor.capital_barony = {
+				save_scope_as = target
+				change_random_guohao_effect = yes
+			}
+		}
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_duchy_decision
+				oe_create_titular_title_effect = { TIER = duchy HOLDER = scope:holder }
+			}
+		}
+		root = { save_scope_as = actor }
+		scope:holder = { add_opinion_to_actor_receive_duchy = yes }
+		scope:holder = {
+			change_to_celes_government_effect = yes
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}
+	}
+	option = { 
+		name = multiply_word
+		hidden_effect = {
+			scope:actor.capital_barony = {
+				save_scope_as = target
+				change_random_junhao_effect = yes
+			}
+		}
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_duchy_decision
+				oe_create_titular_title_effect = { TIER = duchy HOLDER = scope:holder }
+			}
+		}
+		root = { save_scope_as = actor }
+		scope:holder = { add_opinion_to_actor_receive_duchy = yes }
+		scope:holder = {
+			change_to_celes_government_effect = yes
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}
+	}
+	option = { 
+		name = zhou_name
+		hidden_effect = {
+			scope:actor.capital_barony = {
+				save_scope_as = target
+				change_random_zhou_effect = yes
+			}
+		}
+		send_interface_toast = {
+			type = event_toast_effect_good
+			title = fengjue_create_titular_title_decision
+			left_icon = root
+			custom_description = {
+				text = found_duchy_decision
+				oe_create_titular_title_effect = { TIER = duchy HOLDER = scope:holder }
+			}
+		}
+		root = { save_scope_as = actor }
+		scope:holder = { add_opinion_to_actor_receive_duchy = yes }
+		scope:holder = {
+			change_to_celes_government_effect = yes
+			save_scope_as = recipient
+			set_variable = {
+				name = oe_contract_title
+				years = 10
+			}
+
+			if = {
+				limit = { is_landed = no }
+				liege = {
+					save_scope_as = actor
+					
+					trigger_event = {
+						id = east_contract.0004
+					}
+					if = {
+						limit = {
+							is_ai = no
+							scope:recipient = { is_oe_landed_bureaucrat_trigger = yes }
+						}
+						trigger_event = {
+							id = east_contract.0006
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { 
+		name = guohao.2.b
+		is_cancel_option = yes
+	}
+
+	after = {
+		scope:holder = { remove_fenghao_flag = yes }
 	}
 }

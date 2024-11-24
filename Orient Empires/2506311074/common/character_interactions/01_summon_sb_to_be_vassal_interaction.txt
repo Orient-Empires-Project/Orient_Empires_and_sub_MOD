@@ -1,0 +1,1120 @@
+﻿summon_sb_to_be_vassal_interaction = { #招降互动
+	category = interaction_category_vassal
+	desc = summon_sb_to_be_vassal_interaction_desc
+	icon = scroll_scales
+	can_send_despite_rejection = yes
+	popup_on_receive = yes
+	pause_on_receive = yes
+	ai_maybe = yes
+	ai_min_reply_days = 1
+	ai_max_reply_days = 3
+	greeting = positive
+	notification_text = OFFER_VASSALIZATION_INTERACTION_NOTIFICATION
+	cooldown_against_recipient = { years = 1 }
+	send_options_exclusive = no
+	is_shown = {
+		NOT = { scope:recipient = scope:actor }
+		NOT = { scope:recipient = { is_vassal_or_below_of = scope:actor } }
+		scope:recipient = {
+			is_landed = yes
+			highest_held_title_tier >= tier_county
+			highest_held_title_tier < scope:actor.highest_held_title_tier
+			is_independent_ruler = no 
+			NOT = { government_has_flag = can_not_be_vassal_or_liege }
+			
+			liege = {
+				is_independent_ruler = yes
+				any_character_war = {
+					OR = {
+						using_cb = revolt_independence_war
+						using_cb = shatuo_unite_war
+					}
+					scope:actor = { is_leader_in_war = prev }
+					scope:recipient.liege = { is_leader_in_war = prev }
+					scope:actor = { NOT = { is_allied_in_war = scope:recipient.liege } }
+				}
+			}
+		}
+	}
+	is_valid = {
+		scope:recipient = {
+			is_imprisoned = no
+		}
+		scope:actor = {
+			is_imprisoned = no
+		}
+	}
+	send_option = { #hook option
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = scope:recipient
+			}
+		}
+		flag = hook
+		localization = SCHEME_HOOK
+	}
+	send_option = { #改为律令制选项
+		is_shown = {
+			scope:actor = {
+				government_has_flag = government_is_celestial
+			}
+			NOT = { scope:recipient = { government_has_flag = government_is_celestial } }
+			NOT = { scope:recipient = { government_has_flag = government_is_legion } }
+			NOT = { scope:recipient = { government_has_flag = government_is_bureau } }
+		}
+		is_valid = {
+			scope:recipient = {
+				NOT = { government_has_flag = government_is_tribal }
+			}
+		}
+		flag = option_lvling
+		localization = OPTION_LVLING
+	}
+	send_option = { #民州契约选项
+		is_shown = {
+			scope:option_lvling = yes
+		}
+		is_valid = {
+			NOR = {
+				scope:option_junfu = yes
+				scope:option_huangshi = yes
+			}
+		}
+		flag = option_mingzhou
+		localization = OPTION_MINGZHOU
+	}
+	send_option = { #军府契约选项
+		is_shown = {
+			scope:option_lvling = yes
+		}
+		is_valid = {
+			NOR = {
+				scope:option_mingzhou = yes
+				scope:option_huangshi = yes
+			}
+		}
+		flag = option_junfu
+		localization = OPTION_JUNFU
+	}
+	send_option = { #皇室契约选项
+		is_shown = {
+			scope:option_lvling = yes
+		}
+		is_valid = {
+			NOR = {
+				scope:option_junfu = yes
+				scope:option_mingzhou = yes
+			}
+			scope:recipient = { highest_held_title_tier >= tier_duchy }
+		}
+		flag = option_huangshi
+		localization = OPTION_HUANGSHI
+	}
+	send_option = { #更改继承法
+		is_shown = {
+			scope:option_lvling = yes
+			scope:recipient = { #修改
+				NOT = { has_realm_law = official_succession_law }
+			}
+			scope:recipient = { can_have_official_succession_law_trigger = yes }
+		}
+		flag = option_official_succession_law
+		localization = OPTION_OFFICIAL_SUCCESSION_LAW
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	can_send = {
+		custom_description = {
+			text = "NOT_CHOOSE_ANY_CONTRACT_OPTION"
+			trigger_if = {
+				limit = {
+					scope:option_lvling = yes
+				}
+				OR = {
+					scope:option_mingzhou = yes
+					scope:option_junfu = yes
+					scope:option_huangshi = yes
+				}
+			}
+			trigger_else = { always = yes }
+		}
+	}
+	auto_accept = {
+		scope:hook = yes
+		scope:actor = {
+			has_strong_usable_hook = scope:recipient
+		}
+	}
+	on_accept = {
+		scope:actor = { #消息发送与更改领主
+			send_interface_message = {
+				type = event_generic_neutral
+				title = summon_sb_to_be_vassal_interaction_accept_msg_title
+				left_icon = scope:recipient
+				create_title_and_vassal_change = {
+					type = swear_fealty
+					save_scope_as = change
+				}
+				scope:recipient = {
+					change_liege = {
+						liege = scope:actor
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+			}
+		}
+		if = { #消耗牵制
+			limit = {
+				scope:hook = yes
+			}
+			scope:actor = { use_hook = scope:recipient }
+		}
+		oe_interaction_set_new_vassal_contracts_effect = { #契约修改
+			char = scope:recipient
+		}
+		if = { #清除不适宜的意见修正
+			limit = {
+				scope:recipient.liege = {
+					is_independent_ruler = yes
+					OR = {
+						has_opinion_modifier = {
+							modifier = stay_loyalty
+							target = scope:recipient
+						}
+						has_opinion_modifier = {
+							modifier = want_to_betray
+							target = scope:recipient
+						}
+					}			
+				}
+			}
+			scope:recipient.liege = {
+				remove_opinion = {
+					modifier = stay_loyalty
+					target = scope:recipient
+				}
+				remove_opinion = {
+					modifier = want_to_betray
+					target = scope:recipient
+				}
+			}
+		}
+		scope:recipient.liege = { #领主的意见修正
+			add_opinion = {
+				modifier = surrender_to_enemy
+				target = scope:recipient
+			}
+		}
+	}
+	on_decline = {
+		scope:actor = {
+			send_interface_message = {
+				type = event_generic_neutral
+				title = summon_sb_to_be_vassal_interaction_decline_msg_title
+				left_icon = scope:recipient
+				custom_tooltip = summon_sb_to_be_vassal_interaction_decline_msg_tooltip
+			}
+		}
+		scope:recipient.liege = { #领主的意见修正
+			add_opinion = {
+				modifier = stay_loyalty
+				target = scope:recipient
+			}
+		}
+	}
+	ai_accept = {
+		base = 0
+		# PERKS
+		modifier = { # Perk boost
+			desc = offer_vassalization_true_ruler_perk_tt
+			trigger = {
+				scope:actor = { has_perk = true_ruler_perk }
+			}
+			add = true_ruler_value
+		}
+		modifier = {#生活方式点数的差值
+			desc = lifestyle_perks_difference
+			add = {
+				add = scope:actor.lifestyle_perk_points
+				add = {
+					value = scope:recipient.lifestyle_perk_points
+					multiply = -1
+				}
+			}
+		}
+		# MAIN
+		modifier = { #Different faith, no pluralism.
+			desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+			trigger = {
+				scope:recipient = {
+					NOR = { #Of two different faiths AND the potential vassal's faith is not pluralistic.
+						faith = scope:actor.faith
+						faith = { has_doctrine = doctrine_pluralism_pluralistic }
+					}
+				}
+			}
+			add = {
+				value = -40
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_hostile_level
+							}
+						}
+					}
+					add = -40
+				}
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_evil_level
+							}
+						}
+					}
+					add = -40
+				}
+			}
+		}	
+		modifier = { #Different faith, pluralism.
+			desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+			trigger = {
+				scope:recipient = {
+					NOT = {
+						faith = scope:actor.faith
+					}
+					NOT = {
+						scope:actor.faith = { has_doctrine = doctrine_pluralism_pluralistic }
+					}
+					faith = { has_doctrine = doctrine_pluralism_pluralistic }
+				}
+			}
+			add = {
+				value = -20
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_hostile_level
+							}
+						}
+					}
+					add = -20
+				}
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_evil_level
+							}
+						}
+					}
+					add = -20
+				}
+			}
+		}
+		modifier = { #Different faith, both have pluralism.
+			desc = offer_vassalization_interaction_aibehavior_differentfaith_tt
+			trigger = {
+				scope:recipient = {
+					NOT = {
+						faith = scope:actor.faith
+					}
+					scope:actor.faith = { has_doctrine = doctrine_pluralism_pluralistic }
+					faith = { has_doctrine = doctrine_pluralism_pluralistic }
+				}
+			}
+			add = {
+				value = -20
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_hostile_level
+							}
+						}
+					}
+					add = -20
+				}
+				if = {
+					limit = {
+						scope:recipient.faith = {
+							faith_hostility_level = {
+								target = scope:actor.faith
+								value >= faith_evil_level
+							}
+						}
+					}
+					add = -20
+				}
+			}
+		}
+		modifier = { #I am a King!
+			desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+			trigger = {
+				scope:recipient = { highest_held_title_tier = tier_kingdom }
+			}
+			add = -50
+		}
+		modifier = { #We just fought against each other.
+			desc = offer_vassalization_interaction_aibehavior_recent_war_tt
+			trigger = {
+				scope:recipient = {
+					any_truce_holder = {
+						this = scope:actor
+					}
+				}
+			}
+			add = -40
+		}
+		modifier = { #I fought an independence war against you.
+			desc = offer_vassalization_interaction_aibehavior_independence_war_tt
+			trigger = {
+				scope:recipient = {
+					exists = var:independence_war_former_liege
+					var:independence_war_former_liege = scope:actor
+				}
+			}
+			add = -100
+		}
+		modifier = { #Wide difference in rank
+			desc = offer_vassalization_interaction_aibehavior_widetitletier_tt
+			trigger = {
+				scope:actor = {
+					tier_difference = {
+						target = scope:recipient
+						value > 1
+					}
+				}
+			}
+			add = 5
+		}
+		modifier = { # Is the Rightful Liege of recipient
+			desc = offer_vassalization_interaction_aibehavior_rightfulliegetitleholder_tt
+			trigger = {
+				scope:actor = { is_rightful_liege_of = scope:recipient }
+			}
+			add = 40
+		}
+		modifier = { #Is not the Rightful Liege of recipient
+			desc = offer_vassalization_interaction_aibehavior_not_rightfulliegetitleholder_tt
+			trigger = {
+				NOT = {
+					scope:actor = { is_rightful_liege_of = scope:recipient }
+				}
+			}
+			add = -15
+		}
+		modifier = { #Distant Realm.
+			desc = offer_vassalization_interaction_aibehavior_distantrealm_tt
+			trigger = {
+				scope:actor = {
+					character_is_realm_neighbor = scope:recipient
+					NOT = {
+						character_is_land_realm_neighbor = scope:recipient
+					}
+				}
+			}
+			add = -100
+		}
+		modifier = { #Remote Realm.修改了原版的写法
+			desc = offer_vassalization_interaction_aibehavior_remoterealm_tt
+			trigger = {
+				scope:actor = {
+					NOT = {
+						character_is_realm_neighbor = scope:recipient
+					}
+					realm_to_title_distance_squared = {
+						title = scope:recipient.primary_title
+						value >= 200000 
+					}
+				}
+			}
+			add = -500
+		}
+		modifier = { # Military strength different.修改了原版的写法
+			desc = MilitaryStrengthDifferentDesc
+	  	  	add = {
+				value = 1
+				subtract = {
+					value = scope:recipient.current_military_strength
+					divide = { value = scope:actor.current_military_strength min = 1 }
+				}
+				multiply = 10
+				ceiling = yes
+				max = 100
+	  		}
+		}
+
+		# MINOR
+		modifier = { #Friend modifier.
+			desc = offer_vassalization_interaction_aibehavior_friend_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_friend = scope:actor
+					NOT = { has_relation_best_friend = scope:actor }
+				}
+			}
+			add = 10
+		}
+		modifier = { #Best Friend modifier.
+			desc = offer_vassalization_interaction_aibehavior_best_friend_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_best_friend = scope:actor
+				}
+			}
+			add = 20
+		}
+		modifier = { #Rivalry modifier.
+			desc = offer_vassalization_interaction_aibehavior_rival_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_rival = scope:actor
+					NOT = { has_relation_nemesis = scope:actor }
+				}
+			}
+			add = -10
+		}
+		modifier = { #Nemesis modifier.
+			desc = offer_vassalization_interaction_aibehavior_nemesis_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_nemesis = scope:actor
+				}
+			}
+			add = -1000
+		}
+		modifier = { #Same Dynasty modifier.
+			desc = offer_vassalization_interaction_aibehavior_dynasty_tt
+			trigger = {
+				scope:recipient = {
+					dynasty = scope:actor.dynasty
+				}
+			}
+			add = 5
+		}
+		modifier = { #Cultural modifiers.
+			add = -10
+			desc = offer_vassalization_interaction_aibehavior_culture_tt
+			trigger = {
+				scope:actor = {
+					culture = { has_same_culture_heritage = scope:recipient.culture }
+					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+				}
+			}
+		}
+		modifier = { #Cultural Group modifiers.
+			add = -30
+			desc = offer_vassalization_interaction_aibehavior_culture_group_tt
+			trigger = {
+				scope:actor = {
+					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+				}
+			}
+		}
+		modifier = { #Ageism modifier vs kids.
+			desc = offer_vassalization_interaction_aibehavior_child_tt
+			trigger = {
+				scope:actor = {
+					age < 12
+				}
+				scope:recipient = {
+					age > 16
+				}
+			}
+			add = -5
+		}
+		modifier = { #Illegitimacy modifier.
+			desc = offer_vassalization_interaction_aibehavior_illegitimate_tt
+			trigger = {
+				OR = {
+					AND = {
+						scope:actor = {
+							has_trait = bastard
+						}
+						scope:recipient = {
+							faith = { NOT = { has_doctrine = doctrine_bastardry_none } }
+						}
+					}
+					has_trait = denounced
+					has_trait = disinherited
+				}
+			}
+			add = -10
+		}
+		modifier = { #Claimant modifier.
+			desc = offer_vassalization_interaction_aibehavior_claimant_tt
+			trigger = {
+				scope:actor.primary_title = {
+					scope:recipient = {
+						has_claim_on = prev
+					}
+				}
+			}
+			add = -15
+		}
+
+		# OPINION INFLUENCE
+		modifier = { #Dread Level 1 Modifier
+			add = intimidated_external_reason_value
+			scope:recipient = {
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = { #Dread Level 2 Modifier
+			add = cowed_external_reason_value
+			scope:recipient = {
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		opinion_modifier = {#recipient对领主的好感修正
+			trigger = {
+				scope:recipient = {
+					opinion = {
+						target = scope:recipient.liege
+						value < 0
+					}
+				}
+			}
+			who = scope:recipient
+			opinion_target = scope:recipient.liege
+			multiplier = -1
+		}
+		opinion_modifier = { #recipient对actor的好感修正
+			who = scope:recipient
+			opinion_target = scope:actor
+			multiplier = 0.5
+		}
+		#Option:
+		modifier = { #弱牵制加成
+			add = 30
+			scope:hook = yes
+			scope:actor = { has_weak_hook = scope:recipient }
+			desc = OPTION_HOOKUSE
+		}
+		modifier = { #律令制选项修正
+			add = -20
+			scope:option_lvling = yes
+			desc = OPTION_LVLING_CHOOSE
+		}
+		modifier = { #民州选项修正
+			add = -20
+			scope:option_mingzhou = yes
+			desc = OPTION_MINGZHOU_CHOOSE
+		}
+		modifier = { #军府选项修正
+			add = 10
+			scope:option_junfu = yes
+			desc = OPTION_JUNFU_CHOOSE
+		}
+		modifier = { #皇室选项修正
+			add = 30
+			scope:option_huangshi = yes
+			desc = OPTION_HUANGSHI_CHOOSE
+		}
+		modifier = { #继承法选项修正
+			add = -50
+			scope:option_official_succession_law = yes
+			desc = OPTION_OFFICIAL_SUCCESSION_LAW_CHOOSE
+		}
+	}
+
+	ai_will_do = {
+		base = 0
+		
+		modifier = { # If the player is at war, do not bother them with offensive calls
+			scope:actor = {
+				has_realm_law = crown_authority_0
+			}
+			factor = 2
+		}
+		modifier = { # Military strength different
+			desc = MilitaryStrengthDifferentDesc
+	  	  	add = {
+				value = 1
+				subtract = {
+					value = scope:recipient.liege.current_military_strength
+					divide = { value = scope:actor.current_military_strength min = 1 }
+				}
+				multiply = 10
+				ceiling = yes
+				max = 100
+	  		}
+		}
+	}
+}
+revolt_liege_to_be_enemy_vassal_interaction = { #反叛互动
+	category = interaction_category_vassal
+	desc = revolt_liege_to_be_enemy_vassal_interaction_desc
+	icon = scroll_scales
+	can_send_despite_rejection = yes
+	popup_on_receive = yes
+	pause_on_receive = yes
+	ai_maybe = yes
+	ai_min_reply_days = 1
+	ai_max_reply_days = 3
+	greeting = positive
+	notification_text = OFFER_VASSALIZATION_INTERACTION_NOTIFICATION
+	cooldown_against_recipient = { years = 1 }
+	send_options_exclusive = no
+	is_shown = {
+		NOT = { 
+			scope:actor = scope:recipient 
+			scope:actor = { is_vassal_or_below_of = scope:recipient }
+		}
+		scope:actor = {
+			is_landed = yes
+			highest_held_title_tier >= tier_county
+			is_independent_ruler = no
+			highest_held_title_tier < scope:recipient.highest_held_title_tier
+			any_liege_or_above = {
+				any_character_war = {
+					OR = {
+						using_cb = revolt_independence_war
+						using_cb = shatuo_unite_war
+					}
+				}
+			}
+		}
+		scope:recipient = {
+			is_landed = yes
+			is_imprisoned = no
+			is_independent_ruler = yes
+			any_character_war = {
+				AND = {
+					OR = {
+						using_cb = revolt_independence_war
+						using_cb = shatuo_unite_war
+					}
+					OR = {
+						prev = this.primary_attacker
+						prev = this.primary_defender
+					}
+				}
+			}
+		}
+	}
+	is_valid = {
+		scope:actor = {
+			is_imprisoned = no
+		}
+		scope:recipient = {
+			is_imprisoned = no
+		}
+	}
+	send_option = { #hook option
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = scope:recipient
+			}
+		}
+		flag = hook
+		localization = SCHEME_HOOK
+	}
+	send_option = { #改为律令制选项
+		is_shown = {
+			scope:recipient = {
+				government_has_flag = government_is_celestial
+			}
+			NOT = { scope:actor = { government_has_flag = government_is_celestial } }
+			NOT = { scope:actor = { government_has_flag = government_is_legion } }
+			NOT = { scope:actor = { government_has_flag = government_is_bureau } }
+		}
+		is_valid = {
+			scope:actor = {
+				NOT = { government_has_flag = government_is_tribal }
+			}
+		}
+		flag = option_lvling
+		localization = OPTION_LVLING
+	}
+	send_option = { #民州契约选项
+		is_shown = {
+			scope:option_lvling = yes
+		}
+		is_valid = {
+			NOR = {
+				scope:option_junfu = yes
+				scope:option_huangshi = yes
+			}
+		}
+		flag = option_mingzhou
+		localization = OPTION_MINGZHOU
+	}
+	send_option = { #军府契约选项
+		is_shown = {
+			scope:option_lvling = yes
+		}
+		is_valid = {
+			NOR = {
+				scope:option_mingzhou = yes
+				scope:option_huangshi = yes
+			}
+		}
+		flag = option_junfu
+		localization = OPTION_JUNFU
+	}
+	send_option = { #皇室契约选项
+		is_shown = {
+			scope:option_lvling = yes
+		}
+		is_valid = {
+			NOR = {
+				scope:option_junfu = yes
+				scope:option_mingzhou = yes
+			}
+			scope:actor = { highest_held_title_tier >= tier_duchy }
+		}
+		flag = option_huangshi
+		localization = OPTION_HUANGSHI
+	}
+	send_option = { #更改继承法
+		is_shown = {
+			scope:option_lvling = yes
+			scope:actor = {
+				NOT = { has_realm_law = official_succession_law }
+			}
+			scope:actor = { can_have_official_succession_law_trigger = yes }
+		}
+		flag = option_official_succession_law
+		localization = OPTION_OFFICIAL_SUCCESSION_LAW
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	can_send = {
+		custom_description = {
+			text = "NOT_CHOOSE_ANY_OPTION"
+			trigger_if = {
+				limit = {
+					scope:option_lvling = yes
+				}
+				OR = {
+					scope:option_mingzhou = yes
+					scope:option_junfu = yes
+					scope:option_huangshi = yes
+				}
+			}
+			trigger_else = { always = yes }
+		}
+	}
+	
+	auto_accept = {
+		scope:hook = yes
+		scope:actor = {
+			has_strong_usable_hook = scope:recipient
+		}
+	}
+	on_accept = {
+		if = { #消耗牵制
+			limit = {
+				scope:hook = yes
+			}
+			scope:actor = { use_hook = scope:recipient }
+		}
+		if = { #清除不适宜的意见修正
+			limit = {
+				scope:actor.liege = {
+					OR = {
+						has_opinion_modifier = {
+							modifier = stay_loyalty
+							target = scope:actor
+						}
+						has_opinion_modifier = {
+							modifier = want_to_betray
+							target = scope:actor
+						}
+					}			
+				}
+			}
+			scope:actor.liege = {
+				remove_opinion = {
+					modifier = stay_loyalty
+					target = scope:actor
+				}
+				remove_opinion = {
+					modifier = want_to_betray
+					target = scope:actor
+				}
+			}
+		}
+		scope:actor.liege = { #领主的意见修正
+			add_opinion = {
+				modifier = betray_me_in_war
+				target = scope:actor
+			}
+		}
+		scope:actor = {
+			send_interface_message = {
+				type = event_generic_neutral
+				title = revolt_liege_to_be_enemy_vassal_interaction_msg_title
+				left_icon = scope:recipient
+				create_title_and_vassal_change = {
+					type = swear_fealty
+					save_scope_as = change
+				}
+				scope:actor = {
+					change_liege = {
+						liege = scope:recipient
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+				scope:recipient = {
+					every_character_war = {
+						limit = {
+							OR = {
+								using_cb = revolt_independence_war
+								#using_cb = steppe_war
+								#using_cb = unite_war
+							}
+						}
+						if = {
+							limit = {
+								scope:recipient = this.primary_defender
+							}
+							this = { add_defender = scope:actor }
+						}
+						else = {
+							this = { add_attacker = scope:actor }
+						}
+						scope:recipient = {
+							add_truce_both_ways = {
+								character = scope:actor
+								years = 3
+								result = white_peace
+								war = prev
+							}
+						}
+					}
+				}
+			}
+		}
+		oe_interaction_set_new_vassal_contracts_effect = { #契约修改
+			char = scope:actor
+		}
+	}
+	on_decline = {
+		scope:actor = {
+			send_interface_message = {
+				type = event_generic_neutral
+				title = revolt_liege_to_be_enemy_vassal_interaction_decline_msg_title
+				left_icon = scope:recipient
+				custom_tooltip = revolt_liege_to_be_enemy_vassal_interaction_decline_msg_tooltip
+			}
+		}
+		scope:actor.liege = { #领主的意见修正
+			add_opinion = {
+				modifier = want_to_betray
+				target = scope:actor
+			}
+		}
+	}
+	
+	ai_accept = {
+		base = 50
+		modifier = { #Friend modifier.
+			desc = offer_vassalization_interaction_aibehavior_friend_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_friend = scope:actor
+					NOT = { has_relation_best_friend = scope:actor }
+				}
+			}
+			add = 10
+		}
+		modifier = { #Best Friend modifier.
+			desc = offer_vassalization_interaction_aibehavior_best_friend_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_best_friend = scope:actor
+				}
+			}
+			add = 20
+		}
+		modifier = { #Rivalry modifier.
+			desc = offer_vassalization_interaction_aibehavior_rival_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_rival = scope:actor
+					NOT = { has_relation_nemesis = scope:actor }
+				}
+			}
+			add = -10
+		}
+		modifier = { #Nemesis modifier.
+			desc = offer_vassalization_interaction_aibehavior_nemesis_tt
+			trigger = {
+				scope:recipient = {
+					has_relation_nemesis = scope:actor
+				}
+			}
+			add = -1000
+		}
+		modifier = { #Same Dynasty modifier.
+			desc = offer_vassalization_interaction_aibehavior_dynasty_tt
+			trigger = {
+				scope:recipient = {
+					dynasty = scope:actor.dynasty
+				}
+			}
+			add = 5
+		}
+		modifier = { #Cultural modifiers.
+			add = -10
+			desc = offer_vassalization_interaction_aibehavior_culture_tt
+			trigger = {
+				scope:actor = {
+					culture = { has_same_culture_heritage = scope:recipient.culture }
+					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+				}
+			}
+		}
+		
+		modifier = { #Cultural Group modifiers.
+			add = -30
+			desc = offer_vassalization_interaction_aibehavior_culture_group_tt
+			trigger = {
+				scope:actor = {
+					NOT = { culture = { has_same_culture_heritage = scope:recipient.culture } }
+				}
+			}
+		}
+		modifier = { #Ageism modifier vs kids.
+			desc = offer_vassalization_interaction_aibehavior_child_tt
+			trigger = {
+				scope:actor = {
+					age < 12
+				}
+				scope:recipient = {
+					age > 16
+				}
+			}
+			add = -5
+		}
+		modifier = { #Illegitimacy modifier.
+			desc = offer_vassalization_interaction_aibehavior_illegitimate_tt
+			trigger = {
+				OR = {
+					AND = {
+						scope:actor = {
+							has_trait = bastard
+						}
+						scope:recipient = {
+							faith = { NOT = { has_doctrine = doctrine_bastardry_none } }
+						}
+					}
+					has_trait = denounced
+					has_trait = disinherited
+				}
+			}
+			add = -10
+		}
+		modifier = { #Claimant modifier.
+			desc = offer_vassalization_interaction_aibehavior_claimant_tt
+			trigger = {
+				scope:actor.primary_title = {
+					scope:recipient = {
+						has_claim_on = prev
+					}
+				}
+			}
+			add = -15
+		}	
+		opinion_modifier = { #recipient对actor的好感修正
+			who = scope:recipient
+			opinion_target = scope:actor
+			multiplier = 1
+		}
+		modifier = { #再度反叛的意见修正
+			add = -50
+			scope:recipient = {
+				OR = {
+					has_opinion_modifier = {
+						modifier = betray_me_in_war
+						target = scope:actor
+					}
+					has_opinion_modifier = {
+						modifier = surrender_to_enemy
+						target = scope:actor
+					}
+				}
+			}
+			desc = HAD_BETRAY_ME_IN_WAR
+		}
+		#Option:
+		modifier = { #弱牵制加成
+			add = 30
+			scope:hook = yes
+			scope:actor = { has_weak_hook = scope:recipient }
+			desc = OPTION_HOOKUSE
+		}
+		modifier = { #律令制选项修正
+			add = 20
+			scope:option_lvling = yes
+			desc = OPTION_LVLING_CHOOSE
+		}
+		modifier = { #民州选项修正
+			add = 30
+			scope:option_mingzhou = yes
+			desc = OPTION_MINGZHOU_CHOOSE
+		}
+		modifier = { #军府选项修正
+			add = 10
+			scope:option_junfu = yes
+			desc = OPTION_JUNFU_CHOOSE
+		}
+		modifier = { #皇室选项修正
+			add = -30
+			scope:option_huangshi = yes
+			desc = OPTION_HUANGSHI_CHOOSE
+		}
+		modifier = { #继承法选项修正
+			add = 20
+			scope:option_official_succession_law = yes
+			desc = OPTION_OFFICIAL_SUCCESSION_LAW_CHOOSE
+		}
+	}
+	ai_will_do = {
+		base = 0
+		
+		modifier = { # If the player is at war, do not bother them with offensive calls
+			scope:actor.liege = {
+				has_realm_law = crown_authority_0
+			}
+			factor = 2
+		}
+		modifier = { # Military strength different
+			desc = MilitaryStrengthDifferentDesc
+	  	  	add = {
+				value = 1
+				subtract = {
+					value = scope:actor.liege.current_military_strength
+					divide = { value = scope:recipient.current_military_strength min = 1 }
+				}
+				multiply = 10
+				ceiling = yes
+				max = 100
+	  		}
+		}
+	}
+}

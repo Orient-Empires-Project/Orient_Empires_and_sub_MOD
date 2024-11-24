@@ -1,0 +1,207 @@
+﻿types oe_gui{
+	type oe_timeline_widget = widget {
+		name = "oe_timeline_widget"
+		visible = "[And(And( Not(IsGameViewOpen('barbershop')), And( Not( IsPauseMenuShown ), Not(GetVariableSystem.Exists('royal_court_screenshot_window')))), Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_timeline').GetValue, '(CFixedPoint)0' ) ))]"
+		size = { 100 65 }
+		position = { -375 15 }
+		parentanchor = bottom|right
+		filter_mouse = all
+		alwaystransparent = yes
+		layer = top
+		allow_outside = yes
+
+		using = Animation_ShowHide_Quick
+
+		hbox = {
+			layoutpolicy_horizontal = expanding
+			margin_top = 2
+			margin_right = 2
+
+			expand = {}
+			####年号
+			text_single = {
+				name = "nianhao_text"
+				visible = "[Not(IsObserver)]"
+				
+				layoutpolicy_horizontal = expanding
+
+				text = "[GetPlayer.Custom('nianhao_date')]"
+				default_format = "#date"
+				
+				align = nobaseline
+				using = Font_Size_Medium
+			}
+			####干支
+			text_single = {
+				name = "ganzhi_text"
+				visible = "[Not(IsObserver)]"
+
+				layoutpolicy_horizontal = expanding
+
+				text = "[GetPlayer.Custom('TianganName')][GetPlayer.Custom('DizhiName')]"
+				default_format = "#date"
+				
+				align = nobaseline
+				#using = Font_Size_Medium
+			}
+		}
+	}
+
+	type oe_main_tabs_widget = widget {
+		name = "oe_ingame_sidebar"
+		visible = "[And(IsCelestialRuler(GetPlayer), InGameTopbar.ShouldBeVisible)]"
+		size = { 100% 100% }
+		layer = hud_layer
+
+		### Main Tabs
+		widget = {
+			name = "main_tabs"
+			visible = "[And(And(And( Not( IsPauseMenuShown ), And(Or(Not(IsObserver), GetPlayer.IsValid), IsDefaultGUIMode)), Not(IsGameViewOpen('struggle'))), Not( GreaterThan_CFixedPoint( GetPlayer.MakeScope.Var('hide_ui_main_tabs').GetValue, '(CFixedPoint)0' ) ))]"
+			parentanchor = top|right
+			position = { 0 540 }
+			size = { 50 0 }
+			allow_outside = yes
+
+			using = Animation_ShowHide_Quick
+
+			vbox = {
+				alwaystransparent = no
+				filter_mouse = all
+				visible = "[Not(IsGameViewOpen('barbershop'))]"
+				margin = { 5 10 }
+					
+				Background = {
+					texture = "gfx/interface/skinned/hud_maintab_bg_middle.dds"
+					spriteType = CorneredTiled
+					texture_density = 1
+					margin = { 5 -40 }
+				}
+
+				Background = {
+					spriteType = CorneredStretched
+					spriteborder_top = 100
+					parentanchor = top|right
+					texture_density = 3
+					size = { 250 100 }
+					texture = "gfx/interface/skinned/hud_maintab_bg_top.dds"
+				}
+
+				Background = {
+					spriteType = CorneredStretched
+					spriteborder_bottom = 50
+					parentanchor = top|right
+					texture_density = 2
+					size = { 150 100 }
+					texture = "gfx/interface/skinned/hud_maintab_bg_bottom.dds"
+				}
+
+				widget_hud_main_tab = {
+					name = "oe_tax_jurisdiction"
+					datacontext = "[GetPlayer]"
+					enabled = "[Character.HasTaxSlots]"
+					# don't show it twice, though there should no a clan is celestial
+					visible = "[Not(GetPlayer.GetGovernment.IsType( 'clan_government' ))]"
+
+					blockoverride "maintab_button"
+					{
+						texture = "gfx/interface/skinned/hud_maintab/maintab_tax_jurisdictions.dds"
+
+						onclick = "[ToggleGameViewData('manage_tax_slots', GetPlayer.GetID)]"
+						down = "[IsGameViewOpen('manage_tax_slots')]"
+
+						using = tooltip_ws
+						tooltipwidget = {
+							tax_jurisdictions_button_tooltip = {}
+						}
+
+						icon = {
+							size = { 100% 100% }
+							visible = "[GreaterThan_int32( GetPlayer.GetUnassignedVassalsCount, '(int32)0' )]"
+							texture = "gfx/interface/skinned/hud_maintab/maintab_tax_jurisdictions.dds"
+
+							glow = {
+								glow_radius = 8
+								using = Glow_Standard
+								using = Color_Red
+							}
+							state = {
+								name = a
+								next = b
+								alpha = 0.3
+								trigger_on_create = yes
+								duration = 1.2
+								using = Animation_Curve_Default
+							}
+
+							state = {
+								name = b
+								next = a
+								alpha = 0.5
+								duration = 0.6
+								using = Animation_Curve_Default
+							}
+						}
+
+						icon = {
+							visible = "[Or( Or( GreaterThan_int32( Character.GetUnassignedVassalsCount, '(int32)0' ), Not( Character.HasTaxSlots ) ), GreaterThan_int32( Character.GetTaxSlotsWithoutTaxCollectorCount, '(int32)0' ) )]"
+							size = { 25 25 }
+							position = { -5 5}
+							texture = "gfx/interface/icons/symbols/icon_warning.dds"
+
+							icon = {
+								size = { 100% 100% }
+								alwaystransparent = yes
+								texture = "gfx/interface/icons/symbols/icon_warning.dds"
+
+								modify_texture = {
+									texture = "gfx/interface/icons/focuses/hud_icon_mask.dds"
+									blend_mode = alphamultiply
+								}
+
+								modify_texture = {
+									texture = "gfx/interface/colors/red.dds"
+									blend_mode = colordodge
+								}
+
+								state = {
+									name = a
+									next = b
+									alpha = 0
+									trigger_on_create = yes
+									duration = 1.2
+									using = Animation_Curve_Default
+								}
+
+								state = {
+									name = b
+									next = a
+									alpha = 0.8
+									duration = 0.6
+									using = Animation_Curve_Default
+								}
+							}
+						}
+					}
+				}
+
+				# keep vanilla order so some weird clan+celestial won't mess up
+				widget_hud_main_tab = {
+					name = "oe_tab_government_administration"
+
+					blockoverride "maintab_button"
+					{
+						texture = "gfx/interface/skinned/hud_maintab/maintab_administrative.dds"
+
+						onclick = "[ToggleGameView( 'government_administration' )]"
+						down = "[IsGameViewOpen( 'government_administration' )]"
+
+						using = tooltip_ws
+						tooltipwidget = {
+							administrative_button_tooltip = {}
+						}
+					}
+				}
+			}
+		}
+	}
+}

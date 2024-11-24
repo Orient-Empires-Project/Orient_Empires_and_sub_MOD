@@ -1,0 +1,345 @@
+﻿got_council_position_effect = {
+	save_scope_as = new_councillor
+	# Travel Leaders can't be councillors, but should appear in the councillor list
+	if = {
+		limit = { has_court_position = travel_leader_court_position }
+		liege = {
+			revoke_court_position = {
+				recipient = scope:new_councillor
+				court_position = travel_leader_court_position
+			}
+		}
+	}
+	#If there is a fired opinion remove it
+	if = {
+		limit = {
+			has_opinion_modifier = {
+				modifier = fired_from_council_opinion
+				target = liege
+			}			
+		}
+		remove_opinion = {
+			modifier = fired_from_council_opinion
+			target = liege
+		}
+	}
+	# No longer angry for losing court position - this is *better*!
+	if = {
+		limit = {
+			has_opinion_modifier = {
+				modifier = revoked_court_position_opinion
+				target = liege
+			}			
+		}
+		remove_opinion = {
+			modifier = revoked_court_position_opinion
+			target = liege
+		}
+	}
+
+	add_character_flag = is_in_the_council
+
+	bureaucrat_add_random_trait_xp_effect = yes
+	change_influence = major_influence_gain
+
+	#if = {
+		#limit = {
+			#is_ai = yes
+			#is_oe_landed_bureaucrat_trigger = yes
+			#is_oe_aristocrat = yes
+		#}
+		#oe_governor_resignation_title_transfer_effect = yes	
+		#domicile ?= { move_domicile = liege.capital_province }
+	#}
+
+}
+
+
+bureaucrat_add_random_trait_xp_effect = {
+	if = {
+		limit = {
+			liege = { government_has_flag = government_is_celestial }
+		}
+		if = {
+			limit = { NOT = { has_trait = lifestyle_bureaucrat } }
+			add_trait = lifestyle_bureaucrat
+			random_list = {
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = scholastics
+						value = { 5 20 } 
+					}
+				}
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = accomplishments
+						value = { 5 20 } 
+					}
+				}
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = seniority
+						value = { 5 20 } 
+					}
+				}
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = sociability
+						value = { 5 20 } 
+					}
+				}
+			}
+		}
+		else = {
+			random_list = {
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = scholastics
+						value = { 3 5 }
+					}
+				}
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = accomplishments
+						value = { 3 5 }
+					}
+				}
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = seniority
+						value = { 3 5 }
+					}
+				}
+				10 = {
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = sociability
+						value = { 3 5 }
+					}
+				}
+			}
+		}
+	}
+}
+
+china_got_councillor_chancellor_effect = {
+	save_scope_as = temp_vassal
+	liege = { save_scope_as = temp_liege }
+	if = {
+		limit = {
+			is_landed = yes
+			is_ai = yes
+			liege = {
+				government_has_flag = government_is_celestial
+				has_title = title:e_celestia
+				is_ai = no
+			}
+			highest_held_title_tier < tier_kingdom 
+			is_legion_government_trigger = no
+		}
+		every_close_family_member = {
+			limit = {
+				is_ruler = no
+				is_courtier_of = scope:temp_vassal
+				is_councillor = no
+				courtier_allowed_to_leave_trigger = yes
+			}
+			save_temporary_scope_as = temp_vassal_family
+		}
+		if = {
+			limit = { is_diarch = yes }
+			depose_diarch = yes
+		}
+		oe_governor_resignation_title_transfer_effect = yes
+		scope:temp_liege = { 
+			add_courtier = scope:temp_vassal
+			add_courtier = scope:temp_vassal_family
+		}
+		scope:temp_liege = { 
+			assign_councillor_type = {
+				type = councillor_chancellor
+				target = scope:temp_vassal
+				fire_on_actions = no
+			}
+			send_interface_message = {
+				type = event_generic_neutral	
+				title = china_got_council_position_effect.tt #"职位候选人被夺去头衔，加入了你的内阁"
+				#desc = china_got_council_position_effect.desc #"职位候选人被夺去头衔，加入了你的内阁"
+				left_icon = scope:temp_vassal
+			}
+		}	
+	}
+}	
+
+china_got_councillor_steward_effect = {
+	if = {
+		limit = {
+			is_landed = yes
+			is_ai = yes
+			liege = {
+				government_has_flag = government_is_celestial
+				has_title = title:e_celestia
+				is_ai = no
+			}
+			highest_held_title_tier < tier_kingdom 
+			is_legion_government_trigger = no
+		}
+		save_scope_as = temp_vassal
+		liege = { save_scope_as = temp_liege }
+		every_close_family_member = {
+			limit = {
+				is_ruler = no
+				is_courtier_of = scope:temp_vassal
+				is_councillor = no
+				courtier_allowed_to_leave_trigger = yes
+			}
+			save_temporary_scope_as = temp_vassal_family
+		}	
+		oe_governor_resignation_title_transfer_effect = yes
+		scope:temp_liege = { 
+			add_courtier = scope:temp_vassal
+			add_courtier = scope:temp_vassal_family
+		}
+		scope:temp_liege = { 
+			add_courtier = scope:temp_vassal
+			assign_councillor_type = {
+				type = councillor_steward
+				target = scope:temp_vassal
+				fire_on_actions = no
+			}
+			send_interface_message = {
+				type = event_generic_neutral	
+				title = china_got_council_position_effect.tt #"职位候选人被夺去头衔，加入了你的内阁"
+				#desc = china_got_council_position_effect.desc #"职位候选人被夺去头衔，加入了你的内阁"
+				left_icon = scope:temp_vassal
+			}
+		}
+	}	
+}	
+china_got_councillor_spymaster_effect = {
+	if = {
+		limit = {
+			is_landed = yes
+			is_ai = yes
+			liege = {
+				government_has_flag = government_is_celestial
+				has_title = title:e_celestia
+				is_ai = no
+			}
+			highest_held_title_tier < tier_kingdom 
+			is_legion_government_trigger = no
+		}
+		save_scope_as = temp_vassal
+		liege = { save_scope_as = temp_liege }
+		every_close_family_member = {
+			limit = {
+				is_ruler = no
+				is_courtier_of = scope:temp_vassal
+				is_councillor = no
+				courtier_allowed_to_leave_trigger = yes
+			}
+			save_temporary_scope_as = temp_vassal_family
+		}	
+		oe_governor_resignation_title_transfer_effect = yes
+		scope:temp_liege = { 
+			add_courtier = scope:temp_vassal
+			add_courtier = scope:temp_vassal_family
+		}
+		scope:temp_liege = {
+			add_courtier = scope:temp_vassal
+			assign_councillor_type = {
+				type = councillor_spymaster
+				target = scope:temp_vassal
+				fire_on_actions = no
+			}
+			send_interface_message = {
+				type = event_generic_neutral	
+				title = china_got_council_position_effect.tt #"职位候选人被夺去头衔，加入了你的内阁"
+				#desc = china_got_council_position_effect.desc #"职位候选人被夺去头衔，加入了你的内阁"
+				left_icon = scope:temp_vassal
+			}
+		}	
+	}
+}
+
+
+china_got_marshal_position_effect = {
+
+	if = {
+		limit = {
+			root.liege = {
+				government_has_flag = government_is_celestial
+				has_title = title:e_celestia
+			}
+			highest_held_title_tier < tier_kingdom 
+			highest_held_title_tier >= tier_county
+			current_date > 937.1.1
+			current_date < 965.1.1
+			NOR = {
+				game_start_date = 956.11.30
+				game_start_date = 947.2.1
+			}
+		}
+		save_scope_as = temp_vassal
+		liege = { save_scope_as = temp_liege }
+		create_title_and_vassal_change = {
+			type = granted
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		title:d_dianqian = {
+			change_title_holder = {
+				holder = scope:temp_vassal
+				change = scope:change
+			}			
+		}
+		resolve_title_and_vassal_change = scope:change
+		add_pressed_claim = title:e_celestia
+	}
+}	
+
+
+china_fired_marshal_position_effect = {
+
+	if = {
+		limit = {
+			root.liege = {
+				government_has_flag = government_is_celestial
+				has_title = title:e_celestia
+			}
+			highest_held_title_tier < tier_kingdom 
+			highest_held_title_tier >= tier_county
+			current_date > 908.1.1
+			current_date < 979.1.1
+		}
+		remove_claim = title:e_celestia
+		#改动
+		#root = { save_scope_as = recipient }
+		#root.liege = { save_scope_as = actor }
+		#title:d_dianqian = {
+			#save_scope_as = landed_title		
+		#}
+		#revoke_title_interaction_effect = yes
+	}
+}
+
+in_imperial_council_effect = {
+	if = {
+		limit = {
+			liege = { is_oe_imperial_government_trigger = yes }
+			is_ai = no
+		}
+		add_character_flag = { flag = in_imperial_council }
+	}
+}
+
+fierd_from_imperial_court_effect = {
+	remove_character_flag = in_imperial_council
+}

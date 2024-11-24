@@ -1,4 +1,4 @@
-############################## CorruptionSystem_values
+﻿############################## CorruptionSystem_values
 # by 往来天地间 WangLaiTianDiJian
 # CorruptionSystem
 
@@ -87,8 +87,7 @@ CorruptionSystem_realm_size_value = {
 		limit = { sub_realm_size >= 10 }
 		add = {
 			value = sub_realm_size
-			subtract = domain_size
-			multiply = 10
+			divide = domain_size
 		}
 	}
 	desc = CorruptionSystem_realm_size_value_desc
@@ -96,7 +95,12 @@ CorruptionSystem_realm_size_value = {
 
 CorruptionSystem_consort_value = {
 	if = {
-		limit = { any_consort = { count >= 2 is_alive = yes } }
+		limit = {
+			any_consort = {
+				count >= 2
+				is_available_non_primary_consort = yes
+			}
+		}
 		every_consort = { add = 10 }
 		#subtract = 10
 	}
@@ -107,25 +111,33 @@ CorruptionSystem_stewardship_value = {
 	add = {
 		value = stewardship
 		subtract = liege.stewardship
-		multiply = 3
+		multiply = 5
 	}
 	desc = CorruptionSystem_stewardship_value_desc
 }
 
 #游牧君修改
 CorruptionSystem_dynasty_value = {
-	add = {
-		limit = { exists = dynasty }
-		every_close_or_extended_family_member = { is_alive = yes add = 2 }
-		#multiply = dynasty_prestige_level
+	value = 0
+	every_close_or_extended_family_member = {
+		limit = { is_alive = yes }
+		add = 2
 	}
 	desc = CorruptionSystem_dynasty_value_desc
+}
+CorruptionSystem_court_value = {
+	value = 0
+	every_courtier = {
+		limit = { is_alive = yes }
+		add = 2
+	}
+	desc = CorruptionSystem_court_value_desc
 }
 
 CorruptionSystem_imperial_contract_0_value = {
 	if = {
 		limit = { vassal_contract_has_flag = imperial_contract_0 }
-		add = 50
+		add = 10
 	}
 	desc = CorruptionSystem_imperial_contract_0_value_desc
 }
@@ -133,7 +145,7 @@ CorruptionSystem_imperial_contract_0_value = {
 CorruptionSystem_imperial_contract_1_value = {
 	if = {
 		limit = { vassal_contract_has_flag = imperial_contract_1 }
-		add = 80
+		add = 40
 	}
 	desc = CorruptionSystem_imperial_contract_1_value_desc
 }
@@ -141,26 +153,26 @@ CorruptionSystem_imperial_contract_1_value = {
 CorruptionSystem_imperial_contract_2_value = {
 	if = {
 		limit = { vassal_contract_has_flag = imperial_contract_2 }
-		add = 100
+		add = 80
 	}
 	desc = CorruptionSystem_imperial_contract_2_value_desc
 }
 
 CorruptionSystem_crown_authority_value = {
 	if = {
-		limit = { top_liege = { has_realm_law = crown_authority_0 } }
+		limit = { top_liege ?= { has_realm_law = crown_authority_0 } }
 		add = 60
 	}
 	if = {
-		limit = { top_liege = { has_realm_law = crown_authority_1 } }
+		limit = { top_liege ?= { has_realm_law = crown_authority_1 } }
 		add = 30
 	}
 	if = {
-		limit = { top_liege = { has_realm_law = crown_authority_2 } }
+		limit = { top_liege ?= { has_realm_law = crown_authority_2 } }
 		subtract = 0
 	}
 	if = {
-		limit = { top_liege = { has_realm_law = crown_authority_3 } }
+		limit = { top_liege ?= { has_realm_law = crown_authority_3 } }
 		subtract = 60
 	}
 	desc = CorruptionSystem_crown_authority_value_desc
@@ -170,20 +182,20 @@ CorruptionSystem_crown_authority_value = {
 
 
 
-CorruptionSystem_per_distance_level_A_value = 20
-CorruptionSystem_per_distance_level_B_value = 40
+CorruptionSystem_per_distance_level_A_value = 30
+CorruptionSystem_per_distance_level_B_value = 60
 #CorruptionSystem_distance_amplifier = 0.5
 
 CorruptionSystem_distance_value = {#注意男爵封臣所在伯爵领的持有者不是该男爵！
 	if = {
 		limit = { 
 			exists = capital_county
-			exists = capital_county.prev.liege.capital_province
+			exists = capital_county.holder.top_liege.capital_province
 			is_independent_ruler = no
 		}
 		#第一阶段梯度
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 10000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 10000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 #			add = {
 #				value = CorruptionSystem_per_distance_level_A_value
@@ -192,7 +204,7 @@ CorruptionSystem_distance_value = {#注意男爵封臣所在伯爵领的持有�
 
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 40000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 40000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 #			add = {
 #				value = CorruptionSystem_per_distance_level_A_value
@@ -200,73 +212,73 @@ CorruptionSystem_distance_value = {#注意男爵封臣所在伯爵领的持有�
 #			}
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 90000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 90000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 160000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 160000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 250000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 250000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 360000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 360000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 490000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 490000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 640000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 640000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 810000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 810000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 1000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 1000000 } } }
 			add = CorruptionSystem_per_distance_level_A_value
 		}
 
 	#第二阶段梯度
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 4000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 4000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 9000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 9000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 16000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 16000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 25000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 25000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 36000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 36000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 49000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 49000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 64000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 64000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 81000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 81000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 		if = {
-			limit = { capital_county = { squared_distance = { target = prev.liege.capital_province value > 100000000 } } }
+			limit = { capital_county = { squared_distance = { target = prev.top_liege.capital_province value > 100000000 } } }
 			add = CorruptionSystem_per_distance_level_B_value
 		}
 	}
@@ -295,6 +307,7 @@ CorruptionSystem_corruption_value = {
 	add = CorruptionSystem_realm_size_value
 	add = CorruptionSystem_consort_value
 	add = CorruptionSystem_dynasty_value
+	add = CorruptionSystem_court_value
 	add = CorruptionSystem_stewardship_value
 	add = CorruptionSystem_crown_authority_value
 	add = CorruptionSystem_imperial_contract_0_value
@@ -304,22 +317,27 @@ CorruptionSystem_corruption_value = {
 }
 
 CorruptionSystem_corruption_excluding_contract_value = {#剔除契约类型影响的腐败度
-	if = {
-		limit = { is_ai = yes }
-		add = CorruptionSystem_ambitious_value
-		add = CorruptionSystem_greedy_value
-		add = CorruptionSystem_deceitful_value
-		add = CorruptionSystem_gluttonous_value
-		add = CorruptionSystem_just_value
-		add = CorruptionSystem_honest_value
-		add = CorruptionSystem_generous_value
-		add = CorruptionSystem_content_value
-	}
+	#if = {
+		#limit = { is_ai = yes }
+		#add = CorruptionSystem_ambitious_value
+		#add = CorruptionSystem_greedy_value
+		#add = CorruptionSystem_deceitful_value
+		#add = CorruptionSystem_gluttonous_value
+		#add = CorruptionSystem_just_value
+		#add = CorruptionSystem_honest_value
+		#add = CorruptionSystem_generous_value
+		#add = CorruptionSystem_content_value
+	#}
 
 	add = CorruptionSystem_realm_size_value
-	add = CorruptionSystem_consort_value
-	add = CorruptionSystem_dynasty_value
+	#add = CorruptionSystem_consort_value
+	#add = CorruptionSystem_dynasty_value
+	add = CorruptionSystem_court_value
 	add = CorruptionSystem_stewardship_value
+	#add = CorruptionSystem_crown_authority_value
+	#add = CorruptionSystem_imperial_contract_0_value
+	#add = CorruptionSystem_imperial_contract_1_value
+	#add = CorruptionSystem_imperial_contract_2_value
 	add = CorruptionSystem_distance_value
 }
 
@@ -458,17 +476,17 @@ CorruptionSystem_proportion_of_realm_with_different_faith_of_liege = {
 
 #税收义务，各契约类型基础值
 CorruptionSystem_base_tax_rate_baron_bureau = 0.1
-CorruptionSystem_base_tax_rate_baron_corps = 0.1
+CorruptionSystem_base_tax_rate_baron_legion = 0.1
 CorruptionSystem_base_tax_rate_baron_imperial = 0.1
 CorruptionSystem_base_tax_rate_special_imperial_bureau_0 = 0.2 #0.25
 CorruptionSystem_base_tax_rate_special_imperial_bureau_1 = 0.15 #0.1
 CorruptionSystem_base_tax_rate_special_imperial_bureau_2 = 0.3 #0.25
 CorruptionSystem_base_tax_rate_special_imperial_bureau_3 = 0.35 #0.3
-CorruptionSystem_base_tax_rate_special_imperial_corps_0 = 0.1 #0.05
-CorruptionSystem_base_tax_rate_special_imperial_corps_1 = -0.1
-CorruptionSystem_base_tax_rate_special_imperial_corps_2 = -0.1
-CorruptionSystem_base_tax_rate_special_imperial_corps_3 = -0.1
-CorruptionSystem_base_tax_rate_special_imperial_corps_4 = 0.02 #0.05
+CorruptionSystem_base_tax_rate_special_imperial_legion_0 = 0.1 #0.05
+CorruptionSystem_base_tax_rate_special_imperial_legion_1 = -0.1
+CorruptionSystem_base_tax_rate_special_imperial_legion_2 = -0.1
+CorruptionSystem_base_tax_rate_special_imperial_legion_3 = -0.1
+CorruptionSystem_base_tax_rate_special_imperial_legion_4 = 0.02 #0.05
 CorruptionSystem_base_tax_rate_special_imperial_royal_0 = 0.35 #0.3
 CorruptionSystem_base_tax_rate_special_imperial_royal_1 = 0.40 #0.35
 CorruptionSystem_base_tax_rate_special_imperial_royal_2 = 0.40 #0.35
@@ -477,15 +495,15 @@ CorruptionSystem_base_tax_rate_value = {#各契约类型税收计算。契约等
 	if = {
 		limit = { primary_title.tier = tier_barony }
 		if = {
-			limit = { has_government = bureau_government }
+			limit = { government_has_flag = government_is_bureau }
 			add = CorruptionSystem_base_tax_rate_baron_bureau
 		}
 		else_if = {
-			limit = { has_government = corps_government }
-			add = CorruptionSystem_base_tax_rate_baron_corps
+			limit = { government_has_flag = government_is_legion }
+			add = CorruptionSystem_base_tax_rate_baron_legion
 		}
 		else_if = {
-			limit = { has_government = imperial_government }
+			limit = { government_has_flag = government_is_celestial }
 			add = CorruptionSystem_base_tax_rate_baron_imperial
 		}
 	}
@@ -511,24 +529,24 @@ CorruptionSystem_base_tax_rate_value = {#各契约类型税收计算。契约等
 	else_if = {
 		limit = { vassal_contract_has_flag = imperial_contract_1 }
 		if = {
-			limit = { vassal_contract_has_flag = imperial_corps_0 }
-			add = CorruptionSystem_base_tax_rate_special_imperial_corps_0
+			limit = { vassal_contract_has_flag = imperial_legion_0 }
+			add = CorruptionSystem_base_tax_rate_special_imperial_legion_0
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_1 }
-			add = CorruptionSystem_base_tax_rate_special_imperial_corps_1
+			limit = { vassal_contract_has_flag = imperial_legion_1 }
+			add = CorruptionSystem_base_tax_rate_special_imperial_legion_1
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_2 }
-			add = CorruptionSystem_base_tax_rate_special_imperial_corps_2
+			limit = { vassal_contract_has_flag = imperial_legion_2 }
+			add = CorruptionSystem_base_tax_rate_special_imperial_legion_2
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_3 }
-			add = CorruptionSystem_base_tax_rate_special_imperial_corps_3
+			limit = { vassal_contract_has_flag = imperial_legion_3 }
+			add = CorruptionSystem_base_tax_rate_special_imperial_legion_3
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_4 }
-			add = CorruptionSystem_base_tax_rate_special_imperial_corps_4
+			limit = { vassal_contract_has_flag = imperial_legion_4 }
+			add = CorruptionSystem_base_tax_rate_special_imperial_legion_4
 		}
 	}
 	else_if = {
@@ -556,44 +574,44 @@ imperial_tax_high_level = 3
 imperial_tax_extortionate_level = 4
 
 #修改
-CorruptionSystem_exempt_imperial_tax_value = 0 #{ value = exempt_feudal_tax divide = normal_feudal_tax }
-CorruptionSystem_low_imperial_tax_value = 0.5 #{ value = low_feudal_tax divide = normal_feudal_tax }
-CorruptionSystem_normal_imperial_tax_value = 1
-CorruptionSystem_high_imperial_tax_value = 1.5 #{ value = high_feudal_tax divide = normal_feudal_tax }
-CorruptionSystem_extortionate_imperial_tax_value = 2.5 #{ value = extortionate_feudal_tax divide = normal_feudal_tax }
+exempt_imperial_tax_value = 0 #{ value = exempt_feudal_tax divide = normal_feudal_tax }
+low_imperial_tax_value = 0.5 #{ value = low_feudal_tax divide = normal_feudal_tax }
+normal_imperial_tax_value = 1
+high_imperial_tax_value = 1.5 #{ value = high_feudal_tax divide = normal_feudal_tax }
+extortionate_imperial_tax_value = 2.5 #{ value = extortionate_feudal_tax divide = normal_feudal_tax }
 
 
 
 CorruptionSystem_tax_level_value = {#契约等级修正
 	if = {
 		limit = { vassal_contract_obligation_level:imperial_government_taxes = feudal_tax_normal_level }
-		value = CorruptionSystem_normal_imperial_tax_value
+		value = normal_imperial_tax_value
 	}
 	else_if = {
 		limit = { vassal_contract_obligation_level:imperial_government_taxes = feudal_tax_normal_level }
-		value = CorruptionSystem_high_imperial_tax_value
+		value = high_imperial_tax_value
 	}
 	else_if = {
 		limit = { vassal_contract_obligation_level:imperial_government_taxes = feudal_tax_extortionate_level }
-		value = CorruptionSystem_extortionate_imperial_tax_value
+		value = extortionate_imperial_tax_value
 	}
 	else_if = {
 		limit = { vassal_contract_obligation_level:imperial_government_taxes = feudal_tax_low_level }
-		value = CorruptionSystem_low_imperial_tax_value
+		value = low_imperial_tax_value
 	}
 	else_if = {
 		limit = { vassal_contract_obligation_level:imperial_government_taxes = feudal_tax_exempt_level }
-		value = CorruptionSystem_exempt_imperial_tax_value
+		value = exempt_imperial_tax_value
 	}
 
 }
 
 
 #税收义务，受腐败度影响 #游牧君修改
-CorruptionSystem_corruption_tax_multiplier = -0.02
+CorruptionSystem_corruption_tax_multiplier = -0.01
 CorruptionSystem_corruption_tax_multiplier_display = { value = CorruptionSystem_corruption_tax_multiplier multiply = 100 }
-CorruptionSystem_corruption_tax_max = 0.5
-CorruptionSystem_corruption_tax_min = -0.5
+CorruptionSystem_corruption_tax_max = 0.1
+CorruptionSystem_corruption_tax_min = -0.1
 CorruptionSystem_corruption_tax_value = {#腐败度修正
 	value = CorruptionSystem_corruption_excluding_contract_value
 	multiply = CorruptionSystem_corruption_tax_multiplier
@@ -612,8 +630,8 @@ CorruptionSystem_corruption_tax_value_static = {#腐败度修正
 
 
 #税收义务，受封臣领地位于领主主头衔法理外的比例影响
-CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_player_multiplier = -0.25
-CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_ai_multiplier = -0.1
+CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_player_multiplier = -0.2
+CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_ai_multiplier = -0.05
 CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_impact = {
 	value = CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege
 	if = {
@@ -634,8 +652,8 @@ CorruptionSystem_proportion_of_realm_outside_primary_title_of_liege_tax_impact_s
 }
 
 #税收义务，受封臣领地与领主文化不同的比例影响
-CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_player_multiplier = -0.25
-CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_ai_multiplier = -0.1
+CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_player_multiplier = -0.2
+CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_ai_multiplier = -0.05
 CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_impact = {
 	value = CorruptionSystem_proportion_of_realm_with_different_culture_of_liege
 	if = {
@@ -656,8 +674,8 @@ CorruptionSystem_proportion_of_realm_with_different_culture_of_liege_tax_impact_
 }
 
 #税收义务，受封臣领地与领主信仰不同的比例影响
-CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_player_multiplier = -0.25
-CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_ai_multiplier = -0.1
+CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_player_multiplier = -0.2
+CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_ai_multiplier = -0.05
 CorruptionSystem_proportion_of_realm_with_different_faith_of_liege_tax_impact = {
 	value = CorruptionSystem_proportion_of_realm_with_different_faith_of_liege
 	if = {
@@ -727,23 +745,34 @@ CorruptionSystem_tax_value_static = {#最终比例（后续仍受特殊契约类
 	}
 }
 
+# 显示用截留税款
+CorruptionSystem_tax_value_tooltip = {#
+	value = 1
+	subtract = {
+		value = CorruptionSystem_tax_before_obligation_level_value
+		divide = CorruptionSystem_base_tax_rate_value	
+	}
+	multiply = 100
+	min = 0
+}
+
 
 #############################################
 
 
 #征召兵义务，各契约类型基础值
 CorruptionSystem_base_levies_rate_baron_bureau = 0.25
-CorruptionSystem_base_levies_rate_baron_corps = 0.25
+CorruptionSystem_base_levies_rate_baron_legion = 0.25
 CorruptionSystem_base_levies_rate_baron_imperial = 0.25
 CorruptionSystem_base_levies_rate_special_imperial_bureau_0 = 0.3 #0.25
 CorruptionSystem_base_levies_rate_special_imperial_bureau_1 = 0 #0
 CorruptionSystem_base_levies_rate_special_imperial_bureau_2 = 0.2 #0.175
 CorruptionSystem_base_levies_rate_special_imperial_bureau_3 = 0 #0
-CorruptionSystem_base_levies_rate_special_imperial_corps_0 = 0.4 #0.375
-CorruptionSystem_base_levies_rate_special_imperial_corps_1 = 0.35 #0.3
-CorruptionSystem_base_levies_rate_special_imperial_corps_2 = 0.15 #0.125
-CorruptionSystem_base_levies_rate_special_imperial_corps_3 = 0.15 #0.125
-CorruptionSystem_base_levies_rate_special_imperial_corps_4 = 0.2 #0.175
+CorruptionSystem_base_levies_rate_special_imperial_legion_0 = 0.4 #0.375
+CorruptionSystem_base_levies_rate_special_imperial_legion_1 = 0.35 #0.3
+CorruptionSystem_base_levies_rate_special_imperial_legion_2 = 0.15 #0.125
+CorruptionSystem_base_levies_rate_special_imperial_legion_3 = 0.15 #0.125
+CorruptionSystem_base_levies_rate_special_imperial_legion_4 = 0.2 #0.175
 CorruptionSystem_base_levies_rate_special_imperial_royal_0 = 0.075 #0.05
 CorruptionSystem_base_levies_rate_special_imperial_royal_1 = 0 #0
 CorruptionSystem_base_levies_rate_special_imperial_royal_2 = 0 #0
@@ -753,15 +782,15 @@ CorruptionSystem_base_levies_rate_value = {#各契约类型税收计算。契约
 	if = {
 		limit = { primary_title.tier = tier_barony }
 		if = {
-			limit = { has_government = bureau_government }
+			limit = { government_has_flag = government_is_bureau }
 			add = CorruptionSystem_base_levies_rate_baron_bureau
 		}
 		else_if = {
-			limit = { has_government = corps_government }
-			add = CorruptionSystem_base_levies_rate_baron_corps
+			limit = { government_has_flag = government_is_legion }
+			add = CorruptionSystem_base_levies_rate_baron_legion
 		}
 		else_if = {
-			limit = { has_government = imperial_government }
+			limit = { government_has_flag = government_is_celestial }
 			add = CorruptionSystem_base_levies_rate_baron_imperial
 		}
 	}
@@ -787,24 +816,24 @@ CorruptionSystem_base_levies_rate_value = {#各契约类型税收计算。契约
 	else_if = {
 		limit = { vassal_contract_has_flag = imperial_contract_1 }
 		if = {
-			limit = { vassal_contract_has_flag = imperial_corps_0 }
-			add = CorruptionSystem_base_levies_rate_special_imperial_corps_0
+			limit = { vassal_contract_has_flag = imperial_legion_0 }
+			add = CorruptionSystem_base_levies_rate_special_imperial_legion_0
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_1 }
-			add = CorruptionSystem_base_levies_rate_special_imperial_corps_1
+			limit = { vassal_contract_has_flag = imperial_legion_1 }
+			add = CorruptionSystem_base_levies_rate_special_imperial_legion_1
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_2 }
-			add = CorruptionSystem_base_levies_rate_special_imperial_corps_2
+			limit = { vassal_contract_has_flag = imperial_legion_2 }
+			add = CorruptionSystem_base_levies_rate_special_imperial_legion_2
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_3 }
-			add = CorruptionSystem_base_levies_rate_special_imperial_corps_3
+			limit = { vassal_contract_has_flag = imperial_legion_3 }
+			add = CorruptionSystem_base_levies_rate_special_imperial_legion_3
 		}
 		else_if = {
-			limit = { vassal_contract_has_flag = imperial_corps_4 }
-			add = CorruptionSystem_base_levies_rate_special_imperial_corps_4
+			limit = { vassal_contract_has_flag = imperial_legion_4 }
+			add = CorruptionSystem_base_levies_rate_special_imperial_legion_4
 		}
 	}
 	else_if = {
@@ -873,10 +902,10 @@ CorruptionSystem_levies_level_value = {#契约等级修正
 
 #征召兵义务，受腐败度影响
 
-CorruptionSystem_corruption_levies_multiplier = -0.002
+CorruptionSystem_corruption_levies_multiplier = -0.001
 CorruptionSystem_corruption_levies_multiplier_display = { value = CorruptionSystem_corruption_levies_multiplier multiply = 100 }
 CorruptionSystem_corruption_levies_max = 0.1
-CorruptionSystem_corruption_levies_min = -0.5
+CorruptionSystem_corruption_levies_min = -0.1
 CorruptionSystem_corruption_levies_value = {#腐败度修正
 	value = CorruptionSystem_corruption_excluding_contract_value
 	multiply = CorruptionSystem_corruption_levies_multiplier
@@ -908,9 +937,9 @@ CorruptionSystem_levies_value = {#最终比例（后续仍受特殊契约类型�
 #互动接受度受腐败度影响
 CorruptionSystem_corruption_imprison_value = {
 	value = CorruptionSystem_corruption_value
-	multiply = -0.3
-	max = 20
-	min = -50
+	multiply = -1 #-0.3
+	max = 100
+	min = -100
 }
 
 CorruptionSystem_corruption_imprison_value_static = {
@@ -923,9 +952,9 @@ CorruptionSystem_corruption_imprison_value_static = {
 
 CorruptionSystem_corruption_revoke_title_value = {
 	value = CorruptionSystem_corruption_value
-	multiply = -0.25
-	max = 20
-	min = -50
+	multiply = -0.5 #-0.25
+	max = 100
+	min = -100
 }
 
 CorruptionSystem_corruption_revoke_title_value_static = {
@@ -938,9 +967,9 @@ CorruptionSystem_corruption_revoke_title_value_static = {
 
 CorruptionSystem_corruption_retract_vassal_value = {
 	value = CorruptionSystem_corruption_value
-	multiply = -0.2
-	max = 20
-	min = -50
+	multiply = -0.5 #-0.2
+	max = 100
+	min = -100
 }
 
 CorruptionSystem_corruption_retract_vassal_value_static = {
@@ -955,7 +984,7 @@ CorruptionSystem_corruption_retract_vassal_value_static = {
 CorruptionSystem_corruption_general_faction_value = {
 	value = CorruptionSystem_corruption_value
 	multiply = 0.2
-	max = 30
+	max = 100
 	min = -20
 }
 
@@ -966,8 +995,6 @@ CorruptionSystem_corruption_general_faction_value_static = {
 		value = var:CorruptionSystem_corruption_general_faction_value_variable
 	}
 }
-
-
 
 
 

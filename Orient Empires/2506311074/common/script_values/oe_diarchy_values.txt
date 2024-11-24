@@ -1,0 +1,2632 @@
+﻿#############
+# Diarchy Scripted Values
+#############
+
+##################################################
+# Diarchy Succession Candidate Values
+
+#替换摄政继承分
+diarchy_regent_succession_score_value = {
+	if = {
+		# For performance reasons, you'll sometimes check this when you don't have a liege, so we need to check beforehand for error purposes.
+		limit = { exists = liege }
+		# We increase the importance of family if the liege is underage or an imbecile.
+		if = {
+			limit = {
+				liege = {
+					OR = {
+						is_adult = no
+						is_incapable = yes
+					}
+				}
+				any_close_or_extended_family_member = { this = liege }
+			}
+			# Ruling characters  get a bit less, as they have other duties.
+			if = {
+				limit = { is_ruler = yes }
+				add = {
+					value = massive_diarch_candidate_gain
+					desc = diarch_succession_score.diarchy_specific.regency.close_or_extended_family_of_invalid.ruler
+				}
+			}
+			# Whereas non-rulers get a mega-boost, as they can be there all the time
+			else = {
+				add = {
+					value = monumental_diarch_candidate_gain
+					desc = diarch_succession_score.diarchy_specific.regency.close_or_extended_family_of_invalid.non_ruler
+				}
+			}
+		}
+		# Familial ties.
+		## If you engage in hyper-incest and break your own regency succession, don't come crying to the devs. You have done this to yourself.
+		add = {
+			desc = diarch_succession_score.category.familial_ties
+			# ADD SCORE
+			## Is parent of
+			if = {
+				limit = { is_parent_of = liege }
+				add = {
+					value = massive_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_parent
+				}
+			}
+			## Is child of
+			if = {
+				limit = { is_child_of = liege }
+				add = {
+					value = major_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_child
+				}
+			}
+			## Is sibling of
+			if = {
+				limit = { is_sibling_of = liege }
+				add = {
+					value = major_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_sibling
+				}
+			}
+			## Is grandparent of
+			if = {
+				limit = { is_grandparent_of = liege }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_grandparent
+				}
+			}
+			## Is grandchild of
+			if = {
+				limit = { is_grandchild_of = liege }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_grandchild
+				}
+			}
+			## Is uncle/aunt of
+			if = {
+				limit = { is_uncle_or_aunt_of = liege }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_auntuncle
+				}
+			}
+			## Is nibling of
+			if = {
+				limit = { is_nibling_of = liege }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_nibling
+				}
+			}
+			## Is cousin of
+			if = {
+				limit = { is_cousin_of = liege }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_cousin
+				}
+			}
+			## Is great grandparent of
+			if = {
+				limit = { is_great_grandparent_of = liege }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.your_greatgrandparent
+				}
+			}
+			## Is great grandchild of
+			if = {
+				limit = { is_great_grandchild_of = liege }
+				add = {
+					value = miniscule_diarch_candidate_gain
+					desc = diarch_succession_score.familial_ties.yourgreat_grandchild
+				}
+			}
+		}
+
+		#律令制
+		# Familial ties.
+		## We actually weight down here, as you don't generally want family to be your vizier.
+		if = {
+			limit = { liege = { has_realm_law_flag = celestial_bureaucrat } }
+			add = {
+				desc = diarch_succession_score.category.familial_ties
+				# REMOVE SCORE
+				## Is close family
+				if = {
+					limit = { is_close_family_of = liege }
+					add = {
+						value = monumental_diarch_candidate_loss
+						desc = diarch_succession_score.familial_ties.undignified.close_family
+					}
+				}
+				## Is extended family
+				else_if = {
+					limit = { is_extended_family_of = liege }
+					add = {
+						value = massive_diarch_candidate_loss
+						desc = diarch_succession_score.familial_ties.undignified.extended_family
+					}
+				}
+				## Is same-house
+				else_if = {
+					limit = {
+						exists = liege.house
+						house ?= liege.house
+					}
+					add = {
+						value = major_diarch_candidate_loss
+						desc = diarch_succession_score.familial_ties.undignified.house
+					}
+				}
+				## Is same-dynasty
+				else_if = {
+					limit = {
+						exists = liege.dynasty
+						dynasty = liege.dynasty
+					}
+					add = {
+						value = medium_diarch_candidate_loss
+						desc = diarch_succession_score.familial_ties.undignified.dynasty
+					}
+				}
+				## Is spouse of
+				if = {
+					limit = { is_spouse_of = liege }
+					add = {
+						value = massive_diarch_candidate_loss
+						desc = diarch_succession_score.personal_ties.your_spouse
+					}
+				}
+			}
+		}
+		#摄政関白
+		if = {
+			limit = {
+				culture = { has_cultural_pillar = heritage_yamato }
+				liege = { has_title = title:k_yamato }
+				has_title = title:d_sekke
+			}
+			add = {
+				value = massive_diarch_candidate_gain
+				desc = diarch_succession_score.personal_ties.your_powerful_vassal
+			}
+		}
+
+		# Personal ties.
+		add = {
+			desc = diarch_succession_score.category.personal_ties
+			# ADD SCORE
+			## Is your heir
+			if = {
+				limit = {
+					exists = liege.primary_heir
+					this = liege.primary_heir
+				}
+				add = {
+					value = massive_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_heir
+				}
+			}
+			## Is spouse of
+			if = {
+				limit = { is_spouse_of = liege }
+				add = {
+					value = massive_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_spouse
+				}
+			}
+			## Is guardian of
+			if = {
+				limit = { has_relation_ward = liege }
+				add = {
+					value = massive_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_ward
+				}
+			}
+			## Has a seat on your council
+			if = {
+				limit = { is_councillor_of = liege }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_councillor
+				}
+			}
+			## Is powerful vassal of
+			if = {
+				limit = { is_powerful_vassal = yes }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_powerful_vassal
+				}
+			}
+			## Has positive opinion
+			if = {
+				limit = {
+					opinion = {
+						target = liege
+						value >= medium_positive_opinion
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.likes_you
+				}
+			}
+			## Has positive relationship
+			if = {
+				limit = {
+					has_any_moderate_good_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_positive_relation
+				}
+			}
+			# REMOVE SCORE
+			## Is your nemesis
+			if = {
+				limit = {
+					has_any_worst_bad_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.your_nemesis
+				}
+			}
+			## Has a moderate bad relationship
+			if = {
+				limit = {
+					has_any_only_moderate_bad_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.your_negative_relation
+				}
+			}
+			## Has negative opinion
+			if = {
+				limit = {
+					opinion = {
+						target = liege
+						value <= medium_negative_opinion
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.dislikes_you
+				}
+			}
+		}
+		# Societal bonds.
+		add = {
+			desc = diarch_succession_score.category.societal_bonds
+			# ADD SCORE
+			## Is in your house
+			if = {
+				limit = {
+					exists = house
+					house = liege.house
+				}
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_house
+				}
+			}
+			## Is in your dynasty
+			if = {
+				limit = {
+					exists = house
+					# Filter out same-house chars to avoid double-dipping.
+					NOT = { house = liege.house }
+					# So we _only_ want same dynasty chars.
+					dynasty = liege.dynasty
+				}
+				add = {
+					value = miniscule_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_dynasty
+				}
+			}
+			## Has same faith
+			if = {
+				limit = { faith = liege.faith }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_faith
+				}
+			}
+			## Is of same culture
+			if = {
+				limit = { culture = liege.culture }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_culture
+				}
+			}
+		}
+		# Royal court.
+		if = {
+			limit = {
+				liege = { has_royal_court = yes }
+			}
+			add = {
+				desc = diarch_succession_score.category.royal_court
+				# ADD SCORE
+				## Skill for court type.
+				### Diplomacy.
+				if = {
+					limit = {
+						liege = { has_court_type = court_diplomatic }
+					}
+					add = {
+						value = diplomacy
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.diplomacy
+					}
+				}
+				### Martial.
+				if = {
+					limit = {
+						liege = { has_court_type = court_warlike }
+					}
+					add = {
+						value = martial
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.martial
+					}
+				}
+				### Stewardship.
+				if = {
+					limit = {
+						liege = { has_court_type = court_administrative }
+					}
+					add = {
+						value = stewardship
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.stewardship
+					}
+				}
+				### Intrigue.
+				if = {
+					limit = {
+						liege = { has_court_type = court_intrigue }
+					}
+					add = {
+						value = intrigue
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.intrigue
+					}
+				}
+				### Learning.
+				if = {
+					limit = {
+						liege = { has_court_type = court_scholarly }
+					}
+					add = {
+						value = learning
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.learning
+					}
+				}
+				### Prowess.
+				if = {
+					limit = {
+						liege = { has_court_type = court_tribal }
+					}
+					add = {
+						value = prowess
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.prowess
+					}
+				}
+				## Speaks court language.
+				if = {
+					limit = { knows_court_language_of = liege }
+					add = {
+						value = major_diarch_candidate_gain
+						desc = diarch_succession_score.royal_court.speaks_court_language
+					}
+				}
+			}
+		}
+		# Traits: Noble Ambitions.
+		add = {
+			desc = diarch_succession_score.category.traits.noble_ambitions
+			# ADD SCORE
+			## Ambitious trait
+			if = {
+				limit = { has_trait = ambitious }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.traits.ambitious
+				}
+			}
+			## Diligent trait
+			if = {
+				limit = { has_trait = diligent }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.traits.diligent
+				}
+			}
+			# REMOVE SCORE
+			## Lazy trait
+			if = {
+				limit = { has_trait = lazy }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.traits.lazy
+				}
+			}
+			## Humble trait
+			if = {
+				limit = { has_trait = humble }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.traits.humble
+				}
+			}
+			## Content trait
+			if = {
+				limit = { has_trait = content }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.traits.content
+				}
+			}
+		}
+		# Circumstances.
+		add = {
+			desc = diarch_succession_score.category.circumstances
+			# REMOVE SCORE
+			## Has a critical illness
+			if = {
+				limit = { has_serious_disease_trigger = yes }
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.cripplingly_ill
+				}
+			}
+			## Has severe wounds
+			if = {
+				limit = { has_trait = wounded_3 }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.badly_wounded
+				}
+			}
+			## Has a criminal reason.
+			if = {
+				limit = {
+					save_temporary_scope_as = char_temp
+					liege = {
+						OR = {
+							has_imprisonment_reason = scope:char_temp
+							has_banish_reason = scope:char_temp
+							has_execute_reason = scope:char_temp
+							has_revoke_title_reason = scope:char_temp
+						}
+					}
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.known_criminal
+				}
+			}
+			## Under the age of 25
+			if = {
+				limit = { age <= 25 }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.very_young
+				}
+			}
+			## High-stress characters
+			if = {
+				limit = { stress_level  >= 1 }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.stressed_out
+				}
+			}
+			## Bastard / Child of Concubine
+			if = {
+				limit = {
+					OR = {
+						has_trait = bastard
+						has_trait = child_of_concubine
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.illegitimate
+				}
+			}
+			## Has a minor illness
+			if = {
+				limit = { has_trait = ill }
+				add = {
+					value = miniscule_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.mildly_ill
+				}
+			}
+			## Has a minor wound
+			if = {
+				limit = {
+					OR = {
+						has_trait = wounded_1
+						has_trait = wounded_2
+					}
+				}
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.mildly_wounded
+				}
+			}
+			## Doesn't speak your main language
+			### Due to technical constraints, we can currently only check if you speak your liege's culture's language, not if you have any shared languages.
+			if = {
+				limit = {
+					NOR = {
+						knows_language_of_culture = liege.culture
+						# Exempt family members so that we don't screw wrong-gendered unlanded chars over.
+						is_close_or_extended_family_of = liege
+					}
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.not_speak_language
+				}
+			}
+		}
+		# REMOVE CANDIDATES
+		## Must be a vassal or in your court
+		if = {
+			limit = {
+				exists = liege
+				NOR = {
+					is_ruler = yes
+					is_courtier_of = liege
+				}
+			}
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.neither_vassal_nor_courtier
+			}
+		}
+		## Must be an adult
+		if = {
+			limit = { is_adult = no }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.child
+			}
+		}
+		## Must not NOT imprisoned
+		if = {
+			limit = { is_imprisoned = yes }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.imprisoned
+			}
+		}
+		## Is NOT incapable or infirm
+		if = {
+			limit = {
+				OR = {
+					is_incapable = yes
+					has_trait = infirm
+				}
+			}
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.incapable_or_infirm
+			}
+		}
+		## Event filter.
+		### Current regent's shenanigans.
+		if = {
+			limit = { var:diarch_succession_filtered_due_to_incumbents_politicking ?= liege }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.event_filters.incumbent_politicking
+			}
+		}
+	}
+}
+
+
+
+#大司马调低家族继承分
+diarchy_DaSiMa_succession_score_value = {
+	if = {
+		# For performance reasons, you'll sometimes check this when you don't have a liege, so we need to check beforehand for error purposes.
+		limit = { exists = liege }
+		# Familial ties.
+		## We actually weight down here, as you don't generally want family to be your vizier.
+		add = {
+			desc = diarch_succession_score.category.familial_ties
+			# REMOVE SCORE
+			## Is close family
+			if = {
+				limit = { is_close_family_of = liege }
+				add = {
+					value = monumental_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.close_family
+				}
+			}
+			## Is extended family
+			else_if = {
+				limit = { is_extended_family_of = liege }
+				add = {
+					value = massive_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.extended_family
+				}
+			}
+			## Is same-house
+			else_if = {
+				limit = {
+					exists = liege.house
+					house ?= liege.house
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.house
+				}
+			}
+			## Is same-dynasty
+			else_if = {
+				limit = {
+					exists = liege.dynasty
+					dynasty = liege.dynasty
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.dynasty
+				}
+			}
+		}
+		# Personal ties.
+		## Since viziers aren't generally part of the ruling family, or indeed any ruling family, we cut down personal ties a smidge compared to usual.
+		add = {
+			desc = diarch_succession_score.category.personal_ties
+			# ADD SCORE
+			## Is guardian of
+			if = {
+				limit = { has_relation_ward = liege }
+				add = {
+					value = massive_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_ward
+				}
+			}
+			## Nothing for being on your council - they're a council position, so this'd only ever weight up the incumbent.
+			### I mean, technically not _but_ the actual mechanical effect is that the vizier council position'll auto-replace whatever other position they held, which'd get annoying_fast_, so we avoid it.
+			## Has positive opinion
+			if = {
+				limit = {
+					opinion = {
+						target = liege
+						value >= medium_positive_opinion
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.likes_you
+				}
+			}
+			## Has positive relationship
+			if = {
+				limit = {
+					has_any_moderate_good_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_positive_relation
+				}
+			}
+			# REMOVE SCORE
+			## Is your nemesis
+			if = {
+				limit = {
+					has_any_worst_bad_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.your_nemesis
+				}
+			}
+			## Has a moderate bad relationship
+			if = {
+				limit = {
+					has_any_only_moderate_bad_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.your_negative_relation
+				}
+			}
+			## Has negative opinion
+			if = {
+				limit = {
+					opinion = {
+						target = liege
+						value <= medium_negative_opinion
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.dislikes_you
+				}
+			}
+		}
+		# Societal bonds.
+		add = {
+			desc = diarch_succession_score.category.societal_bonds
+			# ADD SCORE
+			## Is in your house
+			if = {
+				limit = {
+					exists = house
+					house = liege.house
+				}
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_house
+				}
+			}
+			## Is in your dynasty
+			if = {
+				limit = {
+					exists = house
+					# Filter out same-house chars to avoid double-dipping.
+					NOT = { house = liege.house }
+					# So we _only_ want same dynasty chars.
+					dynasty = liege.dynasty
+				}
+				add = {
+					value = miniscule_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_dynasty
+				}
+			}
+			## Has same faith
+			if = {
+				limit = { faith = liege.faith }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_faith
+				}
+			}
+			## Is of same culture
+			if = {
+				limit = { culture = liege.culture }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.societal_bonds.your_culture
+				}
+			}
+		}
+		# Councillors
+		if = {
+			limit = {
+				liege = { has_royal_court = yes }
+			}
+			add = {
+				desc = diarch_succession_score.category.councillor
+				# ADD SCORE
+				## Skill for court type.
+				### Shumishi.
+				if = {
+					limit = {
+						has_council_position = councillor_shumishi
+					}
+					add = {
+						value = martial
+						multiply = 2
+						# Then we subtract the baseline so that your skill has to matter.
+						desc = diarch_succession_score.councillor_shumishi
+					}
+				}
+				### Martial.
+				if = {
+					limit = {
+						has_council_position = councillor_marshal
+					}
+					add = {
+						value = martial
+						multiply = 2
+						# Then we subtract the baseline so that your skill has to matter.
+						desc = diarch_succession_score.councillor_marshal
+					}
+				}
+				### Tongpingzhang.
+				if = {
+					limit = {
+						has_council_position = councillor_tongpingzhang
+					}
+					add = {
+						value = diplomacy
+						# Then we subtract the baseline so that your skill has to matter.
+						desc = diarch_succession_score.councillor_tongpingzhang
+					}
+				}
+				### Councillor.
+				if = {
+					limit = {
+						is_councillor_of = liege
+						NOR = {
+							has_council_position = councillor_shumishi
+							has_council_position = councillor_marshal
+							has_council_position = councillor_tongpingzhang
+						}
+					}
+					add = {
+						value = martial
+						# Then we subtract the baseline so that your skill has to matter.
+						desc = diarch_succession_score.councillor_shangshu
+					}
+				}
+			}
+		}
+		# Royal court.
+		if = {
+			limit = {
+				liege = { has_royal_court = yes }
+			}
+			add = {
+				desc = diarch_succession_score.category.royal_court
+				# ADD SCORE
+				## Skill for court type.
+				### Diplomacy.
+				if = {
+					limit = {
+						liege = { has_court_type = court_diplomatic }
+					}
+					add = {
+						value = diplomacy
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.diplomacy
+					}
+				}
+				### Martial.
+				if = {
+					limit = {
+						liege = { has_court_type = court_warlike }
+					}
+					add = {
+						value = martial
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.martial
+					}
+				}
+				### Stewardship.
+				if = {
+					limit = {
+						liege = { has_court_type = court_administrative }
+					}
+					add = {
+						value = stewardship
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.stewardship
+					}
+				}
+				### Intrigue.
+				if = {
+					limit = {
+						liege = { has_court_type = court_intrigue }
+					}
+					add = {
+						value = intrigue
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.intrigue
+					}
+				}
+				### Learning.
+				if = {
+					limit = {
+						liege = { has_court_type = court_scholarly }
+					}
+					add = {
+						value = learning
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.learning
+					}
+				}
+				### Prowess.
+				if = {
+					limit = {
+						liege = { has_court_type = court_tribal }
+					}
+					add = {
+						value = prowess
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.prowess
+					}
+				}
+				## Speaks court language.
+				if = {
+					limit = { knows_court_language_of = liege }
+					add = {
+						value = major_diarch_candidate_gain
+						desc = diarch_succession_score.royal_court.speaks_court_language
+					}
+				}
+			}
+		}
+		# Traits: Noble Ambitions.
+		add = {
+			desc = diarch_succession_score.category.traits.noble_ambitions
+			# ADD SCORE
+			## Ambitious trait
+			if = {
+				limit = { has_trait = ambitious }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.traits.ambitious
+				}
+			}
+			## Diligent trait
+			if = {
+				limit = { has_trait = diligent }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.traits.diligent
+				}
+			}
+			# REMOVE SCORE
+			## Lazy trait
+			if = {
+				limit = { has_trait = lazy }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.traits.lazy
+				}
+			}
+			## Humble trait
+			if = {
+				limit = { has_trait = humble }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.traits.humble
+				}
+			}
+			## Content trait
+			if = {
+				limit = { has_trait = content }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.traits.content
+				}
+			}
+		}
+		# Circumstances.
+		add = {
+			desc = diarch_succession_score.category.circumstances
+			# REMOVE SCORE
+			## Has a critical illness
+			if = {
+				limit = { has_serious_disease_trigger = yes }
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.cripplingly_ill
+				}
+			}
+			## Has severe wounds
+			if = {
+				limit = { has_trait = wounded_3 }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.badly_wounded
+				}
+			}
+			## Has a criminal reason.
+			if = {
+				limit = {
+					save_temporary_scope_as = char_temp
+					liege = {
+						OR = {
+							has_imprisonment_reason = scope:char_temp
+							has_banish_reason = scope:char_temp
+							has_execute_reason = scope:char_temp
+							has_revoke_title_reason = scope:char_temp
+						}
+					}
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.known_criminal
+				}
+			}
+			## Under the age of 25
+			if = {
+				limit = { age <= 25 }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.very_young
+				}
+			}
+			## High-stress characters
+			if = {
+				limit = { stress_level  >= 1 }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.stressed_out
+				}
+			}
+			## Bastard / Child of Concubine
+			if = {
+				limit = {
+					OR = {
+						has_trait = bastard
+						has_trait = child_of_concubine
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.illegitimate
+				}
+			}
+			## Has a minor illness
+			if = {
+				limit = { has_trait = ill }
+				add = {
+					value = miniscule_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.mildly_ill
+				}
+			}
+			## Has a minor wound
+			if = {
+				limit = {
+					OR = {
+						has_trait = wounded_1
+						has_trait = wounded_2
+					}
+				}
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.mildly_wounded
+				}
+			}
+			## Doesn't speak your main language
+			### Due to technical constraints, we can currently only check if you speak your liege's culture's language, not if you have any shared languages.
+			if = {
+				limit = {
+					NOR = {
+						knows_language_of_culture = liege.culture
+						# Exempt family members so that we don't screw wrong-gendered unlanded chars over.
+						is_close_or_extended_family_of = liege
+					}
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.not_speak_language
+				}
+			}
+		}
+		# REMOVE CANDIDATES
+		## Must be a vassal or in your court
+		if = {
+			limit = {
+				exists = liege
+				NOR = {
+					is_ruler = yes
+					is_courtier_of = liege
+				}
+			}
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.neither_vassal_nor_courtier
+			}
+		}
+		## Must be an adult
+		if = {
+			limit = { is_adult = no }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.child
+			}
+		}
+		## Must not NOT imprisoned
+		if = {
+			limit = { is_imprisoned = yes }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.imprisoned
+			}
+		}
+		## Is NOT incapable or infirm
+		if = {
+			limit = {
+				OR = {
+					is_incapable = yes
+					has_trait = infirm
+				}
+			}
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.incapable_or_infirm
+			}
+		}
+		## Event filter.
+		### Current regent's shenanigans.
+		if = {
+			limit = { var:diarch_succession_filtered_due_to_incumbents_politicking ?= liege }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.event_filters.incumbent_politicking
+			}
+		}
+	}
+}
+
+diarchy_ChengXiang_succession_score_value = {
+	if = {
+		# For performance reasons, you'll sometimes check this when you don't have a liege, so we need to check beforehand for error purposes.
+		limit = { exists = liege }
+		# Familial ties.
+		## We actually weight down here, as you don't generally want family to be your vizier.
+		add = {
+			desc = diarch_succession_score.category.familial_ties
+			# REMOVE SCORE
+			## Is close family
+			if = {
+				limit = { is_close_family_of = liege }
+				add = {
+					value = monumental_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.close_family
+				}
+			}
+			## Is extended family
+			else_if = {
+				limit = { is_extended_family_of = liege }
+				add = {
+					value = massive_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.extended_family
+				}
+			}
+			## Is same-house
+			else_if = {
+				limit = {
+					exists = liege.house
+					house ?= liege.house
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.house
+				}
+			}
+			## Is same-dynasty
+			else_if = {
+				limit = {
+					exists = liege.dynasty
+					dynasty = liege.dynasty
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.familial_ties.undignified.dynasty
+				}
+			}
+		}
+		# Personal ties.
+		## Since viziers aren't generally part of the ruling family, or indeed any ruling family, we cut down personal ties a smidge compared to usual.
+		add = {
+			desc = diarch_succession_score.category.personal_ties
+			# ADD SCORE
+			## Is guardian of
+			if = {
+				limit = { has_relation_ward = liege }
+				add = {
+					value = massive_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_ward
+				}
+			}
+			## Nothing for being on your council - they're a council position, so this'd only ever weight up the incumbent.
+			### I mean, technically not _but_ the actual mechanical effect is that the vizier council position'll auto-replace whatever other position they held, which'd get annoying_fast_, so we avoid it.
+			## Has positive opinion
+			if = {
+				limit = {
+					opinion = {
+						target = liege
+						value >= medium_positive_opinion
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.likes_you
+				}
+			}
+			## Has positive relationship
+			if = {
+				limit = {
+					has_any_moderate_good_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.personal_ties.your_positive_relation
+				}
+			}
+			# REMOVE SCORE
+			## Is your nemesis
+			if = {
+				limit = {
+					has_any_worst_bad_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.your_nemesis
+				}
+			}
+			## Has a moderate bad relationship
+			if = {
+				limit = {
+					has_any_only_moderate_bad_relationship_with_character_trigger = { CHARACTER = liege }
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.your_negative_relation
+				}
+			}
+			## Has negative opinion
+			if = {
+				limit = {
+					opinion = {
+						target = liege
+						value <= medium_negative_opinion
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_loss
+					desc = diarch_succession_score.personal_ties.dislikes_you
+				}
+			}
+		}
+		# Suitable servants.
+		add = {
+			desc = diarch_succession_score.category.suitable_servant
+			# ADD SCORE
+			## Ruler status.
+			### Tax collector.
+			if = {
+				limit = { is_tax_collector = yes }
+				add = {
+					value = major_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.tax_collector
+				}
+			}
+			### Lowborn.
+			if = {
+				limit = { is_lowborn = yes }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.lowborn
+				}
+			}
+			### Landless.
+			if = {
+				limit = { is_landed = no }
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.landless
+				}
+			}
+			## In-Groupness.
+			### Same culture.
+			if = {
+				limit = { culture = liege.culture }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.shares_liege_culture
+				}
+			}
+			### Same faith.
+			if = {
+				limit = { faith = liege.faith }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.shares_liege_faith
+				}
+			}
+			### Diff-faith same HoF.
+			if = {
+				limit = {
+					NOT = { faith = liege.faith }
+					exists = liege.faith.religious_head
+					faith.religious_head ?= liege.faith.religious_head
+				}
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.shares_liege_hof
+				}
+			}
+			### Diff-faith diff-HoF Righteous.
+			else_if = {
+				limit = {
+					NOT = { faith = liege.faith }
+					faith = {
+						faith_hostility_level = {
+							target = prev.liege.faith
+							value = faith_fully_accepted_level
+						}
+					}
+				}
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.diff_faith_considers_liege_righteous
+				}
+			}
+			### Diff-faith diff-HoF Astray.
+			else_if = {
+				limit = {
+					NOT = { faith = liege.faith }
+					faith = {
+						faith_hostility_level = {
+							target = prev.liege.faith
+							value = faith_astray_level
+						}
+					}
+				}
+				add = {
+					value = miniscule_diarch_candidate_gain
+					desc = diarch_succession_score.suitable_servant.diff_faith_considers_liege_astray
+				}
+			}
+			# VARIABLE SCORE
+			## In-Groupness.
+			### Diff-culture acceptance.
+			if = {
+				limit = {
+					NOT = { culture = liege.culture }
+				}
+				culture = {
+					add = {
+						value = {
+							# Grab the our cultural acceptance value.
+							value = "cultural_acceptance(prev.liege.culture)"
+							# Now, the actual 0 opinion point is waaaaay up at 100%, so we set a high base to make lacking acceptance more of a problem.
+							## But not so high as to screw minorities (who are likely both faith and culture minorities) out of ever getting the position.
+							add = -50
+							# Finally, reduce the number down - this gives us an axis of -10 to +10.
+							multiply = 0.2
+							# Cultural Acceptance actually goes to 2 decimal places, so we need to round it out neatly or someone's gonna end up with a score of 25.03.
+							round = yes
+						}
+						desc = diarch_succession_score.suitable_servant.diff_culture_acceptance
+					}
+				}
+			}
+			# REMOVE SCORE
+			## Ruler status.
+			### Punish barons.
+			#### Double-dipping, but just to make it clear.
+			if = {
+				limit = { is_landed = yes }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.suitable_servant.landed
+				}
+			}
+			## In-Groupness.
+			### Diff-faith diff-HoF Hostile.
+			if = {
+				limit = {
+					faith = {
+						faith_hostility_level = {
+							target = prev.liege.faith
+							value = faith_hostile_level
+						}
+					}
+				}
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.suitable_servant.diff_faith_considers_liege_hostile
+				}
+			}
+			### Diff-faith diff-HoF Evil.
+			else_if = {
+				limit = {
+					faith = {
+						faith_hostility_level = {
+							target = prev.liege.faith
+							value = faith_evil_level
+						}
+					}
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.suitable_servant.diff_faith_considers_liege_evil
+				}
+			}
+		}
+		# Nepotism.
+		add = {
+			desc = diarch_succession_score.category.nepotism
+			# Liege Partners.
+			## Friends with primary spouse.
+			if = {
+				limit = {
+					liege.primary_spouse ?= { has_relation_friend = prev }
+				}
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.primary_spouse.friend
+				}
+			}
+			## Friends with consort
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_lesser_consort_trigger = { RELATION = friend }
+				}
+				add = {
+					value = minor_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.consort.friend
+				}
+			}
+			## Best Friends with primary spouse.
+			if = {
+				limit = {
+					liege.primary_spouse ?= { has_relation_best_friend = prev }
+				}
+				add = {
+					value = major_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.primary_spouse.best_friend
+				}
+			}
+			## Best Friends with consort
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_lesser_consort_trigger = { RELATION = best_friend }
+				}
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.consort.best_friend
+				}
+			}
+			## Rivals with primary spouse.
+			if = {
+				limit = {
+					liege.primary_spouse ?= { has_relation_rival = prev }
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.nepotism.primary_spouse.rival
+				}
+			}
+			## Rivals with consort
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_lesser_consort_trigger = { RELATION = rival }
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.nepotism.consort.rival
+				}
+			}
+			## Nemeses with primary spouse.
+			if = {
+				limit = {
+					liege.primary_spouse ?= { has_relation_nemesis = prev }
+				}
+				add = {
+					value = monumental_diarch_candidate_loss
+					desc = diarch_succession_score.nepotism.primary_spouse.nemesis
+				}
+			}
+			## Nemeses with consort
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_lesser_consort_trigger = { RELATION = nemesis }
+				}
+				add = {
+					value = massive_diarch_candidate_loss
+					desc = diarch_succession_score.nepotism.consort.nemesis
+				}
+			}
+			## Shares culture with minority consort
+			if = {
+				limit = {
+					diarch_candidate_shares_minority_status_with_trigger = {
+						TRIGGER_OR_TARGET = any_consort
+						QUALITY = culture
+					}
+				}
+				add = {
+					value = major_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.any_consort.shares_minority_culture
+				}
+			}
+			## Shares faith with minority consort
+			if = {
+				limit = {
+					diarch_candidate_shares_minority_status_with_trigger = {
+						TRIGGER_OR_TARGET = any_consort
+						QUALITY = faith
+					}
+				}
+				add = {
+					value = major_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.any_consort.shares_minority_faith
+				}
+			}
+			# Liege Stay-at-Home Children.
+			## Friends with SaH child.
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_child_trigger = { RELATION = friend }
+				}
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.sah_child.friend
+				}
+			}
+			## Best Friends with SaH child.
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_child_trigger = { RELATION = best_friend }
+				}
+				add = {
+					value = major_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.sah_child.best_friend
+				}
+			}
+			## Rivals with SaH child.
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_child_trigger = { RELATION = rival }
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.nepotism.sah_child.rival
+				}
+			}
+			## Nemeses with SaH child.
+			if = {
+				limit = {
+					diarch_candidate_shares_relationship_with_child_trigger = { RELATION = nemesis }
+				}
+				add = {
+					value = massive_diarch_candidate_loss
+					desc = diarch_succession_score.nepotism.sah_child.nemesis
+				}
+			}
+			## Shares culture with minority SaH child.
+			if = {
+				limit = {
+					diarch_candidate_shares_minority_status_with_trigger = {
+						TRIGGER_OR_TARGET = any_child
+						QUALITY = culture
+					}
+				}
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.sah_child.shares_minority_culture
+				}
+			}
+			## Shares faith with minority SaH child.
+			if = {
+				limit = {
+					diarch_candidate_shares_minority_status_with_trigger = {
+						TRIGGER_OR_TARGET = any_child
+						QUALITY = faith
+					}
+				}
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.nepotism.sah_child.shares_minority_faith
+				}
+			}
+			# Incumbent Vizier.
+			if = {
+				limit = { exists = liege.diarch }
+				# Close family of incumbent vizier.
+				if = {
+					limit = {
+						NOT = { this = liege.diarch }
+						is_close_family_of = liege.diarch
+					}
+					add = {
+						value = massive_diarch_candidate_gain
+						desc = diarch_succession_score.nepotism.incumbent_vizier.close_family
+					}
+				}
+				# Extended family of incumbent vizier.
+				if = {
+					limit = {
+						NOT = { this = liege.diarch }
+						is_extended_family_of = liege.diarch
+					}
+					add = {
+						value = major_diarch_candidate_gain
+						desc = diarch_succession_score.nepotism.incumbent_vizier.extended_family
+					}
+				}
+				# Friends with incumbent vizier.
+				if = {
+					limit = { has_relation_friend = liege.diarch }
+					add = {
+						value = medium_diarch_candidate_gain
+						desc = diarch_succession_score.nepotism.incumbent_vizier.friend
+					}
+				}
+				# Best Friends with incumbent vizier.
+				if = {
+					limit = { has_relation_best_friend = liege.diarch }
+					add = {
+						value = massive_diarch_candidate_gain
+						desc = diarch_succession_score.nepotism.incumbent_vizier.best_friend
+					}
+				}
+				# Rivals with incumbent vizier.
+				if = {
+					limit = { has_relation_rival = liege.diarch }
+					add = {
+						value = major_diarch_candidate_loss
+						desc = diarch_succession_score.nepotism.incumbent_vizier.rival
+					}
+				}
+				# Nemeses with incumbent vizier.
+				if = {
+					limit = { has_relation_nemesis = liege.diarch }
+					add = {
+						value = monumental_diarch_candidate_loss
+						desc = diarch_succession_score.nepotism.incumbent_vizier.nemesis
+					}
+				}
+				# Shares culture with minority incumbent vizier.
+				if = {
+					limit = {
+						NOT = { this = liege.diarch }
+						diarch_candidate_shares_minority_status_with_trigger = {
+							TRIGGER_OR_TARGET = diarch
+							QUALITY = culture
+						}
+					}
+					add = {
+						value = major_diarch_candidate_gain
+						desc = diarch_succession_score.nepotism.incumbent_vizier.shares_minority_culture
+					}
+				}
+				# Shares faith with minority incumbent vizier.
+				if = {
+					limit = {
+						NOT = { this = liege.diarch }
+						diarch_candidate_shares_minority_status_with_trigger = {
+							TRIGGER_OR_TARGET = diarch
+							QUALITY = faith
+						}
+					}
+					add = {
+						value = major_diarch_candidate_gain
+						desc = diarch_succession_score.nepotism.incumbent_vizier.shares_minority_faith
+					}
+				}
+			}
+		}
+		# Royal court.
+		if = {
+			limit = {
+				liege = { has_royal_court = yes }
+			}
+			add = {
+				desc = diarch_succession_score.category.royal_court
+				# ADD SCORE
+				## Skill for court type.
+				### Diplomacy.
+				if = {
+					limit = {
+						liege = { has_court_type = court_diplomatic }
+					}
+					add = {
+						value = diplomacy
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.diplomacy
+					}
+				}
+				### Martial.
+				if = {
+					limit = {
+						liege = { has_court_type = court_warlike }
+					}
+					add = {
+						value = martial
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.martial
+					}
+				}
+				### Stewardship.
+				if = {
+					limit = {
+						liege = { has_court_type = court_administrative }
+					}
+					add = {
+						value = stewardship
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.stewardship
+					}
+				}
+				### Intrigue.
+				if = {
+					limit = {
+						liege = { has_court_type = court_intrigue }
+					}
+					add = {
+						value = intrigue
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.intrigue
+					}
+				}
+				### Learning.
+				if = {
+					limit = {
+						liege = { has_court_type = court_scholarly }
+					}
+					add = {
+						value = learning
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.learning
+					}
+				}
+				### Prowess.
+				if = {
+					limit = {
+						liege = { has_court_type = court_tribal }
+					}
+					add = {
+						value = prowess
+						# Then we subtract the baseline so that your skill has to matter.
+						subtract = diarchy_succession_court_type_baseline_value
+						desc = diarch_succession_score.royal_court.court_type.prowess
+					}
+				}
+				## Speaks court language.
+				if = {
+					limit = { knows_court_language_of = liege }
+					add = {
+						# Value a bit lower than elsewhere; it's not that it's not important, but it's more easily out-balanced by other factors (e.g., competency) so we need to lower it proportionally.
+						value = medium_diarch_candidate_gain
+						desc = diarch_succession_score.royal_court.speaks_court_language
+					}
+				}
+			}
+		}
+		# Base skills.
+		## Viziers are a very functional job, so they always take account of the most practical courtly skills.
+		add = {
+			desc = diarch_succession_score.category.competence
+			# ADD SCORE
+			## Diplomacy.
+			add = {
+				value = diplomacy
+				# Then we subtract the baseline so that your skill has to matter.
+				subtract = diarchy_succession_competence_baseline_value
+				desc = diarch_succession_score.competence.vizierate.diplomacy
+			}
+			## Stewardship.
+			add = {
+				value = stewardship
+				# Then we subtract the baseline so that your skill has to matter.
+				subtract = diarchy_succession_competence_baseline_value
+				desc = diarch_succession_score.competence.vizierate.stewardship
+			}
+			## Intrigue.
+			add = {
+				value = intrigue
+				# Then we subtract the baseline so that your skill has to matter.
+				subtract = diarchy_succession_competence_baseline_value
+				desc = diarch_succession_score.competence.vizierate.intrigue
+			}
+		}
+		# Traits: Civil Service.
+		## These are a bit more important due to the lack of familial ties, so we boost the score a little.
+		add = {
+			desc = diarch_succession_score.category.traits.civil_service
+			# ADD SCORE
+			## Prefer motivated workers.
+			### Ambitious trait
+			if = {
+				limit = { has_trait = ambitious }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.ambitious
+				}
+			}
+			### Diligent trait
+			if = {
+				limit = { has_trait = diligent }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.diligent
+				}
+			}
+			## But also just things that make you a good civil servant.
+			### Humble trait
+			if = {
+				limit = { has_trait = humble }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.humble
+				}
+			}
+			### Content trait
+			if = {
+				limit = { has_trait = content }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.content
+				}
+			}
+			### Patient trait
+			if = {
+				limit = { has_trait = patient }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.patient
+				}
+			}
+			### Just trait
+			if = {
+				limit = { has_trait = just }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.just
+				}
+			}
+			## Both extremities of the wealth spectrum are appreciated.
+			### Greedy
+			if = {
+				limit = { has_trait = greedy }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.greedy
+				}
+			}
+			### Generous
+			if = {
+				limit = { has_trait = generous }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.generous
+				}
+			}
+			## Plus some lifestyle cappers.
+			### Diplomat
+			if = {
+				limit = { has_trait = diplomat }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.diplomat
+				}
+			}
+			### Administrator
+			if = {
+				limit = { has_trait = administrator }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.administrator
+				}
+			}
+			### Avaricious
+			if = {
+				limit = { has_trait = avaricious }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.avaricious
+				}
+			}
+			### Schemer
+			if = {
+				limit = { has_trait = schemer }
+				add = {
+					value = medium_diarch_candidate_gain
+					desc = diarch_succession_score.traits.schemer
+				}
+			}
+			# REMOVE SCORE
+			## Poor workers.
+			### Lazy trait
+			if = {
+				limit = { has_trait = lazy }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.traits.lazy
+				}
+			}
+			### Arrogant trait
+			if = {
+				limit = { has_trait = arrogant }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.traits.arrogant
+				}
+			}
+			### Impatient trait
+			if = {
+				limit = { has_trait = impatient }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.traits.impatient
+				}
+			}
+		}
+		# Circumstances.
+		add = {
+			desc = diarch_succession_score.category.circumstances
+			# REMOVE SCORE
+			## Has a critical illness
+			if = {
+				limit = { has_serious_disease_trigger = yes }
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.cripplingly_ill
+				}
+			}
+			## Has severe wounds
+			if = {
+				limit = { has_trait = wounded_3 }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.badly_wounded
+				}
+			}
+			## Has a criminal reason.
+			if = {
+				limit = {
+					save_temporary_scope_as = char_temp
+					liege = {
+						OR = {
+							has_imprisonment_reason = scope:char_temp
+							has_banish_reason = scope:char_temp
+							has_execute_reason = scope:char_temp
+							has_revoke_title_reason = scope:char_temp
+						}
+					}
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.known_criminal
+				}
+			}
+			## Under the age of 25
+			if = {
+				limit = { age <= 25 }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.very_young
+				}
+			}
+			## High-stress characters
+			if = {
+				limit = { stress_level  >= 1 }
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.stressed_out
+				}
+			}
+			## Has a minor illness
+			if = {
+				limit = { has_trait = ill }
+				add = {
+					value = minor_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.mildly_ill
+				}
+			}
+			## Has a minor wound
+			if = {
+				limit = {
+					OR = {
+						has_trait = wounded_1
+						has_trait = wounded_2
+					}
+				}
+				add = {
+					value = medium_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.mildly_wounded
+				}
+			}
+			## Doesn't speak your main language
+			### Due to technical constraints, we can currently only check if you speak your liege's culture's language, not if you have any shared languages.
+			if = {
+				limit = {
+					NOR = {
+						knows_language_of_culture = liege.culture
+						# Exempt family members so that we don't screw wrong-gendered unlanded chars over.
+						is_close_or_extended_family_of = liege
+					}
+				}
+				add = {
+					value = major_diarch_candidate_loss
+					desc = diarch_succession_score.circumstances.not_speak_language
+				}
+			}
+		}
+		# REMOVE CANDIDATES
+		## Cannot be a big land owner
+		if = {
+			limit = { highest_held_title_tier > tier_barony }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.count_or_above
+			}
+		}
+		## Must be an adult
+		if = {
+			limit = { is_adult = no }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.child
+			}
+		}
+		## Must not NOT imprisoned
+		if = {
+			limit = { is_imprisoned = yes }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.imprisoned
+			}
+		}
+		## Is NOT incapable or infirm
+		if = {
+			limit = {
+				OR = {
+					is_incapable = yes
+					has_trait = infirm
+				}
+			}
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.incapable_or_infirm
+			}
+		}
+		## MUST match liege's faith gender requirements
+		### We double-check this here (even though it's disallowed for validity) to stop wrong-gendered characters sneakily inheriting the post when the numbers haven't been recalc'd then _immediately_ invalidating.
+		if = {
+			limit = { diarch_matches_liege_faith_gender_preference_trigger = no }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.right_gendered_for_liege
+			}
+		}
+		## Event filter.
+		### Current regent's shenanigans.
+		if = {
+			limit = { var:diarch_succession_filtered_due_to_incumbents_politicking ?= liege }
+			add = {
+				value = hard_disable_diarch_candidate_value
+				desc = diarch_succession_score.disqualifiers.event_filters.incumbent_politicking
+			}
+		}
+	}
+}
+
+
+#权臣的忠诚度
+diarch_loyalty_score_type_greatmisit_value = {
+	### PLEASE NOTE ####
+	# It's deliberate design that we don't double up on lots of values between loyalty and succession score (e.g., familial bonuses).
+	# If the two values become too synced, then you'll either always be fine or else always be screwed. Neither of these are fun or interesting.
+	# The intention is that societal ties govern your succession score whilst loyalty is more about personal relations and outlook (which is why we pepper in some traits and cultural traditions to break the score up a bit).
+
+	if = {
+		# For performance reasons, you'll sometimes check this when you don't have a liege, so we need to check beforehand for error purposes.
+		limit = { exists = liege }
+		# Add raw opinion.
+		## Except don't because this throws errors and is broken — commented out till we can figure out a fix.
+		#save_opinion_value_as = {
+			#name = liege_opinion
+			#target = liege
+		#}
+		#add = scope:liege_opinion
+		## Instead, we do some dumb placeholder script.
+		#TODO_CD_EP2; please, I'm begging you. Think of the children. Fix the above. The below is disgusting.
+		add = {
+			desc = diarch_loyalty_score.regency.opinion_of_you
+			value = calc_rough_liege_opinion_value
+		}
+		# High-Tier Relationships.
+		add = diarch_loyalty_score_standard_values_high_tier_relationships_value
+		# Traits.
+		add = diarch_loyalty_score_standard_values_general_traits_value
+		# Court Positions.
+		add = diarch_loyalty_score_standard_values_general_court_positions_value
+		# Cultural Traditions.
+		add = diarch_loyalty_score_standard_values_general_culture_value
+		# Sympathies.
+		## General factors.
+		add = diarch_loyalty_score_standard_values_general_sympathies_value
+		## Dread factors in in temporary regencies.
+		#if = {
+			#limit = {
+				#liege = {
+					#dread >= 1
+					#has_diarchy_active_parameter = diarchy_type_is_temporary_regency
+				#}
+				#has_dread_level_towards = {
+	  				#target = liege
+	  				#level >= 1
+	  			#}
+			#}
+			#add = {
+				#desc = diarch_loyalty_score.regency.temporary_regency.dread
+				#value = {
+					#value = liege.dread
+					## Weight up if they're a basic natural coward.
+					#if = {
+						#limit = {
+							#has_dread_level_towards = {
+				  				#target = liege
+				  				#level >= 2
+				  			#}
+						#}
+						#multiply = 2
+					#}
+				#}
+			#}
+		#}
+		# Overrides.
+		## Loyalty overrides.
+		add = diarch_loyalty_score_standard_values_overrides_loyalty_value
+	}
+}
+
+
+#同僚对权臣的忠诚度
+fellow_loyalty = {
+	### PLEASE NOTE ####
+	# It's deliberate design that we don't double up on lots of values between loyalty and succession score (e.g., familial bonuses).
+	# If the two values become too synced, then you'll either always be fine or else always be screwed. Neither of these are fun or interesting.
+	# The intention is that societal ties govern your succession score whilst loyalty is more about personal relations and outlook (which is why we pepper in some traits and cultural traditions to break the score up a bit).
+
+	if = {
+		# For performance reasons, you'll sometimes check this when you don't have a liege, so we need to check beforehand for error purposes.
+		limit = { exists = liege.diarch }
+		# Add raw opinion.
+		## Except don't because this throws errors and is broken — commented out till we can figure out a fix.
+		#save_opinion_value_as = {
+			#name = liege_opinion
+			#target = liege
+		#}
+		#add = scope:liege_opinion
+		## Instead, we do some dumb placeholder script.
+		#TODO_CD_EP2; please, I'm begging you. Think of the children. Fix the above. The below is disgusting.
+		add = {
+			desc = diarch_loyalty_score.vassal_fellow.opinion_of_regency
+			value = calc_rough_liege_diarch_opinion_value
+		}
+		# High-Tier Relationships.
+		add = diarch_loyalty_score_standard_values_high_tier_relationships_value
+		# Traits.
+		add = diarch_loyalty_score_standard_values_general_traits_value
+		# Court Positions.
+		add = diarch_loyalty_score_standard_values_general_court_positions_value
+		# Cultural Traditions.
+		add = diarch_loyalty_score_standard_values_general_culture_value
+		# Sympathies.
+		## General factors.
+		add = diarch_loyalty_score_standard_values_general_sympathies_value
+		## Dread factors in in temporary regencies.
+		#if = {
+			#limit = {
+				#liege = {
+					#dread >= 1
+					#has_diarchy_active_parameter = diarchy_type_is_temporary_regency
+				#}
+				#has_dread_level_towards = {
+	  				#target = liege
+	  				#level >= 1
+	  			#}
+			#}
+			#add = {
+				#desc = diarch_loyalty_score.regency.temporary_regency.dread
+				#value = {
+					#value = liege.dread
+					## Weight up if they're a basic natural coward.
+					#if = {
+						#limit = {
+							#has_dread_level_towards = {
+				  				#target = liege
+				  				#level >= 2
+				  			#}
+						#}
+						#multiply = 2
+					#}
+				#}
+			#}
+		#}
+		# Overrides.
+		## Loyalty overrides.
+		add = diarch_loyalty_score_standard_values_overrides_loyalty_value
+	}
+}
+
+fellow_disloyalty = {
+	value = fellow_loyalty
+	multiply = -1
+}
+
+#对摄政的好感度
+calc_rough_liege_diarch_opinion_value = {
+	if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 95
+			}
+		}
+		add = 100
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 90
+			}
+		}
+		add = 95
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 85
+			}
+		}
+		add = 90
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 80
+			}
+		}
+		add = 85
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 75
+			}
+		}
+		add = 80
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 70
+			}
+		}
+		add = 75
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 65
+			}
+		}
+		add = 70
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 60
+			}
+		}
+		add = 65
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 55
+			}
+		}
+		add = 60
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 50
+			}
+		}
+		add = 55
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 45
+			}
+		}
+		add = 50
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 40
+			}
+		}
+		add = 45
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 35
+			}
+		}
+		add = 40
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 30
+			}
+		}
+		add = 35
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 25
+			}
+		}
+		add = 30
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 20
+			}
+		}
+		add = 25
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 15
+			}
+		}
+		add = 20
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 10
+			}
+		}
+		add = 15
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 5
+			}
+		}
+		add = 10
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= 0
+			}
+		}
+		add = 5
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -4
+			}
+		}
+		add = 0
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -5
+			}
+		}
+		add = -5
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -10
+			}
+		}
+		add = -10
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -15
+			}
+		}
+		add = -15
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -20
+			}
+		}
+		add = -20
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -25
+			}
+		}
+		add = -25
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -30
+			}
+		}
+		add = -30
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -35
+			}
+		}
+		add = -35
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -40
+			}
+		}
+		add = -40
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -45
+			}
+		}
+		add = -45
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -50
+			}
+		}
+		add = -50
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -55
+			}
+		}
+		add = -55
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -60
+			}
+		}
+		add = -60
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -65
+			}
+		}
+		add = -65
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -70
+			}
+		}
+		add = -70
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -75
+			}
+		}
+		add = -75
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -80
+			}
+		}
+		add = -80
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -85
+			}
+		}
+		add = -85
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -90
+			}
+		}
+		add = -90
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -95
+			}
+		}
+		add = -95
+	}
+	else_if = {
+		limit = {
+			opinion = {
+				target = liege.diarch
+				value >= -100
+			}
+		}
+		add = -100
+	}
+}

@@ -1,0 +1,822 @@
+﻿# war values
+struggle_conquest_ai_score_value = {
+	value = 1
+	scope:attacker = {
+		# Are they a different faith than me?
+		if = {
+			limit = {
+				NOT = { faith = scope:defender.faith }
+			}
+			add = 1
+		}
+		# Are they a different culture than me?
+		if = {
+			limit = {
+				NOT = { culture = scope:defender.culture }
+			}
+			add = 1
+		}
+		# Do I have a negative relationship with them?
+		if = {
+			limit = { has_relation_nemesis = scope:defender }
+			add = 2
+		}
+		else_if = {
+			limit = {
+				has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = 1
+		}
+		# Do I have a positive relationship with them?
+		if = {
+			limit = {
+				OR = {
+					has_relation_soulmate = scope:defender
+					has_relation_best_friend = scope:defender
+				}
+			}
+			add = -5
+		}
+		else_if = {
+			limit = {
+				has_any_good_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = -1
+		}
+		# Multiply this up or down per the phase.
+		## Some phases make people hunger for violence...
+		if = {
+			limit = {
+				OR = {
+					any_character_struggle = { is_struggle_type = iberian_struggle is_struggle_phase = struggle_iberia_phase_hostility }
+					any_character_struggle = { is_struggle_type = tartaria_struggle is_struggle_phase = struggle_tartaria_phase_hostility }
+				}
+				# Unless you're just not that sort of person.
+				NOR = {
+					has_trait = content
+					has_trait = compassionate
+				}
+			}
+			multiply = 2
+		}
+		## ... but in others, it seems abhorrent.
+		if = {
+			limit = {
+				OR = {
+					any_character_struggle = {
+						is_struggle_type = iberian_struggle
+						OR = {
+							is_struggle_phase = struggle_iberia_phase_compromise
+							is_struggle_phase = struggle_iberia_phase_conciliation
+						}
+					}
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						OR = {
+							is_struggle_phase = struggle_tartaria_phase_compromise
+							is_struggle_phase = struggle_tartaria_phase_conciliation
+						}
+					}
+				}
+				NOR = {
+					has_trait = ambitious
+					has_trait = callous
+					has_trait = sadistic
+				}
+			}
+			multiply = 0.5
+		}
+	}
+}
+
+
+# Total tartaria counties of my Religion
+fp2_struggle_secure_tartaria_foothold_religion_total_value = {
+	value = 0
+	every_county_in_region = {
+		region = world_struggle_tartaria
+		limit = { religion = root.religion }
+		add = 1
+	}
+}
+
+# Target percentage owned Iberia counties of my Religion
+fp2_struggle_secure_tartaria_foothold_religion_target_percent_value = 50
+
+fp2_struggle_secure_tartaria_foothold_years_value = 15
+
+fp2_struggle_secure_tartaria_foothold_religion_target_percent_decimal_value = {
+	value = fp2_struggle_secure_tartaria_foothold_religion_target_percent_value
+	divide = 100
+}
+
+# Held tartaria counties of my Religion
+fp2_struggle_secure_tartaria_foothold_religion_owned_value = {
+	value = 0
+	every_county_in_region = {
+		region = world_struggle_tartaria
+		limit = {
+			religion = root.religion
+			holder.top_liege = root
+		}
+		add = 1
+	}
+}
+
+# Percentage owned tartaria counties of my Religion
+fp2_struggle_secure_tartaria_foothold_religion_percent_value = {
+	value = fp2_struggle_secure_tartaria_foothold_religion_owned_value
+	divide = fp2_struggle_secure_tartaria_foothold_religion_total_value
+	multiply = 100
+	min = 1
+}
+
+fp2_struggle_secure_tartaria_foothold_outsider_target_percent_decimal_value = {
+	value = fp2_struggle_secure_tartaria_foothold_outsider_target_percent_value
+	divide = 100		
+}
+
+fp2_struggle_secure_tartaria_foothold_outsider_target_percent_value = 33
+
+oe_struggle_conquest_ai_score_value = {
+	value = 1
+	scope:attacker = {
+		# Are they a different faith than me?
+		if = {
+			limit = {
+				NOT = { faith = scope:defender.faith }
+			}
+			add = 1
+		}
+		# Are they a different culture than me?
+		if = {
+			limit = {
+				NOT = { culture = scope:defender.culture }
+			}
+			add = 1
+		}
+		# Do I have a negative relationship with them?
+		if = {
+			limit = { has_relation_nemesis = scope:defender }
+			add = 2
+		}
+		else_if = {
+			limit = {
+				has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = 1
+		}
+		# Do I have a positive relationship with them?
+		if = {
+			limit = {
+				OR = {
+					has_relation_soulmate = scope:defender
+					has_relation_best_friend = scope:defender
+				}
+			}
+			add = -5
+		}
+		else_if = {
+			limit = {
+				has_any_good_relationship_with_character_trigger = { CHARACTER = scope:defender }
+			}
+			add = -1
+		}
+		# Multiply this up or down per the phase.
+		## Some phases make people hunger for violence...
+		if = {
+			limit = {
+				any_character_struggle = {
+					is_struggle_type = tartaria_struggle
+					is_struggle_phase = struggle_tartaria_phase_hostility
+				}
+				# Unless you're just not that sort of person.
+				NOR = {
+					has_trait = content
+					has_trait = compassionate
+				}
+			}
+			multiply = 2
+		}
+		## ... but in others, it seems abhorrent.
+		if = {
+			limit = {
+				any_character_struggle = {
+					is_struggle_type = tartaria_struggle
+					OR = {
+						is_struggle_phase = struggle_tartaria_phase_compromise
+						is_struggle_phase = struggle_tartaria_phase_conciliation
+					}
+				}
+				NOR = {
+					has_trait = ambitious
+					has_trait = callous
+					has_trait = sadistic
+				}
+			}
+			multiply = 0.5
+		}
+	}
+}
+
+##### Multi-Currency Costs
+struggle_cb_phase_modifier_cost = {
+	# Phase modifiers.
+	## Note that these aren't hooked up to the actual _parameters_ for tooltip reasons: we'd have to check what the phase is anyway, so we just check off of the phase to begin with and save ourselves a worthless parameter check.
+	add = {
+		value = 0
+		# Cheap.
+		if = {
+			limit = {
+				scope:attacker = {
+					OR = {
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = iberian_struggle
+							is_struggle_phase = struggle_iberia_phase_hostility
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = tartaria_struggle
+							is_struggle_phase = struggle_tartaria_phase_hostility
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = minor_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_HOSTILITY
+			}
+		}
+		# Standard.
+		if = {
+			limit = {
+				scope:attacker = {
+					OR = {
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = iberian_struggle
+							is_struggle_phase = struggle_iberia_phase_opportunity
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = tartaria_struggle
+							is_struggle_phase = struggle_tartaria_phase_opportunity
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = medium_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_OPPORTUNITY
+			}
+		}
+		# Expensive.
+		if = {
+			limit = {
+				scope:attacker = {
+					OR = {
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = iberian_struggle
+							is_struggle_phase = struggle_iberia_phase_compromise
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = tartaria_struggle
+							is_struggle_phase = struggle_tartaria_phase_compromise
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = major_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_COMPROMISE
+			}
+		}
+		if = {
+			limit = {
+				scope:attacker = {
+					OR = {
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = iberian_struggle
+							is_struggle_phase = struggle_iberia_phase_conciliation
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+						any_character_struggle = {
+							involvement = involved
+							is_struggle_type = tartaria_struggle
+							is_struggle_phase = struggle_tartaria_phase_conciliation
+							is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+						}
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = major_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_CONCILIATION
+			}
+		}
+		if = { # Post Struggle cost
+			limit = {
+				scope:attacker = {
+					exists = scope:attacker.house
+					scope:attacker.house = {
+						OR ={
+							has_house_modifier = fp2_struggle_hostility_house_combined_modifier
+							has_house_modifier = fp2_struggle_hostility_house_faith_modifier
+							has_house_modifier = fp2_struggle_hostility_house_culture_modifier
+						}
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = major_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_BASE_COST
+			}
+		}
+	}
+}
+
+oe_struggle_cb_phase_modifier_cost = {
+	# Phase modifiers.
+	## Note that these aren't hooked up to the actual _parameters_ for tooltip reasons: we'd have to check what the phase is anyway, so we just check off of the phase to begin with and save ourselves a worthless parameter check.
+	add = {
+		value = 0
+		# Cheap.
+		if = {
+			limit = {
+				scope:attacker = {
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						involvement = involved
+						is_struggle_phase = struggle_tartaria_phase_hostility
+						is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = minor_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_HOSTILITY
+			}
+		}
+		# Standard.
+		if = {
+			limit = {
+				scope:attacker = {
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						involvement = involved
+						is_struggle_phase = struggle_tartaria_phase_opportunity
+						is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = medium_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_OPPORTUNITY
+			}
+		}
+		# Expensive.
+		if = {
+			limit = {
+				scope:attacker = {
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						involvement = involved
+						is_struggle_phase = struggle_tartaria_phase_compromise
+						is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = major_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_COMPROMISE
+			}
+		}
+		if = {
+			limit = {
+				scope:attacker = {
+					any_character_struggle = {
+						is_struggle_type = tartaria_struggle
+						involvement = involved
+						is_struggle_phase = struggle_tartaria_phase_conciliation
+						is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = major_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_COST_STRUGGLE_PHASE_CONCILIATION
+			}
+		}
+		if = { # Post Struggle cost
+			limit = {
+				scope:attacker = {
+					exists = scope:attacker.house
+					scope:attacker.house = {
+						OR ={
+							has_house_modifier = fp2_struggle_hostility_house_combined_modifier
+							has_house_modifier = fp2_struggle_hostility_house_faith_modifier
+							has_house_modifier = fp2_struggle_hostility_house_culture_modifier
+						}
+					}
+				}
+			}
+			add = {
+				every_in_list = {
+					list = target_titles
+					limit = { tier = tier_county }
+					add = {
+						value = major_prestige_value
+					}
+				}
+				multiply = {
+					value = 0.9
+					every_in_list = {
+						list = target_titles
+						limit = { tier = tier_county }
+						add = {
+							value = 0.1
+						}
+					}
+					max = 2
+				}
+				desc = CB_BASE_COST
+			}
+		}
+	}
+}
+
+oe_expel_interloper_ai_targeting_value = {
+	value = 100
+	scope:attacker = {
+		# Weight up religious enemies.
+		if = {
+			limit = {
+				faith = {
+					faith_hostility_level = {
+						target = scope:defender.faith
+						value > faith_astray_level
+					}
+				}
+			}
+			add = 100
+		}
+		# Weight up culture enemies.
+		if = {
+			limit = {
+				culture = {
+					cultural_acceptance = {
+						target = scope:defender.culture
+						value < -25
+					}
+				}
+			}
+			add = 100
+		}
+	}
+	# Weight up with interloper land
+	scope:defender = {
+		every_realm_county = {
+			limit = { target_is_de_jure_liege_or_above = title:e_celestia }
+			add = fp2_expel_interloper_county_cost_value
+		}
+	}
+}
+
+##### Struggle Ending Decisions #####
+
+### Common
+
+# Counts every county in region, to check against
+struggle_tartaria_ending_ending_decision_region_total_value = {
+	value = 0
+	every_county_in_region = {
+		region = world_struggle_tartaria
+		add = 1
+	}
+}
+
+# Counts independent involved realms in Iberia, to compare
+struggle_tartaria_ending_ending_decision_foreign_realm_total_value = {
+	value = 0
+	struggle:tartaria_struggle = {
+		every_involved_ruler = {
+			limit = {
+				NOT = { this = root }
+				is_independent_ruler = yes
+				primary_title = { is_holy_order = no }
+				primary_title = { is_mercenary_company = no }
+			}
+			add = 1
+		}
+	}
+}
+
+# Counts completely controlled de jure kingdoms of Hispania
+oe_struggle_ending_kingdom_counter_value = {
+	every_held_title = {
+		limit = {
+			tier = tier_kingdom
+			de_jure_liege = title:e_celestia
+			root = { completely_controls = prev }
+		}
+		add = 1
+	}
+}
+
+### Compromise 
+
+# Counter for controlled counties in Iberia
+struggle_tartaria_ending_compromise_decision_region_owned_value = {
+	value = 0
+	every_county_in_region = {
+		region = world_struggle_tartaria
+		limit = { holder.top_liege = root }
+		add = 1
+	}
+}
+
+struggle_tartaria_ending_compromise_decision_independent_counter_value = {
+	value = 0
+	struggle:iberian_struggle = {
+		every_involved_ruler = {
+			limit = {
+				NOT = { this = root }
+				is_independent_ruler = yes
+				primary_title = {
+					is_mercenary_company = no
+					is_holy_order = no
+					tier >= tier_empire
+				}
+			}
+			add = 1
+		}
+	}
+}
+
+# Percentage of Iberian counties owned
+struggle_tartaria_ending_compromise_decision_region_owned_percent_value = {
+	value = struggle_tartaria_ending_compromise_decision_region_owned_value
+	divide = struggle_tartaria_ending_ending_decision_region_total_value
+	multiply = 100
+}
+
+# Parameter for mininmum opinion
+struggle_tartaria_ending_compromise_decision_opinion_value = {
+	value = 60
+}
+
+### Conciliation
+
+# Counter for allied Involved rulers 
+struggle_tartaria_ending_conciliation_decision_alliance_counter_value = {
+	value = 0
+	struggle:tartaria_struggle = {
+		every_involved_ruler = {
+			limit = {
+				NOT = { this = root }
+				is_independent_ruler = yes
+				primary_title = { is_holy_order = no }
+				primary_title = { is_mercenary_company = no }
+				is_allied_to = root
+			}
+			add = 1
+		}
+	}
+}
+
+fp2_struggle_secure_tartaria_foothold_faith_percent_value = {
+	value = fp2_struggle_secure_tartaria_foothold_faith_value
+	divide = fp2_struggle_secure_tartaria_foothold_faith_total_value
+	multiply = 100
+}
+
+fp2_struggle_secure_tartaria_foothold_faith_value = {
+	value = 0
+	if = {
+		limit = { exists = scope:tartaria_kingdom_temp }
+		scope:tartaria_kingdom_temp = {
+			every_de_jure_county = {
+				limit = { faith = holder.top_liege.faith }
+				add = 1
+			}
+		}
+	}
+	min = 1
+}
+
+fp2_struggle_secure_tartaria_foothold_faith_total_value = {
+	if = {
+		limit = { exists = scope:tartaria_kingdom_temp }
+		scope:tartaria_kingdom_temp = {
+			every_de_jure_county = { add = 1 }
+		}
+	}
+	min = 1
+}
+
+oe_expel_interloper_ai_targeting_value = {
+	value = 100
+	scope:attacker = {
+		# Weight up religious enemies.
+		if = {
+			limit = {
+				faith = {
+					faith_hostility_level = {
+						target = scope:defender.faith
+						value > faith_astray_level
+					}
+				}
+			}
+			add = 100
+		}
+		# Weight up culture enemies.
+		if = {
+			limit = {
+				culture = {
+					cultural_acceptance = {
+						target = scope:defender.culture
+						value < -25
+					}
+				}
+			}
+			add = 100
+		}
+	}
+	# Weight up with interloper land
+	scope:defender = {
+		every_realm_county = {
+			limit = { target_is_de_jure_liege_or_above = title:e_mongolia }
+			add = 25
+		}
+	}
+}
+
+# Uses above to plug in to script as a decimal
+oe_struggle_compromise_owned_percent_decimal_value = { 
+	value = 70
+	divide = 100
+	max = 1
+}

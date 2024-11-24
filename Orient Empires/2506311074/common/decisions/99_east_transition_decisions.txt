@@ -1,0 +1,955 @@
+﻿#部落转封建（原版）
+#封建转军镇
+#部落全地产转封建（原版）
+#部落全地产转军镇
+#民州转军府
+#军府转藩镇
+#帝王采纳律令制
+
+#封建转军镇
+convert_to_legion_government_decision = { 
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = major
+	sort_order = 80
+	desc = convert_to_legion_government_decision_desc
+	
+	ai_check_interval = 36
+	
+	is_shown = {
+		OR = {
+			any_liege_or_above = { 
+				culture = { has_cultural_pillar = heritage_chinese }
+			}
+			culture = { has_cultural_pillar = heritage_yamato }
+			any_neighboring_top_liege_realm_owner = { has_title = title:e_celestia }
+			liege = {
+				OR = {
+					government_has_flag = government_is_celestial
+					government_has_flag = government_is_legion
+				}
+			}
+		}
+		OR = {
+			AND = { 
+				vassal_contract_has_flag = imperial_contract_1
+				vassal_contract_has_flag = imperial_legion_2
+			}
+			government_has_flag = government_is_feudal
+			government_has_flag = government_is_clan
+		}
+		capital_province ?= { geographical_region = world_asia }
+		is_independent_ruler = no
+	}
+	
+	is_valid = {
+		prestige_level >= high_prestige_level
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}		
+	}
+	
+	cost = {
+		prestige = 350
+	}
+	
+	effect = {
+		change_government = legion_government
+		add_realm_law_skip_effects = legion_succession_law
+	}
+	
+	ai_potential = {
+		culture = { has_cultural_pillar = heritage_yamato }
+	}
+	
+	ai_will_do = {
+		base = 100
+		modifier = { #Go for the more lenient decision if this is the case
+			add = -25
+			liege = { government_has_flag = government_is_feudal }  
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = -50
+			liege = { government_has_flag = government_is_tribal } 
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = -100
+			liege = { government_has_flag = government_is_celestial } 
+		}
+	}
+}
+
+#部落转军镇
+convert_whole_realm_to_legion_decision = { 
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = major
+	sort_order = 80
+	desc = convert_whole_realm_to_legion_decision_desc
+
+	ai_check_interval = 30
+
+	is_shown = {
+		highest_held_title_tier < tier_empire
+		government_has_flag = government_is_tribal
+		is_independent_ruler = no
+		liege = {
+			OR = {
+				government_has_flag = government_is_celestial
+				government_has_flag = government_is_legion
+			}
+		}
+	}
+
+	is_valid = {
+		has_realm_law = tribal_authority_3
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 3
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+		OR = {
+			top_liege = {
+				AND = {
+					culture = { has_cultural_pillar = heritage_chinese }
+					has_title = title:e_celestia
+				}
+			}
+			any_neighboring_top_liege_realm_owner = { 
+				AND = {
+					culture = { has_cultural_pillar = heritage_chinese }
+					has_title = title:e_celestia
+				}
+			}
+		}
+		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
+			text = has_all_tribal_innovations
+			subject = root.culture
+			culture = {
+				calc_true_if = {
+					amount >= 9
+					has_innovation = innovation_motte
+					has_innovation = innovation_catapult
+					has_innovation = innovation_barracks
+					has_innovation = innovation_mustering_grounds
+					has_innovation = innovation_bannus
+					has_innovation = innovation_quilted_armor
+					has_innovation = innovation_gavelkind
+					has_innovation = innovation_crop_rotation
+					has_innovation = innovation_city_planning
+					has_innovation = innovation_casus_belli
+					has_innovation = innovation_plenary_assemblies
+					has_innovation = innovation_ledger
+					has_innovation = innovation_development_01
+					has_innovation = innovation_currency_01
+				}
+			}
+		}
+	}
+
+	cost = {
+		prestige = 1000
+		piety = 500
+	}
+
+	effect = {
+		change_government = legion_government
+		add_realm_law_skip_effects = legion_succession_law
+
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	ai_potential = {
+		NOT = { has_title = title:e_mongol_empire } #Stop the Mongols from slowing their conquest.
+	}
+
+	ai_will_do = {
+		base = 10
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 200
+			liege = { government_has_flag = government_is_celestial } 
+		}
+	}
+}
+
+#请封军府
+convert_to_milita_contract_decision = { 
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	title = convert_to_milita_contract_decision
+	confirm_text = convert_to_milita_contract_decision_confirm
+	decision_group_type = admin
+	desc = convert_to_milita_contract_decision_desc
+	selection_tooltip = convert_to_milita_contract_decision_tooltip
+	sort_order = 75
+	ai_check_interval = 720
+	
+	is_shown = {
+		government_has_flag = government_is_celestial
+		NOT = { vassal_contract_has_flag = imperial_contract_1 }
+		is_ai = no
+		is_independent_ruler = no
+	}
+	
+	is_valid = {
+		OR = {
+			prestige_level >= 3
+			dynasty = { dynasty_prestige_level >= 2 }
+		}
+		OR = {
+			custom_description = {
+				text = perks_in_martial_lifestyle_10
+				perks_in_martial_lifestyle >= 10
+			}
+			has_trait = education_martial
+			AND = {	
+				custom_description = {
+					text = perk_points_assigned_11
+					perk_points_assigned > 11
+				}
+				custom_description = {
+					text = perks_in_tree_chivalry				
+						perks_in_tree = {
+							tree = chivalry
+							value > 8
+						}
+				}
+			}
+			OR = {
+				top_liege = { has_realm_law = imperial_bureaucracy_0 }
+				top_liege = { has_realm_law = imperial_bureaucracy_1 }
+			}
+		}
+	}
+	is_valid_showing_failures_only = {
+		is_available_adult = yes
+		top_liege = { is_available_adult = yes }
+	}
+	cost = {
+		prestige = 450
+	}
+	
+	effect = {
+		start_travel_plan = {
+			destination = top_liege.capital_province
+			companion = scope:companion1
+			companion = scope:companion2
+			companion = scope:companion3
+			on_start_on_action = bureaucracy_start
+			on_travel_planner_cancel_on_action = pay_homage_travel_planner_exit
+			on_arrival_event = bureaucracy.0011
+			on_arrival_destinations = all_but_last
+		}
+	}
+	
+	
+	ai_potential = {
+		is_ruler = yes
+	}
+	
+	ai_will_do = {
+		base = 0
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			prestige_level > 3
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			OR = {
+				has_trait = ambitious
+				has_trait = arrogant
+				ai_greed >= 50
+				ai_honor >= 40
+			}
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 50
+			perks_in_martial_lifestyle > 18
+		}
+	}
+}
+
+#请封藩镇
+transfer_to_legion_contract_decision = { 
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	title = transfer_to_legion_contract_decision
+	confirm_text = transfer_to_legion_contract_decision_confirm
+	desc = transfer_to_legion_contract_decision_desc
+	selection_tooltip = transfer_to_legion_contract_decision_tooltip
+	sort_order = 75
+	ai_check_interval = 720
+	
+	is_shown = {
+		government_has_flag = government_is_celestial
+        vassal_contract_has_flag = imperial_contract_1
+		NOT = { vassal_contract_has_flag = imperial_legion_2 }
+		is_ai = no
+		is_independent_ruler = no
+	}
+	
+	is_valid = {
+		OR = {
+			is_powerful_vassal = yes
+			prestige_level >= max_prestige_level
+		}
+		OR = {
+			custom_description = {
+				text = perks_in_martial_lifestyle_20
+				perks_in_martial_lifestyle >= 20
+			}	
+			AND = {
+				custom_description = {
+					text = perk_points_assigned_20
+					perk_points_assigned > 20
+				}
+				custom_description = {
+					text = perks_in_tree_strategy
+					perks_in_tree = {
+						tree = strategy
+						value > 8
+					}
+				}
+				custom_description = {
+					text = perks_in_tree_authority
+					perks_in_tree = {
+						tree = authority
+						value > 8
+					}
+				}
+			}
+		}
+		OR = {
+			top_liege = { has_realm_law = imperial_bureaucracy_0 }
+			top_liege = { has_realm_law = imperial_bureaucracy_1 }
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		is_available_adult = yes
+		top_liege = { is_available_adult = yes }
+	}
+	
+	cost = {
+		prestige = 1000
+	}
+	
+	effect = {
+		start_travel_plan = {
+			destination = top_liege.capital_province
+			companion = scope:companion1
+			companion = scope:companion2
+			companion = scope:companion3
+			on_start_on_action = bureaucracy_start
+			on_travel_planner_cancel_on_action = pay_homage_travel_planner_exit
+			on_arrival_event = bureaucracy.0012
+			on_arrival_destinations = all_but_last
+		}
+	}
+	
+	
+	ai_potential = {
+		is_ruler = yes
+	}
+	
+	ai_will_do = {
+		base = 0
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			prestige_level >= 3
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 15
+			dynasty = { dynasty_prestige_level >= 5 }
+		}
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 50
+			perks_in_martial_lifestyle >= 27
+		}
+	}
+}
+
+#封建军镇转律令
+adopt_celestial_government_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	sort_order = 80
+	ai_check_interval = 90
+
+	desc = adopt_celestial_government_decision_desc
+	selection_tooltip = adopt_celestial_government_decision_tooltip
+
+	is_shown = {
+		NOR = {
+			government_has_flag = government_is_celestial
+		}
+		OR = {
+			is_independent_ruler = yes
+			top_liege = { government_has_flag = government_is_celestial }
+		}
+		OR = {
+			culture = { has_cultural_pillar = heritage_chinese }
+			top_liege = { has_title = title:e_celestia }
+			any_neighboring_and_across_water_top_liege_realm_owner = { 
+				culture = { has_cultural_pillar = heritage_chinese }
+				has_title = title:e_celestia
+				in_diplomatic_range = root
+			}
+		}
+	}
+
+	is_valid = {
+			highest_held_title_tier >= tier_duchy
+			has_realm_law = crown_authority_3
+			NOT = { government_has_flag = government_is_landless_adventurer }
+			capital_province.county = {
+				development_level >= convert_to_feudalism_development_requirement
+			}
+			OR = {
+				OR = {
+					culture = { has_cultural_pillar = heritage_chinese }
+					culture = {
+						cultural_acceptance = {
+							target = culture:han
+							value >= 100
+						}
+					}
+				}
+				top_liege = { has_title = title:e_celestia }
+				AND = {
+					highest_held_title_tier <= tier_kingdom
+					any_neighboring_top_liege_realm_owner = { 
+						culture = { has_cultural_pillar = heritage_chinese }
+						has_title = title:e_celestia
+					}
+				}
+				AND = {
+					government_has_flag = government_is_ulus
+					capital_province ?= {
+						geographical_region = world_asia_china
+					}
+				}
+				AND = {
+					any_neighboring_top_liege_realm_owner = { 
+						is_oe_imperial_government_trigger = yes
+					}
+					capital_province ?= {
+						geographical_region = world_asia_china
+					}
+				}
+			}
+	}
+
+	is_valid_showing_failures_only = {
+		is_at_war = no
+	}
+
+	cost = {
+		prestige = 500
+	}
+
+	effect = {
+		change_to_celes_government_effect = yes
+		
+		add_realm_law_skip_effects = tradition_succession_law
+	}
+	
+	ai_potential = {
+		NOT = { has_title = title:e_mongol_empire } #Stop the Mongols from slowing their conquest.
+	}
+
+	ai_will_do = {
+		base = 30
+	}
+}
+
+#转二元政体
+convert_whole_realm_to_ulus_decision = { 
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = imperial
+	sort_order = 80
+	desc = convert_whole_realm_to_ulus_decision_desc
+
+	ai_check_interval = 100
+
+	is_shown = {
+		highest_held_title_tier >= tier_kingdom
+		OR = {
+			government_has_flag = government_is_tribal
+			government_has_flag = government_is_legion
+			government_has_flag = government_is_clan
+		}
+		is_independent_ruler = yes
+		OR = {
+			capital_province ?= { geographical_region = world_steppe_cathay }
+			capital_province ?= { geographical_region = world_steppe }
+		}
+	}
+
+	is_valid = {
+		trigger_if = {
+			limit = { government_has_flag = government_is_tribal }
+			has_realm_law = tribal_authority_3
+		}
+		trigger_else_if = {
+			limit = { NOT = { government_has_flag = government_is_tribal } }
+			has_realm_law = crown_authority_3
+		}
+		
+		prestige_level >= 3
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+		OR = {
+			culture = { has_cultural_tradition = tradition_steppe_tolerance }
+			culture = { has_cultural_tradition = tradition_horse_lords }
+			culture = { has_cultural_tradition = tradition_horse_breeder }
+			has_title = title:e_cathay
+		}
+		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
+			text = has_all_tribal_innovations
+			subject = root.culture
+			culture = {
+				calc_true_if = {
+					amount >= 9
+					has_innovation = innovation_motte
+					has_innovation = innovation_catapult
+					has_innovation = innovation_barracks
+					has_innovation = innovation_mustering_grounds
+					has_innovation = innovation_bannus
+					has_innovation = innovation_quilted_armor
+					has_innovation = innovation_gavelkind
+					has_innovation = innovation_crop_rotation
+					has_innovation = innovation_city_planning
+					has_innovation = innovation_casus_belli
+					has_innovation = innovation_plenary_assemblies
+					has_innovation = innovation_ledger
+					has_innovation = innovation_development_01
+					has_innovation = innovation_currency_01
+				}
+			}
+		}
+	}
+
+	cost = {
+		prestige = 500
+		piety = 500
+	}
+
+	effect = {
+		change_government = ulus_government
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+
+#A decision to feudalize the entire realm (wow!)
+convert_whole_realm_to_feudalism_decision = { #by Linnéa Thimrén
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = major
+	sort_order = 80
+	desc = convert_whole_realm_to_feudalism_decision_desc
+
+	ai_check_interval = 36
+
+	is_shown = {
+		government_has_flag = government_is_tribal
+		OR = {
+			is_independent_ruler = yes
+			AND = {
+				is_independent_ruler = no
+				liege = {
+					NOR = {
+						government_has_flag = government_is_feudal
+						government_has_flag = government_is_clan
+					}
+				}
+			}
+		}
+	}
+
+	is_valid = {
+		has_realm_law = tribal_authority_3
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 2
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
+			text = has_all_tribal_innovations
+			subject = root.culture
+			culture = {
+				calc_true_if = {
+					amount >= 9
+					has_innovation = innovation_motte
+					has_innovation = innovation_catapult
+					has_innovation = innovation_barracks
+					has_innovation = innovation_mustering_grounds
+					has_innovation = innovation_bannus
+					has_innovation = innovation_quilted_armor
+					has_innovation = innovation_gavelkind
+					has_innovation = innovation_crop_rotation
+					has_innovation = innovation_city_planning
+					has_innovation = innovation_casus_belli
+					has_innovation = innovation_plenary_assemblies
+					has_innovation = innovation_ledger
+					has_innovation = innovation_development_01
+					has_innovation = innovation_currency_01
+				}
+			}
+		}
+	}
+
+	cost = {
+		prestige = 200
+	}
+
+	effect = {
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		convert_whole_realm_to_feudalism_effect = yes
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	ai_potential = {
+		NOR = {
+			has_title = title:e_mongol_empire  #Stop the Mongols from slowing their conquest.
+			has_title = title:e_cathay
+
+			culture = { has_cultural_parameter = can_recruit_open_specialist }
+			culture = { has_cultural_parameter = unlock_maa_horse_archers }
+			culture = { has_cultural_parameter = unlock_maa_mangudai }
+
+			capital_province ?= { geographical_region = world_steppe_tartaria }
+			capital_province ?= { terrain = steppe }
+		}
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+#守护神
+select_personal_deity_hinduism_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_personal_religious.dds"
+	}
+
+	desc = select_personal_deity_hinduism_decision_desc
+	selection_tooltip = select_personal_deity_hinduism_decision_tooltip
+
+	is_shown = {
+		OR = {
+			religion = religion:hinduism_religion
+			religion = religion:buddhism_religion
+		}
+		faith = {
+			has_doctrine_parameter = select_personal_god_active
+		}
+	}
+
+	is_valid = {
+	}
+
+	is_valid_showing_failures_only = {
+		# Have to at _least_ not be in piety debt.
+		piety >= 0
+	}
+
+	cooldown = { years = 2 }
+
+	effect = {
+		custom_tooltip = select_personal_deity_hinduism_decision_tt
+		trigger_event = religious_decision.0101
+	}
+
+	ai_check_interval = 96
+	
+	ai_potential = {
+		piety >= minor_piety_value
+		NOR = {
+			has_character_modifier = bhakti_hinduism_ganga
+			has_character_modifier = bhakti_hinduism_saraswati
+			has_character_modifier = bhakti_hinduism_kali
+			has_character_modifier = bhakti_hinduism_kubera
+			has_character_modifier = bhakti_vaishnavism_lakishmi
+			has_character_modifier = bhakti_vaishnavism_jagganath
+			has_character_modifier = bhakti_vaishnavism_hayagriva
+			has_character_modifier = bhakti_shaivism_parvati
+			has_character_modifier = bhakti_shaivism_virabhadra
+			has_character_modifier = bhakti_shaivism_munishwarar
+			has_character_modifier = bhakti_shaivism_dakshinamoorthy
+			has_character_modifier = bhakti_smartism_ganesha
+			has_character_modifier = bhakti_smartism_vishnu
+			has_character_modifier = bhakti_smartism_shiva
+		}
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+
+# A decision to deformalise the entire realm back into tribes.
+convert_to_tribalism_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	sort_order = 80
+	desc = convert_to_tribalism_decision_desc
+
+	ai_check_interval = 36
+
+	is_shown = {
+		is_landed = yes
+		primary_title.tier >= tier_county
+		NOT = {
+			any_held_title = {
+				tier = tier_county
+				title_province = {
+					NOT = { has_holding_type = tribal_holding }
+				}
+			}
+		}
+		OR = {
+			government_has_flag = government_is_celestial
+			government_has_flag = government_is_ulus
+			government_has_flag = government_is_feudal
+			government_has_flag = government_is_clan
+		}
+	}
+
+	is_valid = {
+		
+	}
+
+
+	effect = {
+		trigger_event = major_decisions.0200
+		change_government = tribal_government
+		add_prestige = {
+			add = -150
+		}
+
+		hidden_effect = {
+			add_character_flag = {
+				flag = just_converted_to_tribalism
+				years = 5
+			}
+		}
+	}
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+		modifier = {
+			add = -100
+			government_has_flag = government_is_ulus
+		}
+		modifier = {
+			add = -100
+			government_has_flag = government_is_celestial
+			highest_held_title_tier > tier_duchy
+		}
+	}
+}
+
+
+
+#律令制互换
+celestial_change_to_imperial_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	sort_order = 60
+	ai_check_interval = 12
+	ai_goal = yes
+
+	is_shown = {
+		has_ep3_dlc_trigger = yes
+		has_government = celestial_government
+		OR = {
+			is_independent_ruler = yes
+			is_ai = no
+		}
+		NOT = { has_character_flag = used_celestial_change_decision }
+	}
+
+	is_valid = {
+		custom_description = {
+			text = not_used_celestial_change_decision_tt
+			trigger_if = {
+				limit = { is_ai = no }
+				NOT = { has_character_flag = used_celestial_change_decision }
+			}		
+		}
+	}
+
+	is_valid_showing_failures_only = {
+	}
+
+	cost = {
+		prestige = 1
+	}
+
+	effect = {
+		celestial_change_to_imperial_with_laws_effect = yes
+		custom_tooltip = government_has_influence
+		custom_tooltip = government_has_title_men_at_arms
+		custom_tooltip = government_has_powerful_families
+
+		hidden_effect = {
+			add_character_flag = used_celestial_change_decision
+			if = {
+				limit = {
+					any_vassal_or_below = {
+						exists = yes
+					}
+				}
+				every_vassal_or_below = {
+					limit = {
+						has_government = celestial_government
+						primary_title = {
+							is_landless_type_title = no
+						}
+					}
+					celestial_change_to_imperial_with_laws_effect = yes
+				}
+			}
+		}
+	}
+	
+	ai_potential = {
+		is_independent_ruler = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+#
+imperial_change_to_celestial_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	sort_order = 60
+
+	is_shown = {
+		has_ep3_dlc_trigger = yes
+		has_government = imperial_government
+		is_ai = no
+		NOT = { has_character_flag = used_celestial_change_decision }
+	}
+	is_valid = {
+		custom_description = {
+			text = not_used_celestial_change_decision_tt
+			trigger_if = {
+				limit = { is_ai = no }
+				NOT = { has_character_flag = used_celestial_change_decision }
+			}		
+		}
+	}
+
+	is_valid_showing_failures_only = {
+	}
+
+	cost = {
+		influence = 1
+	}
+
+	effect = {
+		imperial_change_to_celestial_with_laws_effect = yes
+		custom_tooltip = no_more_government_has_title_men_at_arms
+		custom_tooltip = no_more_government_has_powerful_families
+
+		hidden_effect = {
+			add_character_flag = used_celestial_change_decision
+			if = {
+				limit = {
+					any_vassal_or_below = {
+						exists = yes
+						has_government = imperial_government
+					}
+				}
+				every_vassal_or_below = {
+					limit = {
+						has_government = imperial_government
+						primary_title = {
+							is_landless_type_title = no
+						}
+					}
+					imperial_change_to_celestial_with_laws_effect = yes
+				}
+			}
+		}
+	}
+	
+	ai_potential = {
+		always = no
+	}
+
+	ai_will_do = {
+		base = 0
+	}
+}

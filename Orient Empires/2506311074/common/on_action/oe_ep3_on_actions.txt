@@ -1,0 +1,539 @@
+on_game_start = {
+	on_actions = {
+		celes_no_dlc_on_action
+	}
+}
+
+celes_no_dlc_on_action = {
+	effect = {
+		if = {
+			limit = {
+				has_ep3_dlc_trigger = yes
+			}
+			every_ruler = {
+				celestial_change_to_imperial_with_laws_effect = yes
+			}
+
+		}
+		else_if = {
+			limit = {
+				has_ep3_dlc_trigger = no
+			}
+			every_ruler = {
+				imperial_change_to_celestial_with_laws_effect = yes
+			}
+		}
+	}
+}
+
+on_game_start_after_lobby = {
+	on_actions = {
+		celes_no_dlc_on_action
+		oe_dynasty_on_action
+	}
+}
+
+oe_dynasty_on_action = {
+	effect = {
+		#宗族威望等级+创建家族头衔庄园		
+		every_ruler = {
+			if = {
+				limit = {
+					is_house_head = yes
+					is_landed = yes
+				}
+				if = {
+					limit = { house_member_num_even_dead > 400 }
+					dyansty ?= { add_dynasty_prestige_level = 4 }
+				}
+				else_if = {
+					limit = { house_member_num_even_dead > 200 }
+					dyansty ?= { add_dynasty_prestige_level = 3 }
+				}
+				else_if = {
+					limit = { house_member_num_even_dead > 100 }
+					dyansty ?= { add_dynasty_prestige_level = 2 }
+				}
+				else_if = {
+					limit = { house_member_num_even_dead > 50 }
+					dyansty ?= { add_dynasty_prestige_level = 1 }
+				}
+			}
+			#添加庄园		
+			# Note: anything that should be run after creation can go in on_noble_family_title_created
+			if = {
+				limit = {
+					is_landed = yes
+					exists = house
+					house.house_power_score > 50
+					highest_held_title_tier >= tier_duchy
+					government_has_flag = government_use_estate #
+					is_house_head = yes
+					top_liege ?= {
+						is_independent_ruler = yes
+						government_has_flag = government_use_estate #
+					}
+					NOR = {
+						any_held_title = { is_oe_aristocrat_title = yes }
+						house = {
+							any_house_member = {
+								any_held_title = { is_oe_aristocrat_title = yes }
+							}
+						}
+					}
+				}
+				save_scope_as = owner
+				create_noble_family_effect = yes
+				change_influence = major_influence_gain
+				domicile ?= { set_up_domicile_estate_effect = yes }
+				domicile ?= { move_domicile = scope:owner.capital_province }
+			}
+		}
+	}
+}
+
+on_title_gain = {
+	on_actions = {
+		oe_admin_effects
+	}
+}
+
+oe_admin_effects = {
+	effect = {
+		##莊園繼承
+		#if = {
+			#limit = {
+				#OR = {
+					#government_has_flag = government_is_celestial
+					#government_has_flag = government_is_bureau
+				#}
+				#OR = {
+					#scope:transfer_type = flag:inheritance
+					#scope:transfer_type = flag:abdication
+				#}
+				#OR = {
+					#scope:title = { is_oe_aristocrat_title = yes }
+					#is_house_head = yes
+				#}		
+			#}
+			#domicile ?= { set_up_domicile_estate_effect = yes }
+		#}
+		# 世族获得头衔
+		if = {
+			limit = {
+				government_has_flag = government_is_celestial
+				is_independent_ruler = no
+				scope:title.tier = tier_county
+				primary_title = { is_oe_noble_family_title = yes }
+				NOT = {
+					any_held_title = {
+						tier >= tier_duchy
+						is_landless_type_title = no
+					}
+				}
+			}
+			transfer_noble_family_title_effect = yes
+		}
+
+		# EP3 ADVENTURERS BECOMING LANDED
+		if = {
+			limit = {
+				scope:title = { is_titular = no }
+				any_held_title = { has_variable = adventurer_creation_reason }
+			}
+			save_scope_as = adventurer
+			if = {
+				limit = {
+					NOT = { has_trait = adventurer }
+				}
+				add_trait = adventurer
+			}
+			every_courtier = {
+				set_variable = {
+					name = former_camp_leader
+					value = scope:adventurer
+				}
+				add_trait = adventurer_follower
+			}
+			destroy_laamp_effect = { ADVENTURER = scope:adventurer }
+			# EP3 - Ensure NF holders are Admin
+			if = {
+				limit = {
+					scope:title = { is_oe_aristocrat_title = yes }
+					NOT = { government_has_flag = government_is_celestial }
+				}
+				change_to_celes_government_effect = yes
+			}
+		}
+		# Note: anything that should be run after creation can go in on_noble_family_title_created
+		#if = {
+			#limit = {
+				#scope:title = { is_landless_type_title = no }
+				#scope:title = { is_oe_noble_family_title = no }
+				#government_has_flag = government_use_estate #
+				#is_house_head = yes
+				#highest_held_title_tier >= tier_duchy			
+				#liege = {
+					#is_independent_ruler = yes
+					#government_has_flag = government_use_estate #
+				#}
+				#NOR = {
+					#any_held_title = { is_oe_noble_family_title = yes }
+					#house = {
+						#any_house_member = {
+							#any_held_title = { is_oe_noble_family_title = yes }
+						#}
+					#}
+				#}
+			#}
+			#oe_create_noble_family_effect = yes
+			#if = {
+				#limit = { has_domicile = no }
+				#domicile ?= { set_up_domicile_estate_effect = yes }
+			#}		
+		#}
+		# EP3 - Ensure Emperor keeps old realm capital in admin realms & apply unique domicile building bonus if appropriate
+		#if = {
+			#limit = {
+				#government_has_flag = government_is_celestial #
+				#is_independent_ruler = yes
+				#highest_held_title_tier >= tier_empire
+			#}
+			#if = { # Ensure we keep the old realm capital
+				#limit = {
+					#scope:title = {
+						#tier = tier_empire
+						#NOT = { title_capital_county = root.capital_county }
+						## Constantinople must have been inherited
+						#title_capital_county.holder = root
+					#}
+				#}
+				#set_realm_capital = scope:title.title_capital_county
+			#}
+			#if = { # Get legitimacy from Reception Hall House Bonus
+				#limit = {
+					#house = { has_variable = ep3_legacy_legitimacy_counter }
+					#primary_title = scope:title
+				#}
+				#trigger_event = {
+					#id = ep3_admin_events.0010
+					#days = 1
+				#}
+			#}
+		#}
+		# EP3 - Fire a became governor event
+		#else_if = {
+			#limit = {
+				#government_has_flag = government_is_celestial #
+				#is_independent_ruler = no
+				#is_governor = yes
+				#any_held_title = {
+					#count < 1
+					#NOT = { this = scope:title }
+					#tier >= scope:title.tier
+					#is_landless_type_title = no
+					#is_oe_noble_family_title = no
+				#}
+			#}
+			#trigger_event = {
+				#id = ep3_admin_events.0002
+				#delayed = yes
+			#}
+		#}
+	}
+}
+
+# root - character, vassal who's liege changed government
+# Fired for all direct vassals when liege's government type changes
+#on_liege_government_change = {
+	#effect = { # Using an effect instead of a trigger here in case we want to use this outside of EP3
+		#if = {
+			#limit = {
+				#has_ep3_dlc_trigger = yes
+				#government_allows = administrative
+				##government_has_flag = government_is_administrative
+				#liege = { NOT = { government_allows = administrative } }
+			#}
+			## Save scopes for later use
+			#liege = {
+				#save_scope_as = gov_liege
+				#primary_title = { save_scope_as = gov_liege_title }
+			#}
+			#trigger_event = {
+				#id = ep3_admin_events.0003 # Event to evaluate the outcome, and trigger the correct follow-up event
+				#days = 1
+			#}
+		#}
+		#if = {
+			#limit = {
+				#has_ep3_dlc_trigger = no
+				#government_has_flag = government_is_celestial
+				#liege = { has_government = celestial_government }
+			#}
+			#change_government = celestial_government
+		#}
+	#}
+#}
+# A vassal changes their liege
+# root = vassal changing their status
+# scope:old_liege = the previous liege of the vassal
+# It is also fired for rulers gaining independence, those can be identified by checking current liege
+#on_vassal_change = {
+	#effect = {
+		##独立，获得伯爵都要销毁家主头衔?
+		#if = {
+			#limit = {
+				#OR = {
+					#liege ?= {
+						#NOT = { allows_imperial_bureaucracy = yes }
+					#}
+					#AND = {
+						#is_independent_ruler = yes
+						#primary_title.tier <= tier_duchy
+					#}
+				#}
+				#any_held_title = { is_oe_noble_family_title = yes }
+			#}
+			#every_held_title = {
+				#limit = { is_oe_noble_family_title = yes }
+				#save_scope_as = title_to_destroy
+				#root = { destroy_title = scope:title_to_destroy }
+			#}
+		#}
+		#### GOVERNORS CHANGE GOVERNMENT IF NEW LIEGE IS NOT ADMINISTRATIVE
+		#if = {
+			#limit = {
+				#exists = top_liege
+				#allows_imperial_bureaucracy = yes
+				#NOT = {
+					#top_liege = { allows_imperial_bureaucracy = yes }
+				#}
+			#}
+			#top_liege = { save_scope_as = new_liege }
+			#send_interface_message = {
+				#type = msg_government_changed
+				#title = new_liege_government_changed_title
+				#desc = new_liege_government_changed_desc
+				#right_icon = scope:new_liege
+				#admin_change_government_effect = yes
+			#}
+			#hidden_effect = {
+				## VASSALS AND BELOW
+				#every_vassal_or_below = {
+					#limit = { allows_imperial_bureaucracy = yes }
+					#send_interface_message = {
+						#type = msg_government_changed
+						#title = new_liege_government_changed_title
+						#desc = new_liege_government_changed_desc
+						#right_icon = scope:new_liege
+						#admin_change_government_effect = yes
+					#}
+				#}
+			#}
+		#}
+		#### If a admin duke-tier character becomes the top-liege's direct vassal, ensure that they have a noble family title
+		#if = {
+			#limit = {
+				#allows_imperial_bureaucracy = yes
+				#is_house_head = yes
+				#highest_held_title_tier >= tier_duchy
+				#liege = {
+					#is_independent_ruler = yes
+					#allows_imperial_bureaucracy = yes
+				#}
+				#NOR = {
+					#any_held_title = { is_oe_noble_family_title = yes }
+					#house = {
+						#any_house_member = {
+							#any_held_title = { is_oe_noble_family_title = yes }
+						#}
+					#}
+				#}
+			#}
+			#oe_create_noble_family_effect = yes
+			#domicile ?= { set_up_domicile_estate_effect = yes }
+		#}
+		#### If an admin ruler becomes independent, who are not of a high enough rank, changes government
+		#if = {
+			#limit = {
+				#liege = root # I.e. root is independent
+				#allows_imperial_bureaucracy = yes
+				#highest_held_title_tier < tier_kingdom
+			#}
+			#admin_change_government_effect = yes
+		#}
+		## Additional Flavor Title
+		#additional_flavor_check_effect = yes
+	#}
+#}
+
+#每年检查世族头衔
+yearly_playable_pulse = {
+	on_actions = {
+		oe_admin_yearly_playable_pulse
+	}
+}
+oe_admin_yearly_playable_pulse = {
+	effect = {
+		#销毁小家主
+		if = {
+			limit = {
+				is_ai = yes
+				top_liege ?= {
+					government_has_flag = government_is_celestial
+				}			
+				any_held_title = {
+					is_oe_noble_family_title = yes
+				}
+				is_landed = no
+				is_house_head = yes
+				OR = {
+					house.house_power_score < 30
+					has_domicile = no
+					NOT = { domicile ?= { is_domicile_type = estate } }
+				}
+			}
+			every_held_title = {
+				limit = {
+					is_oe_noble_family_title = yes
+				}
+				save_temporary_scope_as = family_title
+				root = { destroy_title = scope:family_title }
+			}
+		}
+		# Failsafe to ensure we don't get independent admin rulers of too low a rank (i.e. below king)
+		#if = {
+			#limit = {
+				#liege = root # I.e. root is independent
+				#government_has_flag = government_use_estate
+				#highest_held_title_tier < tier_kingdom
+			#}
+			#if = { # If we are looking at an independent landless character, let's destroy their title
+				#limit = {
+					#is_landed = no
+				#}
+				#destroy_title = primary_title
+			#}
+			#else = { # Otherwise, they change government
+				#admin_change_government_effect = yes
+				#if = {
+					#limit = {
+						#any_held_title = {
+							#is_oe_noble_family_title = yes
+						#}
+					#}
+					#every_held_title = {
+						#limit = {
+							#is_oe_noble_family_title = yes
+						#}
+						#save_temporary_scope_as = family_title
+						#root = { destroy_title = scope:family_title }
+					#}
+				#}
+			#}
+		#}
+		# Failsafe to ensure we don't have a noble family holding land without other titles - Give any held land to liege
+		if = {
+			limit = {
+				government_has_flag = government_use_estate
+				is_landed = yes
+				exists = liege
+				NOT = { liege = root }
+				any_held_title = { # They have a noble family title
+					is_oe_noble_family_title = yes
+				}
+				NOT = { # And no other high tier titles
+					any_held_title = {
+						tier >= tier_duchy
+						is_oe_noble_family_title = no
+					}
+				}
+			}
+			create_title_and_vassal_change = {
+				type = revoked
+				save_scope_as = change
+				add_claim_on_loss = no
+			}
+			every_held_title = {
+				limit = {
+					tier = tier_county
+				}
+				add_to_list = revoked_titles
+			}
+			every_in_list = {
+				list = revoked_titles
+				change_title_holder_include_vassals = {
+					holder = root.liege
+					change = scope:change
+				}
+			}
+			resolve_title_and_vassal_change = scope:change
+		}
+		#保证伪世族移交领地
+		if = {
+			limit = {
+				government_has_flag = government_is_celestial
+				is_landed = no
+				any_held_title = {
+					is_oe_noble_family_title = yes
+				}
+				any_vassal_or_below = {
+					count > 0
+				}
+			}
+			create_title_and_vassal_change = {
+				type = stepped_down
+				save_scope_as = change
+			}
+			every_vassal_or_below = {
+				if = {
+					limit = {
+						exists = primary_title.de_jure_liege.holder
+					}
+					primary_title.de_jure_liege.holder = { save_scope_as = new_liege }
+					change_liege = {
+						liege = scope:new_liege
+						change = scope:change
+					}
+				}
+				else_if = {
+					limit = {
+						exists = primary_title.de_jure_liege.title_capital_county.holder.liege
+						primary_title.de_jure_liege.title_capital_county.holder.liege = {
+							highest_held_title_tier = tier_duchy
+							is_landed = yes
+							top_liege = root.top_liege
+						}
+					}
+					primary_title.de_jure_liege.title_capital_county.holder.liege = { save_scope_as = new_liege }
+					change_liege = {
+						liege = scope:new_liege
+						change = scope:change
+					}
+				}
+				else_if = {
+					limit = {
+						exists = primary_title.de_jure_liege.title_capital_county.holder
+						primary_title.de_jure_liege.title_capital_county.holder = {
+							highest_held_title_tier = tier_duchy
+							top_liege = root.top_liege
+						}
+					}
+					primary_title.de_jure_liege.title_capital_county.holder = { save_scope_as = new_liege }
+					change_liege = {
+						liege = scope:new_liege
+						change = scope:change
+					}
+				}
+				else = {
+					change_liege = {
+						liege = root.top_liege
+						change = scope:change
+					}
+				}
+
+			}
+			resolve_title_and_vassal_change = scope:change
+		}
+	}
+}

@@ -1,0 +1,862 @@
+﻿# Liege (actor) selects a vizier to help them run the realm.
+appoint_Sekko_interaction = {
+	category = interaction_category_diarch
+	icon = icon_declare_me_regent
+
+	desc = appoint_Sekko_interaction_desc
+	interface_priority = 20
+
+	is_shown = {
+		scope:actor = {
+			# Must be able to retain a vizier.
+			has_title = title:k_yamato
+			# Plus obscure the interaction if we've already got one, else it's annoyingly redundant.
+			NOT = { has_diarchy_active_parameter = diarchy_is_primeministership }
+		}
+		# We perform this upon ourselves or our (probable) candidates.
+		scope:recipient = {
+			is_adult = yes
+			OR = {
+				this = scope:actor
+				is_courtier_of = scope:actor
+				is_vassal_of = scope:actor
+			}
+			NOT = { has_title = title:d_sekke }
+		}
+		NOT = { exists = title:d_sekke.holder }
+	}
+
+	is_valid_showing_failures_only = {
+		# You can't already be in a diarchy of any kind, or have a designated diarch.
+		scope:actor = {
+			NOR = {
+				has_active_diarchy = yes
+				exists = designated_diarch
+			}
+		}
+		# Must be of a decent tier.
+		custom_tooltip = {
+			text = appoint_vizier_interaction.tt.duchy_or_more
+			scope:actor.highest_held_title_tier >= tier_duchy
+		}
+		# Plus the usuals.
+		scope:actor = { is_available = yes }
+		# And can't have put the realm into turmoil over this recently.
+		scope:actor = {
+			NOT = { has_character_modifier = civil_service_in_chaos_modifier }
+		}
+	}
+
+	cooldown = { years = 5 }
+
+	populate_recipient_list = { sort_DaSiMa_candidates_to_list_effect = yes }
+
+	cost = {
+		prestige = major_prestige_value
+		renown = {
+			if = {
+				limit = {
+					exists = scope:secondary_recipient
+					exists = scope:actor.house
+					scope:secondary_recipient.house ?= scope:actor.house
+				}
+				add = massive_dynasty_prestige_value
+			}
+		}
+	}
+
+	auto_accept = yes
+
+	pre_auto_accept = {
+		# If we're an AI, set the secondary_recipient up for us.
+		scope:actor = {
+			if = {
+				limit = { is_ai = yes }
+				# First, we need to calc who _is_ most qualified; we don't have access to the character list any more, so reassemble it.
+				sort_DaSiMa_candidates_to_list_effect = yes
+				# Now, parse through the the list to find the best character.
+				ordered_in_list = {
+					list = characters
+					order_by = diarchy_vizier_succession_score_value
+					save_scope_as = ai_recipient
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		scope:actor = {
+			# We enter into a vizierate with scope:secondary_recipient.
+			custom_tooltip = {
+				text = appoint_Sekko_interaction.tt.enter_vizierate_with_secondary_recipient
+				start_diarchy = Sekko
+				# The player uses scope:secondary_recipient.
+				if = {
+					limit = {
+						# We use a NOT here  rather than is_ai = no because the AI was occasionally managing to bork its selection process, and the title does _not_ like setting an empty diarch, so we fallback AI who can't behave to a sub-optimal choice.
+						NOT = { exists = scope:ai_recipient }
+					}
+					set_diarch = scope:secondary_recipient
+				}
+				# Whereas the AI grabs their pre-selected candidate.
+				else = {
+					set_diarch = scope:ai_recipient
+				}
+				scope:secondary_recipient = {
+					get_title = title:d_sekke
+				}
+			}
+			# Apply opinion.
+			## AI.
+			if = {
+				limit = { exists = scope:ai_recipient }
+				scope:ai_recipient = {
+					add_opinion = {
+						target = scope:actor
+						modifier = compliment_opinion
+						opinion = 30
+					}
+					stress_impact = {
+						ambitious = minor_stress_impact_loss
+						arrogant = minor_stress_impact_loss
+						lazy = major_stress_impact_gain
+					}
+				}
+			}
+			## Player.
+			else = {
+				scope:secondary_recipient = {
+					add_opinion = {
+						target = scope:actor
+						modifier = compliment_opinion
+						opinion = 30
+					}
+					stress_impact = {
+						ambitious = minor_stress_impact_loss
+						arrogant = minor_stress_impact_loss
+						lazy = major_stress_impact_gain
+					}
+				}
+			}
+			# And get X tax jurisdictions.
+			custom_tooltip = appoint_vizier_interaction.tt.secondary_recipient_grants_tax_jurisdictions
+			# If scope:secondary_recipient isn't the most qualified candidate, we'll take a scaling negative stewardship modifier.
+			## The AI will always pick the highest scoring character, so we only do this for players - lock it off so we're not doing lots of unnecessary calculating.
+			if = {
+				limit = { is_ai = no }
+				# First, we need to calc who _is_ most qualified; we don't have access to the character list any more, so reassemble it.
+				sort_Sekko_candidates_to_list_effect = yes
+				# Now, parse through the the list to find the best character.
+				ordered_in_list = {
+					list = characters
+					order_by = diarchy_vizier_succession_score_value
+					save_scope_as = best_candidate
+				}
+				# Is our chap _the_ chap?
+				if = {
+					limit = {
+						NOT = { scope:secondary_recipient = scope:best_candidate }
+					}
+					# Ok, now display some warnings.
+					custom_tooltip = appoint_vizier_interaction.tt.secondary_recipient_is_not_best_candidate
+					add_character_modifier = {
+						modifier = civil_service_upset_modifier
+						years = 10
+					}
+				}
+			}
+			# Are they of our house?
+			if = {
+				limit = {
+					exists = scope:secondary_recipient.house
+					house ?= scope:secondary_recipient.house
+				}
+				custom_tooltip = appoint_vizier_interaction.tt.same_house_penalty
+			}
+			# If we have a designated diarch (and it's not this guy), then they're annoyed.
+			designated_diarch ?= {
+				if = {
+					limit = {
+						NOT = { this = scope:secondary_recipient }
+					}
+					add_opinion = {
+						target = scope:actor
+						modifier = appointed_vizier_over_designated_regent_opinion
+						opinion = -40
+					}
+				}
+			}
+			# Set a reminder that we appointed this vizier — the AI'll use this to help with determining whether they should remove them or not.
+			set_variable = {
+				name = my_vizier
+				value = scope:recipient
+			}
+			# Finally, let's do some stress.
+			stress_impact = {
+				trusting = massive_stress_impact_loss
+				lazy = major_stress_impact_loss
+				paranoid = minor_stress_impact_gain
+				diligent = minor_stress_impact_gain
+			}
+		}
+		# Notify about council problemos.
+		scope:secondary_recipient = {
+			if = {
+				limit = { is_councillor = yes }
+				custom_tooltip = appoint_vizier_interaction.tt.warning.vizier_replace_councillor
+			}
+		}
+		
+		# Object explorer logging.
+		scope:actor = {
+			diarch_interaction_set_or_update_global_variable_effect = { VARIABLE = di_track_appviz_accept }
+			diarch_interaction_add_to_global_list_effect = { VARIABLE_LIST = di_track_appviz_accept_actor_list }
+		}
+		scope:recipient = {
+			diarch_interaction_add_to_global_list_effect = { VARIABLE_LIST = di_track_appviz_accept_recipient_list }
+		}
+	}
+
+	# AI
+	ai_targets = { ai_recipients = self }
+	ai_frequency = 60
+	
+	ai_potential = {
+		has_title = title:k_yamato
+	}
+	
+	ai_will_do = {
+		base = 0
+
+		modifier = {
+			add = 50
+			has_title = title:d_sekke
+		}
+		modifier = {
+			add = 100
+			OR = {
+				is_grandparent_of = title:d_gosho.holder
+				is_great_grandparent_of = title:d_gosho.holder
+				any_child = {
+					any_spouse = { this = title:d_gosho.holder }
+				}
+			}
+		}
+
+		# Realm.
+		## Weight up for kings.
+		modifier = {
+			add = 50
+			highest_held_title_tier = tier_kingdom
+		}
+		## Weight up for emperors.
+		modifier = {
+			add = 75
+			highest_held_title_tier >= tier_empire
+		}
+		## Add realm size directly.
+		modifier = {
+			add = sub_realm_size
+			is_landed = yes
+		}
+
+		# Traits.
+		## +++ Lazy.
+		modifier = {
+			add = 25
+			has_trait = lazy
+		}
+		## +++ Greedy.
+		modifier = {
+			add = 25
+			has_trait = greedy
+		}
+		## ++ Humble.
+		modifier = {
+			add = 15
+			has_trait = humble
+		}
+		## ++ Content.
+		modifier = {
+			add = 15
+			has_trait = content
+		}
+		## ++ Impatient.
+		modifier = {
+			add = 15
+			has_trait = impatient
+		}
+		## + Content.
+		modifier = {
+			add = 5
+			has_trait = content
+		}
+		## + Shy.
+		modifier = {
+			add = 5
+			has_trait = shy
+		}
+		## - Gregarious.
+		modifier = {
+			add = -5
+			has_trait = gregarious
+		}
+		## -- Patient.
+		modifier = {
+			add = -15
+			has_trait = patient
+		}
+		## -- Diligent.
+		modifier = {
+			add = -15
+			has_trait = diligent
+		}
+		## --- Arrogant.
+		modifier = {
+			add = -25
+			has_trait = arrogant
+		}
+		## --- Ambitious.
+		modifier = {
+			add = -25
+			has_trait = ambitious
+		}
+	}
+}
+
+
+
+# A vassal requests their liege designate them as regent, should the need arise.
+declare_me_Sekko_interaction = {
+	category = interaction_category_diarch
+	icon = icon_declare_me_regent
+
+	desc = declare_me_Sekko_interaction_desc
+	notification_text = DECLARE_ME_REGENT_PROPOSAL
+
+	interface_priority = 20
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+
+	is_shown = {
+		# The obvious.
+		NOT = { scope:actor = scope:recipient }
+		# Only useable on your liege.
+		scope:recipient = scope:actor.liege
+		# And said-liege can't be in a regency already...
+		scope:recipient = { has_active_diarchy = no }
+		# ... or have declared you their regent already!
+		#scope:actor = { is_designated_diarch = no }
+
+		scope:actor = { is_councillor_of = scope:recipient }
+		scope:recipient = { has_title = title:k_yamato }
+	}
+
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			# Can't do if you're already expected to be regent.
+			is_designated_diarch = no
+			# Can't be too young.
+			is_adult = yes
+			# Or imprisoned.
+			is_imprisoned = no
+			# Or, for that matter, incapable.
+			NOT = { has_trait = incapable }
+		}
+		# Put a general cooldown on this stuff.
+		scope:recipient = {
+			trigger_if = {
+				limit = {
+					exists = designated_diarch
+				}
+				time_after_diarch_designated = { years >= 2 }
+			}
+		}
+	}
+
+	# No general cooldown: if your liege changes, ask away.
+	# Long specific cooldown, though. We don't want these going through constantly.
+	cooldown_against_recipient = { years = 5 }
+
+	# High cost to reduce spam.
+	cost = { prestige = 500 }
+
+	#Use hook
+	send_options_exclusive = no
+	send_option = {
+		is_valid = {
+			scope:actor = { has_usable_hook = scope:recipient }
+		}
+		flag = hook
+		localization = GENERIC_SPEND_A_HOOK
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+
+	on_accept = {
+		scope:actor = {
+			send_interface_toast = {
+				title = declare_me_regent_interaction.tt.success
+				left_icon = scope:recipient
+				# Jump the queue to become diarch.
+				scope:recipient = {
+					designate_diarch = scope:actor
+					set_diarchy_type = Sekko
+					if = {
+						limit = { NOT = { has_title = title:d_sekke } }
+						get_title = title:d_sekke
+					}
+					 
+				}
+				# This prompts some strife.
+				change_strife_opinion = major_strife_gain
+			}
+			# If you used a hook, calc some extra stuff.
+			## We move this outside of the toast because we've not got enough room for all this info in there.
+			if = {
+				limit = {
+					scope:hook = yes
+					has_usable_hook = scope:recipient
+				}
+				# Use the hook up.
+				use_hook = scope:recipient
+				# Plus scope:recipient is _very_ upset.
+				reverse_add_opinion = {
+					target = scope:recipient
+					modifier = suspicion_opinion
+					opinion = -20
+				}
+			}
+		}
+		scope:recipient = {
+			# Some folks may not be happy.
+			custom_tooltip = declare_me_regent_interaction.tt.warning.opinions.succession
+			custom_tooltip = declare_me_regent_interaction.tt.warning.opinions.courtlies
+		}
+
+		# Object explorer logging.
+		scope:actor = {
+			diarch_interaction_set_or_update_global_variable_effect = { VARIABLE = di_track_desigme_accept }
+			diarch_interaction_add_to_global_list_effect = { VARIABLE_LIST = di_track_desigme_accept_actor_list }
+		}
+		scope:recipient = {
+			diarch_interaction_add_to_global_list_effect = { VARIABLE_LIST = di_track_desigme_accept_recipient_list }
+		}
+	}
+
+	on_decline = {
+		scope:actor = {
+			send_interface_toast = {
+				title = declare_me_regent_interaction.tt.failure
+				left_icon = scope:recipient
+				# AI lose opinion of their opposite number.
+				if = {
+					limit = { is_ai = yes }
+					add_opinion = {
+						target = scope:recipient
+						modifier = insult_opinion
+						opinion = -40
+					}
+				}
+				# Even trying produces some strife.
+				change_strife_opinion = medium_strife_gain
+			}
+		}
+
+		# Object explorer logging.
+		scope:actor = {
+			diarch_interaction_set_or_update_global_variable_effect = { VARIABLE = di_track_desigme_decline }
+			diarch_interaction_add_to_global_list_effect = { VARIABLE_LIST = di_track_desigme_decline_actor_list }
+		}
+		scope:recipient = {
+			diarch_interaction_add_to_global_list_effect = { VARIABLE_LIST = di_track_desigme_decline_recipient_list }
+		}
+	}
+
+	auto_accept = {
+		scope:recipient = {
+			custom_description = {
+				text = "spending_hook"
+				subject = scope:actor
+				object = scope:recipient
+				scope:hook = yes
+			}
+		}
+	}
+
+	ai_accept = {
+		# Try to make it 0 for most interactions
+		base = 0
+
+		# Weight for dislike of current regent.
+		# Designated regent.
+		modifier = {
+			add = {
+				# Designated diarchs.
+				if = {
+					limit = {
+						designated_diarch ?= {
+							save_temporary_scope_as = diarch_successor_temp
+							save_temporary_opinion_value_as = {
+								name = recipient_opinion_temp
+								target = scope:diarch_successor_temp
+							}
+						}
+					}
+					add = scope:recipient_opinion_temp
+					# Invert to get the true total.
+					multiply = -1
+				}
+				# Expected diarchs.
+				else_if = {
+					limit = {
+						diarchy_successor ?= {
+							save_temporary_scope_as = diarch_successor_temp
+							scope:actor = {
+								save_temporary_opinion_value_as = {
+									name = recipient_opinion_temp
+									target = scope:diarch_successor_temp
+								}
+							}
+						}
+					}
+					add = scope:recipient_opinion_temp
+					# Invert to get the true total.
+					multiply = -1
+				}
+			}
+			desc = declare_me_regent_interaction.tt.opinion_of_current_regent
+		}
+		# Opinion of scope:actor.
+		opinion_modifier = {
+			who = scope:recipient
+			opinion_target = scope:actor
+			multiplier = 0.5
+		}
+		# Personality.
+		ai_value_modifier = {
+			# Meek characters are more likely to accept this.
+			ai_boldness = -0.5
+			# Characters with low energy just want to avoid all this planning.
+			ai_energy = -0.25
+		}
+		# Familial closeness.
+		## Close family get a decent boost.
+		modifier = {
+			add = 30
+			desc = declare_me_regent_interaction.tt.actor_is.close_family
+			is_close_family_of = scope:actor
+			# Make sure this isn't cancelled out by the incumbent sharing the relation.
+			diarchy_successor = {
+				NOT = {
+					is_close_family_of = scope:recipient
+				}
+			}
+		}
+		## Extended family get a minor boost.
+		modifier = {
+			add = 20
+			desc = declare_me_regent_interaction.tt.actor_is.extended_family
+			is_extended_family_of = scope:actor
+			# Make sure this isn't cancelled out by the incumbent sharing the relation.
+			diarchy_successor = {
+				NOT = {
+					is_extended_family_of = scope:recipient
+				}
+			}
+		}
+		## House members get a slight boost.
+		modifier = {
+			add = 10
+			desc = declare_me_regent_interaction.tt.actor_is.house_member
+			house = scope:actor.house
+			NOT = {
+				is_close_or_extended_family_of = scope:actor
+			}
+			# Make sure this isn't cancelled out by the incumbent sharing the relation.
+			diarchy_successor = {
+				NOT = {
+					house = scope:recipient.house
+				}
+			}
+		}
+		# Relationships.
+		## Positive.
+		modifier = {
+			add = 25
+			desc = declare_me_regent_interaction.tt.actor_is.positive_relationship
+			has_any_good_relationship_with_character_trigger = { CHARACTER = scope:actor }
+			# We don't factor for this in the designated/expected diarch 'cause the matrix of overlap'd be hellish.
+		}
+		## Negative.
+		modifier = {
+			add = -25
+			desc = declare_me_regent_interaction.tt.actor_is.negative_relationship
+			has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:actor }
+			# We don't factor for this in the designated/expected diarch 'cause the matrix of overlap'd be hellish.
+		}
+		# Succession score is a direct factor.
+		modifier = {
+			add = scope:actor.diarchy_regent_succession_score_value
+			desc = declare_me_regent_interaction.tt.actor_is.succession_score
+		}
+	}
+
+	# AI
+	ai_targets = { ai_recipients = liege }
+	ai_frequency = 150
+
+	ai_potential = {
+		# Turning off for the AI for the moment due to not being able to display who you'll offend if you do it.
+		## Should otherwise work and can be turned back on again if wished.
+		always = no
+		# Some traits lock the AI out.
+		## Calc these first 'cause they're cheaper.
+		NOR = {
+			has_trait = lazy
+			has_trait = humble
+			has_trait = content
+		}
+		OR = {
+			# Driven by traits or personality.
+			has_trait = arrogant
+			has_trait = ambitious
+			# Family think themselves worthy.
+			any_close_or_extended_family_member = { this = liege }
+		}
+	}
+
+	ai_will_do = {
+		# Most AI think this is audacious.
+		base = 0
+
+		# Weight for personality.
+		## Both modifier.
+		ai_value_modifier = {
+			# Bold, energetic characters fancy the gig.
+			ai_boldness = 0.5
+			ai_energy = 0.5
+		}
+		## And traits!
+		### These are balanced differently to the other interactions, so it's deliberate that they're not using the @values here.
+		### +++ Ambitious.
+		modifier = {
+			add = 15
+			has_trait = ambitious
+		}
+		### ++ Arrogant.
+		modifier = {
+			add = 10
+			has_trait = arrogant
+		}
+		### + Diligent.
+		modifier = {
+			add = 5
+			has_trait = diligent
+		}
+		### + Loyal.
+		modifier = {
+			add = 5
+			has_trait = loyal
+		}
+		### - Humble.
+		modifier = {
+			add = -5
+			has_trait = humble
+		}
+		### --- Content.
+		modifier = {
+			add = -15
+			has_trait = content
+		}
+		### --- Lazy.
+		modifier = {
+			add = -15
+			has_trait = lazy
+		}
+		# Weight by proximity to the ruler: close family, spouses, etc.
+		modifier = {
+			add = 25
+			OR = {
+				any_close_or_extended_family_member = { this = scope:recipient }
+				any_spouse = { this = scope:recipient }
+			}
+		}
+		# Councillors have ambitions.
+		modifier = {
+			add = 25
+			is_councillor = yes
+		}
+		# Weight for opinion of current regent.
+		modifier = {
+			add = {
+				scope:recipient = {
+					# Designated diarchs.
+					if = {
+						limit = {
+							designated_diarch ?= {
+								save_temporary_scope_as = diarch_successor_temp
+								scope:actor = {
+									save_temporary_opinion_value_as = {
+										name = actor_opinion_temp
+										target = scope:diarch_successor_temp
+									}
+								}
+							}
+						}
+						add = scope:actor_opinion_temp
+						# Invert to get the true total.
+						multiply = -1
+					}
+					# Expected diarchs.
+					else_if = {
+						limit = {
+							diarchy_successor ?= {
+								save_temporary_scope_as = diarch_successor_temp
+								scope:actor = {
+									save_temporary_opinion_value_as = {
+										name = actor_opinion_temp
+										target = scope:diarch_successor_temp
+									}
+								}
+							}
+						}
+						add = scope:actor_opinion_temp
+						# Invert to get the true total.
+						multiply = -1
+					}
+				}
+			}
+			always = yes
+		}
+		# The AI will only use a Hook if they couldn't otherwise do this
+		modifier = {
+			scope:hook = yes
+			add = -1
+		}
+	}
+}
+
+
+sekke_designate_heir_interaction = {
+	category = interaction_category_friendly
+	#common_interaction = yes
+	greeting = positive
+	icon = icon_entrench_regency	
+	desc = great_misit_waste_crown_prince_interaction_desc
+	needs_recipient_to_open = yes
+
+	populate_actor_list = {
+		scope:recipient = {
+			every_close_family_member = {
+				limit = {
+					OR = {
+						is_ruler = no
+						highest_held_title_tier <= 2
+					}
+				}
+				add_to_list = characters
+			}
+		}
+	}
+	is_shown = {
+		scope:actor = {
+			has_title = title:k_yamato
+			is_ai = no
+		}
+		scope:recipient = { 
+			has_primary_title = title:d_gosho
+		}
+	}
+	has_valid_target_showing_failures_only = {
+		scope:secondary_actor = {
+			is_incapable = no
+		}
+		NOT = {
+			scope:secondary_actor = scope:recipient.designated_heir
+		}
+	}
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			is_adult = yes
+			is_imprisoned = no
+			is_incapable = no
+		}
+	}
+	
+	cost = {
+		prestige = 200
+		piety = 200
+	}
+
+	on_accept = {
+		scope:actor = {
+			trigger_event = {
+				id = great_misit.0006
+				days = 3
+			}
+			scope:secondary_actor = {
+				set_character_faith = faith:shinto
+			}
+			scope:recipient = {
+				set_designated_heir = scope:secondary_actor
+			}
+		}
+		
+	}
+	auto_accept = yes
+}
+
+replace_tenno_interaction = {
+	category = interaction_category_friendly
+	#common_interaction = yes
+	greeting = positive
+	icon = icon_entrench_regency	
+	desc = replace_tenno_interaction_desc
+	needs_recipient_to_open = yes
+
+	is_shown = {
+		scope:actor = {
+			has_title = title:k_yamato
+			is_ai = no
+		}
+		scope:recipient = { 
+			has_primary_title = title:d_gosho
+		}
+	}
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			is_adult = yes
+			is_imprisoned = no
+			is_incapable = no
+		}
+		scope:recipient = { 
+			exists = primary_heir
+		}
+	}
+	
+	cost = {
+		prestige = 500
+		piety = 200
+	}
+
+	on_accept = {
+		scope:recipient = { 
+			oe_governor_resignation_title_transfer_effect = yes
+
+			if = {
+				limit = {
+					religion = religion:buddhism_religion
+				}
+				add_trait = hoo
+			}
+			else = {
+				add_trait = joko
+			}
+		}
+		
+	}
+	auto_accept = yes
+}
