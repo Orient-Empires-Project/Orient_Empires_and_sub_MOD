@@ -1,0 +1,141 @@
+﻿oe_make_laamp = {
+	category = interaction_category_admin
+	desc = oe_make_laamp_desc
+	use_diplomatic_range = no
+	ignores_pending_interaction_block = yes
+	icon = request_invasion_sponsorship_interaction
+
+	interface_priority = -1
+
+	is_shown = {
+		scope:actor = { is_ai = no }
+		has_dlc_feature = roads_to_power
+		NOT = {
+			exists = global_var:set_laamp_character
+		}
+
+		OR = {
+			scope:recipient = {
+				is_ai = yes
+				liege = scope:actor
+			}
+			AND = {
+				scope:recipient = {
+					is_ai = yes
+					target_is_liege_or_above = scope:actor
+				}
+				scope:actor = {
+					is_oe_imperial_court_trigger = yes
+				}
+			}
+		}
+	}
+
+	send_option = {
+		is_valid = {
+		}
+		flag = player
+		localization = SET_PLAYER_CHARACTER_RECIPIENT
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+	send_options_exclusive = no
+
+	auto_accept = yes
+
+	on_accept = {
+		scope:recipient = {
+			if = {
+				limit = { is_ruler = yes }
+				depose = yes
+			}
+			create_landless_adventurer_title_effect = {
+				REASON = flag:voluntary
+				FLAVOR_CHAR = scope:recipient
+			}
+		}
+		if = {
+			limit = { scope:player = yes }
+			random_player = {
+				set_player_character = scope:recipient
+			}	
+		}
+		set_global_variable = {
+			name = set_laamp_character
+			value = yes
+		}
+	}
+}
+
+
+oe_make_noble_family_interaction = {
+	category = interaction_category_admin
+	common_interaction = no
+	icon = powerful_family_shield
+	desc = oe_make_noble_family_interactio_desc
+
+	is_shown = {
+		scope:actor = { is_ai = no }
+		has_dlc_feature = roads_to_power
+		NOT = {
+			exists = global_var:set_nf_character
+		}
+		OR = {
+			scope:recipient = {
+				is_ai = yes
+				liege = scope:actor
+				is_ruler = no
+			}
+			AND = {
+				scope:recipient = {
+					is_ai = yes
+					target_is_liege_or_above = scope:actor
+					is_ruler = no
+				}
+				scope:actor = {
+					is_oe_imperial_court_trigger = yes
+				}
+			}
+		}
+	}
+
+	send_option = {
+		is_valid = {
+		}
+		flag = player
+		localization = SET_PLAYER_CHARACTER_RECIPIENT
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+	send_options_exclusive = no
+
+	auto_accept = yes
+	on_accept = {
+		scope:recipient = { create_noble_family_effect = yes }
+		if = {
+			limit = { scope:player = yes }
+			random_player = {
+				set_player_character = scope:recipient
+			}		
+		}
+		if = {
+			limit = {
+				OR = {
+					scope:player = yes
+					scope:actor = {
+						is_oe_imperial_government_trigger = no
+					}
+				}
+				set_global_variable = {
+					name = set_nf_character
+					value = yes
+				}
+			}
+		}
+
+	}
+}
