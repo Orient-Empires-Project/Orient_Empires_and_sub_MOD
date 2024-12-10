@@ -31,7 +31,7 @@ types window{
 				name = "tab_position_open"
 				tooltip = "Label_Celestial_Empire"
 				datacontext = "[GetScriptedGui('is_china_government_or_vassal')]"
-				visible = "[And(Not(IsObserver), ScriptedGui.IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End))]"
+				visible = "[ScriptedGui.IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 				blockoverride "maintab_button"
 				{
 					texture = "gfx/interface/icons/china_symbol_frame.dds"
@@ -86,7 +86,7 @@ types window{
 			widget_hud_main_tab = {
 				name = "tab_great_misit_open"
 				datacontext = "[GetScriptedGui('is_china_government_or_vassal')]"
-				visible = "[And(Not(IsObserver), ScriptedGui.IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End))]"
+				visible = "[ScriptedGui.IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 
 				tooltip = "PLAYER_GREAT_MISIT_TOOLTIP"
 				using = tooltip_ne
@@ -119,6 +119,7 @@ types window{
 		size = { 1800 800 }
 		position = { 0 0 }
 		layer = windows_layer
+		filter_mouse = all
 		visible = "[GetVariableSystem.Exists( 'china_tab_open' )]"
 
 		using = Background_Rice_paper
@@ -1464,9 +1465,8 @@ types window{
 
 		hbox = {
 			spacing = 20
-
-
 			widget_china_councillor_item = {
+				size = { 450 260 }
 				layoutpolicy_horizontal = expanding
 				layoutpolicy_vertical = expanding
 				datacontext = "[AccessCouncilWindow.GetCouncillor('councillor_canzhi')]"
@@ -1480,7 +1480,39 @@ types window{
 					alpha = 0.2
 				}
 				blockoverride "regular_task" {}
+
+				blockoverride "assist_task" {
+					hbox = {
+						layoutpolicy_horizontal = expanding
+						margin = { 5 5 }
+						spacing = 3
+
+						button_standard = {
+							size = { 190 25 }
+							onclick = "[GuiCouncilPosition.ShowHideTasks]"
+							tooltip = "[GuiCouncilPosition.GetShowHideTooltip]"
+							down = "[GuiCouncilPosition.ArePotentialTasksVisible]"
+
+							text_single = {
+								datacontext = "[ActiveCouncilTask.GetTaskTypeOrDefault]"
+								parentanchor = vcenter
+								position = { 10 0 }
+								text = "[CouncilTaskType.GetName]"
+								align = nobaseline
+							}
+
+							button_change = {
+								name = "show_tasks"
+								parentanchor = right|vcenter
+								position = { -5 0 }
+								alwaystransparent = yes
+								size = { 25 25 }
+							}
+						}
+					}
+				}
 				textbox = {
+					visible = "[Not(GuiCouncilPosition.ArePotentialTasksVisible)]"
 					margin_top = 150
 					margin_right = 10
 					margin_left = 145
