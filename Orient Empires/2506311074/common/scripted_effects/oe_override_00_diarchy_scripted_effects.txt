@@ -1,0 +1,117 @@
+﻿diarch_swing_scales_guts_effect = {
+	# Influence.
+	if = {
+		limit = { scope:swing_influence = yes }
+		show_as_tooltip = {
+			change_influence = {
+				value = swing_scales_influence_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				multiply = -1
+				round = yes
+			}
+		}
+	}
+	# Prestige.
+	if = {
+		limit = { scope:swing_prestige = yes }
+		show_as_tooltip = {
+			add_prestige = {
+				value = swing_scales_prestige_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				multiply = -1
+				round = yes
+			}
+		}
+	}
+	# Piety.
+	else_if = {
+		limit = { scope:swing_piety = yes }
+		show_as_tooltip = {
+			add_piety = {
+				value = swing_scales_piety_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				multiply = -1
+				round = yes
+			}
+		}
+	}
+	# Cash.
+	else_if = {
+		limit = { scope:swing_gold = yes }
+		save_scope_value_as = {
+			name = swing_gold_value
+			value = {
+				value = swing_scales_cash_cost_value
+				# LEGITIMACY OF RULER AFFECTS COSTS FOR REGENTS
+				multiply = legitimacy_regent_swing_scale_multipler_value
+				round = yes
+			}
+		}
+		show_as_tooltip = {
+			pay_short_term_gold = {
+				target = scope:recipient
+				gold = scope:swing_gold_value
+			}
+		}
+		# Scope:actor actually loses their gold when paying the admission price for the interaction, so we silently give scope:recipient gold from nowhere instead.
+		hidden_effect = {
+			scope:recipient = { add_gold = scope:swing_gold_value }
+		}
+	}
+	# Hook.
+	else_if = {
+		limit = { scope:swing_hook = yes }
+		use_hook = scope:recipient
+	}
+	# HoF.
+	else_if = {
+		limit = { scope:swing_hof = yes }
+		show_as_tooltip = {
+			add_piety = {
+				value = swing_scales_piety_cost_value
+				multiply = -1
+			}
+			pay_short_term_gold = {
+				target = scope:actor.faith.religious_head
+				gold = swing_scales_cash_cost_value
+			}
+		}
+		# The HoF doesn't need *another* source of cash unless they're fairly minor, so we only actually pay this if they're already very low on cash.
+		hidden_effect = {
+			scope:actor.faith.religious_head = {
+				if = {
+					limit = { gold <= 1000 }
+					add_gold = scope:actor.swing_scales_cash_cost_value
+				}
+			}
+		}
+	}
+	if = {
+		limit = {
+			scope:actor = { is_diarch_of_target = scope:recipient }
+			OR = {
+				scope:swing_influence = yes
+				scope:swing_prestige = yes
+				scope:swing_piety = yes
+				scope:swing_gold = yes
+			}
+		}
+		if = {
+			limit = { scope:recipient.legitimacy_level <= 2 }
+			custom_tooltip = legitimacy_swing_scales_cheaper_tt
+		}
+		else = { custom_tooltip = legitimacy_swing_scales_dearer_tt }
+	}
+    
+
+	#宫廷影响力
+	if = {
+		limit = {
+			has_trait = great_misit
+		}
+		add_misit_power = { VALUE = 50 }
+	}
+}

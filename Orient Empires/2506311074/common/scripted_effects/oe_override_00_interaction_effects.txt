@@ -1,0 +1,109 @@
+﻿offer_vassalization_interaction_effect = {
+	create_title_and_vassal_change = {
+		type = swear_fealty
+		save_scope_as = change
+	}
+	scope:recipient = {
+		change_liege = {
+			liege = scope:actor
+			change = scope:change
+		}
+		add_opinion = {
+			modifier = became_vassal
+			target = scope:actor
+			opinion = 10
+		}
+	}
+	resolve_title_and_vassal_change = scope:change
+
+	# Special terms for feudal contracts
+	scope:recipient = {
+		if = {
+			limit = {
+				government_has_flag = government_is_feudal
+			}
+			if = {
+				limit = { scope:high_obligations = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 3 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 3 }
+					}	
+				}
+				custom_tooltip = high_obligations_taxes
+				custom_tooltip = high_obligations_levies
+			}
+			else_if = {
+				limit = { scope:low_obligations = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 1 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 1 }
+					}			
+				}
+				custom_tooltip = low_obligations_taxes
+				custom_tooltip = low_obligations_levies
+			}
+			else_if = {
+				limit = { scope:religious_exemption = yes }
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 1 }
+						vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+					}
+				}
+				custom_tooltip = normal_obligations_taxes
+				custom_tooltip = low_obligations_levies
+				custom_tooltip = religious_protection_tt
+			}
+			else = {
+				hidden_effect = {
+					if = {
+						limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+						vassal_contract_set_obligation_level = { type = feudal_government_taxes level = 2 }
+						vassal_contract_set_obligation_level = { type = feudal_government_levies level = 2 }
+					}
+				}
+				custom_tooltip = normal_obligations_taxes
+				custom_tooltip = normal_obligations_levies
+			}
+		}
+		else_if = {
+			limit = {
+				government_has_flag = government_is_clan
+				scope:religious_exemption_clan = yes
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					vassal_contract_set_obligation_level = { type = religious_rights level = 1 }
+				}
+			}
+			custom_tooltip = religious_protection_tt
+		}
+		else_if = {
+			limit = {
+				government_has_flag = government_is_celestial
+			}
+			hidden_effect = {
+				if = {
+					limit = { is_independent_ruler = no } # To avoid errors during tooltip generation (prior to the contract being generated)
+					vassal_contract_set_obligation_level = { type = special_imperial_contract level = 1 }
+					vassal_contract_set_obligation_level = { type = special_imperial_legion level = 3 }
+				}
+			}
+		}
+	}
+
+	# Struggle catalysts.
+	hidden_effect = {
+		fp3_struggle_apply_independent_vassalage_catalyst_effect = {
+			NEW_LIEGE = scope:actor
+			NEW_VASSAL = scope:recipient
+		}
+	}
+}

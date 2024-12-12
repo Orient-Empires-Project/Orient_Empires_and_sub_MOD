@@ -1,35 +1,103 @@
-﻿great_misit_ongoing = {
-	trigger = {
-		has_trait = great_misit
-		is_independent_ruler = no
-		is_ai = no
-		#faith = { religion_tag = hm_religion }
-		any_relation = {
-			type = great_misit_liege
-			is_ruler = yes
+﻿# on misit
+on_set_relation_great_misit_liege = {
+	effect = {
+		if = {
+			limit = {
+				NOT = { has_variable = misit_power }
+			}
+			set_variable = {
+				name = misit_power
+				value = 0
+			}
+		}
+		add_trait = great_misit
+		trigger_event = {
+			on_action = great_misit_after_set
+			delayed = yes
 		}
 	}
+}
+
+great_misit_after_set = {
+	trigger = {
+		exists = liege	
+	}
 	effect = {
-		trigger_event = {
-			on_action = great_misit_ongoing
-			days = { 540 720 }
+		hm_set_special_misit_port = yes
+		misit_power_value_effect = yes
+		become_great_misit_diarchy_effect = yes
+
+		scope:target = {
+			every_relation = {
+				type = great_misit
+				limit = {
+					OR = {
+						is_great_misit_trigger = no
+						NOT = { is_vassal_of = prev }
+					}
+				}
+				remove_relation_great_misit_liege = scope:target
+			}
+		}
+	}
+}
+
+great_misit_quarterly_pulse = {
+	effect = {
+		every_relation = {
+			type = great_misit_liege
+			limit = {
+				NOT = {
+					ROOT = {
+						is_vassal_of = prev
+					}
+				}
+			}
+			remove_relation_great_misit = ROOT
+			if = {
+				limit = {
+					is_great_misit_diarchy = yes
+					NOT = {
+						any_relation = {
+							type = great_misit
+							is_vassal_of = prev
+							is_great_misit_trigger = yes
+						}
+					}
+				}
+				end_diarchy = yes
+			}
+		}
+		if = {
+			limit = {
+				is_great_misit_trigger = yes
+			}
+			hidden_effect = {
+				become_great_misit_diarchy_effect = yes
+			}
+		}
+		else = {
+			if = { limit = { has_trait = great_misit } remove_trait = great_misit }
+			if = { limit = { has_trait = great_misit_administrative } remove_trait = great_misit_administrative }
+			if = { limit = { has_trait = great_misit_audience } remove_trait = great_misit_audience }
+			remove_variable = misit_power
 		}
 	}
 	random_events = {
+		chance_to_happen = 5
 		1000 = 0
-		100 = great_misit.0012 
+		100 = great_misit.0012
 		100 = great_misit.0013
 		100 = great_misit.0014
-		100 = great_misit.0015 
-		100 = great_misit.0016 
+		100 = great_misit.0015
+		100 = great_misit.0016
 		100 = great_misit.0017
 		100 = great_misit.0018
 		100 = great_misit.0019
 		100 = great_misit.0028
-		50 = great_misit.0028
 		100 = great_misit.0032
 		100 = great_misit.0033
-	}	
+	}
 }
 
 on_title_gain_inheritance = {
@@ -37,25 +105,95 @@ on_title_gain_inheritance = {
 		great_misit.0026
 	}
 }
-on_title_gain = {
+on_birth_child = {
 	events = {
-		HM.0055
-
+		great_misit.0020
 	}
 }
+on_marriage = {
+	events = {
+		great_misit.0022
+	}
+}
+on_death = {
+	events = {
+		great_misit.1010
+		great_misit.1011
+	}
+}
+on_title_gain = {
+	on_actions = {
+		great_misit_on_title_gain_effects
+	}
+}
+great_misit_on_title_gain_effects = {
+	trigger = {
+		is_great_misit_trigger = yes
+		scope:title.tier > tier_county
+		OR = {
+			scope:transfer_type = flag:created
+			scope:transfer_type = flag:usurped
+			scope:transfer_type = flag:conquest_claim
+		}
+	}
+	effect = {
+		send_interface_message = {
+			type = msg_chancellor_task_good
+			title = great_misit.1009.t
+			desc = great_misit.1009.desc
+			left_icon = root
+			right_icon = scope:title
+			add_misit_power = { VALUE = 10 }
+		}
+	}
+}
+
+on_join_war_as_secondary = {
+	on_actions = {
+		great_misit_on_join_war_as_secondary
+	}
+}
+great_misit_on_join_war_as_secondary = {
+	trigger = {
+		is_great_misit_trigger = yes
+		scope:war = {
+			trigger_if = {
+				limit = {
+					primary_attacker = ROOT.liege
+				}
+				is_attacker = ROOT
+			}
+			trigger_else_if = {
+				limit = {
+					primary_defender = ROOT.liege
+				}
+				is_defender = ROOT
+			}
+			trigger_else = {
+				always = no
+			}
+		}
+	}
+	effect = {
+		add_misit_power = { VALUE = 20 }
+	}
+}
+
 on_war_started = {
 	on_actions = {
-		great_misiton_war_started_effects
+		great_misit_on_war_started
 	}
 }
-great_misiton_war_started_effects = {
+
+great_misit_on_war_started = {
 	effect = {
 		scope:attacker = {
 			if = {
 				limit = {
 					is_great_misit_trigger = yes
 					NOT = { scope:defender = scope:attacker.liege }
-					scope:defender = {is_independent_ruler = yes }
+					scope:defender = { is_independent_ruler = yes }
+					NOT = { has_variable = great_misit_war_manager_notjoin }
 					exists = scope:attacker.liege
 				}
 				scope:war = {
@@ -66,57 +204,24 @@ great_misiton_war_started_effects = {
 		scope:defender = {
 			if = {
 				limit = {
-					has_variable = misit_liege_power
-					NOT = { scope:attacker = { has_trait = great_misit } }
+					any_vassal = {
+						has_relation_great_misit_liege = scope:defender
+						NOT = { this = scope:attacker }
+					}
 				}
 				save_scope_as = great_misit_liege
-				every_vassal = { 
-					limit = { has_trait = great_misit }
+				every_vassal = {
+					limit = {
+						has_relation_great_misit_liege = scope:defender
+						NOT = { this = scope:attacker }
+					}
 					save_scope_as = great_misit
 					trigger_event = {
-						id = HM.0056
+						id = great_misit.1021
 						days = 3
 					}
-				}		
-			}
-
-		}
-	}	
-}
-on_war_won_attacker = {
-	on_actions = {
-		great_misiton_war_won_attacker_effects
-	}
-}
-great_misiton_war_won_attacker_effects= {
-	effect = {
-		if = {
-				limit = {
-					 scope:attacker = {
-						is_great_misit_trigger = yes
-					 }
 				}
-				scope:attacker = {
-						misit_power_prestige_level_value_effact = yes
-				 }
+			}
 		}
-	}	
-}
-
-
-on_marriage = {
-	events = {
-		great_misit.0022
-	}
-}	
-on_birth_child = {
-	events = {
-		great_misit.0020
-	}
-}	
-on_death = {
-	events = {
-		HM.0053
-		HM.0054
 	}
 }
