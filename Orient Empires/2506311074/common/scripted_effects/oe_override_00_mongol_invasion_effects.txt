@@ -1,0 +1,141 @@
+﻿### MONGOL EMPIRE BREAKUP EFFECTS ###
+
+### Title creation effects
+assign_core_mongol_titles_to_heir_effect = {
+	save_temporary_scope_as = candidate
+
+	if = { # Check whether everything is grantable
+		limit = {
+			NOT = { exists = global_var:handed_out_mongolia_in_mongol_succession }
+			NOT = { exists = title:e_mongolia.holder }
+		}
+		
+		# If the character doesn't hold any titles in the relevant
+		if = {
+			limit = {
+				NOT = {
+					any_held_title = {
+						tier = tier_county
+						title_province = {
+							NOR = {
+								geographical_region = special_mongol_empire_ilkhanate_region
+								geographical_region = special_mongol_empire_golden_horde_region
+								geographical_region = special_mongol_empire_chagatai_region
+								geographical_region = special_mongol_empire_black_horde_region
+								geographical_region = special_mongol_empire_white_horde_region
+								geographical_region = special_mongol_empire_aarlud_khanate_region
+								geographical_region = special_mongol_empire_togskol_khanate_region
+								geographical_region = special_mongol_empire_baruun_khanate_region
+							}
+						}
+					}
+				}
+			}
+			scope:old_mongol_emperor = {
+				random_sub_realm_county = {
+					limit = {
+						title_province = {
+							NOR = {
+								geographical_region = special_mongol_empire_ilkhanate_region
+								geographical_region = special_mongol_empire_golden_horde_region
+								geographical_region = special_mongol_empire_chagatai_region
+								geographical_region = special_mongol_empire_black_horde_region
+								geographical_region = special_mongol_empire_white_horde_region
+								geographical_region = special_mongol_empire_aarlud_khanate_region
+								geographical_region = special_mongol_empire_togskol_khanate_region
+								geographical_region = special_mongol_empire_baruun_khanate_region
+							}
+						}
+					}
+					save_scope_as = county_to_transfer
+				}
+			}
+			create_title_and_vassal_change = {
+				type = granted
+				save_scope_as = title_change
+				add_claim_on_loss = no
+			}
+			scope:county_to_transfer = {
+				change_title_holder = {
+					holder = scope:candidate
+					change = scope:title_change
+				}
+			}
+			resolve_title_and_vassal_change = scope:title_change
+		}
+		
+		# Create and grant title
+		create_title_and_vassal_change = {
+			type = granted
+			save_scope_as = title_change
+			add_claim_on_loss = no
+		}
+		title:e_mongolia = {
+			change_title_holder = {
+				holder = scope:candidate
+				change = scope:title_change
+			}
+		}
+		resolve_title_and_vassal_change = scope:title_change
+		# Move de jure back from Mongol Empire to Mongolia
+		title:e_mongol_empire = {
+			every_in_de_jure_hierarchy = {
+				limit = {
+					tier = tier_kingdom
+				}
+				set_de_jure_liege_title = title:e_mongolia
+			}
+		}
+		oe_assign_core_mongol_titles_to_heir_effect = yes
+		
+		# Used to check whether e_mongol_empire can be safely destroyed
+		set_global_variable = {
+			name = handed_out_mongolia_in_mongol_succession
+			value = yes
+		}
+	}
+	save_scope_as = mongolia_ruler
+	add_to_list = candidate_granted_title
+	
+	every_character_war = {
+		end_war = white_peace
+	}
+	if = {
+		limit = {
+			has_title = title:e_mongolia.title_capital_county
+		}
+		set_realm_capital = title:e_mongolia.title_capital_county
+	}
+	spawn_mongol_successor_state_troops_effect = yes
+	add_gold = 1000
+	add_dread = 100
+	create_story = story_conqueror
+}
+
+
+oe_assign_core_mongol_titles_to_heir_effect = {
+	if = {
+		limit = {
+			capital_province = {
+				geographical_region = yuan_de_jure_region
+			}
+		}
+		create_title_and_vassal_change = {
+			type = granted
+			save_scope_as = title_change2
+			add_claim_on_loss = no
+		}
+		title:e_cathay = {
+			change_title_holder = {
+				holder = scope:candidate
+				change = scope:title_change2
+			}
+		}
+		resolve_title_and_vassal_change = scope:title_change2
+		if = {
+			limit = { has_title = title:e_celestia }
+			set_primary_title_to = title:e_celestia
+			merge_cathay_empire_effect = yes #销毁北朝
+		}
+	}
+}

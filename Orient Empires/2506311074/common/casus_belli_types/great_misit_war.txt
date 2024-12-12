@@ -1,0 +1,590 @@
+﻿xibixibi_realm_invasion_war = {
+	icon = fp1_varangian_adventurer_conquest
+	group = event
+
+	mutually_exclusive_titles = {
+		always = yes
+	}
+
+	allowed_for_character = {
+		NOT = {
+			government_has_flag = government_is_landless_adventurer
+		}
+	}
+
+	allowed_against_character = {
+
+	}
+	target_titles = neighbor_land_or_water
+	target_title_tier = all
+	target_de_jure_regions_above = yes
+	use_de_jure_wargoal_only = yes
+	ignore_effect = change_title_holder
+
+	should_invalidate = {
+		NOT = {
+			any_in_list = {
+				list = target_titles
+				any_in_de_jure_hierarchy = {
+					tier = tier_county
+					holder = {
+						OR = {
+							this = scope:defender
+							target_is_liege_or_above = scope:defender
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_invalidated_desc = msg_mongol_invasion_war_invalidated_message
+
+	on_invalidated = {
+
+	}
+
+	cost = {
+		piety = {
+			value = 0
+			add = common_cb_impious_piety_cost
+		}
+		prestige = {
+			add = {
+				value = 200
+				desc = CB_BASE_COST
+			}
+
+			multiply = common_cb_prestige_cost_multiplier
+
+			# Genghis Khan gets it for free
+			if = {
+				limit = { scope:attacker = { has_character_flag = is_temujin } }
+				multiply = 0
+			}
+		}
+	}
+
+	on_declaration = {
+		on_declared_war = yes
+	}
+
+	on_victory_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:attacker = { is_local_player = yes } }
+				desc = invasion_war_victory_desc_attacker
+			}
+			desc = invasion_war_victory_desc
+		}
+	}
+
+	on_victory = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+		# Legitimacy
+		add_legitimacy_attacker_victory_effect = yes
+
+		# Influence
+		add_influence_attacker_victory_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
+
+		create_title_and_vassal_change = {
+			type = conquest
+			save_scope_as = change
+			add_claim_on_loss = yes
+		}
+
+		setup_invasion_cb = {
+			titles = target_titles
+			attacker = scope:attacker
+			defender = scope:defender
+			change = scope:change
+			take_occupied = yes
+		}
+
+		resolve_title_and_vassal_change = scope:change
+
+
+		# Attacker gets Prestige Experience, Defender loses Prestige, all other participants gain Prestige based on their war contribution.
+		modify_all_participants_fame_values = {
+			WINNER = scope:attacker
+			LOSER = scope:defender
+			FAME_BASE = scope:cb_prestige_factor # Set by 'setup_invasion_cb'
+			IS_RELIGIOUS_WAR = no
+			WINNER_FAME_SCALE = 10
+			LOSER_FAME_SCALE = -10
+			WINNER_ALLY_FAME_SCALE = 10
+			LOSER_ALLY_FAME_SCALE = 10
+		}
+
+		# Prestige level progress for the attacker
+		scope:attacker = {
+			add_prestige_experience = {
+				value = mongol_invasion_cb_prestige_experience_gain
+			}
+			trigger_event = {
+				id = great_misit.0044
+				days = 3
+			}
+		}
+
+		# Truce
+		add_truce_attacker_victory_effect = yes
+
+		# FP1: note the victory for future memorialisation via stele (if applicable).
+		scope:attacker = { fp1_remember_recent_conquest_victory_effect = yes }
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_white_peace_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = invasion_war_white_peace_desc_defender
+			}
+			desc = invasion_war_white_peace_desc
+		}
+	}
+
+	on_white_peace = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+
+		#EP2 accolade glory gain for doing ok against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_low_effect = yes }
+		scope:defender = { accolade_defender_war_end_glory_gain_med_effect = yes }
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:attacker # Not important as the scales are identical
+			FAME_BASE = major_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		# Truce
+		add_truce_white_peace_effect = yes
+
+		scope:attacker = {
+			add_prestige = mongol_invasion_cb_prestige_white_peace
+			stress_impact = {
+				ambitious = medium_stress_impact_gain
+				arrogant = medium_stress_impact_gain
+			}
+		}
+
+		scope:defender = {
+			stress_impact = {
+				arrogant = medium_stress_impact_gain
+			}
+		}
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_defeat_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = invasion_war_white_peace_desc_defender
+			}
+			desc = invasion_war_white_peace_desc
+		}
+	}
+
+	on_defeat = {
+		scope:attacker = {
+			show_pow_release_message_effect = yes
+			depose = yes
+		}
+
+		# Legitimacy
+		add_legitimacy_attacker_defeat_effect = yes
+
+		# Influence
+		add_influence_attacker_defeat_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:defender = { accolade_defender_war_end_glory_gain_high_effect = yes }
+
+		# Prestige loss for the attacker
+		scope:attacker = {
+			pay_short_term_gold_reparations_effect = {
+				GOLD_VALUE = 5
+			}
+			add_prestige = {
+				value = massive_prestige_value
+				multiply = -1.0
+			}
+		}
+
+		setup_invasion_cb = {
+			titles = target_titles
+			attacker = scope:attacker
+			defender = scope:defender
+			claimant = scope:claimant
+			victory = no
+		}
+
+		# Attacker loses Prestige, all other war participants gain Prestige (Defender gains full prestige, all allies on both sides gain based on war contribution).
+		modify_all_participants_fame_values = {
+			WINNER = scope:defender
+			LOSER = scope:attacker
+			FAME_BASE = scope:cb_prestige_factor # Set by 'setup_claim_cb'
+			IS_RELIGIOUS_WAR = no
+			WINNER_FAME_SCALE = scale_10_war_defender_win
+			LOSER_FAME_SCALE = -10
+			WINNER_ALLY_FAME_SCALE = 10
+			LOSER_ALLY_FAME_SCALE = 10
+		}
+
+		add_truce_attacker_defeat_effect = yes
+
+		scope:attacker = {
+			save_temporary_scope_as = loser
+		}
+		on_lost_aggression_war_discontent_loss = yes
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	transfer_behavior = transfer
+
+	on_primary_attacker_death = inherit
+	on_primary_defender_death = inherit
+
+	attacker_allies_inherit = yes
+	defender_allies_inherit = yes
+
+	war_name = "XIBIXIBI_INVASION_WAR_NAME"
+	cb_name = "XIBIXIBI_INVASION_EMPIRE_CB_NAME"
+
+	interface_priority = 100
+
+	use_de_jure_wargoal_only = yes
+
+	attacker_wargoal_percentage = 0.8
+
+	attacker_wargoal_percentage = 0.8
+
+	max_defender_score_from_occupation = 150
+	max_attacker_score_from_occupation = 150
+}
+
+great_misit_vassalization_cb = {
+	group = vassalization
+	ai_only_against_neighbors = yes
+
+	allowed_for_character = {
+		#NOT = { has_trait = great_misit_audience }
+		is_adult = yes
+		is_great_misit_trigger = yes
+		NOT = {
+			government_has_flag = government_is_landless_adventurer
+		}
+	}
+	# Root is the title
+	# scope:attacker is the attacker
+	# scope:defender is the defender
+
+	allowed_for_character_display_regardless = {
+		prestige_level >= 3
+	}
+
+	allowed_against_character = {
+		scope:defender = {
+			is_independent_ruler = no
+			scope:defender.liege = scope:attacker.liege
+			#is_hm_religion = yes
+			NOR = { # Can't vassalize holy orders or Heads of Faith
+				any_held_title = {
+					is_holy_order = yes
+				}
+				AND = {
+					exists = faith.religious_head
+					faith.religious_head = root
+				}
+			}
+		}
+		scope:attacker.primary_title.tier > scope:defender.primary_title.tier # Must be lower tier
+	}
+
+	cost = {
+		piety = {
+			value = 0
+			add = common_cb_impious_piety_cost
+		}
+		prestige = {
+			value = 0
+			add = {
+				desc = CB_SIZE_OF_TARGET_REALM_COST
+				scope:defender = {
+					every_sub_realm_county = {
+						add = {
+							value = 125
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					scope:defender.primary_title = {
+						tier = tier_kingdom
+					}
+				}
+				multiply = {
+					value = 2
+					desc = CB_VASSALIZING_KING
+				}
+			}
+
+			multiply = common_cb_prestige_cost_multiplier
+		}
+	}
+
+	should_invalidate = {
+		OR = {
+			scope:defender = {
+				is_independent_ruler = yes
+			}
+			scope:attacker = {
+				is_independent_ruler = yes
+			}
+			scope:attacker.liege = {
+				NOT = {
+					this = scope:defender.liege
+				}
+			}
+			scope:defender.primary_title.tier >= scope:attacker.primary_title.tier
+		}
+	}
+
+	on_declaration = {
+		on_declared_war = yes
+		scope:attacker = {
+			add_misit_power = { VALUE = -100 }
+		}
+	}
+
+	on_invalidated_desc = msg_vassalization_war_invalidated_message
+
+	on_invalidated = {}
+
+	on_victory_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:attacker = { is_local_player = yes } }
+				desc = vassalization_cb_victory_desc_attacker
+			}
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = vassalization_cb_victory_desc_defender
+			}
+			desc = vassalization_cb_victory_desc
+		}
+	}
+
+	on_victory = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+		# Legitimacy
+		add_legitimacy_attacker_victory_effect = yes
+
+		# Influence
+		add_influence_attacker_victory_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_med_effect = yes }
+
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		scope:defender = {
+			change_liege = {
+				liege = scope:attacker
+				change = scope:change
+			}
+			resolve_title_and_vassal_change = scope:change
+		}
+
+
+		# Prestige level progress for the attacker
+		scope:attacker = {
+			add_prestige_experience = {
+				value = medium_prestige_value
+			}
+		}
+
+		# Prestige loss for the defender
+		scope:defender = {
+			add_prestige = {
+				value = medium_prestige_value
+				multiply = -1.0
+			}
+		}
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:attacker
+			FAME_BASE = major_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		# Truce
+		add_truce_attacker_victory_effect = yes
+
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_white_peace_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = vassalization_cb_white_peace_desc_defender
+			}
+			desc = vassalization_cb_white_peace_desc
+		}
+	}
+
+	on_white_peace = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+
+		#EP2 accolade glory gain for doing ok against higher ranked enemy
+		scope:defender = { accolade_defender_war_end_glory_gain_low_effect = yes }
+
+		# Prestige loss for the attacker
+		scope:attacker = {
+			add_prestige = {
+				value = minor_prestige_value
+				multiply = -1.0
+			}
+			stress_impact = {
+				ambitious = medium_stress_impact_gain
+				arrogant = medium_stress_impact_gain
+			}
+		}
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:attacker # Not important as the scales are identical
+			FAME_BASE = minor_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		scope:defender = {
+			stress_impact = {
+				arrogant = medium_stress_impact_gain
+			}
+		}
+
+		# Truce
+		add_truce_white_peace_effect = yes
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_defeat_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = vassalization_cb_white_peace_desc_defender
+			}
+			triggered_desc = {
+				trigger = {
+					scope:attacker = {
+						is_local_player = yes
+						has_targeting_faction = yes
+					}
+				}
+				desc = vassalization_cb_defeat_desc_attacker
+			}
+			desc = vassalization_cb_white_peace_desc
+		}
+	}
+
+	on_defeat = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+
+		# Legitimacy
+		add_legitimacy_attacker_defeat_effect = yes
+
+		# Influence
+		add_influence_attacker_defeat_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:defender = { accolade_defender_war_end_glory_gain_med_effect = yes }
+
+		# Prestige loss for the attacker
+		scope:attacker = {
+			pay_short_term_gold_reparations_effect = {
+				GOLD_VALUE = 3
+			}
+			add_prestige = {
+				value = major_prestige_value
+				multiply = -1.0
+			}
+		}
+
+		# Prestige for the defender
+		scope:defender = {
+			add_prestige_war_defender_effect = {
+				PRESTIGE_VALUE = medium_prestige_value
+			}
+		}
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:defender
+			FAME_BASE = major_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		scope:attacker = {
+			save_temporary_scope_as = loser
+		}
+
+		# Truce
+		add_truce_attacker_defeat_effect = yes
+
+		on_lost_aggression_war_discontent_loss = yes
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_primary_attacker_death = inherit
+	on_primary_defender_death = inherit
+
+	attacker_allies_inherit = yes
+	defender_allies_inherit = yes
+
+	war_name = "VASSALIZATION_WAR_NAME"
+	war_name_base = "VASSALIZATION_WAR_NAME_BASE"
+	cb_name = "VASSALIZATION_CB_NAME"
+	interface_priority = 59
+
+	ticking_war_score_targets_entire_realm = yes
+	max_defender_score_from_occupation = 150
+	max_attacker_score_from_occupation = 150
+	attacker_ticking_warscore = 0
+	attacker_wargoal_percentage = 0.8
+
+	max_ai_diplo_distance_to_title = 500
+	#min_ai_score = 100
+}
