@@ -128,37 +128,14 @@
 				}
 			}
 		}
-		trigger_if = {
-			limit = {
-				NOR = {
-					scope:recipient = { is_imprisoned_by = scope:actor }
-					scope:actor = { has_strong_hook = scope:recipient }
-				}
-			}
-			custom_description = {
-				text = ACTOR_REFUSAL_IS_BUREAU
-				scope:actor = {
-					NOT = { is_oe_landed_bureaucrat_trigger = yes }
-				}
-			}
-		}
+
+		oe_revoke_title_interaction_is_valid_showing_failures_only = yes
+
 		# And uhh... the sensible check.
 		scope:recipient = {
 			is_vassal_of = scope:actor
 			is_busy_in_events_localised = yes
 			NOT = { has_strong_hook = scope:actor }
-			#天皇
-			NAND = {
-				has_title = title:d_gosho
-				culture = { has_same_culture_heritage = scope:actor.culture }
-			}
-			NAND = {
-				is_ai = no #玩家流官不会被频繁剥夺
-				custom_description = {
-					text = AI_REFUSAL_IS_BUREAU
-					is_oe_landed_bureaucrat_trigger = yes
-				}
-			}
 		}
 		custom_tooltip = {
 			text = cannot_take_overt_hostile_actions_against_diarch.tt
@@ -177,22 +154,7 @@
 				NOT = { has_character_flag = flag_hostile_actions_disabled_delay }
 			}
 		}
-		trigger_if = {
-			limit = {
-				NOR = {
-					scope:recipient = { is_imprisoned_by = scope:actor }
-					scope:actor = { has_strong_hook = scope:recipient }
-				}
-			}
-			custom_description = {
-				text = ACTOR_REFUSAL_IS_BUREAU
-				scope:actor = {
-					NOT = {
-						is_oe_landed_bureaucrat_trigger = yes
-					}
-				}
-			}
-		}
+		oe_revoke_title_interaction_can_send = yes
 	}
 
 	# Highlighted in the interaction menu when right-clicking a character
@@ -395,16 +357,7 @@
 				value = yes
 			}
 		}
-		if = { # Safety flag to ensure admin revocations behave properly
-			limit = {
-				scope:actor = { government_has_flag = government_is_celestial }
-				scope:recipient = { government_has_flag = government_is_celestial }
-			}
-			save_scope_value_as = {
-				name = administrative_revocation
-				value = yes
-			}
-		}
+		oe_revoke_title_interaction_on_accept = yes
 		scope:actor = {
 			if = { # Admin has to pay an influence cost unless they have a revocation reason on the recipient
 				limit = {
@@ -652,16 +605,11 @@
 		}
 		if = {
 			limit = {
-				OR = {
-					scope:landed_title.tier != tier_barony
-					NAND = {
-						scope:actor = { has_realm_law = crown_authority_3 }
-						scope:recipient = { 
-							custom_description = {
-								text = "AI_REFUSAL_IS_BUREAU"
-								is_oe_landed_bureaucrat_trigger = yes
-							}
-						} 
+				scope:landed_title.tier != tier_barony
+				NAND = {
+					scope:actor = { has_realm_law = crown_authority_3 }
+					scope:recipient = { 
+						is_oe_landed_bureaucrat_trigger = yes
 					}
 				}
 			}
@@ -673,12 +621,9 @@
 		if = {
 			limit = {
 				NOT = {
-					scope:recipient = { 
+					scope:recipient = {
 						is_ai = yes
-						custom_description = {
-							text = "AI_REFUSAL_IS_BUREAU"
-							is_oe_landed_bureaucrat_trigger = yes
-						}
+						is_oe_landed_bureaucrat_trigger = yes
 					}
 				}
 			}
@@ -784,15 +729,9 @@
 	}
 	ai_accept = {
 		base = 0 # Try to make it 0 for most interactions
+		
+		oe_revoke_title_acceptance_modifier = yes
 
-		modifier = {
-			custom_description = {
-				text = AI_REFUSAL_IS_BUREAU
-				is_oe_landed_bureaucrat_trigger = yes
-			}
-			add = 60
-			desc = AI_REFUSAL_IS_BUREAU
-		}
 		modifier = {
 			scope:hook = yes
 			add = 40
@@ -987,6 +926,8 @@
 
 	ai_will_do = {
 		base = -1000
+
+		oe_revoke_title_chance_modifier = yes
 
 		# We want to avoid tyranny unless we've got a good reason
 		# And even if we can avoid tyranny we don't want to revoke just because we can, so this only gets us to -10
@@ -1370,21 +1311,7 @@
 			add = -5000
 			scope:recipient = { has_character_flag = is_party_baron }
 		}
-		modifier = { # The AI shouldn't ruin the player's fun
-			add = -1000
-			scope:recipient = { is_ai = no is_oe_landed_bureaucrat_trigger = yes }
-		}
-		modifier = { # 剥夺王爵
-			add = 100
-			scope:actor = {
-				is_oe_imperial_government_trigger = yes
-			}
-			#scope:actor.current_military_strength > scope:recipient.current_military_strength
-			scope:recipient = {
-				highest_held_title_tier = tier_kingdom
-				#NOT = { dynasty = scope:actor.dynasty }
-			}
-		}
+		
 		modifier = { # Avoid triggering Tyranny wars mid-war
 			factor = 0
 			scope:actor = {

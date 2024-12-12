@@ -1,0 +1,183 @@
+﻿
+##################################################
+# Convert Realm to Feudalism/Clan
+# by Linnéa Thimrén
+##################################################
+
+#A decision to feudalize the entire realm (wow!)
+# add more condition to block AI doing so
+convert_whole_realm_to_feudalism_decision = { #by Linnéa Thimrén
+	
+	sort_order = 80picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = major
+	desc = convert_whole_realm_to_feudalism_decision_desc
+
+	ai_check_interval = 36
+
+	is_shown = {
+		government_has_flag = government_is_tribal
+		OR = {
+			is_independent_ruler = yes
+			AND = {
+				is_independent_ruler = no
+				liege = {
+					NOR = {
+						government_has_flag = government_is_feudal
+						government_has_flag = government_is_clan
+					}
+				}
+			}
+		}
+	}
+
+	is_valid = {
+		has_realm_law = tribal_authority_3
+		custom_description = {
+			text = faith_is_reformed
+			subject = root
+			faith = { NOT = { has_doctrine_parameter = unreformed } }
+		}
+		prestige_level >= 2
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+
+		custom_description = { #You need to have 70% of all (non-regional/unique) tribal innovations!
+			text = has_all_tribal_innovations
+			subject = root.culture
+			culture = {
+				calc_true_if = {
+					amount >= 9
+					has_innovation = innovation_motte
+					has_innovation = innovation_catapult
+					has_innovation = innovation_barracks
+					has_innovation = innovation_mustering_grounds
+					has_innovation = innovation_bannus
+					has_innovation = innovation_quilted_armor
+					has_innovation = innovation_gavelkind
+					has_innovation = innovation_crop_rotation
+					has_innovation = innovation_city_planning
+					has_innovation = innovation_casus_belli
+					has_innovation = innovation_plenary_assemblies
+					has_innovation = innovation_ledger
+					has_innovation = innovation_development_01
+					has_innovation = innovation_currency_01
+				}
+			}
+		}
+	}
+
+	cost = {
+		prestige = 200
+	}
+
+	effect = {
+		gain_legitimizing_legend_seed_tooltip_effect = yes
+		add_character_flag = ready_to_receive_seed
+		trigger_event = major_decisions.0001
+		save_scope_as = actor
+		convert_whole_realm_to_feudalism_effect = yes
+		hidden_effect = {
+			every_vassal = {
+				trigger_event = {
+					id = major_decisions.0002
+					days = 3
+				}
+			}
+		}
+	}
+
+	# OE modified
+	ai_potential = {
+		NOR = {
+			has_title = title:e_mongol_empire  #Stop the Mongols from slowing their conquest.
+			has_title = title:e_cathay
+
+			culture = { has_cultural_parameter = can_recruit_open_specialist }
+			culture = { has_cultural_parameter = unlock_maa_horse_archers }
+			culture = { has_cultural_parameter = unlock_maa_mangudai }
+
+			capital_province ?= { geographical_region = world_steppe_tartaria }
+			capital_province ?= { terrain = steppe }
+		}
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+##################################################
+# Convert Realm to Tribalism
+# by Maxence Voleau
+##################################################
+
+# A decision to deformalise the entire realm back into tribes.
+convert_to_tribalism_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = admin
+	sort_order = 80
+	desc = convert_to_tribalism_decision_desc
+
+	ai_check_interval = 36
+
+	is_shown = {
+		is_landed = yes
+		primary_title.tier >= tier_county
+		NOT = {
+			any_held_title = {
+				tier = tier_county
+				title_province = {
+					NOT = { has_holding_type = tribal_holding }
+				}
+			}
+		}
+		OR = {
+			government_has_flag = government_is_celestial
+			government_has_flag = government_is_ulus
+			government_has_flag = government_is_feudal
+			government_has_flag = government_is_clan
+		}
+	}
+
+	is_valid = {
+		
+	}
+
+
+	effect = {
+		trigger_event = major_decisions.0200
+		change_government = tribal_government
+		add_prestige = {
+			add = -150
+		}
+
+		hidden_effect = {
+			add_character_flag = {
+				flag = just_converted_to_tribalism
+				years = 5
+			}
+		}
+	}
+
+	ai_potential = {
+		always = yes
+	}
+	# OE modified
+	ai_will_do = {
+		base = 100
+		modifier = {
+			add = -100
+			government_has_flag = government_is_ulus
+		}
+		modifier = {
+			add = -100
+			government_has_flag = government_is_celestial
+			highest_held_title_tier > tier_duchy
+		}
+	}
+}
