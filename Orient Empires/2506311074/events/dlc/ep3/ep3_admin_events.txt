@@ -559,3 +559,72 @@ ep3_admin_events.0005 = {
 		# We handle everything in the immediate
 	}
 }
+
+# Reception Hall domicile upgrade provides legitimacy
+# We put it in a delayed event to make sure that we can notify the player of the effect, so they can see it
+ep3_admin_events.0010 = {
+	hidden = yes
+
+	immediate = {
+		save_scope_as = legitimacy_gainer
+		
+		# We first send the notification of the legitimacy being granted
+		house = {
+			every_house_member = {
+				limit = { is_ai = no }
+				send_interface_message = {
+					type = event_toast_effect_good
+					title = ep3_dynasty_legacy_gain_legitimacy_effect_title
+					left_icon = root
+					right_icon = root.primary_title
+					show_as_tooltip = {
+						scope:legitimacy_gainer = { add_legitimacy = house.var:ep3_legacy_legitimacy_counter }
+					}
+				}
+			}
+		}
+		
+		# Then we add the actual legitimacy
+		add_legitimacy = house.var:ep3_legacy_legitimacy_counter
+		
+		# Finally, let's reset the counter according to building level
+		house = {
+			if = {
+				limit = {
+					house_head.domicile ?= { has_domicile_parameter = reception_hall_legitimacy_loss_04 }
+				}
+				change_variable = {
+					name = ep3_legacy_legitimacy_counter
+					multiply = 0.75
+				}
+			}
+			else_if = {
+				limit = {
+					house_head.domicile ?= { has_domicile_parameter = reception_hall_legitimacy_loss_03 }
+				}
+				change_variable = {
+					name = ep3_legacy_legitimacy_counter
+					multiply = 0.5
+				}
+			}
+			else_if = {
+				limit = {
+					house_head.domicile ?= { has_domicile_parameter = reception_hall_legitimacy_loss_02 }
+				}
+				change_variable = {
+					name = ep3_legacy_legitimacy_counter
+					multiply = 0.25
+				}
+			}
+			else_if = {
+				limit = {
+					house_head.domicile ?= { has_domicile_parameter = reception_hall_legitimacy_loss_01 }
+				}
+				change_variable = {
+					name = ep3_legacy_legitimacy_counter
+					multiply = 0
+				}
+			}
+		}
+	}
+}
