@@ -1,0 +1,1065 @@
+﻿# keep it before EP4
+window = {
+	name = "modify_vassal_contract_interaction_window"
+	parentanchor = center
+	widgetanchor = top|hcenter
+	position = { 270 -400 }
+	size = { 600 700 } # Doesn't do much cause of the set_parent_size_to_minimum below
+	layer = middle
+
+	using = Window_Background
+	using = Window_Decoration
+
+	state = {
+		name = _show
+		using = Animation_FadeIn_Quick
+		using = Sound_WindowShow_Standard
+	}
+
+	state = {
+		name = _hide
+		using = Animation_FadeOut_Quick
+		using = Sound_WindowHide_Standard
+	}
+
+	vbox = {
+		name = "window_content"
+		set_parent_size_to_minimum = yes
+		minimumsize = { 0 700 }
+
+		using = Window_Margins
+
+		datacontext = "[ModifyVassalContractInteractionWindow.GetCharacterInteractionConfirmationWindow]"
+		datacontext = "[ModifyVassalContractInteractionWindow.GetContractPreview]"
+		datacontext = "[ModifyVassalContractInteractionWindow.GetContractPreview.GetVassal]"
+
+		header_pattern_interaction = {
+			layoutpolicy_horizontal = expanding
+
+			blockoverride "header_text"
+			{
+				text_single = {
+					visible = "[Character.GetGovernment.IsType('feudal_government')]"
+					parentanchor = top|hcenter
+					text = "FEUDAL_CONTRACT"
+					using = Font_Type_Flavor
+					using = Font_Size_Big
+				}
+
+				text_single = {
+					visible = "[IsAdministrativeRuler( Character )]"
+					parentanchor = top|hcenter
+					text = "ADMINISTRATIVE_CONTRACT"
+					using = Font_Type_Flavor
+					using = Font_Size_Big
+				}
+
+				text_single = {
+					visible = "[Not(Or( Character.GetGovernment.IsType('feudal_government'), IsAdministrativeRuler( Character ) ))]"
+					parentanchor = top|hcenter
+					text = "VASSAL_CONTRACT"
+					using = Font_Type_Flavor
+					using = Font_Size_Big
+				}
+			}
+
+			blockoverride "button_close"
+			{
+				onclick = "[ModifyVassalContractInteractionWindow.Close]"
+			}
+		}
+
+		hbox = {
+			layoutpolicy_vertical = expanding
+			margin_bottom = 10
+			margin_top = -5
+
+			using = FeudalVassalBackground
+			using = NonFeudalVassalBackground
+			using = AdminVassalBackground
+
+			vbox_obligation_negotiation = {
+				name = "obligation_level_negotiation"
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				spacing = 10
+			}
+
+			vbox_contract_result_info = {
+				name = "contract_result_info"
+				spacing = 10
+				layoutpolicy_vertical = expanding
+				margin = { 10 0 }
+				margin_top = 5
+			}
+		}
+	}
+}
+
+types ModifyVassalContractsShared
+{
+	type vbox_obligation_negotiation = vbox
+	{
+		vbox_feudal_negotiation = {
+			name = "feudal_vassal_paper_contract"
+			visible = "[Character.GetGovernment.IsType('feudal_government')]"
+
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+			margin = { 20 20 }
+			spacing = 5
+
+			using = Background_Letter
+		}
+
+		vbox_clan_negotiation = {
+			name = "clan_vassal_paper_contract"
+			visible = "[Character.GetGovernment.IsType('clan_government')]"
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+			margin = { 20 20 }
+			spacing = 5
+
+			using = Background_Letter
+		}
+
+		vbox_administrative_negotiation = {
+			datacontext = "[CharacterInteractionConfirmationWindow.GetRecipient]"
+			name = "administrative_vassal_paper_contract"
+			visible = "[IsAdministrativeRuler( Character )]"
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+			margin = { 20 5 }
+		}
+
+		button_standard = {
+			name = "reset_button"
+			onclick = "[ModifyVassalContractInteractionWindow.ResetToCurrent]"
+			enabled = "[Not( ModifyVassalContractInteractionWindow.IsPreviewSameAsCurrent )]"
+			text = "RESET_CONTRACT_CHANGES"
+			using = tooltip_above
+		}
+	}
+
+	type widget_major_obligation_level = widget
+	{
+		datacontext = "[ObligationLevelLineItem.AccessItem]"
+		size = { 120 83 }
+		position = "[ObligationLevelLineTree.GetItemPosition( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+		container = {
+			parentanchor = center
+
+			widget = {
+				name = "top_pin"
+				visible = "[ObligationLevelLineItem.SetupTopWidget( PdxGuiWidget.Self )]"
+			}
+
+			widget = {
+				name = "bottom_pin"
+				visible = "[ObligationLevelLineItem.SetupBottomWidget( PdxGuiWidget.Self )]"
+			}
+		}
+
+		button_letter = {
+			size = { 100 80 }
+
+			text_single = {
+				text = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetName]"
+				visible = "[Not( ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self ) )]"
+				default_format = "#light_background"
+				parentanchor = center
+				position = {0 -3 }
+			}
+
+			text_single = {
+				text = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetName]"
+				visible = "[ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+				default_format = "#high"
+				parentanchor = center
+				position = {0 -3 }
+			}
+
+			tooltip = "[ModifyVassalContractInteractionWindow.GetObligationLevelTooltipFor( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+			onclick = "[ModifyVassalContractInteractionWindow.SelectObligationLevel( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+			down = "[ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+			enabled = "[ModifyVassalContractInteractionWindow.IsObligationLevelEnabled( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+			using = tooltip_above
+
+			background = {
+				using = Background_Area_Dark
+				visible = "[ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+			}
+
+			icon = {
+				parentanchor = top|hcenter
+				position = { 0 -5 }
+				texture = "gfx/interface/buttons/button_tree_expand.dds"
+				framesize = { 36 36 }
+				size = { 24 24 }
+				frame = 2
+				tintcolor = { 0.4 0.4 0.5 0.7 }
+				visible = "[ModifyVassalContractInteractionWindow.IsCurrentObligationLevel( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+				using = Mask_Rough_Edges
+			}
+		}
+	}
+
+	type vbox_minor_obligations_radio_list = vbox
+	{
+		background = {
+			using = Background_Area_With_Header
+			alpha = 0.75
+			margin_left = 20
+			margin_right = 20
+			margin_bottom = 0
+			margin_top = 2
+		}
+
+		item = {
+			vbox_minor_obligation_radio_item = { }
+		}
+	}
+
+	type vbox_minor_obligation_radio_item = vbox
+	{
+		datacontext = "[ObligationLevelRadioButtons.GetContainerData]"
+		visible = "[ObligationContainerData.ShouldShow( ModifyVassalContractInteractionWindow.GetContractPreview )]"
+
+		text_single = {
+			text = "[ObligationContainerData.GetName]"
+			using = Font_Size_Medium
+			default_format = "#light_background"
+		}
+
+		hbox = {
+			datamodel = "[ObligationLevelRadioButtons.Access]"
+			spacing = 20
+			margin = { 10 12 }
+
+			item = {
+				hbox_minor_obligation_radio_option = { }
+			}
+		}
+	}
+
+	type hbox_minor_obligation_radio_option = hbox
+	{
+		button_radio_label = {
+			onclick = "[ModifyVassalContractInteractionWindow.SelectObligationLevel( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+			enabled = "[ModifyVassalContractInteractionWindow.IsObligationLevelEnabled( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+			visible = "[ModifyVassalContractInteractionWindow.IsObligationLevelVisible( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+			blockoverride "radio"
+			{
+				frame = "[BoolTo1And2( ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self ) )]"
+			}
+			blockoverride "text"
+			{
+				text = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetName]"
+				default_format = "#light_background"
+			}
+
+			tooltip = "[ModifyVassalContractInteractionWindow.GetObligationLevelTooltipFor( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+		}
+
+		expand = {}
+	}
+
+	type widget_minor_obligation_checkbox_item = widget
+	{
+		datacontext = "[ObligationLevelCheckbox.GetContainerData]"
+		visible = "[ObligationContainerData.ShouldShow( ModifyVassalContractInteractionWindow.GetContractPreview )]"
+
+		background = {
+			using = Background_Area_With_Header
+			alpha = 0.75
+		}
+
+		vbox = {
+			margin_left = 10
+			spacing = 2
+
+			text_single = {
+				layoutpolicy_horizontal = expanding
+				minimumsize = { 0 33 }
+				text = "[ObligationContainerData.GetName]"
+				using = Font_Size_Medium
+				default_format = "#light_background"
+			}
+
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				alwaystransparent = no
+				spacing = 5
+
+				datacontext = "[ObligationLevelCheckbox.GetLevel( '(int32)1' )]" # First one is always no effect/disabled option
+
+				button_checkbox_label = {
+					# Order dependent, first select the unselected level then set it as the new selected one
+					onclick = "[ModifyVassalContractInteractionWindow.SelectObligationLevel( ObligationLevelCheckbox.GetLevel( ObligationLevelCheckbox.GetUnselectedLevelIndex ) )]"
+					onclick = "[ObligationLevelCheckbox.ToggleSelection]"
+
+					blockoverride "checkbox"
+					{
+						checked = "[ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+						enabled = "[ModifyVassalContractInteractionWindow.IsObligationLevelEnabled( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+					}
+
+					blockoverride "text"
+					{
+						text = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetName]"
+						default_format = "#light_background"
+					}
+				}
+
+				expand = {}
+
+				tooltip = "[ModifyVassalContractInteractionWindow.GetObligationLevelTooltipFor( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+			}
+
+			expand = {}
+		}
+	}
+
+	type hbox_sigil_and_signatures = hbox
+	{
+		coa_character_sigil = {
+			datacontext = "[VassalContract.GetLiege]"
+
+			blockoverride "size"
+			{
+				size = { 80 80 }
+			}
+			blockoverride "sigil_size"
+			{
+				size = { 56 56 }
+			}
+		}
+
+		expand = {}
+
+		text_single = {
+			name = "liege_signature"
+			max_width = 430
+			align = left
+			layoutpolicy_horizontal = expanding
+			default_format = "#light_background"
+
+			text = "CONTRACT_LIEGE_SIGNATURE"
+			using = Font_Type_Flavor
+			using = Font_Size_Medium
+			using = Text_Light_Background_Overrides
+		}
+
+		coa_character_sigil = {
+			datacontext = "[VassalContract.GetVassal]"
+
+			blockoverride "size"
+			{
+				size = { 80 80 }
+			}
+			blockoverride "sigil_size"
+			{
+				size = { 56 56 }
+			}
+		}
+
+		expand = {}
+
+		text_single = {
+			name = "vassal_signature"
+			max_width = 430
+			align = left
+			layoutpolicy_horizontal = expanding
+			default_format = "#light_background"
+
+			text = "CONTRACT_VASSAL_SIGNATURE"
+			using = Font_Type_Flavor
+			using = Font_Size_Medium
+			using = Text_Light_Background_Overrides
+		}
+	}
+
+	type vbox_contract_result_info = vbox
+	{
+		hbox = {
+			name = "vassal_profile"
+			datacontext = "[VassalContract.GetVassal]"
+			visible = "[Not( IsAdministrativeRuler( Character ) )]"
+			margin_right = 10
+
+			layoutpolicy_horizontal = expanding
+
+			background = {
+				using = Background_Area
+			}
+
+			portrait_head = {
+				blockoverride "opinion_box" {}
+			}
+
+			expand = {}
+
+			text_multi = {
+				text = "VASSAL_CONTRACT_VASSAL_TITLE"
+				using = Font_Size_Medium
+				using = Font_Type_Flavor
+				align = center
+				autoresize = yes
+				maximumsize = { 300 -1 }
+			}
+
+			expand = {}
+
+			coa_realm_medium_crown = {}
+		}
+		hbox = {
+			name = "vassal_profile_admin"
+			datacontext = "[VassalContract.GetVassal]"
+			visible = "[IsAdministrativeRuler( Character )]"
+			margin_right = 10
+
+			layoutpolicy_horizontal = expanding
+
+			background = {
+				using = Background_Area
+				margin = { 0 5 }
+			}
+
+			hbox = {
+				margin_top = -10
+				coa_realm_big_crown = {}
+			}
+
+			expand = {}
+
+			text_multi = {
+				text = "VASSAL_CONTRACT_VASSAL_TITLE_ADMIN"
+				using = Font_Size_Medium
+				using = Font_Type_Flavor
+				align = center
+				autoresize = yes
+				maximumsize = { 300 -1 }
+			}
+
+			expand = {}
+
+			portrait_head = {
+				blockoverride "opinion_box" {}
+				blockoverride "coa" {}
+			}
+		} # vassal_profile
+
+		vbox = {
+			visible = "[Not(ModifyVassalContractInteractionWindow.IsRightfulLiege)]"
+			margin = { 5 5 }
+
+			hbox = {
+				background = {
+					using = Background_Area_Dark
+					margin = { 16 8 }
+				}
+
+				warning_icon = {
+					size = { 25 25 }
+				}
+
+				text_multi = {
+					min_width = 300
+					max_width = 400
+					autoresize = yes
+					margin = { 5 0 }
+
+					text = "VASSAL_CONTRACT_LIEGE_IS_NOT_RIGHTFUL_LIEGE_NOTICE"
+					align = nobaseline
+					using = Font_Size_Small
+				}
+			}
+		}
+
+		spacer = { size = {10 10} }
+
+		datacontext = "[CharacterInteractionConfirmationWindow.GetEffectsDescription.GetDisplayedEffects]"
+
+		hbox = {
+			visible = "[DisplayedInteractionEffects.HasAnyEffects]"
+			layoutpolicy_horizontal = expanding
+			margin = { 10 0 }
+
+			text_label_left = {
+				text = CONTRACT_EFFECTS_HEADER
+			}
+			expand = {}
+		}
+
+		vbox_character_interaction_effects_simple = {
+			visible = "[DisplayedInteractionEffects.HasAnyEffects]"
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+			datacontext = "[CharacterInteractionConfirmationWindow.GetEffectsDescription]"
+		}
+
+		vbox = {
+			name = "no_effect_notice"
+			visible = "[Not( DisplayedInteractionEffects.HasAnyEffects )]"
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+
+			text_single = {
+				visible = "[And( Not( DisplayedInteractionEffects.HasAnyEffects ), Character.GetGovernment.IsType( 'feudal_government' ) )]"
+				text = "VASSAL_CONTRACT_OBLIGATION_NO_EFFECT"
+				using = Font_Size_Medium
+			}
+
+			text_single = {
+				visible = "[And( Not( DisplayedInteractionEffects.HasAnyEffects ), Not( Character.GetGovernment.IsType( 'feudal_government' ) ) )]"
+				text = "NON_FEUDAL_VASSAL_CONTRACT_OBLIGATION_NO_EFFECT"
+				using = Font_Size_Medium
+			}
+		}
+
+		vbox = {
+			spacing = 10
+
+			vbox = {
+				name = "tax_levy_opinion_info"
+				layoutpolicy_horizontal = expanding
+				spacing = 15
+				margin_top = 10
+
+				hbox = {
+					layoutpolicy_horizontal = expanding
+					spacing = 40
+
+					# Final tax obligations
+					vbox = {
+						spacing = 5
+
+						text_label_center = {
+							visible = "[Character.GetGovernment.IsType('feudal_government')]"
+							text = "VASSAL_CONTRACT_OBLIGATIONS_TITLE"
+						}
+						text_label_center = {
+							visible = "[Not(Character.GetGovernment.IsType('feudal_government'))]"
+							text = "NON_FEUDAL_VASSAL_CONTRACT_OBLIGATIONS_TITLE"
+						}
+
+						hbox = {
+							layoutpolicy_horizontal = expanding
+							spacing = 5
+
+							highlight_icon = {
+								size = { 25 25 }
+								texture = "gfx/interface/icons/icon_gold.dds"
+							}
+
+							progressbar_standard = {
+								size = { 90 25 }
+								value = "[FixedPointToProgressbarValue(VassalContract.GetTaxRatioForLiege)]"
+
+								text_single = {
+									parentanchor = center
+									position = { 0 -2 }
+									text = "[ModifyVassalContractInteractionWindow.GetContractPreviewCachedTax|=1]"
+									default_format = "#high"
+								}
+
+								tooltipwidget = {
+									my_realm_window_contribution_tooltip = {
+										datacontext = "[ModifyVassalContractInteractionWindow.GetContractPreviewTaxBreakdown]"
+										blockoverride "levy_info_visible"
+										{
+											visible = no
+										}
+										blockoverride "contribution_tooltip_header"
+										{
+											text = "[SelectLocalization(VassalContract.GetVassal.IsLocalPlayer, 'MRW_TT_TAXES_TO_MY_LIEGE', 'MRW_TT_TAXES_TO_ME')]"
+										}
+									}
+								}
+								using = tooltip_ws
+							}
+
+							expand = {}
+
+						}
+					}
+
+					expand = {}
+
+					# Final levy obligations
+					vbox = {
+						spacing = 5
+
+						text_label_center = {
+							visible = "[Character.GetGovernment.IsType('feudal_government')]"
+							text = "VASSAL_CONTRACT_OBLIGATIONS_TITLE_LEVIES"
+						}
+						text_label_center = {
+							visible = "[Not(Character.GetGovernment.IsType('feudal_government'))]"
+							text = "NON_FEUDAL_VASSAL_CONTRACT_OBLIGATIONS_TITLE_LEVIES"
+						}
+
+						hbox = {
+							layoutpolicy_horizontal = expanding
+							spacing = 5
+
+							expand = {}
+
+							highlight_icon = {
+								size = { 25 25 }
+								texture = "gfx/interface/icons/icon_soldier.dds"
+							}
+
+							progressbar_standard = {
+								size = { 90 25 }
+								value = "[FixedPointToProgressbarValue(VassalContract.GetLevyRatioForLiege)]"
+
+								text_single = {
+									parentanchor = center
+									position = { 0 -2 }
+									text = "[ModifyVassalContractInteractionWindow.GetContractPreviewCachedLeviesFormatted]"
+									default_format = "#high"
+								}
+
+								tooltipwidget = {
+									my_realm_window_contribution_tooltip = {
+										datacontext = "[ModifyVassalContractInteractionWindow.GetContractPreviewLeviesBreakdown]"
+										blockoverride "tax_info_visible"
+										{
+											visible = no
+										}
+										blockoverride "contribution_tooltip_header"
+										{
+											text = "[SelectLocalization(VassalContract.GetVassal.IsLocalPlayer, 'MRW_TT_LEVIES_TO_MY_LIEGE', 'MRW_TT_LEVIES_TO_ME')]"
+										}
+									}
+								}
+								using = tooltip_ws
+							}
+						}
+					}
+				}
+			} # tax_levy_opinion_info
+		}
+
+		expand = {}
+
+		vbox = {
+			layoutpolicy_horizontal = expanding
+
+			text_single = {
+				background = {
+					using = Background_Area_Dark
+					margin = {16 8}
+				}
+
+				datacontext = "[ModifyVassalContractInteractionWindow.GetContractPreviewOpinionBreakdown]"
+
+				visible = "[Not(VassalContract.GetVassal.IsLocalPlayer)]"
+				text = "VASSAL_CONTRACT_OPINION_MODIFICATION"
+				align = nobaseline
+				using = Font_Size_Medium
+
+				tooltip_visible = "[ValueBreakdown.HasTooltip]"
+
+				tooltipwidget = {
+					widget_value_breakdown_tooltip = {}
+				}
+			}
+
+			expand = {}
+
+			## Options
+			vbox_interaction_options = {
+				name = "tutorial_highlight_modify_contract_hook_button"
+				visible = "[CharacterInteractionConfirmationWindow.HasOptions]"
+			}
+
+			hbox = {
+				name = "change_only_once_text"
+				visible = "[ObjectsEqual( GetPlayer, VassalContract.GetLiege )]"
+
+				text_single = {
+					visible = "[Character.GetGovernment.IsType('feudal_government')]"
+					text = "VASSAL_CONTRACT_OBLIGATION_ONLY_ONCE"
+				}
+
+				text_single = {
+					visible = "[Not( Or( Character.GetGovernment.IsType('feudal_government'), IsAdministrativeRuler( Character ) ) )]"
+					text = "NON_FEUDAL_VASSAL_CONTRACT_OBLIGATION_ONLY_ONCE"
+				}
+			}
+		}
+		
+		hbox_character_interaction_acceptance = {
+			layoutpolicy_horizontal = expanding
+		}
+
+		button_primary = {
+			name = "send_offer_button"
+			size = { 350 45 }
+
+			text = "[CharacterInteractionConfirmationWindow.GetSendName]"
+			default_format = "#high"
+			enabled = "[CharacterInteractionConfirmationWindow.CanSend]"
+			onclick = "[ModifyVassalContractInteractionWindow.Send]"
+			tooltip = "[CharacterInteractionConfirmationWindow.GetCanSendDescription]"
+			clicksound = "event:/SFX/UI/Generic/sfx_ui_generic_advance"
+		}
+	}
+}
+
+types ModifyVassalFeudalContracts
+{
+	type vbox_feudal_negotiation = vbox
+	{
+		vbox = {
+			name = "major_line_tree_levels"
+			layoutpolicy_horizontal = expanding
+
+			spacing = 10
+
+			datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelLineTrees]"
+
+			item = {
+				vbox = {
+					visible = "[ObligationContainerData.ShouldShow( ModifyVassalContractInteractionWindow.GetContractPreview )]"
+
+					layoutpolicy_vertical = expanding
+					layoutpolicy_horizontal = expanding
+					spacing = 10
+
+					datacontext = "[ObligationLevelLineTree.GetContainerData]"
+
+					text_single = {
+						text = "[ObligationContainerData.GetName] [ObligationContainerData.GetIcon]"
+						using = Font_Size_Medium
+						default_format = "#light_background"
+					}
+
+					container = {
+						layoutpolicy_vertical = expanding
+
+						name = "obligation_level_item_line_area" # Name used in code do not change
+
+						datamodel = "[ObligationLevelLineTree.AccessItems]"
+
+						item = {
+							widget_major_obligation_level = { }
+						}
+					}
+				}
+			}
+		}
+
+		vbox_minor_obligations_radio_list = {
+			name = "minor_list_levels_radio_buttons"
+			datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelRadioButtons]"
+		}
+
+		dynamicgridbox = {
+			name = "minor_list_levels_checkboxes"
+			datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelCheckboxes]"
+
+			flipdirection = yes
+			datamodel_wrap = 3
+
+			item = {
+				widget_minor_obligation_checkbox_item = {
+					size = { 200 65 }
+				}
+			}
+		}
+
+		hbox_sigil_and_signatures = {
+			layoutpolicy_horizontal = expanding
+			spacing = 5
+		}
+	}
+}
+
+types ModifyVassalClanContracts
+{
+	type vbox_clan_negotiation = vbox
+	{
+		vbox =  {
+			layoutpolicy_vertical = expanding
+
+			vbox_minor_obligations_radio_list = {
+				name = "lambda_vassal_minor_list_levels_radio_buttons"
+				datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelRadioButtons]"
+				visible = "[And( Not( Character.GetPrimaryTitle.IsBarony ), Not( Character.GetPrimaryTitle.IsCounty ) )]"
+			}
+
+			dynamicgridbox = {
+				name = "non_feudal_minor_list_levels_checkboxes"
+				datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelCheckboxes]"
+
+				flipdirection = yes
+				datamodel_wrap = 3
+
+				item = {
+					widget_minor_obligation_checkbox_item = {
+						size = { 200 65 }
+					}
+				}
+			}
+		}
+
+		hbox_sigil_and_signatures = {
+			layoutpolicy_horizontal = expanding
+			spacing = 5
+		}
+	}
+}
+
+types ModifyVassalAdministrativeContracts
+{
+	type widget_theme_type_selection_option = margin_widget {
+
+		vbox = {
+			spacing = -7
+
+			text_label_center = {
+				align = center
+				max_width = 120
+				text = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetName]"
+			}
+
+
+			button_standard_clean = {
+				size = { 140 140 }
+
+				enabled = "[ModifyVassalContractInteractionWindow.IsObligationLevelEnabled( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+				visible = "[ModifyVassalContractInteractionWindow.IsObligationLevelVisible( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+				onclick = "[ModifyVassalContractInteractionWindow.SelectObligationLevel( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+				down = "[ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+				tooltip = "[ModifyVassalContractInteractionWindow.GetObligationLevelTooltipFor( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+				icon = {
+					size = { 140 140 }
+					texture = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetIcon]"
+				}
+
+				widget = {
+					size = { 100% -1 }
+					parentanchor = bottom
+					position = { 0 -40 }
+
+					hbox = {
+						margin = { 7 4 }
+						margin_left = 15
+
+						background = {
+							visible = "[Or( ModifyVassalContractInteractionWindow.IsCurrentObligationLevel( ModifyVassalContractInteractionWindowObligationLevelOption.Self ), ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self ) )]"
+
+							using = Background_Area_Dark
+						}
+
+						text_single = {
+							visible = "[ModifyVassalContractInteractionWindow.IsCurrentObligationLevel( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+
+							text = ADMIN_WINDOW_THEME_ADMINISTRATION_CURRENT_THEME
+						}
+
+						text_single = {
+							visible = "[And( ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self ), Not( ModifyVassalContractInteractionWindow.IsCurrentObligationLevel( ModifyVassalContractInteractionWindowObligationLevelOption.Self ) ) )]"
+
+							text = ADMIN_WINDOW_THEME_ADMINISTRATION_SELECTED_THEME
+						}
+
+						expand = {
+
+						}
+
+						button_radio = {
+							frame = "[BoolTo1And2( ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self ) )]"
+						}
+					}
+				}
+			}
+		}
+	}
+
+	type vbox_theme_selection_item = vbox
+	{
+		datacontext = "[ObligationLevelRadioButtons.GetContainerData]"
+		visible = "[ObligationContainerData.ShouldShow( ModifyVassalContractInteractionWindow.GetContractPreview )]"
+
+		margin = { 30 0 }
+		margin_top = 10
+
+		vbox = {
+			layoutpolicy_vertical = expanding
+			layoutpolicy_horizontal = expanding
+			margin_bottom = 10
+
+			text_label_center = {
+				align = center
+
+				text = "[ObligationContainerData.GetName]"
+				using = Font_Size_Medium
+			}
+		}
+
+		dynamicgridbox = {
+			datamodel = "[ObligationLevelRadioButtons.Access]"
+
+			flipdirection = yes
+			datamodel_wrap = 3
+
+			item = {
+				widget_theme_type_selection_option = {
+					size =  { 155 180 }
+				}
+			}
+		}
+	}
+
+	type vbox_theme_selection_list = vbox
+	{
+		layoutpolicy_vertical = expanding
+		layoutpolicy_horizontal = expanding
+		spacing = 5
+
+		item = {
+			vbox_theme_selection_item = { }
+		}
+	}
+
+	type vbox_administrative_negotiation = vbox
+	{
+		text_multi = {
+			name = "theme_administration_info"
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = fixed
+
+			text = THEME_ADMINISTRATION_INFO
+		}
+
+		vbox = {
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+			spacing = 15
+			margin_top = -5
+			margin_bottom = 5
+			
+			background = {
+				using = Background_Area_Dark
+				margin_right = 5
+				margin_bottom = 17
+				margin_top = -43
+				margin_left = 3
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/mask_fade_vertical_up.dds"
+					blend_mode = alphaMultiply
+					alpha = 0.4
+				}
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/event_effect_mask.dds"
+					blend_mode = alphaMultiply
+					alpha = 0.7
+				}
+			}
+
+			background = {
+				texture = "gfx/interface/window_theme_administration/fabric_pattern.dds"
+
+				using = Mask_Rough_Edges
+				margin_top = -37
+				margin_bottom = 10
+				alpha = 0.9
+			}
+
+			vbox_theme_selection_list = {
+				datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelRadioButtons]"
+			}
+
+			hbox = {
+				margin = { 40 0 }
+
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+
+				scrollbox = {
+					layoutpolicy_horizontal = expanding
+
+					background = {
+						using = Background_Area
+					}
+
+					blockoverride "scrollbox_content" {
+						vbox = {
+							text_multi = {
+								autoresize = yes
+								size = { 417 78 }
+								max_width = 417
+
+								default_format = "#high"
+
+								text = "[ModifyVassalContractInteractionWindow.GetObligationLevelDesc]"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+template FeudalVassalBackground
+{
+	background = {
+		visible = "[Character.GetGovernment.IsType('feudal_government')]"
+		texture = "gfx/interface/illustrations/event_scenes/study.dds"
+		alpha = 0.7
+		fittype = end
+
+		modify_texture = {
+			texture = "gfx/interface/component_masks/mask_fade_vertical.dds"
+			blend_mode = alphamultiply
+			mirror = vertical
+		}
+	}
+}
+
+template NonFeudalVassalBackground
+{
+	background = {
+		visible = "[Not( Or( Character.GetGovernment.IsType('feudal_government'), IsAdministrativeRuler( Character ) ) )]"
+		texture = "gfx/interface/illustrations/event_scenes/fp2_relaxing_room.dds"
+		alpha = 0.7
+		fittype = end
+
+		modify_texture = {
+			texture = "gfx/interface/component_masks/mask_fade_vertical.dds"
+			blend_mode = alphamultiply
+			mirror = vertical
+		}
+	}
+}
+
+template AdminVassalBackground
+{
+	background = {
+		visible = "[IsAdministrativeRuler( Character )]"
+		texture = "gfx/interface/illustrations/event_scenes/ep3_medi_study.dds"
+		alpha = 0.7
+		fittype = end
+
+		modify_texture = {
+			texture = "gfx/interface/component_masks/mask_fade_vertical.dds"
+			blend_mode = alphamultiply
+			mirror = vertical
+		}
+	}
+}
