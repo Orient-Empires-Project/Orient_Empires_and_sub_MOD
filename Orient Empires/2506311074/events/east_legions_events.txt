@@ -5,54 +5,53 @@ east_legions.0001 = {
 		desc = char_interaction.0030.opening
 	}
 	desc = char_interaction.0110.desc
-		
 	sender = scope:actor
 
 	option = {
 		name = char_interaction.0110.a
-			scope:recipient = {
-					vassal_contract_set_obligation_level = {
-						type = special_imperial_contract
-						level = 1
+		scope:recipient = {
+			vassal_contract_set_obligation_level = {
+				type = special_imperial_contract
+				level = 1
+			}
+			if = {
+				limit = {
+					NOR = { 
+						highest_held_title_tier >= tier_kingdom 
+						any_held_title = {
+							tier = tier_duchy
+							is_landless_type_title = no
+							count >= 3
+						}
+						vassal_contract_has_flag = imperial_legion_2
+						sub_realm_size >= 30
 					}
-					if = {
-						limit = {
-							NOR = { 
-								highest_held_title_tier >= tier_kingdom 
-								any_held_title = {
-									tier = tier_duchy
-									is_landless_type_title = no
-									count >= 3
-								}
-								vassal_contract_has_flag = imperial_legion_2
-								sub_realm_size >= 30
-							}
-						}
-						top_liege = {
-							trigger_event = {
-								id = east_legions.0002
-								days = 3
-							}
-						}	
-					}
-					if = {
-						limit = {
-							OR = { 
-								highest_held_title_tier >= tier_kingdom 
-								any_held_title = {
-									tier = tier_duchy
-									is_landless_type_title = no
-									count >= 3
-								}
-								sub_realm_size >= 30
-							}
-						}
-						vassal_contract_set_obligation_level = {
-							type = special_imperial_bureau
-							level = 5
-						}
+				}
+				top_liege = {
+					trigger_event = {
+						id = east_legions.0002
+						days = 3
 					}
 				}	
+			}
+			if = {
+				limit = {
+					OR = { 
+						highest_held_title_tier >= tier_kingdom 
+						any_held_title = {
+							tier = tier_duchy
+							is_landless_type_title = no
+							count >= 3
+						}
+						sub_realm_size >= 30
+					}
+				}
+				vassal_contract_set_obligation_level = {
+					type = special_imperial_legion
+					level = 2
+				}
+			}
+		}
 	}
 }
 east_legions.0002 = {
@@ -61,7 +60,7 @@ east_legions.0002 = {
 		desc = east_legions.0002.opening
 	}
 	desc = east_legions.0002.desc
-		
+
 	sender = scope:recipient
 
 	option = {
@@ -94,40 +93,36 @@ east_legions.0002 = {
 }
 # Top liege calls all his realm lords to defend against an invasion
 east_legions.0003 = {
-
 	type = character_event
-
 	title = east_legions.0003.t
 	desc = east_legions.0003.desc
+	theme = wa
+	override_background = {
+		event_background = battlefield
+	}
 
-	theme = war
+	left_portrait = {
+		character = scope:defender
+		animation = worry
+	}
+	right_portrait = {
+		character = ROOT
+		animation = war_over_win
+	}
+
 	trigger = {
 		is_at_war_with_liege = no
-		scope:invaded_liege = {
+		scope:defender = {
 			NOT = {
 				is_at_war_with = scope:attacker
 			}
 		}
 	}
 
-	override_background = {
-		event_background = battlefield
-	}
-
-	left_portrait = {
-		character = scope:invaded_liege
-		animation = worry
-	}
-
-	right_portrait = {
-		character = ROOT
-		animation = war_over_win
-	}
-
 	# Join war
 	option = {
 		name = east_legions.0003.a
-		scope:invaded_liege_war = {
+		scope:war = {
 			add_defender = ROOT
 		}
 
@@ -135,112 +130,31 @@ east_legions.0003 = {
 			base = 30
 
 			modifier = {
-				add = 900
-				has_game_rule = defend_realm_forced
-			}
-
-			modifier = {
 				add = -20
-				is_at_war_as_defender = yes
+				is_at_war = yes
 			}
 
-			modifier = {
-				add = 10
-				opinion = {
-					target = scope:invaded_liege
-					value >= 25
-				}
+			opinion_modifier = {
+				opinion_target = scope:defender
+				multiplier = 0.25
 			}
 
-			modifier = {
-				add = 10
-				opinion = {
-					target = scope:invaded_liege
-					value >= 50
-				}
-			}
-
-			modifier = {
-				add = 20
-				opinion = {
-					target = scope:invaded_liege
-					value >= 75
-				}
-			}
-
-			modifier = {
-				add = -10
-				opinion = {
-					target = scope:invaded_liege
-					value <= -25
-				}
-			}
-
-			modifier = {
-				add = -10
-				opinion = {
-					target = scope:invaded_liege
-					value <= -50
-				}
-			}
-
-			modifier = {
-				add = -20
-				opinion = {
-					target = scope:invaded_liege
-					value <= -75
-				}
-			}
-
-			modifier = {
-				add = -20
-				has_trait = craven
-			}
-			
-			modifier = {
-				add = 20
-				scope:invaded_liege_war = {
-					NOT = { ROOT.faith = scope:attacker.faith }
-				}
-			}
-
-			modifier = {
-				add = 20
-				scope:invaded_liege_war = {
-					NOT = { ROOT.faith = scope:attacker.faith }
-				}
-				has_trait = zealous
-			}
-
-			modifier = {
-				factor = 0
-				AND = {
-					NOT = {
-						any_in_list = {
-							list = target_titles
-							any_in_de_jure_hierarchy = {
-								tier = tier_county
-								holder = {
-									target_is_same_character_or_above = ROOT
-								}
-							}
+			ai_value_modifier = {
+				ai_honor = 1
+				ai_boldness = 1
+				ai_zeal = {
+					if = {
+						limit = {
+							ROOT.faith != scope:attacker.faith
 						}
+						value = 1
 					}
-					has_relation_rival = scope:invaded_liege
 				}
 			}
 
 			modifier = {
 				factor = 0.7
-				NOT = { is_vassal_of = scope:invaded_liege }
-			}
-			
-		}
-		scope:invaded_liege_war = {
-			set_variable = {
-				name = defends_the_realm
-				value = yes
-				years = 1
+				NOT = { is_vassal_of = scope:defender }
 			}
 		}
 	}
@@ -249,12 +163,27 @@ east_legions.0003 = {
 	option = {
 		name = east_legions.0003.b
 
+		trigger = {
+			NOT = { vassal_contract_has_flag = imperial_legion_1 }
+		}
+
 		ai_chance = {
 			base = 30
 
+			opinion_modifier = {
+				opinion_target = scope:defender
+				multiplier = -0.25
+			}
+
 			modifier = {
 				add = 15
-				NOT = { is_vassal_of = scope:invaded_liege }
+				liege != scope:defender
+			}
+
+			modifier = {
+				factor = 0
+				scope:defender = { has_realm_law_flag = max_authority_level }
+				NOT = { has_relation_rival = scope:defender }
 			}
 
 			# If you would lose a title because of the invasion, you will join
@@ -274,261 +203,101 @@ east_legions.0003 = {
 	}
 }
 east_legions.0004 = {
-
 	type = character_event
-
-	title = east_legions.0003.t
-	desc = east_legions.0003.desc
-
+	title = east_legions.0004.t
+	desc = east_legions.0004.desc
 	theme = war
-	trigger = {
-		is_at_war_with_liege = no
-		scope:invaded_liege = {
-			is_at_war_with = scope:defender
-		}
-	}
-
 	override_background = {
 		event_background = battlefield
 	}
 
 	left_portrait = {
-		character = scope:invaded_liege
+		character = scope:attacker
 		animation = worry
 	}
-
 	right_portrait = {
 		character = ROOT
 		animation = war_over_win
 	}
 
+	trigger = {
+		is_at_war_with_liege = no
+		scope:attacker = {
+			is_at_war_with = scope:defender
+		}
+	}
+
 	# Join war
 	option = {
-		name = east_legions.0003.a
-		scope:invaded_liege_war = {
+		name = east_legions.0004.a
+		scope:war = {
 			add_attacker = ROOT
 		}
 
 		ai_chance = {
 			base = 30
 
-			modifier = {
-				add = 900
-				has_game_rule = defend_realm_forced
+			opinion_modifier = {
+				opinion_target = scope:defender
+				multiplier = 0.25
 			}
 
 			modifier = {
 				add = -20
-				is_at_war_as_defender = yes
+				is_at_war = yes
 			}
 
-			modifier = {
-				add = 10
-				opinion = {
-					target = scope:invaded_liege
-					value >= 25
+			ai_value_modifier = {
+				ai_honor = 1
+				ai_boldness = 1
+				ai_zeal = {
+					if = {
+						limit = {
+							ROOT.faith != scope:attacker.faith
+						}
+						value = 1
+					}
 				}
-			}
-
-			modifier = {
-				add = 10
-				opinion = {
-					target = scope:invaded_liege
-					value >= 50
-				}
-			}
-
-			modifier = {
-				add = 20
-				opinion = {
-					target = scope:invaded_liege
-					value >= 75
-				}
-			}
-
-			modifier = {
-				add = -10
-				opinion = {
-					target = scope:invaded_liege
-					value <= -25
-				}
-			}
-
-			modifier = {
-				add = -10
-				opinion = {
-					target = scope:invaded_liege
-					value <= -50
-				}
-			}
-
-			modifier = {
-				add = -20
-				opinion = {
-					target = scope:invaded_liege
-					value <= -75
-				}
-			}
-
-			modifier = {
-				add = -20
-				has_trait = craven
-			}
-			
-			modifier = {
-				add = 20
-				scope:invaded_liege_war = {
-					NOT = { ROOT.faith = scope:attacker.faith }
-				}
-			}
-
-			modifier = {
-				add = 20
-				scope:invaded_liege_war = {
-					NOT = { ROOT.faith = scope:attacker.faith }
-				}
-				has_trait = zealous
 			}
 
 			modifier = {
 				factor = 0
-				AND = {
-					NOT = {
-						any_in_list = {
-							list = target_titles
-							any_in_de_jure_hierarchy = {
-								tier = tier_county
-								holder = {
-									target_is_same_character_or_above = ROOT
-								}
-							}
-						}
-					}
-					has_relation_rival = scope:invaded_liege
-				}
+				has_relation_rival = scope:attacker
 			}
 
 			modifier = {
 				factor = 0.7
-				NOT = { is_vassal_of = scope:invaded_liege }
-			}
-			
-		}
-		scope:invaded_liege_war = {
-			set_variable = {
-				name = defends_the_realm
-				value = yes
-				years = 1
+				NOT = { is_vassal_of = scope:attacker }
 			}
 		}
 	}
 
 	# Don't join war
 	option = {
-		name = east_legions.0003.b
+		name = east_legions.0004.b
+
+		trigger = {
+			NOT = { vassal_contract_has_flag = imperial_legion_1 }
+		}
 
 		ai_chance = {
 			base = 30
 
+			opinion_modifier = {
+				opinion_target = scope:defender
+				multiplier = -0.25
+			}
+
 			modifier = {
 				add = 15
-				NOT = { is_vassal_of = scope:invaded_liege }
+				liege != scope:defender
 			}
 
-			# If you would lose a title because of the invasion, you will join
 			modifier = {
 				factor = 0
-				any_in_list = {
-					list = target_titles
-					any_in_de_jure_hierarchy = {
-						tier = tier_county
-						holder = {
-							target_is_same_character_or_above = ROOT
-						}
-					}
-				}
+				scope:defender = { has_realm_law_flag = max_authority_level }
+				NOT = { has_relation_rival = scope:defender }
 			}
 		}
 	}
-}
-
-east_legions.0005 = {
-
-	type = character_event
-
-	title = east_legions.0003.t
-	desc = east_legions.0003.desc
-
-	theme = war
-
-	trigger = {
-		is_at_war_with_liege = no
-		#scope:invaded_liege = { 
-			#NOT = {
-				#is_at_war_with = scope:defender #报错点
-			#}
-		#}
-	}
-
-	override_background = {
-		event_background = battlefield
-	}
-
-	left_portrait = {
-		character = scope:invaded_liege
-		animation = worry
-	}
-
-	right_portrait = {
-		character = ROOT
-		animation = war_over_win
-	}
-
-	# Join war
-	option = {
-		name = east_legions.0003.a
-		scope:invaded_liege_war = {
-			add_attacker = ROOT
-		}
-	}	
-}
-east_legions.0006 = {
-
-	type = character_event
-
-	title = east_legions.0003.t
-	desc = east_legions.0003.desc
-
-	theme = war
-
-	trigger = {
-		is_at_war_with_liege = no
-		scope:invaded_liege = {
-			NOT = {
-				is_at_war_with = scope:defender
-			}
-		}
-	}
-
-	override_background = {
-		event_background = battlefield
-	}
-
-	left_portrait = {
-		character = scope:invaded_liege
-		animation = worry
-	}
-
-	right_portrait = {
-		character = ROOT
-		animation = war_over_win
-	}
-
-	# Join war
-	option = {
-		name = east_legions.0003.a
-		scope:invaded_liege_war = {
-			add_defender = ROOT
-		}
-	}	
 }
