@@ -45,7 +45,8 @@ change_vassal_legion_interaction = {
 						modifier = let_me_become_legion_opinion
 						target = scope:actor
 					}
-					change_government_milita_government_effect = yes
+					#change_government_milita_government_effect = yes
+					change_government = legion_government
 				}
 			}
 		}
@@ -71,20 +72,20 @@ change_vassal_legion_interaction = {
 	ai_accept = {
 		base = 50
 		modifier = {
-		add = 20
-		trigger_if = {
-			limit = {
-				scope:recipient.dynasty ?= {
-					any_dynasty_member = {
-						count >= 10
-						is_alive = yes
+			add = 20
+			trigger_if = {
+				limit = {
+					scope:recipient.dynasty ?= {
+						any_dynasty_member = {
+							count >= 10
+							is_alive = yes
+						}
 					}
 				}
+				always = yes
 			}
-			always = yes
+			desc = TEN_ALIVE_DYNASTY_MEMBER
 		}
-		desc = TEN_ALIVE_DYNASTY_MEMBER
-	}
 		opinion_modifier = { # Opinion Factor
 			who = scope:recipient
 			opinion_target = scope:actor
@@ -220,6 +221,13 @@ change_vassal_bureau_interaction = {
 					}	
 					change_government_bureau_government_effect = yes
 				}
+			}
+		}
+		scope:recipient = {
+			if = {
+				limit = { primary_title.tier = tier_kingdom }
+				primary_title = { save_scope_as = title }
+				set_administrative_kingdom_effect = yes
 			}
 		}
 	}
@@ -492,9 +500,14 @@ change_vassal_official_succession = {
 		scope:recipient = {
 			holds_landed_title = yes
 			is_vassal_of = scope:actor
-			government_has_flag = government_is_celestial
-			NOT = { has_realm_law = official_succession_law }
-			can_have_official_succession_law_trigger = yes
+			OR = {
+				NOT = { government_has_flag = government_use_bureaucracy }
+				AND = {
+					government_has_flag = government_is_celestial
+					NOT = { has_realm_law = official_succession_law }
+					can_have_official_succession_law_trigger = yes
+				}
+			}
 		}
 	}
 	is_valid = {
@@ -628,16 +641,16 @@ change_vassal_official_succession = {
 			}
 			add = -20
 		}
-#		modifier = { #Title is part of vassal's primary title de-jure.
-#			add = -25
-#			OR = {
-#				scope:recipient.primary_title = {
-#					is_de_jure_liege_or_above_target = scope:landed_title
-#				}
-#				scope:recipient.primary_title = scope:landed_title
-#			}
-#			desc = AI_REFUSAL_IS_DE_JURE_UNDER
-#		}
+		modifier = { #Title is part of vassal's primary title de-jure.
+			add = -25
+			OR = {
+				scope:recipient.primary_title = {
+					is_de_jure_liege_or_above_target = scope:landed_title
+				}
+				scope:recipient.primary_title = scope:landed_title
+			}
+			desc = AI_REFUSAL_IS_DE_JURE_UNDER
+		}
 		modifier = {
 			add = intimidated_halved_reason_value
 			scope:recipient = {
@@ -819,11 +832,12 @@ change_vassal_heir_succession = {
 			trigger_event = change_vassal_heir_succession.01
 			show_as_tooltip = {
 				scope:recipient = {
-					vassal_contract_set_obligation_level = {
-						type = heir_succession_rights
-						level = 1
-					}
-					add_realm_law_skip_effects = legion_succession_law
+					#vassal_contract_set_obligation_level = {
+						#type = heir_succession_rights
+						#level = 1
+					#}
+					#add_realm_law_skip_effects = legion_succession_law
+					change_government = feudal_government
 				}
 			}
 		}
@@ -941,7 +955,4 @@ change_vassal_heir_succession = {
 	send_options_exclusive = no
 }
 
-
-
-#转为律令制
 #官阶升降

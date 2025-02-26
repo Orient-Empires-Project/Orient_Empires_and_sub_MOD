@@ -1,0 +1,331 @@
+﻿@crown_authority_cooldown_years = 20
+@tribal_authority_cooldown_years = 10
+@imperial_bureaucracy_cooldown_years_1 = 10
+@imperial_bureaucracy_cooldown_years_2 = 20
+@imperial_bureaucracy_cooldown_years_3 = 30
+
+@camp_purpose_prestige_cost = 1000
+@camp_purpose_ai_will_do_malus_t3 = -30
+@camp_purpose_ai_will_do_malus_t2 = -20
+@camp_purpose_ai_will_do_malus_t1 = -10
+@camp_purpose_ai_will_do_bonus_t1 = 10
+@camp_purpose_ai_will_do_bonus_t2 = 20
+@camp_purpose_ai_will_do_bonus_t3 = 30
+
+celestial_bureaucracy = {
+	default = celestial_bureaucracy_1
+	cumulative = yes
+	flag = realm_law
+	
+	celestial_bureaucracy_0 = {
+		modifier = {
+			barons_and_minor_landholders_opinion = 20
+			glory_hound_opinion = 10
+			parochial_opinion = 10
+			courtly_opinion = 5
+		}
+		flag = uses_imperial_bureaucracy
+		flag = titles_cannot_leave_realm_on_succession # Hardcoded flag
+
+		can_keep = {
+			realm_law_use_celestial_bureaucracy = yes
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+				}
+				liege = { has_realm_law = celestial_bureaucracy_0 }
+			}
+		}
+		
+		can_pass = {
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+					liege = { has_realm_law = celestial_bureaucracy_0 }
+				}
+				custom_tooltip = {
+					text = imperial_bureaucracy_pending_law_change
+					always = no
+				}
+			}
+		}
+
+		on_pass = {
+			# Remove modifiers.
+			remove_law_related_modifiers_effect = yes
+		}
+	}
+	
+	celestial_bureaucracy_1 = {
+		modifier = {
+			barons_and_minor_landholders_opinion = -30
+			glory_hound_opinion = -15
+			parochial_opinion = -15
+			courtly_opinion = -5
+			minority_opinion = -10
+			administrative_government_tax_contribution_add = 0.05
+			vassal_limit = 50
+		}
+		flag = uses_imperial_bureaucracy
+		flag = title_revocation_allowed
+		flag = vassal_retraction_allowed
+		#flag = can_change_partition_succession_laws
+		flag = vassal_internal_wars_banned
+		flag = diarchs_want_to_subsidise_without_this_flag
+
+		flag = can_demand_celestial_government #要求采用律令制
+		flag = can_designate_bureaucracy_successor #指定述任官僚
+		flag = can_set_bureaucratic_term #设定官僚任期
+
+		can_keep = {
+			realm_law_use_celestial_bureaucracy = yes
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+				}
+				liege = { has_realm_law = celestial_bureaucracy_1 }
+			}
+		}
+
+		can_pass = {
+			#trigger_if = {
+				#limit = {
+					#has_realm_law = celestial_bureaucracy_0
+					#is_independent_ruler = yes
+				#}
+				#custom_description = {
+					#subject = root
+					#text = "has_imperial_bureaucracy_cooldown"
+					#NAND = {
+						#has_variable = imperial_bureaucracy_cooldown
+						#NOT = {
+							#culture = { has_innovation = innovation_all_things }
+						#}
+					#}
+				#}
+			#}
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+					liege = { has_realm_law = celestial_bureaucracy_1 }
+				}
+				custom_tooltip = {
+					text = imperial_bureaucracy_pending_law_change
+					always = no
+				}
+			}
+			can_pass_law_ca1_trigger = yes
+		}
+		
+		pass_cost = {
+			prestige = {
+				if = {
+					limit = {
+						NOR = {
+							has_realm_law = celestial_bureaucracy_2
+							has_realm_law = celestial_bureaucracy_3
+						}
+					}
+					add = increase_crown_authority_prestige_cost
+				}
+			}
+		}
+		
+		on_pass = {
+			# Increment cooldown breaker tally, if appropriate.
+			calculate_authority_cooldown_break_effect = yes
+			# Set regular cooldown.
+			set_variable = {
+				name = imperial_bureaucracy_cooldown
+				years = @imperial_bureaucracy_cooldown_years_1
+			}
+			# Remove modifiers.
+			remove_law_related_modifiers_effect = yes
+		}
+
+		ai_will_do = {
+			if = {
+				limit = { has_realm_law = celestial_bureaucracy_0 }
+				value = 1
+			}
+		}
+	}
+	
+	celestial_bureaucracy_2 = {
+		modifier = {
+			barons_and_minor_landholders_opinion = -10
+			glory_hound_opinion = -10
+			parochial_opinion = -10
+			courtly_opinion = -5
+			zealot_opinion = -10
+			minority_opinion = -10
+			administrative_government_tax_contribution_add = 0.05
+			republic_government_tax_contribution_add = 0.05
+			vassal_limit = 50
+		}
+		flag = uses_imperial_bureaucracy
+		flag = vassal_refusal_is_treason
+		#flag = can_change_succession_laws
+		flag = vassal_all_wars_banned
+		flag = admin_change_vassal_gov_cheaper
+		flag = admin_title_troop_cost_reduction
+
+		flag = can_replace_the_bureaucrat #替换官员
+		flag = can_grant_titular_title #授予荣誉头衔
+		
+		can_keep = {
+			realm_law_use_celestial_bureaucracy = yes
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+				}
+				liege = { has_realm_law = celestial_bureaucracy_2 }
+			}
+		}
+
+		can_pass = {
+			trigger_if = {
+				limit = {
+					NOT = { has_realm_law = celestial_bureaucracy_3 }
+					is_independent_ruler = yes
+				}
+				has_realm_law = celestial_bureaucracy_1
+				custom_description = {
+					subject = root
+					text = "has_imperial_bureaucracy_cooldown"
+					NAND = {
+						has_variable = imperial_bureaucracy_cooldown
+						NOT = {
+							culture = { has_innovation = innovation_all_things }
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+					liege = { has_realm_law = celestial_bureaucracy_2 }
+				}
+				custom_tooltip = {
+					text = imperial_bureaucracy_pending_law_change
+					always = no
+				}
+			}
+			can_pass_law_ca2_trigger = yes
+		}
+
+		pass_cost = {
+			prestige = {
+				if = {
+					limit = {
+						NOT = { has_realm_law = celestial_bureaucracy_3 }
+					}
+					add = increase_crown_authority_prestige_cost
+				}
+			}
+		}
+		
+		on_pass = {
+			# Increment cooldown breaker tally, if appropriate.
+			calculate_authority_cooldown_break_effect = yes
+			# Set regular cooldown.
+			set_variable = {
+				name = imperial_bureaucracy_cooldown
+				years = @imperial_bureaucracy_cooldown_years_2
+			}
+			# Remove modifiers.
+			remove_law_related_modifiers_effect = yes
+		}
+
+		ai_will_do = {
+			if = {
+				limit = { has_realm_law = celestial_bureaucracy_1 }
+				value = 1
+			}
+		}
+	}
+	
+	celestial_bureaucracy_3 = {
+		modifier = {
+			barons_and_minor_landholders_opinion = -20
+			glory_hound_opinion = -25
+			parochial_opinion = -25
+			courtly_opinion = -10
+			zealot_opinion = -20
+			minority_opinion = -30
+			administrative_government_tax_contribution_add = 0.1
+			republic_government_tax_contribution_add = 0.05
+			vassal_limit = 100
+		}
+		flag = uses_imperial_bureaucracy
+		flag = vassal_all_wars_banned_permanent
+		flag = max_authority_level
+		flag = admin_title_troop_cost_reduction_high
+
+		flag = can_exchange_two_bannermen #调换防区
+		flag = change_title_contract #随时切换头衔契约
+		
+		can_keep = {
+			realm_law_use_celestial_bureaucracy = yes
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+				}
+				liege = { has_realm_law = celestial_bureaucracy_3 }
+			}
+		}
+
+		can_pass = {
+			trigger_if = {
+				limit = {
+					is_independent_ruler = yes
+				}
+				has_realm_law = celestial_bureaucracy_2
+				custom_description = {
+					subject = root
+					text = "has_imperial_bureaucracy_cooldown"
+					NAND = {
+						has_variable = imperial_bureaucracy_cooldown
+						NOT = {
+							culture = { has_innovation = innovation_all_things }
+						}
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					is_independent_ruler = no
+					liege = { has_realm_law = celestial_bureaucracy_3 }
+				}
+				custom_tooltip = {
+					text = imperial_bureaucracy_pending_law_change
+					always = no
+				}
+			}
+			can_pass_law_ca3_trigger = yes
+		}
+		
+		pass_cost = {
+			prestige = {
+				if = {
+					limit = {
+						NOT = { has_realm_law = celestial_bureaucracy_3 }
+					}
+					add = increase_crown_authority_prestige_cost
+				}
+			}
+		}
+		
+		on_pass = {
+			# Increment cooldown breaker tally, if appropriate.
+			calculate_authority_cooldown_break_effect = yes
+			# Set regular cooldown.
+			set_variable = {
+				name = imperial_bureaucracy_cooldown
+				years = @imperial_bureaucracy_cooldown_years_3
+			}
+			# Remove modifiers.
+			remove_law_related_modifiers_effect = yes
+		}
+	}
+}

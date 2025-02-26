@@ -18,7 +18,7 @@
 			liege = scope:actor
 			is_ruler = yes
 			vassal_contract_has_modifiable_obligations = yes
-			NOT = { allows_administrative_NOT_celestial = yes }
+			NOT = { government_allows = administrative }
 		}
 	}
 
@@ -211,7 +211,20 @@
 
 				scope:recipient = {
 					hidden_effect = {
-						set_vassal_contract_modification_blocked = yes
+						if = {
+							limit = {
+								OR = {
+									is_ai = yes
+									NOT = { government_has_flag = government_use_bureaucracy }
+								}
+							}
+							set_vassal_contract_modification_blocked = yes
+						}
+						#储存契约
+						if = {
+							limit = { government_has_flag = government_use_bureaucracy }
+							save_east_contract_effect = yes
+						}
 					}
 				}
 
@@ -285,7 +298,7 @@ vassal_modify_vassal_contract_interaction = {
 			NOT = { this = scope:actor }
 			liege = scope:actor
 			vassal_contract_has_modifiable_obligations = yes
-			NOT = { allows_administrative_NOT_celestial = yes }
+			NOT = { government_allows = administrative }
 		}
 	}
 
@@ -344,7 +357,22 @@ vassal_modify_vassal_contract_interaction = {
 					add_achievement_flag_effect = { FLAG = achievement_fine_print_flag }
 				}
 
-				hidden_effect = { set_vassal_contract_modification_blocked = yes }
+				hidden_effect = {
+					if = {
+						limit = {
+							OR = {
+								is_ai = yes
+								NOT = { government_has_flag = government_use_bureaucracy }
+							}
+						}
+						set_vassal_contract_modification_blocked = yes
+					}
+					#储存契约
+					if = {
+						limit = { government_has_flag = government_use_bureaucracy }
+						save_east_contract_effect = yes
+					}
+				}
 
 				every_in_list = {
 					list = changed_obligations
@@ -484,8 +512,8 @@ ai_only_liege_modify_vassal_contract_interaction = {
 			OR = {
 				has_usable_hook = scope:recipient
 				AND = {
-					allows_administrative_NOT_celestial = yes
-					scope:recipient = { allows_administrative_NOT_celestial = yes }
+					government_allows = administrative
+					scope:recipient = { government_allows = administrative }
 				}
 			}
 		}
@@ -499,7 +527,7 @@ ai_only_liege_modify_vassal_contract_interaction = {
 			is_ruler = yes
 			OR = {
 				vassal_contract_can_be_modified_trigger = yes
-				allows_administrative_NOT_celestial = yes
+				government_allows = administrative
 			}
 			does_ai_liege_in_vassal_contract_desire_obligation_change = yes
 		}
@@ -517,6 +545,11 @@ ai_only_liege_modify_vassal_contract_interaction = {
 		scope:recipient = {
 			set_vassal_contract_modification_blocked = yes
 			trigger_event = char_interaction.0250
+			#储存契约
+			if = {
+				limit = { government_has_flag = government_use_bureaucracy }
+				save_east_contract_effect = yes
+			}
 		}
 
 		# Additional Flavor Titles
@@ -628,7 +661,7 @@ ai_only_vassal_modify_vassal_contract_interaction = {
 admin_liege_modify_vassal_contract_interaction = {
 	special_interaction = liege_modify_vassal_contract
 	interface = modify_vassal_contract
-	category = interaction_category_vassal
+	category = interaction_category_admin
 	common_interaction = yes
 	icon = icon_contract_modification_single
 
@@ -645,7 +678,7 @@ admin_liege_modify_vassal_contract_interaction = {
 			liege = scope:actor
 			is_ruler = yes
 			vassal_contract_has_modifiable_obligations = yes
-			allows_administrative_NOT_celestial = yes
+			government_allows = administrative
 			any_held_title = {
 				tier >= tier_duchy
 				is_noble_family_title = no
@@ -686,10 +719,62 @@ admin_liege_modify_vassal_contract_interaction = {
 					}
 				}
 			}
+
+			trigger_if = {
+				limit = {
+					scope:recipient = {
+						government_has_flag = government_use_bureaucracy
+					}
+				}
+				scope:actor = {
+					has_changed_contract_obligation_trigger = yes
+	
+					custom_description = {
+						text = "liege_modify_vassal_contract_cannot_exceed_tyranny_cap"
+						object = scope:actor
+						NOT = {
+							vassal_obligation_increase_tyranny_gain_multiplier > 1
+						}
+					}
+	
+					# Cannot change more than three things at once
+					custom_description = {
+						text = "vassal_modify_vassal_contract_obligation_change_limit"
+						value = list_size:changed_obligations
+						list_size:changed_obligations <= max_contract_changes
+					}
+	
+					# If the trade without the hook usage is already in the vassal's favour or fair then don't waste your hook
+					save_temporary_scope_value_as = {
+						name = obligations_favoring_vassal
+						value = scope:recipient.count_obligation_improvements_for_vassal
+					}
+					trigger_if = {
+						limit = { scope:obligations_favoring_vassal > 0 }
+						custom_description = {
+							text = "vassal_modify_vassal_contract_unnecessary_hook_usage_vassal_favor"
+							object = scope:recipient
+							value = scope:obligations_favoring_vassal
+							NOT = { always = scope:hook }
+						}
+					}
+					trigger_else_if = {
+						limit = { scope:obligations_favoring_vassal = 0 }
+						custom_description = {
+							text = "vassal_modify_vassal_contract_unnecessary_hook_usage_equal"
+							object = scope:recipient
+							NOT = { always = scope:hook }
+						}
+					}
+					trigger_else = {} # Otherwise we're fine!
+				}
+			}
 		}
 	}
 
-	auto_accept = yes
+	auto_accept = {
+		scope:actor = { government_has_flag = government_is_administrative }
+	}
 	on_accept = {
 		hidden_effect = {
 			# Struggle Catalysts
@@ -827,6 +912,12 @@ admin_liege_modify_vassal_contract_interaction = {
 	}
 
 	send_options_exclusive = no
+
+	ai_accept = {
+		base = 0
+
+		admin_liege_modify_vassal_contract_scripted_modifier = yes
+	}
 }
 
 admin_vassal_modify_vassal_contract_interaction = {
@@ -846,7 +937,7 @@ admin_vassal_modify_vassal_contract_interaction = {
 			NOT = { this = scope:recipient }
 			liege = scope:recipient
 			vassal_contract_has_modifiable_obligations = yes
-			allows_administrative_NOT_celestial = yes
+			government_allows = administrative
 		}
 	}
 
@@ -876,6 +967,33 @@ admin_vassal_modify_vassal_contract_interaction = {
 			}
 			scope:actor = {
 				vassal_contract_is_blocked_from_modification = no
+			}
+		}
+		trigger_else_if = {
+			limit = {
+				scope:actor = {
+					government_has_flag = government_use_bureaucracy
+				}
+			}
+			scope:actor = {
+				has_changed_contract_obligation_trigger = yes
+			}
+
+			scope:recipient = {
+				# Must be an even trade overall
+				custom_description = {
+					text = "vassal_modify_vassal_contract_cannot_increase_obligation_level"
+					object = scope:actor
+					value = count_obligation_improvements_for_vassal_include_hook
+					count_obligation_improvements_for_vassal_include_hook = 0
+				}
+
+				# Cannot change more than three things at once
+				custom_description = {
+					text = "vassal_modify_vassal_contract_obligation_change_limit"
+					value = list_size:changed_obligations
+					list_size:changed_obligations <= max_contract_changes
+				}
 			}
 		}
 		trigger_else = {
@@ -1149,5 +1267,7 @@ admin_vassal_modify_vassal_contract_interaction = {
 			add = 60
 			desc = AI_SAME_HOUSE
 		}
+
+		admin_vassal_modify_vassal_contract_scripted_modifier = yes
 	}
 }
