@@ -21,7 +21,6 @@
 	desc = demand_admin_interaction_desc
 
 	is_shown = {
-		scope:actor = { government_has_flag = government_is_celestial }
 		scope:recipient = {
 			target_is_liege_or_above = scope:actor
 			is_ai = yes
@@ -61,6 +60,15 @@
 			text = head_of_faith_unable_to_change_government_desc
 			NOT = {
 				scope:recipient = { faith.religious_head ?= this }
+			}
+		}
+		scope:actor = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_demand_celestial_government"
+					has_realm_law_flag = can_demand_celestial_government
+				}
 			}
 		}
 	}
@@ -127,6 +135,13 @@
 	on_accept = {
 		show_as_tooltip = {
 			change_to_celestial_interaction_effect = yes
+		}
+		scope:recipient = {
+			if = {
+				limit = { primary_title.tier = tier_kingdom }
+				primary_title = { save_scope_as = title }
+				set_administrative_kingdom_effect = yes
+			}
 		}
 	}
 
@@ -364,7 +379,9 @@ oe_imperor_designate_heir_interaction = {
 	is_shown = {
 		#always = no
 		NOT = { scope:recipient = scope:actor }
-		scope:actor = { is_oe_imperial_government_trigger = yes }
+		scope:actor = {
+			is_oe_imperial_government_trigger = yes
+		}
 		scope:recipient = { #被替换官员
 			is_vassal_or_below_of = scope:actor
 			highest_held_title_tier >= tier_county
@@ -381,7 +398,15 @@ oe_imperor_designate_heir_interaction = {
 		#}
 	}
 	is_valid_showing_failures_only = {
-		#scope:actor = { prestige >= 1000 }
+		scope:actor = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_designate_bureaucracy_successor"
+					has_realm_law_flag = can_designate_bureaucracy_successor
+				}
+			}
+		}
 	}
 	populate_actor_list = {
 		scope:actor = {
@@ -553,7 +578,15 @@ oe_chancellor_designate_heir_interaction = {
 		}
 	}
 	is_valid_showing_failures_only = {
-		#scope:actor = { prestige >= 1000 }
+		scope:actor.liege = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "liege_can_designate_bureaucracy_successor"
+					has_realm_law_flag = can_designate_bureaucracy_successor
+				}
+			}
+		}
 	}
 	cost = {
 		influence = {
@@ -602,6 +635,7 @@ set_bureaucratic_term_interaction = {  #
 	is_shown = {	
 		scope:actor = {
 			is_oe_imperial_court_trigger = yes
+			
 			is_ai = no
 			is_available_adult = yes
 		}
@@ -620,12 +654,15 @@ set_bureaucratic_term_interaction = {  #
 		scope:actor = {
 			is_capable_adult = yes
 			is_imprisoned = no
-			OR = {
-				has_realm_law = imperial_bureaucracy_2
-				has_realm_law = imperial_bureaucracy_3
+
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_set_bureaucratic_term"
+					has_realm_law_flag = can_set_bureaucratic_term
+				}
 			}
 		}
-		#scope:actor = { prestige >= 1000 }
 	}
 	#Use hook
 	send_option = {

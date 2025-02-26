@@ -66,6 +66,7 @@ realm_law_use_crown_authority = {
 	realm_law_use_tribal_authority = no
 	realm_law_use_camp_purpose = no
 	realm_law_use_imperial_bureaucracy = no
+	realm_law_use_celestial_bureaucracy = no
 }
 
 realm_law_use_tribal_authority = {
@@ -81,6 +82,12 @@ realm_law_use_camp_purpose = {
 
 realm_law_use_imperial_bureaucracy = {
 	government_allows = administrative
+	NOT = { government_has_flag = government_is_celestial }
+}
+
+realm_law_use_celestial_bureaucracy = {
+	government_allows = administrative
+	government_has_flag = government_is_celestial
 }
 
 can_have_confederate_partition_succession_law_trigger = {
@@ -412,9 +419,19 @@ can_change_acclamation_succession_law_trigger = {
 
 #流官制（与帝国官僚继承法接驳）
 can_have_official_succession_law_trigger = {
+	government_allows = administrative
 	government_has_flag = government_is_celestial
 	is_independent_ruler = no
-	highest_held_title_tier > tier_county
+
+	trigger_if = {
+		limit = { top_liege ?= { has_realm_law_flag = pool_bureaucracy_succession_duchy } } #科举直派路使 
+		highest_held_title_tier > tier_duchy
+	}
+	trigger_if = {
+		limit = { top_liege ?= { NOT = { has_realm_law_flag = pool_bureaucracy_succession_duchy } } }
+		highest_held_title_tier > tier_county
+	}
+	
 	primary_title = {
 		tier > tier_county
 		is_oe_noble_family_title = no
@@ -425,10 +442,6 @@ can_have_official_succession_law_trigger = {
 		vassal_contract_has_flag = heir_succession_rights_unlock
 		primary_title = { has_variable = titular_title }
 		has_title = title:d_gosho
-
-		primary_title = {
-			is_oe_noble_family_title = yes
-		}
 	}
 }
 
@@ -514,7 +527,23 @@ can_pass_legion_succession_law_trigger = {
 #科举制
 can_have_admin_succession_law_trigger = {
 	is_landed = yes
-	highest_held_title_tier <= tier_county
+
+	trigger_if = {
+		limit = {
+			government_has_flag = government_is_celestial
+			NOT = { government_allows = administrative }
+		}
+		highest_held_title_tier <= tier_kingdom
+	}
+	trigger_if = {
+		limit = { top_liege ?= { has_realm_law_flag = pool_bureaucracy_succession_duchy } } #科举直派路使 
+		highest_held_title_tier <= tier_duchy
+	}
+	trigger_if = {
+		limit = { top_liege ?= { NOT = { has_realm_law_flag = pool_bureaucracy_succession_duchy } } }
+		highest_held_title_tier <= tier_county
+	}
+
 	OR = {
 		top_liege ?= {
 			government_has_flag = government_is_celestial

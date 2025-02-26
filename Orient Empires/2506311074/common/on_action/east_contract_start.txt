@@ -169,12 +169,8 @@ oe_on_game_start_contract = {
 					}
 				}
 				vassal_contract_set_obligation_level = {
-					type = special_imperial_contract
-					level = 1
-				}
-				vassal_contract_set_obligation_level = {
-					type = special_imperial_legion
-					level = 4
+					type = special_imperial_bureau
+					level = 6
 				} 
 			}
 		}	
@@ -183,9 +179,23 @@ oe_on_game_start_contract = {
 
 on_title_gain = {
 	on_actions = {
-		oe_contract_title_gain_effects
+		#oe_contract_title_gain_effects
+		oe_admin_kingdom_title_gain
 	}
-}	
+}
+
+on_rank_up = {
+	on_actions = {
+		oe_admin_kingdom_title_gain
+	}
+}
+
+on_vassal_change = {
+	on_actions = {
+		oe_admin_kingdom_independence
+	}
+}
+
 oe_contract_title_gain_effects = {
 	trigger = {
 		OR = {
@@ -230,3 +240,38 @@ oe_contract_title_gain_effects = {
 		}
 	}	
 }	
+
+
+
+oe_admin_kingdom_title_gain = {
+	trigger = {
+		scope:title.tier = tier_kingdom
+		is_independent_ruler = no
+		liege ?= { is_oe_imperial_government_trigger = yes }
+		government_allows = administrative
+		government_has_flag = government_is_celestial
+	}
+	effect = {
+		set_administrative_kingdom_effect = yes
+	}
+}
+
+oe_admin_kingdom_independence = {
+	trigger = {
+		scope:title.tier = tier_kingdom
+		government_has_flag = government_is_celestial
+	}
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					liege ?= {
+						NOT = { government_has_flag = government_is_celestial }
+					}
+					is_independent_ruler = yes
+				}
+			}
+			set_administrative_kingdom_back_effect = yes
+		}
+	}
+}
