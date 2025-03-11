@@ -1,94 +1,81 @@
 ﻿on_war_started = {
 	on_actions = {
-		east_on_contract_attend_on_action
+		east_contract_on_war_started
 	}
 }
-east_on_contract_attend_on_action = {
+east_contract_on_war_started = {
 	effect = {
 		scope:attacker = {
-			save_scope_as = invaded_liege
-			scope:war = {
-				save_scope_as = invaded_liege_war
-			}
-			every_vassal = {
+			if = {
 				limit = {
-					NOT = { is_at_war_with = scope:defender }
-					OR = {
-						vassal_contract_has_flag = imperial_legion_1
-					}
+					# keep coinsist to special_imperial_contract & special_imperial_legion
+					government_has_flag = government_is_celestial
 				}
-				trigger_event = { id = east_legions.0005 days = 5 }
-			}
-			every_vassal_or_below = {
-				limit = {
-					NOT = { is_at_war_with = scope:defender }
-					OR = {
-						vassal_contract_has_flag = imperial_legion_2
-					}
-				}
-				save_scope_as = defender_temp
-				if = {
+				every_vassal = {
 					limit = {
-						scope:war = {
-							casus_belli = {
-								any_target_title = {
-									exists = holder
+						vassal_contract_has_flag = imperial_legion_1
+						NOT = { is_at_war_with = scope:defender }
+					}
+					trigger_event = { id = east_legions.0004 days = 1 }
+				}
+				every_vassal_or_below = {
+					limit = {
+						vassal_contract_has_flag = imperial_legion_2
+						NOT = { is_at_war_with = scope:defender }
+						save_temporary_scope_as = defender_temp
+						scope:war.casus_belli = {
+							any_target_title = {
+								holder ?= {
 									OR = {
-										holder.liege = scope:defender_temp
-										holder = scope:defender_temp
-										holder.capital_province.kingdom = scope:defender_temp.capital_province.kingdom
+										liege = scope:defender_temp
+										this = scope:defender_temp
+										capital_province.kingdom = scope:defender_temp.capital_province.kingdom
 									}
 								}
 							}
-						}	
+						}
 					}
-					trigger_event = { id = east_legions.0004 days = 5 }
+					trigger_event = { id = east_legions.0004 days = 2 }
 				}
 			}
 		}
 		scope:defender = {
-			save_scope_as = invaded_liege
-			scope:war = {
-				save_scope_as = invaded_liege_war
-			}
-			every_vassal = {
+			if = {
 				limit = {
-					NOT = { is_at_war_with = scope:defender }
-					OR = {
-						vassal_contract_has_flag = imperial_legion_1
-					}
+					# keep coinsist to special_imperial_contract & special_imperial_legion
+					government_has_flag = government_is_celestial
 				}
-				trigger_event = { id = east_legions.0006 days = 5 }
-			}
-			every_vassal_or_below = {
-				limit = {
-					NOT = { is_at_war_with = scope:attacker }
-					OR = {
-						vassal_contract_has_flag = imperial_legion_2
-					}
-				}
-				save_scope_as = defender_temp
-				if = {
+				every_vassal = {
 					limit = {
-						scope:war = {
-							casus_belli = {
-								any_target_title = {
-									exists = holder
+						vassal_contract_has_flag = imperial_legion_1
+						NOT = { is_at_war_with = scope:attacker }
+					}
+					trigger_event = { id = east_legions.0003 days = 1 }
+				}
+				every_vassal_or_below = {
+					limit = {
+						vassal_contract_has_flag = imperial_legion_2
+						NOT = { is_at_war_with = scope:attacker }
+						save_temporary_scope_as = defender_temp
+						scope:war.casus_belli = {
+							any_target_title = {
+								holder ?= {
 									OR = {
-										holder.liege = scope:defender_temp
-										holder = scope:defender_temp
-										holder.capital_province.kingdom = scope:defender_temp.capital_province.kingdom
+										liege = scope:defender_temp
+										this = scope:defender_temp
+										capital_province.kingdom = scope:defender_temp.capital_province.kingdom
 									}
 								}
 							}
-						}	
+						}
 					}
-					trigger_event = { id = east_legions.0003 days = 5 }
+					trigger_event = { id = east_legions.0003 days = 2 }
 				}
 			}
 		}
 	}
-}	
+}
+
 on_game_start = { #by 糜三小姐
 	on_actions = {
 		oe_on_game_start_contract
@@ -169,12 +156,8 @@ oe_on_game_start_contract = {
 					}
 				}
 				vassal_contract_set_obligation_level = {
-					type = special_imperial_contract
-					level = 1
-				}
-				vassal_contract_set_obligation_level = {
-					type = special_imperial_legion
-					level = 4
+					type = special_imperial_bureau
+					level = 6
 				} 
 			}
 		}	
@@ -183,9 +166,23 @@ oe_on_game_start_contract = {
 
 on_title_gain = {
 	on_actions = {
-		oe_contract_title_gain_effects
+		#oe_contract_title_gain_effects
+		oe_admin_kingdom_title_gain
 	}
-}	
+}
+
+on_rank_up = {
+	on_actions = {
+		oe_admin_kingdom_title_gain
+	}
+}
+
+on_vassal_change = {
+	on_actions = {
+		oe_admin_kingdom_independence
+	}
+}
+
 oe_contract_title_gain_effects = {
 	trigger = {
 		OR = {
@@ -230,3 +227,38 @@ oe_contract_title_gain_effects = {
 		}
 	}	
 }	
+
+
+
+oe_admin_kingdom_title_gain = {
+	trigger = {
+		scope:title.tier = tier_kingdom
+		is_independent_ruler = no
+		liege ?= { is_oe_imperial_government_trigger = yes }
+		government_allows = administrative
+		government_has_flag = government_is_celestial
+	}
+	effect = {
+		set_administrative_kingdom_effect = yes
+	}
+}
+
+oe_admin_kingdom_independence = {
+	trigger = {
+		scope:title.tier = tier_kingdom
+		government_has_flag = government_is_celestial
+	}
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					liege ?= {
+						NOT = { government_has_flag = government_is_celestial }
+					}
+					is_independent_ruler = yes
+				}
+			}
+			set_administrative_kingdom_back_effect = yes
+		}
+	}
+}
