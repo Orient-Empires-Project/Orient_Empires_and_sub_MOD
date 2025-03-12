@@ -11,5 +11,5 @@ tags={
 	"Bookmarks"
 }
 name="Oriental Empires"
-supported_version="1.14.*"
+supported_version="1.15.*"
 remote_file_id="2506311074"

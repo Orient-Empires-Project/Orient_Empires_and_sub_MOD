@@ -35,8 +35,12 @@
 
 
 zongbo_court_position = {
-	max_available_positions = 1
-	category = court_position_category_special
+	sort_order = 290
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+
 	minimum_rank = empire
 	skill = diplomacy
 
@@ -108,8 +112,22 @@ zongbo_court_position = {
 				desc = court_position_athletic_trait
 			}
 		}
+		add = court_position_aptitude_eunuch_tradition_value
 		add = court_position_aptitude_family_business_value
 		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
 	}
 	
 	# Is this an available position for this court? (root is court owner)
@@ -169,25 +187,119 @@ zongbo_court_position = {
 	salary = {
 		round = no
 		gold = {
-			value = minor_court_position_salary
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
 			# Set to 0 with Dynasty Perk Inner Circle
 			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = zongbo } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
 				limit = {
-					scope:liege = {
-						exists = dynasty
-						dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
-
-						employs_court_position = zongbo_court_position
-						any_court_position_holder = {
-					        type = zongbo_court_position
-							exists = dynasty
-							house = prev.house
-						}
+					court_position_obligation_hook_salary_trigger = {
+						POS = zongbo
+						LIEGE = scope:liege
 					}
 				}
 				multiply = {
-					value = 0.0
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = zongbo }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = zongbo }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = zongbo } }
+				multiply = {
+					value = 0
 					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = zongbo }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = zongbo }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
 					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
 				}
 			}
@@ -224,7 +336,6 @@ zongbo_court_position = {
 		dynasty_house_opinion = 5
 	}
 	modifier = {
-		monthly_prestige = -0.5
 		hostile_scheme_power_mult = -0.25
 		owned_hostile_scheme_success_chance_add = -10
 	}
@@ -237,6 +348,11 @@ zongbo_court_position = {
 	}
 	on_court_position_invalidated = {
 		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = zongbo_court_position
+		}
 	}
 	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
 	candidate_score = {
@@ -284,8 +400,11 @@ zongbo_court_position = {
 }
 
 hanlin_court_position = {
-	max_available_positions = 1
-	category = court_position_category_special
+	sort_order = 288
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
 	minimum_rank = empire # Should only be available for kings and emperors
 	skill = learning
 
@@ -408,8 +527,22 @@ hanlin_court_position = {
 				desc = court_position_innovation_mural_sextant
 			}
 		}
+		add = court_position_aptitude_eunuch_tradition_value
 		add = court_position_aptitude_family_business_value
 		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
 	}
 	
 	# Is this an available position for this court? (root is court owner)
@@ -482,31 +615,125 @@ hanlin_court_position = {
 	salary = {
 		round = no
 		gold = {
-			value = medium_court_position_salary
+			value = medium_court_position_salary # Update X_salary_tooltip if script_value is changed
 			# Set to 0 with Dynasty Perk Inner Circle
 			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = hanlin } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
 				limit = {
-					scope:liege = {
-						exists = dynasty
-						dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
-
-						employs_court_position = court_scholar_court_position
-						any_court_position_holder = {
-					        type = court_scholar_court_position
-							exists = dynasty
-							house = prev.house
-						}
+					court_position_obligation_hook_salary_trigger = {
+						POS = hanlin
+						LIEGE = scope:liege
 					}
 				}
 				multiply = {
-					value = 0.0
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = hanlin }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = hanlin }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = hanlin } }
+				multiply = {
+					value = 0
 					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = hanlin }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = hanlin }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
 					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
 				}
 			}
 		}
 	}
-	
+
 	base_employer_modifier = {
 		learning_per_piety_level = 1
 		county_opinion_add = 5
@@ -541,7 +768,6 @@ hanlin_court_position = {
 	}
 	
 	modifier = {
-		monthly_prestige = medium_court_position_prestige_salary
 		learning = 2
 	}
 	
@@ -553,6 +779,11 @@ hanlin_court_position = {
 	}
 	on_court_position_invalidated = {
 		basic_invalidated_court_position_effect = yes #chief_qadi_title_invalidated_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = hanlin_court_position
+		}
 	}
 	candidate_score = {
 		value = 50
@@ -595,9 +826,12 @@ hanlin_court_position = {
 }
 
 shizhong_court_position = {
-
+	sort_order = 288
 	max_available_positions = 2
-	category = court_position_category_special
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
 	minimum_rank = empire
 	skill = learning
 
@@ -635,8 +869,22 @@ shizhong_court_position = {
 				desc = court_position_overseer_trait
 			}
 		}
+		add = court_position_aptitude_eunuch_tradition_value
 		add = court_position_aptitude_family_business_value
 		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
 	}
 
 	is_shown = {
@@ -692,25 +940,119 @@ shizhong_court_position = {
 	salary = {
 		round = no
 		gold = {
-			value = medium_court_position_salary
+			value = medium_court_position_salary # Update X_salary_tooltip if script_value is changed
 			# Set to 0 with Dynasty Perk Inner Circle
 			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = shizhong } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
 				limit = {
-					scope:liege = {
-						exists = dynasty
-						dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
-
-						employs_court_position = shizhong_court_position
-						any_court_position_holder = {
-					        type = shizhong_court_position
-							exists = dynasty
-							house = prev.house
-						}
+					court_position_obligation_hook_salary_trigger = {
+						POS = shizhong
+						LIEGE = scope:liege
 					}
 				}
 				multiply = {
-					value = 0.0
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = shizhong }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = shizhong }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = minor_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = shizhong } }
+				multiply = {
+					value = 0
 					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = shizhong }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = shizhong }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
 					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
 				}
 			}
@@ -736,10 +1078,6 @@ shizhong_court_position = {
 		}
 	}
 
-	modifier = {
-		monthly_prestige = minor_court_position_prestige_salary
-	}
-
 	on_court_position_received = {
 		seneschal_title_accepted_effect = yes
 	}
@@ -748,6 +1086,11 @@ shizhong_court_position = {
 	}
 	on_court_position_invalidated = {
 		seneschal_title_invalidated_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = shizhong_court_position
+		}
 	}
 	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
 	candidate_score = {
@@ -786,8 +1129,11 @@ shizhong_court_position = {
 }
 
 eagle_court_position = {
-	max_available_positions = 1
-	category = court_position_category_special
+	sort_order = 250
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
 	minimum_rank = kingdom # Should only be available for kings and emperors
 	skill = prowess
 
@@ -843,8 +1189,22 @@ eagle_court_position = {
 				desc = court_position_blind_trait
 			}
 		}
+		add = court_position_aptitude_eunuch_tradition_value
 		add = court_position_aptitude_family_business_value
 		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
 	}
 
 	is_shown = {
@@ -914,25 +1274,119 @@ eagle_court_position = {
 	salary = {
 		round = no
 		gold = {
-			value = minor_court_position_salary
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
 			# Set to 0 with Dynasty Perk Inner Circle
 			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = eagle } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
 				limit = {
-					scope:liege = {
-						exists = dynasty
-						dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
-
-						employs_court_position = eagle_court_position
-						any_court_position_holder = {
-					        type = eagle_court_position
-							exists = dynasty
-							house = prev.house
-						}
+					court_position_obligation_hook_salary_trigger = {
+						POS = eagle
+						LIEGE = scope:liege
 					}
 				}
 				multiply = {
-					value = 0.0
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = eagle }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = eagle }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = minor_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = eagle } }
+				multiply = {
+					value = 0
 					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = eagle }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = eagle }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
 					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
 				}
 			}
@@ -961,10 +1415,6 @@ eagle_court_position = {
 		}
 	}
 
-	modifier = {
-		monthly_prestige = minor_court_position_prestige_salary
-	}
-
 	on_court_position_received = {
 		keeper_of_swans_title_accepted_effect = yes
 	}
@@ -973,6 +1423,11 @@ eagle_court_position = {
 	}
 	on_court_position_invalidated = {
 		keeper_of_swans_title_invalidated_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = eagle_court_position
+		}
 	}
 	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
 	candidate_score = {
@@ -985,8 +1440,11 @@ eagle_court_position = {
 }
 
 dali_court_position = {
-	max_available_positions = 1
-	category = court_position_category_special
+	sort_order = 290
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
 	minimum_rank = empire # Should only be available for kings and emperors
 	skill = learning
 
@@ -1070,8 +1528,22 @@ dali_court_position = {
 				desc = court_position_arbitrary_trait
 			}
 		}
+		add = court_position_aptitude_eunuch_tradition_value
 		add = court_position_aptitude_family_business_value
 		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
 	}
 	
 	# Is this an available position for this court? (root is court owner)
@@ -1147,46 +1619,120 @@ dali_court_position = {
 	salary = {
 		round = no
 		gold = {
-			value = minor_court_position_salary
+			value = tiny_court_position_salary # Update X_salary_tooltip if script_value is changed
 			# Set to 0 with Dynasty Perk Inner Circle
 			if = {
-				limit = {
-					scope:liege = {
-						exists = dynasty
-						dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
-
-						employs_court_position = dali_court_position
-						any_court_position_holder = {
-					        type = dali_court_position
-							exists = dynasty
-							house = prev.house
-						}
-					}
-				}
+				limit = { court_position_inner_circle_salary_trigger = { POS = dali } }
 				multiply = {
-					value = 0.0
+					value = 0
 					desc = inner_circle_salary_mod
 					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
 				}
 			}
-			if = {
+			# Halved via obligation hook
+			else_if = {
 				limit = {
-					scope:liege = {
-						employs_court_position = dali_court_position
-						any_court_position_holder = {
-					        type = dali_court_position
-					        scope:liege = {
-								has_hook_of_type = {
-									type = obligation_hook
-									target = prev
-								}
-							}
-						}
+					court_position_obligation_hook_salary_trigger = {
+						POS = dali
+						LIEGE = scope:liege
 					}
 				}
 				multiply = {
 					value = 0.5
 					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = dali }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = dali }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = minor_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = dali } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = dali }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = dali }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			#You're working with LAAMPS now
+			if = {
+				limit = { 
+					scope:liege ?= { government_has_flag = government_is_landless_adventurer }
+				}
+				multiply = {
+					value = 0
+					desc = court_position_laamps_free
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
 				}
 			}
 		}
@@ -1215,7 +1761,6 @@ dali_court_position = {
 	}
 	
 	modifier = {
-		monthly_prestige = minor_court_position_prestige_salary
 		diplomacy = 1
 	}
 	
@@ -1227,6 +1772,11 @@ dali_court_position = {
 	}
 	on_court_position_invalidated = {
 		basic_invalidated_court_position_effect = yes #chief_qadi_title_invalidated_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = dali_court_position
+		}
 	}
 	candidate_score = {
 		value = 50
@@ -1250,7 +1800,6 @@ dali_court_position = {
 
 #empress_dowager_court_position = {
 #	max_available_positions = 1
-#	category = court_position_category_royal
 #	minimum_rank = empire # Should only be available for kings and emperors
 #
 #	opinion = {
