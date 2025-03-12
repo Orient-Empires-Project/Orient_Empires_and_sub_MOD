@@ -227,6 +227,7 @@
 		common_character_validity_trigger = {
 			FACTION_TARGET = scope:faction.faction_target
 		}
+		has_valid_faction_members_trigger = yes
 	}
 
 	can_character_create_ui = {
@@ -260,8 +261,8 @@
 				government_allows = administrative
 			}
 			custom_tooltip = {
-				text = admin_cannot_create_target_faction
-				NOT = { government_allows = administrative }
+				text = admin_high_tier_vassal_create_faction
+				highest_held_title_tier >= tier_kingdom
 			}
 		}
 	}
@@ -316,16 +317,8 @@
 				government_allows = administrative
 			}
 			custom_tooltip = {
-				text = admin_cannot_join_target_faction
-				OR = {
-					NOT = { government_allows = administrative }
-					liege = {
-						OR = {
-							has_realm_law = celestial_bureaucracy_0 #
-							has_realm_law = celestial_bureaucracy_1
-						}
-					}
-				}	
+				text = admin_high_tier_vassal_create_faction
+				highest_held_title_tier >= tier_kingdom
 			}
 		}
 	}
@@ -355,16 +348,8 @@
 				government_allows = administrative
 			}
 			custom_tooltip = {
-				text = admin_cannot_join_target_faction
-				OR = {
-					NOT = { government_allows = administrative }
-					liege = {
-						OR = {
-							has_realm_law = celestial_bureaucracy_0
-							has_realm_law = celestial_bureaucracy_1
-						}
-					}
-				}	
+				text = admin_high_tier_vassal_join_faction
+				highest_held_title_tier >= tier_kingdom
 			}
 		}
 	}
@@ -414,7 +399,7 @@ liberty_faction = {
 		first_valid = {
 			triggered_desc = {
 				trigger = {
-					faction_target = { government_allows = administrative }
+					faction_target = { government_has_flag = government_is_administrative }
 				}
 				desc = liberty_faction_desc_admin
 			}
@@ -438,7 +423,7 @@ liberty_faction = {
 		first_valid = {
 			triggered_desc = {
 				trigger = {
-					faction_target = { government_allows = administrative }
+					faction_target = { government_has_flag = government_is_administrative }
 				}
 				desc = liberty_faction_short_effect_desc_admin
 			}
@@ -568,6 +553,7 @@ liberty_faction = {
 		common_character_validity_trigger = {
 			FACTION_TARGET = scope:faction.faction_target
 		}
+		has_valid_faction_members_trigger = yes
 	}
 
 	can_character_create_ui = {
@@ -578,7 +564,7 @@ liberty_faction = {
 		}
 
 		trigger_if = {
-			limit = { scope:target = { government_allows = administrative } }
+			limit = { scope:target = { realm_law_use_imperial_bureaucracy = yes } }
 			custom_description = {
 				text = has_lowest_imperial_bureaucracy
 				subject = scope:target
@@ -587,6 +573,34 @@ liberty_faction = {
 						has_realm_law = imperial_bureaucracy_1
 						has_realm_law = imperial_bureaucracy_2
 						has_realm_law = imperial_bureaucracy_3
+					}
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = { scope:target = { realm_law_use_celestial_bureaucracy = yes } }
+			custom_description = {
+				text = has_lowest_imperial_bureaucracy
+				subject = scope:target
+				scope:target = {
+					OR = {
+						has_realm_law = celestial_bureaucracy_1
+						has_realm_law = celestial_bureaucracy_2
+						has_realm_law = celestial_bureaucracy_3
+					}
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = { scope:target = { government_has_flag = government_is_tribal } }
+			custom_description = {
+				text = has_lowest_tribal_authority
+				subject = scope:target
+				scope:target = {
+					OR = {
+						has_realm_law = tribal_authority_1
+						has_realm_law = tribal_authority_2
+						has_realm_law = tribal_authority_3
 					}
 				}
 			}
@@ -607,7 +621,7 @@ liberty_faction = {
 		
 		trigger_if = {
 			limit = {
-				scope:target = { government_allows = administrative }
+				scope:target = { government_has_flag = government_is_administrative }
 			}
 			scope:target = {
 				is_independent_ruler = yes
@@ -621,7 +635,7 @@ liberty_faction = {
 		}
 
 		trigger_if = {
-			limit = { scope:target = { government_allows = administrative } }
+			limit = { scope:target = { realm_law_use_imperial_bureaucracy = yes} }
 			custom_description = {
 				text = has_lowest_imperial_bureaucracy
 				subject = scope:target
@@ -630,6 +644,20 @@ liberty_faction = {
 						has_realm_law = imperial_bureaucracy_1
 						has_realm_law = imperial_bureaucracy_2
 						has_realm_law = imperial_bureaucracy_3
+					}
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = { scope:target = { government_has_flag = government_is_tribal } }
+			custom_description = {
+				text = has_lowest_tribal_authority
+				subject = scope:target
+				scope:target = {
+					OR = {
+						has_realm_law = tribal_authority_1
+						has_realm_law = tribal_authority_2
+						has_realm_law = tribal_authority_3
 					}
 				}
 			}
@@ -666,11 +694,33 @@ liberty_faction = {
 			is_ai = no
 			scope:faction.faction_target = {
 				trigger_if = {
-					limit = { government_allows = administrative }
+					limit = { realm_law_use_imperial_bureaucracy = yes }
 					OR = {
 						has_realm_law = imperial_bureaucracy_1
 						has_realm_law = imperial_bureaucracy_2
 						has_realm_law = imperial_bureaucracy_3
+					}
+				}
+				trigger_else_if = {
+					limit = { scope:target = { realm_law_use_celestial_bureaucracy = yes } }
+					custom_description = {
+						text = has_lowest_imperial_bureaucracy
+						subject = scope:target
+						scope:target = {
+							OR = {
+								has_realm_law = celestial_bureaucracy_1
+								has_realm_law = celestial_bureaucracy_2
+								has_realm_law = celestial_bureaucracy_3
+							}
+						}
+					}
+				}
+				trigger_else_if = {
+					limit = { government_has_flag = government_is_tribal }
+					OR = {
+						has_realm_law = tribal_authority_1
+						has_realm_law = tribal_authority_2
+						has_realm_law = tribal_authority_3
 					}
 				}
 				trigger_else = {
@@ -685,7 +735,7 @@ liberty_faction = {
 		
 		trigger_if = {
 			limit = {
-				scope:faction.faction_target = { government_allows = administrative }
+				scope:faction.faction_target = { government_has_flag = government_is_administrative }
 			}
 			scope:faction.faction_target = {
 				is_independent_ruler = yes
