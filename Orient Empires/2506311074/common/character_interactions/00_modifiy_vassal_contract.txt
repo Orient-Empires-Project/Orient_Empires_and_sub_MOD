@@ -679,9 +679,20 @@ admin_liege_modify_vassal_contract_interaction = {
 			is_ruler = yes
 			vassal_contract_has_modifiable_obligations = yes
 			government_allows = administrative
-			any_held_title = {
-				tier >= tier_duchy
-				is_noble_family_title = no
+			trigger_if = {
+				limit = {
+					government_has_flag = government_is_administrative
+				}
+				any_held_title = {
+					tier >= tier_duchy
+					is_noble_family_title = no
+				}
+			}
+			trigger_else = {
+				any_held_title = {
+					tier >= tier_county
+					is_noble_family_title = no
+				}
 			}
 		}
 	}
@@ -719,61 +730,14 @@ admin_liege_modify_vassal_contract_interaction = {
 					}
 				}
 			}
-
-			trigger_if = {
-				limit = {
-					scope:recipient = {
-						government_has_flag = government_use_bureaucracy
-					}
-				}
-				scope:actor = {
-					has_changed_contract_obligation_trigger = yes
-	
-					custom_description = {
-						text = "liege_modify_vassal_contract_cannot_exceed_tyranny_cap"
-						object = scope:actor
-						NOT = {
-							vassal_obligation_increase_tyranny_gain_multiplier > 1
-						}
-					}
-	
-					# Cannot change more than three things at once
-					custom_description = {
-						text = "vassal_modify_vassal_contract_obligation_change_limit"
-						value = list_size:changed_obligations
-						list_size:changed_obligations <= max_contract_changes
-					}
-	
-					# If the trade without the hook usage is already in the vassal's favour or fair then don't waste your hook
-					save_temporary_scope_value_as = {
-						name = obligations_favoring_vassal
-						value = scope:recipient.count_obligation_improvements_for_vassal
-					}
-					trigger_if = {
-						limit = { scope:obligations_favoring_vassal > 0 }
-						custom_description = {
-							text = "vassal_modify_vassal_contract_unnecessary_hook_usage_vassal_favor"
-							object = scope:recipient
-							value = scope:obligations_favoring_vassal
-							NOT = { always = scope:hook }
-						}
-					}
-					trigger_else_if = {
-						limit = { scope:obligations_favoring_vassal = 0 }
-						custom_description = {
-							text = "vassal_modify_vassal_contract_unnecessary_hook_usage_equal"
-							object = scope:recipient
-							NOT = { always = scope:hook }
-						}
-					}
-					trigger_else = {} # Otherwise we're fine!
-				}
-			}
 		}
 	}
 
 	auto_accept = {
-		scope:actor = { government_has_flag = government_is_administrative }
+		OR = {
+			scope:actor = { government_has_flag = government_is_administrative }
+			scope:recipient = { is_imprisoned_by = scope:actor }
+		}
 	}
 	on_accept = {
 		hidden_effect = {
@@ -967,33 +931,6 @@ admin_vassal_modify_vassal_contract_interaction = {
 			}
 			scope:actor = {
 				vassal_contract_is_blocked_from_modification = no
-			}
-		}
-		trigger_else_if = {
-			limit = {
-				scope:actor = {
-					government_has_flag = government_use_bureaucracy
-				}
-			}
-			scope:actor = {
-				has_changed_contract_obligation_trigger = yes
-			}
-
-			scope:recipient = {
-				# Must be an even trade overall
-				custom_description = {
-					text = "vassal_modify_vassal_contract_cannot_increase_obligation_level"
-					object = scope:actor
-					value = count_obligation_improvements_for_vassal_include_hook
-					count_obligation_improvements_for_vassal_include_hook = 0
-				}
-
-				# Cannot change more than three things at once
-				custom_description = {
-					text = "vassal_modify_vassal_contract_obligation_change_limit"
-					value = list_size:changed_obligations
-					list_size:changed_obligations <= max_contract_changes
-				}
 			}
 		}
 		trigger_else = {
@@ -1268,6 +1205,5 @@ admin_vassal_modify_vassal_contract_interaction = {
 			desc = AI_SAME_HOUSE
 		}
 
-		admin_vassal_modify_vassal_contract_scripted_modifier = yes
 	}
 }
