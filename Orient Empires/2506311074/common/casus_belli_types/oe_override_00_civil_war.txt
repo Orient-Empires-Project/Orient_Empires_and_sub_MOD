@@ -1,0 +1,284 @@
+﻿# Triggers as a result of the Liberty Faction demand
+liberty_faction_war = {
+	icon = dissolution_war
+	group = civil_war
+	ai_only_against_liege = yes
+	allow_hostages = no
+	allowed_for_character = {
+		scope:attacker = {
+			is_leading_faction_type = liberty_faction
+		}
+	}
+
+	allowed_against_character = {
+		scope:attacker = {
+			liege = scope:defender
+		}
+	}
+
+	target_de_jure_regions_above = yes
+	target_top_liege_if_outside_realm = no # In case of adventurers starting faction wars
+
+	valid_to_start = {
+	}
+
+	on_declaration = {
+	}
+
+	on_victory_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:defender = {
+						is_local_player = yes
+						government_has_flag = government_is_administrative
+					}
+				}
+				desc = liberty_war_victory_defender_desc_admin
+			}
+			triggered_desc = {
+				trigger = {
+					scope:defender = { government_has_flag = government_is_administrative }
+				}
+				desc = liberty_war_victory_desc_admin
+			}
+			triggered_desc = {
+				trigger = {
+					scope:defender = {
+						is_local_player = yes
+						government_has_flag = government_is_tribal
+					}
+				}
+				desc = liberty_war_victory_defender_desc_tribal
+			}
+			triggered_desc = {
+				trigger = {
+					scope:defender = { government_has_flag = government_is_tribal }
+				}
+				desc = liberty_war_victory_desc_tribal
+			}
+			triggered_desc = {
+				trigger = {
+					scope:defender = { is_local_player = yes }
+				}
+				desc = liberty_war_victory_defender_desc
+			}
+			desc = liberty_war_victory_desc
+		}
+	}
+
+	on_victory = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+
+		#EP2 Accolade glory gain from winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_med_effect = yes }
+
+		# LEGITIMACY FROM LOSING FACTION WAR
+		faction_war_end_defeat_legitimacy_effect = yes
+
+		scope:defender = {
+			switch = {
+				trigger = has_realm_law
+				imperial_bureaucracy_1 = { add_realm_law = imperial_bureaucracy_0 }
+				imperial_bureaucracy_2 = { add_realm_law = imperial_bureaucracy_1 }
+				imperial_bureaucracy_3 = { add_realm_law = imperial_bureaucracy_2 }
+				tribal_authority_1 = { add_realm_law = tribal_authority_0 }
+				tribal_authority_2 = { add_realm_law = tribal_authority_1 }
+				tribal_authority_3 = { add_realm_law = tribal_authority_2 }
+				crown_authority_1 = { add_realm_law = crown_authority_0 }
+				crown_authority_2 = { add_realm_law = crown_authority_1 }
+				crown_authority_3 = { add_realm_law = crown_authority_2 }
+				celestial_bureaucracy_1 = { add_realm_law = celestial_bureaucracy_0 }
+				celestial_bureaucracy_2 = { add_realm_law = celestial_bureaucracy_1 }
+				celestial_bureaucracy_3 = { add_realm_law = celestial_bureaucracy_2 }
+			}
+			
+			add_prestige = -500
+
+			every_character_war = {
+				limit = {
+					is_attacker = scope:attacker
+					is_defender = scope:defender
+				}
+				every_war_attacker = {
+					if = {
+						limit = {
+							can_add_hook = {
+								type = favor_hook
+								target = scope:defender
+							}
+						}
+						add_hook = {
+							type = favor_hook
+							target = scope:defender
+						}
+					}
+				}
+			}
+
+			add_character_flag = {
+				flag = recent_liberty_faction_war
+				years = liberty_war_victory_cooldown
+			}
+		}
+
+		hidden_effect = {
+			scope:attacker = {
+				add_truce_both_ways = {
+					character = scope:defender
+					days = 1825
+					war = root.war
+					result = victory
+				}
+				joined_faction = {
+					save_scope_as = saved_faction
+					add_faction_discontent = -200
+					every_faction_member = {
+						if = {
+							limit = {
+								exists = scope:attacker.joined_faction # Can get destroyed as we loop through
+							}
+							leave_faction_with_cooldown_effect = {
+								FACTION = scope:attacker.joined_faction
+								YEARS = liberty_war_victory_cooldown
+							}
+						}
+						else = {
+							add_faction_cooldown_effect = { YEARS = liberty_war_victory_cooldown }
+						}
+					}
+				}
+				# The faction should have already been destroyed due to all members leaving above, but in case it hasn't, destroy it now.
+				if = {
+					limit = { exists = scope:saved_faction }
+					scope:saved_faction = {
+						destroy_faction = yes
+					}
+				}
+			}
+		}
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_white_peace_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = liberty_war_white_peace_defender_desc
+			}
+			triggered_desc = {
+				trigger = {
+					scope:attacker.joined_faction = {
+						any_faction_member = { is_local_player = yes }
+					}
+				}
+				desc = liberty_war_white_peace_attacker_desc
+			}
+			desc = liberty_war_white_peace_desc
+		}
+		desc = liberty_war_white_peace_end_desc
+
+	}
+
+	on_white_peace = {
+		scope:attacker = {
+			show_pow_release_message_effect = yes
+			stress_impact = {
+ 				ambitious = medium_stress_impact_gain
+ 				arrogant = medium_stress_impact_gain
+ 			}
+		}
+		hidden_effect = {
+			scope:attacker = {
+				add_truce_both_ways = {
+					character = scope:defender
+					days = 1825
+					war = root.war
+					result = white_peace
+				}
+			}
+		}
+		scope:defender = {
+			stress_impact = {
+ 				arrogant = medium_stress_impact_gain
+ 			}
+			add_character_flag = {
+				flag = recent_liberty_faction_war
+				years = faction_war_white_peace_cooldown
+			}
+		}
+		on_white_peace_faction_revolt_war = yes
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_defeat_desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:defender = { is_local_player = yes } }
+				desc = liberty_war_defeat_defender_desc
+			}
+			triggered_desc = {
+				trigger = {
+					scope:attacker.joined_faction = {
+						any_faction_member = { is_local_player = yes }
+					}
+				}
+				desc = liberty_war_defeat_attacker_desc
+			}
+			desc = liberty_war_defeat_desc
+		}
+		desc = liberty_war_defeat_end_desc
+
+	}
+
+	on_defeat = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+		scope:defender = {
+			add_character_flag = {
+				flag = recent_liberty_faction_war
+				years = faction_war_defeat_cooldown
+			}
+			add_dread = medium_dread_gain
+			add_achievement_flag_effect = { FLAG = achievement_know_your_place_flag }
+
+			# LEGITIMACY FROM WINNING FACTION WAR
+			faction_war_end_victory_legitimacy_effect = yes
+		}
+		on_lost_faction_revolt_war = yes
+
+		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+		laamp_as_mercenary_payout_tooltip_effect = yes
+	}
+
+	on_invalidated_desc = msg_invalidate_war_title
+
+	check_attacker_inheritance_validity = no
+
+	on_primary_attacker_death = inherit_faction
+	on_primary_defender_death = inherit
+
+	transfer_behavior = transfer
+
+	attacker_allies_inherit = no
+	defender_allies_inherit = yes
+
+	war_name = "LIBERTY_WAR_NAME"
+
+	interface_priority = 80
+
+	use_de_jure_wargoal_only = yes
+
+	attacker_wargoal_percentage = 0.8
+
+	max_attacker_score_from_battles = 100
+	max_defender_score_from_battles = 50
+	
+	max_defender_score_from_occupation = 150
+	max_attacker_score_from_occupation = 150
+
+	max_ai_diplo_distance_to_title = 500
+}
