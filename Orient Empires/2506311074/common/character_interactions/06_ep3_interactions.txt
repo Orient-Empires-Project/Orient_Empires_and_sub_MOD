@@ -1,7 +1,7 @@
 ﻿# PLAYER ONLY - AI uses the two separate interactions below this ( Promote/Harm Candidacy)
 influence_candidacy_interaction = {
 	icon = support_candidacy
-	category = interaction_category_admin
+	category = interaction_category_succession
 	common_interaction = yes
 	interface_priority = 100
 	desc = influence_candidacy_interaction_desc
@@ -148,6 +148,18 @@ influence_candidacy_interaction = {
 	send_option = {
 		flag = as_much_as_needed_influence_option
 		localization = "as_much_as_needed_influence_option_desc"
+		is_valid = {
+			trigger_if = {
+				limit = {
+					exists = scope:target
+					exists = scope:secondary_recipient
+				}
+				custom_tooltip = {
+					text = already_first_in_line_influence_option_desc
+					NOT = { scope:target.current_heir = scope:secondary_recipient }
+				}
+			}
+		}
 	}
 	send_option = {
 		flag = major_influence_option
@@ -571,8 +583,7 @@ influence_candidacy_interaction = {
 # AI ONLY - Interaction is referenced in code, please don't rename it used by AI from code
 support_candidacy_interaction = {
 	icon = support_candidacy
-	category = interaction_category_admin
-	#common_interaction = yes
+	common_interaction = yes
 	hidden = yes
 
 	desc = support_candidacy_interaction_desc
@@ -595,6 +606,7 @@ support_candidacy_interaction = {
 			is_noble_family_title = no
 			holder = {
 				top_liege = scope:recipient
+				has_realm_law_flag = appointment_type_succession
 			}
 		}
 	}
@@ -886,10 +898,7 @@ support_candidacy_interaction = {
 		modifier = {
 			scope:target = {
 				holder = {
-					OR = {
-						has_realm_law = acclamation_succession_law
-						has_realm_law = appointment_succession_law
-					}
+					has_realm_law_flag = appointment_type_succession
 				}
 				NOT = {
 					any_title_heir = {
@@ -994,11 +1003,10 @@ support_candidacy_interaction = {
 		# Promote only one house member for each title
 		modifier = {
 			scope:target = {
+				holder = {
+					has_realm_law_flag = appointment_type_succession
+				}
 				any_title_heir = {
-					OR = {
-						has_realm_law = acclamation_succession_law
-						has_realm_law = appointment_succession_law
-					}
 					exists = house
 					exists = scope:actor.house
 					house = scope:actor.house
@@ -1006,10 +1014,6 @@ support_candidacy_interaction = {
 				}
 			}
 			scope:secondary_recipient = {
-				OR = {
-					has_realm_law = acclamation_succession_law
-					has_realm_law = appointment_succession_law
-				}
 				exists = house
 				exists = scope:actor.house
 				house = scope:actor.house
@@ -1116,8 +1120,7 @@ support_candidacy_interaction = {
 # AI ONLY - Smear campaign against a character to reduce score
 harm_candidacy_interaction = {
 	icon = harm_candidacy
-	category = interaction_category_admin
-	#common_interaction = yes
+	common_interaction = yes
 	hidden = yes
 
 	desc = harm_candidacy_interaction_desc
@@ -1138,6 +1141,7 @@ harm_candidacy_interaction = {
 			exists = holder
 			holder = {
 				top_liege = scope:recipient
+				has_realm_law_flag = appointment_type_succession
 			}
 		}
 	}
@@ -1466,8 +1470,8 @@ harm_candidacy_interaction = {
 
 # Request support from another character
 request_appointment_support = {
-	category = interaction_category_admin
-	#common_interaction = yes
+	category = interaction_category_succession
+	common_interaction = yes
 	interface_priority = 70
 	custom_character_sort = { governor_efficiency candidate_score }
 
@@ -1542,6 +1546,7 @@ request_appointment_support = {
 			exists = holder
 			holder = {
 				top_liege = scope:actor.top_liege
+				has_realm_law_flag = appointment_type_succession
 			}
 		}
 		scope:actor = {
@@ -2185,7 +2190,7 @@ request_appointment_support = {
 # Demand that a vassal switches to admin
 # Note: Do not rename or delete this interaction as its directly referred to in code
 demand_admin_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	icon = demand_admin_interaction
 
 	ai_maybe = yes
@@ -2194,7 +2199,10 @@ demand_admin_interaction = {
 	can_send_despite_rejection = yes
 	ai_accept_negotiation = yes
 	popup_on_receive = yes
-	#common_interaction = yes
+	common_interaction = no
+
+	#according to telemetry, practically never used
+	interface_priority = 0
 
 	ai_targets = {
 		ai_recipients = vassals
@@ -2362,7 +2370,8 @@ demand_admin_interaction = {
 
 #Contest the appointment of another character to a title you have a claim on
 contest_appointment_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
+	filter_tags = { admin_governor }
 	common_interaction = yes
 	highlighted_reason = HIGHLIGHTED_CAN_CONTEST_APPOINTMENT
 	notification_text = contest_appointment_interaction_desc_tt
@@ -3051,8 +3060,8 @@ contest_appointment_interaction = {
 
 # Request a council position from your liege in exchange for influence
 request_council_interaction = {
-	category = interaction_category_admin
-	interface_priority = 90
+	category = interaction_category_vassal
+	interface_priority = 119 #listed right after force_onto_council
 	icon = council
 
 	desc = request_council_interaction_desc
@@ -3510,8 +3519,10 @@ request_council_interaction = {
 # Transfer a single county (not belonging to a theme) to an already existing governor
 transfer_county_interaction = {
 	icon = icon_transfer_county
-	category = interaction_category_admin
+	category = interaction_category_vassal
+	filter_tags = { admin_governor }
 	common_interaction = no
+	interface_priority = 4
 
 	desc = transfer_county_interaction_desc
 
@@ -4435,12 +4446,13 @@ castrate_child_interaction = {
 # recipient = receiver
 # secondary_actor = eunuch
 offer_eunuch_interaction = {
-	category = interaction_category_diplomacy
+	category = interaction_category_friendly
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
 	popup_on_receive = yes
 	pause_on_receive = yes
 	icon = eunuch
+	interface_priority = 29 #after Gift Artifact
 
 	populate_recipient_list= {
 		scope:actor = {
@@ -4729,7 +4741,7 @@ offer_eunuch_interaction = {
 
 # Add artifact to Cabinet of Curiosities
 cabinet_of_curiosities_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_friendly
 	common_interaction = yes
 	interface_priority = 60
 	desc = cabinet_of_curiosities_interaction_desc
@@ -4934,10 +4946,12 @@ cabinet_of_curiosities_interaction = {
 
 # Send an acknowledgment and reward for a governor's good performance
 acknowledge_governor_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
+	filter_tags = { admin_governor }
+	
 	icon = icon_acknowledge_governor
-	common_interaction = yes
-	interface_priority = 60
+	common_interaction = no
+	interface_priority = 21 #right before mentor in governance
 	popup_on_receive = yes
 
 	ai_targets = {
@@ -5093,9 +5107,10 @@ acknowledge_governor_interaction = {
 
 # Affect Governor's performance
 boost_efficiency_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
+	filter_tags = { admin_governor }
 	icon = icon_boost_efficiency
-	interface_priority = 1
+	interface_priority = 19
 	popup_on_receive = yes
 
 	ai_targets = {
@@ -5303,9 +5318,11 @@ boost_efficiency_interaction = {
 
 # Affect Governor's performance
 damage_efficiency_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
+	filter_tags = { admin_governor }
+	
 	icon = icon_damage_efficiency
-	interface_priority = 0
+	interface_priority = 18 #right after bolster governance
 	popup_on_receive = yes
 
 	ai_targets = {
@@ -5512,9 +5529,10 @@ damage_efficiency_interaction = {
 
 # Emperor fires Governor - AKA Depose Governor/depose_governor
 governor_removal_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_succession
+	filter_tags = { admin_governor }
 	icon = icon_governor_removal
-	common_interaction = yes
+	common_interaction = no
 	desc = governor_removal_interaction_desc
 	greeting = negative
 	notification_text = GOVERNOR_REMOVAL_NOTIFICATION_TEXT
@@ -5951,10 +5969,12 @@ governor_removal_interaction = {
 
 # Demand Emperor fires Governor - AKA Compel Resignation/compel_resignation
 force_governor_removal_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_succession
+	filter_tags = { admin_governor }
 	icon = icon_force_governor_removal
 	desc = force_governor_removal_interaction_desc
-	interface_priority = 95
+	interface_priority = 134 # right after Force Retirement
+	common_interaction = no
 
 	greeting = positive
 	notification_text = DEMAND_GOVERNOR_REMOVAL_NOTIFICATION_TEXT
@@ -6624,9 +6644,12 @@ force_governor_removal_interaction = {
 # Force Step Down
 force_step_down_interaction = {
 	icon = icon_force_to_step_down
-	common_interaction = yes
-	interface_priority = 65
-	category = interaction_category_admin
+	common_interaction = no
+	interface_priority = 135
+	category = interaction_category_succession
+
+	filter_tags = { admin_governor }
+
 
 	cooldown_against_recipient = { years = 5 }
 
@@ -7091,14 +7114,12 @@ force_step_down_interaction = {
 
 # Request a governorship from your liege
 request_governorship_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	icon = icon_request_governorship
 	desc = request_governorship_interaction_desc
 	common_interaction = yes
-	interface_priority = 95
-	is_highlighted = {
-		always = yes
-	}
+
+	filter_tags = { admin_liege }
 
 	ai_maybe = yes
 	ai_min_reply_days = 4
@@ -7661,7 +7682,7 @@ request_governorship_interaction = {
 noble_family_adoption_interaction = {
 	icon = icon_dynasty
 	category = interaction_category_friendly
-	interface_priority = 60
+	interface_priority = 25
 
 	desc = noble_family_adoption_interaction_desc
 	use_diplomatic_range = yes
@@ -8177,7 +8198,6 @@ noble_family_adoption_interaction = {
 #
 # Referenced in code
 request_ally_title_troops_interaction = {
-	category = interaction_category_admin
 	desc = request_ally_title_troops_interaction_desc
 	hidden = yes
 
@@ -8393,7 +8413,6 @@ request_ally_title_troops_interaction = {
 }
 
 request_emperor_title_troops_interaction = {
-	category = interaction_category_admin
 	interface_priority = 60
 	common_interaction = yes
 	desc = request_emperor_title_troops_interaction_desc
@@ -8867,7 +8886,6 @@ request_emperor_title_troops_interaction = {
 }
 
 request_title_troops_back_interaction = {
-	category = interaction_category_admin
 	desc = request_title_troops_back_interaction_desc
 
 	hidden = yes
@@ -9020,7 +9038,8 @@ request_title_troops_back_interaction = {
 # Request Raid Estate Remit
 request_raid_remit_interaction = {
 	icon = icon_request_raid_remit
-	category = interaction_category_admin
+	category = interaction_category_hostile
+	filter_tags = { admin_liege }
 	interface_priority = 90
 
 	desc = request_raid_remit_interaction_desc
@@ -9318,13 +9337,13 @@ request_raid_remit_interaction = {
 
 # Request to become co-emperor
 request_co_emperor_interaction = {
-	category = interaction_category_diarch
+	category = interaction_category_vassal
 	icon = icon_declare_me_co_emperor
 
 	desc = request_co_emperor_interaction_desc
 	notification_text = DECLARE_ME_CO_EMPEROR_PROPOSAL
 
-	interface_priority = 20
+	interface_priority = 5
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
 
@@ -9825,10 +9844,12 @@ request_co_emperor_interaction = {
 
 # Request a character to fight a war on your behalf - AKA Summon to War/summon_to_war
 frontier_influence_war_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_diplomacy
 	interface_priority = 80
 	icon = icon_coax_to_war
 	desc = frontier_influence_war_interaction_desc
+
+	filter_tags = { admin_governor }
 
 	is_highlighted = {
 		scope:recipient = {
@@ -10286,9 +10307,10 @@ frontier_influence_war_interaction = {
 #House Head requests to landed family member - AKA Request as House Head
 house_head_request_interaction = {
 	icon = house_head_request_interaction
-	category = interaction_category_admin
-	common_interaction = yes
+	category = interaction_category_friendly
+	common_interaction = no
 	desc = house_head_request_interaction_desc
+	interface_priority = 10
 
 	ai_maybe = yes
 	ai_min_reply_days = 4
@@ -12045,7 +12067,11 @@ ep3_switch_faction_war_sides_interaction = {
 # Request Permission to Wage War
 ep3_governor_request_war_permission_interaction = {
 	icon = invasion
-	category = interaction_category_admin
+	category = interaction_category_vassal
+	filter_tags = { admin_liege }
+	
+	#basically never used according to telemetry
+	interface_priority = 0 
 
 	desc = ep3_governor_request_war_permission_interaction_desc
 

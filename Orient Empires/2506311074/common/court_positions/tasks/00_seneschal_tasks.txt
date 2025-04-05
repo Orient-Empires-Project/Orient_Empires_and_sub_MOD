@@ -1,0 +1,157 @@
+﻿### Seneschal Tasks ###
+
+seneschal_improve_court = {
+	court_position_types = { seneschal_court_position }
+
+	# Monthly cost for the task
+	cost = {
+		round = no
+		prestige = {
+			add = {
+				value = monthly_court_position_task_cost
+				desc = COURT_POSITION_TASK_COST_BREAKDOWN_BASE
+				format = "BASE_VALUE_FORMAT_DECIMALS_PLUS_NEGATIVE"
+			}
+		}
+	}
+
+	employee_modifier = {
+		stress_gain_mult = 0.25
+	}
+
+	on_start = {
+		scope:liege ?= {
+			if = {
+				limit = {
+					exists = court_position:seneschal_court_position
+				}
+				root = { custom_tooltip = seneschal_improve_court_task_tt }
+			}
+			else = {
+				custom_tooltip = seneschal_improve_court_task_fallback_tt
+			}
+		}
+		set_variable = performing_improve_court
+	}
+
+	on_end = {
+		remove_variable = performing_improve_court
+	}
+
+	ai_will_do = {
+		value = 50 # Always good
+		if = {
+			limit = {
+				monthly_character_income < monthly_court_position_task_cost_double
+			}
+			add = -1000
+		}
+	}
+}
+
+seneschal_improve_domain = {
+	court_position_types = { seneschal_court_position }
+
+	# Monthly cost for the task
+	cost = {
+		round = no
+		gold = {
+			add = {
+				value = monthly_court_position_task_cost
+				desc = COURT_POSITION_TASK_COST_BREAKDOWN_BASE
+				format = "BASE_VALUE_FORMAT_DECIMALS_PLUS_NEGATIVE"
+			}
+		}
+	}
+
+	scaling_employer_modifiers = {
+		terrible = {
+			monthly_county_control_growth_add = 0.02
+		}
+		poor = {
+			monthly_county_control_growth_add = 0.05
+		}
+		average = {
+			monthly_county_control_growth_add = 0.1
+		}
+		good = {
+			monthly_county_control_growth_add = 0.15
+		}
+		excellent = {
+			monthly_county_control_growth_add = 0.2
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+		if = {
+			limit = {
+				any_held_county = {
+					count >= 2
+					county_control <= 90
+				}
+			}
+			add = 100
+		}
+	}
+}
+
+seneschal_handling_estate = {
+	court_position_types = { seneschal_court_position }
+
+	is_shown = {
+		has_ep3_dlc_trigger = yes
+	}
+	is_valid_showing_failures_only = {
+		scope:liege = {
+			government_allows = administrative
+			has_domicile = yes
+		}
+	} 
+
+	# Monthly cost for the task
+	cost = {
+		round = no
+		gold = {
+			add = {
+				value = monthly_court_position_task_cost
+				desc = COURT_POSITION_TASK_COST_BREAKDOWN_BASE
+				format = "BASE_VALUE_FORMAT_DECIMALS_PLUS_NEGATIVE"
+			}
+		}
+		prestige = {
+			add = {
+				value = monthly_court_position_task_cost
+				desc = COURT_POSITION_TASK_COST_BREAKDOWN_BASE
+				format = "BASE_VALUE_FORMAT_DECIMALS_PLUS_NEGATIVE"
+			}
+		}
+	}
+
+	scaling_employer_modifiers = {
+		terrible = {
+			domicile_build_speed = -0.05
+			domicile_monthly_influence_add = 0.1
+		}
+		poor = {
+			domicile_build_speed = -0.07
+			domicile_monthly_influence_add = 0.2
+		}
+		average = {
+			domicile_build_speed = -0.1
+			domicile_monthly_influence_add = 0.4
+		}
+		good = {
+			domicile_build_speed = -0.15
+			domicile_monthly_influence_add = 0.7
+		}
+		excellent = {
+			domicile_build_speed = -0.2
+			domicile_monthly_influence_add = 1
+		}
+	}
+
+	ai_will_do = {
+		value = 99
+	}
+}

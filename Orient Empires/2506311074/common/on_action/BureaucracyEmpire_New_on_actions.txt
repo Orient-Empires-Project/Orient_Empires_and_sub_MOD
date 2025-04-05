@@ -287,14 +287,14 @@ BureaucracyEmpire_yearly_new_pulse = {
 					#value = piety_level
 				#}
 				#是内阁成员
-				#if = {
-					#limit = { is_councillor = yes }
-					#add_trait_xp = {
-						#trait = lifestyle_bureaucrat
-						#track = accomplishments
-						#value = dynasty.dynasty_prestige_level
-					#}
-				#}			
+				if = {
+					limit = { is_councillor = yes }
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = accomplishments
+						value = dynasty.dynasty_prestige_level
+					}
+				}			
 				#生活方式加经验
 				#if = {
 					#limit = {
@@ -334,37 +334,37 @@ BureaucracyEmpire_yearly_new_pulse = {
 					#}
 				#}
 				#门第加成、朝中有人
-				#if = {
-					#limit = {
-						#exists = dynasty
-						#NOT = { dynasty = top_liege.dynasty }
-						#dynasty = { dynasty_prestige_level >= 1 }
-					#}
-					#add_trait_xp = {
-						#trait = lifestyle_bureaucrat
-						#track = sociability
-						#value = dynasty.dynasty_prestige_level
-					#}
-					#add_trait_xp = {
-						#trait = lifestyle_bureaucrat
-						#track = sociability
-						#value = Bureaucrat_emperor_opinion_value
-					#}
-					#add_trait_xp = {
-						#trait = lifestyle_bureaucrat
-						#track = sociability
-						#value = Bureaucrat_councillor_opinion_value
-					#}
-				#}
+				if = {
+					limit = {
+						exists = dynasty
+						NOT = { dynasty = top_liege.dynasty }
+						dynasty = { dynasty_prestige_level >= 1 }
+					}
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = sociability
+						value = dynasty.dynasty_prestige_level
+					}
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = sociability
+						value = Bureaucrat_emperor_opinion_value
+					}
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = sociability
+						value = Bureaucrat_councillor_opinion_value
+					}
+				}
 				#民众满意度
-				#if = {
-					#limit = { has_lifestyle = stewardship_lifestyle }
-					#add_trait_xp = {
-						#trait = lifestyle_bureaucrat
-						#track = accomplishments
-						#value = Bureaucrat_county_opinion_value
-					#}
-				#}
+				if = {
+					limit = { has_lifestyle = stewardship_lifestyle }
+					add_trait_xp = {
+						trait = lifestyle_bureaucrat
+						track = accomplishments
+						value = Bureaucrat_county_opinion_value
+					}
+				}
 				#退休和罢免
 				if = {
 					limit = {
@@ -385,7 +385,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 							is_female = yes
 							#governor_efficiency <= 0.5
 							#governor_efficiency < primary_title.current_heir.governor_efficiency
-							bureaucrat_level_value < primary_heir.bureaucrat_level_value
+							#bureaucrat_level_value < primary_heir.bureaucrat_level_value
 							AND = {
 								bureaucrat_level_value < primary_title.bureaucrat_title_rank_value #州等
 								primary_title.bureaucrat_title_rank_value > 3
@@ -424,154 +424,154 @@ BureaucracyEmpire_yearly_new_pulse = {
 					add_stress = 70
 				}
 				#升迁
-				if = {
-					limit = {
-						is_oe_available_ai_at_peace = yes
-						NOT = { has_character_modifier = bureaucrat_positioned_term } #任期已满
-						bureaucrat_level_value > bureaucrat_title_rank_value #官阶高于职等
-					}
-					#储存契约
-					save_east_contract_effect = yes					
-					add_stress = -100
-					if = {
-						limit = {
-							OR = {
-								is_prefect = yes
-								has_ep3_dlc_trigger = no
-							}
-						}
-						depose = yes
-						move_to_pool_at = scope:temp_liege.capital_county.title_province
-					}
-					if = {
-						limit = {
-							bureaucrat_level_value <= 5
-							is_governor = yes
-							top_liege = {
-								any_vassal ?= {
-									bureaucrat_title_rank_value = root.bureaucrat_level_value
-								}
-							}
-						}
-						oe_governor_resignation_title_transfer_effect = yes	
-						create_title_and_vassal_change = {
-							type = stepped_down
-							save_scope_as = change
-						}												
-						top_liege = {
-							random_vassal = {
-								limit = {
-									bureaucrat_title_rank_value = root.bureaucrat_level_value
-								}
-								every_held_title = {
-									limit = {
-										is_landless_type_title = no
-										is_oe_titular_title = no
-									}
-									change_title_holder = root
-								}
-							}
-						}
-						resolve_title_and_vassal_change = change
-					}
-					#担任内阁 实验功能 TODO
-					else_if = {
-						limit = {
-							bureaucrat_level_value > 5
-							primary_title = tier_duchy
-						}
-						random_list = {
-							10 = {
-								trigger = {
-									exists = top_liege.council_task:councillor_chancellor
-									can_be_chancellor_trigger = { COURT_OWNER = top_liege }
-								}
-								modifier = {
-									factor = diplomacy
-								}
-								modifier = {
-									trigger = { highest_skill = diplomacy }
-									factor = 10
-								}
-								top_liege.council_task:councillor_chancellor = {
-									save_scope_as = target
-								}
-							}
-							10 = {
-								trigger = {
-									exists = top_liege.council_task:councillor_steward
-									can_be_steward_trigger = { COURT_OWNER = top_liege }
-								}
-								modifier = {
-									factor = stewardship
-								}
-								modifier = {
-									trigger = { highest_skill = stewardship }
-									factor = 10
-								}
-								top_liege.council_task:councillor_steward = {
-									save_scope_as = target
-								}
-							}
-							10 = {
-								trigger = {
-									exists = top_liege.council_task:councillor_marshal
-									can_be_marshal_trigger = { COURT_OWNER = top_liege }
-								}
-								modifier = {
-									factor = martial
-								}
-								modifier = {
-									trigger = { highest_skill = martial }
-									factor = 10
-								}
-								top_liege.council_task:councillor_marshal = {
-									save_scope_as = target
-								}
-							}
-							10 = {
-								trigger = {
-									exists = top_liege.council_task:councillor_spymaster
-									can_be_spymaster_trigger = { COURT_OWNER = top_liege }
-								}
-								modifier = {
-									factor = intrigue
-								}
-								modifier = {
-									trigger = { highest_skill = intrigue }
-									factor = 10
-								}
-								top_liege.council_task:councillor_spymaster = {
-									save_scope_as = target
-								}
-							}
-							10 = {
-								trigger = {
-									exists = top_liege.council_task:councillor_court_chaplain
-									can_be_court_chaplain_trigger = { COURT_OWNER = top_liege }
-								}
-								modifier = {
-									factor = learning
-								}
-								modifier = {
-									trigger = { highest_skill = learning }
-									factor = 10
-								}
-								top_liege.council_task:councillor_court_chaplain = {
-									save_scope_as = target
-								}
-							}
-						}				
-						oe_governor_resignation_title_transfer_effect = yes				
-						move_to_pool_at = scope:temp_liege.capital_county.title_province
-						top_liege = {
-							assign_council_task = {
-								target = root
-								council_task = scope:target
-							}
-						}
-					}
-				}
+				#if = {
+					#limit = {
+						#is_oe_available_ai_at_peace = yes
+						#NOT = { has_character_modifier = bureaucrat_positioned_term } #任期已满
+						#bureaucrat_level_value > bureaucrat_title_rank_value #官阶高于职等
+					#}
+					##储存契约
+					#save_east_contract_effect = yes					
+					#add_stress = -100
+					#if = {
+						#limit = {
+							#OR = {
+								#is_prefect = yes
+								#has_ep3_dlc_trigger = no
+							#}
+						#}
+						#depose = yes
+						#move_to_pool_at = scope:temp_liege.capital_county.title_province
+					#}
+					#if = {
+						#limit = {
+							#bureaucrat_level_value <= 5
+							#is_governor = yes
+							#top_liege = {
+								#any_vassal ?= {
+									#bureaucrat_title_rank_value = root.bureaucrat_level_value
+								#}
+							#}
+						#}
+						#oe_governor_resignation_title_transfer_effect = yes	
+						#create_title_and_vassal_change = {
+							#type = stepped_down
+							#save_scope_as = change
+						#}												
+						#top_liege = {
+							#random_vassal = {
+								#limit = {
+									#bureaucrat_title_rank_value = root.bureaucrat_level_value
+								#}
+								#every_held_title = {
+									#limit = {
+										#is_landless_type_title = no
+										#is_oe_titular_title = no
+									#}
+									#change_title_holder = root
+								#}
+							#}
+						#}
+						#resolve_title_and_vassal_change = change
+					#}
+					##担任内阁 实验功能 TODO
+					#else_if = {
+						#limit = {
+							#bureaucrat_level_value > 5
+							#primary_title = tier_duchy
+						#}
+						#random_list = {
+							#10 = {
+								#trigger = {
+									#exists = top_liege.council_task:councillor_chancellor
+									#can_be_chancellor_trigger = { COURT_OWNER = top_liege }
+								#}
+								#modifier = {
+									#factor = diplomacy
+								#}
+								#modifier = {
+									#trigger = { highest_skill = diplomacy }
+									#factor = 10
+								#}
+								#top_liege.council_task:councillor_chancellor = {
+									#save_scope_as = target
+								#}
+							#}
+							#10 = {
+								#trigger = {
+									#exists = top_liege.council_task:councillor_steward
+									#can_be_steward_trigger = { COURT_OWNER = top_liege }
+								#}
+								#modifier = {
+									#factor = stewardship
+								#}
+								#modifier = {
+									#trigger = { highest_skill = stewardship }
+									#factor = 10
+								#}
+								#top_liege.council_task:councillor_steward = {
+									#save_scope_as = target
+								#}
+							#}
+							#10 = {
+								#trigger = {
+									#exists = top_liege.council_task:councillor_marshal
+									#can_be_marshal_trigger = { COURT_OWNER = top_liege }
+								#}
+								#modifier = {
+									#factor = martial
+								#}
+								#modifier = {
+									#trigger = { highest_skill = martial }
+									#factor = 10
+								#}
+								#top_liege.council_task:councillor_marshal = {
+									#save_scope_as = target
+								#}
+							#}
+							#10 = {
+								#trigger = {
+									#exists = top_liege.council_task:councillor_spymaster
+									#can_be_spymaster_trigger = { COURT_OWNER = top_liege }
+								#}
+								#modifier = {
+									#factor = intrigue
+								#}
+								#modifier = {
+									#trigger = { highest_skill = intrigue }
+									#factor = 10
+								#}
+								#top_liege.council_task:councillor_spymaster = {
+									#save_scope_as = target
+								#}
+							#}
+							#10 = {
+								#trigger = {
+									#exists = top_liege.council_task:councillor_court_chaplain
+									#can_be_court_chaplain_trigger = { COURT_OWNER = top_liege }
+								#}
+								#modifier = {
+									#factor = learning
+								#}
+								#modifier = {
+									#trigger = { highest_skill = learning }
+									#factor = 10
+								#}
+								#top_liege.council_task:councillor_court_chaplain = {
+									#save_scope_as = target
+								#}
+							#}
+						#}				
+						#oe_governor_resignation_title_transfer_effect = yes				
+						#move_to_pool_at = scope:temp_liege.capital_county.title_province
+						#top_liege = {
+							#assign_council_task = {
+								#target = root
+								#council_task = scope:target
+							#}
+						#}
+					#}
+				#}
 				#县官
 				#if = {
 					#limit = {
@@ -617,7 +617,7 @@ on_title_gain = {
 	on_actions = {
 		BureaucracyEmpire_player_pulse
 		#BureaucracyEmpire_ai_succession_pulse #指定继承人
-		BureaucracyEmpire_on_title_gain_new #交接非法理头衔
+		#BureaucracyEmpire_on_title_gain_new #交接非法理头衔 3.28
 		BureaucracyEmpire_on_title_gain_remove	#添加和官阶
 	}
 }
@@ -814,15 +814,41 @@ BureaucracyEmpire_on_title_gain_remove = {
 		}
 		else_if = {
 			limit = {
-				scope:title.tier > tier_barony
+				scope:title.tier = tier_county
+				bureaucrat_level_value < bureaucrat_title_rank_value #官阶低于职等
 			}
-			bureaucrat_add_random_trait_xp_effect = yes
+			bureaucrat_add_number_trait_xp_effect = {
+				TRACK = seniority
+				MIN = 15
+				MAX = 40
+			}
+		}
+		else_if = {
+			limit = {
+				scope:title.tier = tier_duchy
+				bureaucrat_level_value < bureaucrat_title_rank_value #官阶低于职等
+			}
+			bureaucrat_add_number_trait_xp_effect = {
+				TRACK = seniority
+				MIN = 30
+				MAX = 60
+			}
+		}
+		else_if = {
+			limit = {
+				scope:title.tier = tier_kingdom
+				bureaucrat_level_value < bureaucrat_title_rank_value #官阶低于职等
+			}
+			bureaucrat_add_number_trait_xp_effect = {
+				TRACK = seniority
+				MIN = 60
+				MAX = 100
+			}
 		}
 		if = {
 			limit = {
 				has_trait = lifestyle_bureaucrat
-				can_have_official_succession_law_trigger = no
-				can_have_official_succession_law_player_trigger = no
+				is_independent_ruler = yes
 			}
 			remove_trait = lifestyle_bureaucrat
 		}
