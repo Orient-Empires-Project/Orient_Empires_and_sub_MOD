@@ -2066,6 +2066,68 @@ story_on_death = {
 			limit = { has_title = title:d_incho } #销毁院厅
 			destroy_title = title:d_incho
 		}
+		if = {
+			limit = {
+				game_start_date = 617.8.1 #长歌行
+				title:e_celestia.holder ?= character:247726
+				root = character:247726
+			}
+			if = {
+				limit = {
+					exists = scope:killer
+					scope:killer = title:d_dianqian.holder
+				}
+				if = {
+					limit = {
+						character:247755 = { is_alive = yes }
+					}
+					character:247755 = {
+						get_title = title:e_celestia
+					}
+				}
+				else_if = {
+					limit = {
+						character:247761 = { is_alive = yes }
+					}
+					character:247761 = {
+						get_title = title:e_celestia
+					}
+				}
+				else = {
+					title:d_dianqian.holder = {
+						claim_fake_chinese_emperor_effect = yes
+						primary_title = {
+							set_title_name = root.capital_province.kingdom
+						}
+					}
+				}
+			}
+			every_house_member = {
+				limit = {
+					NOT = { location = root.location }
+					highest_held_title_tier >= tier_kingdom
+				}
+				claim_fake_chinese_emperor_effect = yes
+				primary_title = {
+					set_title_name = e_sui
+				}
+			}
+
+			title:e_celestia.holder = {
+				trigger_event = {
+					on_action = chinese_revolt_events_on_action
+				}
+				every_powerful_vassal = {
+					add_opinion = {
+						target = prev
+						modifier = executed_close_relation_opinion
+					}
+					trigger_event = {
+						on_action = chinese_revolt_events_on_action
+					}	
+				}		
+			}
+		}
 	}
 }
 
@@ -2329,6 +2391,58 @@ story_on_start = {
 				}
 			}
 		}
+		#长歌行
+		if = {
+			limit = {
+				game_start_date = 617.8.1
+			}
+			if = {
+				limit = {
+					title:d_hedong.holder = { is_ai = yes }
+				}
+				title:d_hedong.holder = {
+					trigger_event = {
+						id = mandate.0011
+						days = { 7 14 }
+					}
+				}
+			}
+			character:puyang_yuwen_015 = {
+				add_opinion = {
+					modifier = set_me_aside_opinion
+					target = character:247726
+				}
+				start_scheme = {
+					type = murder
+					target = character:247726
+				}
+			}
+			title:e_persia.holder = {
+				set_realm_capital = title:c_baghdad
+			}
+			title:k_liao.holder = {
+				set_realm_capital = title:c_pyongyang
+			}
+			character:145071 = {
+				set_father = character:Herakleios_01
+			}
+			if = {
+				limit = { has_dlc_feature = roads_to_power }
+				title:e_byzantium.holder = {
+					every_vassal = {
+						limit = {
+							government = feudal_government
+							capital_province = {
+								has_holding_type = castle_holding
+							}
+						}
+						change_government = administrative_government
+					}
+				}
+			}
+		}
+
+
 		#大和五摄家
 		every_ruler = {
 			limit = {
@@ -2357,15 +2471,23 @@ story_on_start = {
 }
 
 story_title_gain_effects = {
-	trigger = {
-		game_start_date >= 925.1.1
-		game_start_date < 947.12.12 #如梦令
-	}
 	effect = {		
+		#长歌行
+		if = {
+			limit = { 
+				exists = global_var:sui_era
+				scope:title = { is_oe_imperial_title_trigger = yes }
+				NOT = {
+					dynasty = dynasty:hongnong_yang_dyn
+				}
+			}
+			remove_global_variable = sui_era
+		}
+		#如梦令
 		if = {
 			limit = { 
 				game_start_date >= 925.1.1
-				game_start_date < 947.12.12 #如梦令
+				game_start_date < 947.12.12 
 			}
 			if = {
 				limit = {

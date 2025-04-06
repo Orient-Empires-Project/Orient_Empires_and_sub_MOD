@@ -1,0 +1,133 @@
+﻿##############################
+# RITUAL CULTURAL TRADITIONS #
+##############################
+
+
+tradition_sacred_springs = {
+	category = ritual
+
+	layers = {
+		0 = steward
+		1 = western
+		4 = forest.dds
+	}
+
+	#is_shown = {
+	#}
+	can_pick = {
+		custom_description = {
+			text = culture_in_sacred_springs_terrain_desc
+			any_culture_county = {
+				any_county_province = {
+					OR = {
+						terrain = forest
+						terrain = jungle
+						terrain = farmlands
+						terrain = floodplains
+						terrain = wetlands
+					}
+				}
+			}
+		}
+	}
+	
+	parameters = {
+		unlock_sacred_springs_decisions = yes
+		pilgrimage_prestige_bonus = yes
+		better_disease_resistance = yes
+	}
+	character_modifier = {
+		health = 0.15
+	}
+	county_modifier = {
+		forest_development_growth_factor = 0.05
+		jungle_development_growth_factor = 0.05
+		farmlands_development_growth_factor = 0.05
+		floodplains_development_growth_factor = 0.05
+		wetlands_development_growth_factor = 0.05
+	}
+	#province_modifier = {
+	#	
+	#}
+	
+	cost = {
+		prestige = {
+			add = {
+				value = tradition_base_cost
+				desc = BASE
+				format = "BASE_VALUE_FORMAT"
+			}
+			if = {
+				limit = {
+					NOR = {
+						culture_pillar:ethos_courtly = { is_in_list = traits }
+						culture_pillar:ethos_communal = { is_in_list = traits }
+						culture_pillar:ethos_spiritual = { is_in_list = traits }
+					}
+				}
+				add = {
+					value = tradition_incompatible_ethos_penalty
+					desc = not_courtly_communal_or_spiritual_desc
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_culture_county = {
+							percent >= 0.3
+							any_county_province = {
+								OR = {
+									terrain = forest
+									terrain = jungle
+									terrain = farmlands
+									terrain = floodplains
+									terrain = wetlands
+								}
+							}
+						}
+					}
+				}
+				add = {
+					value = tradition_unfulfilled_criteria_penalty
+					desc = sacred_springs_terrain_percentage_desc
+				}
+			}
+			
+			multiply = tradition_replacement_cost_if_relevant
+		}
+	}
+	
+	ai_will_do = {
+		value = 100
+		if = {
+			limit = {
+				NOT = {
+					scope:character = { religion = { is_in_family = rf_pagan } }
+				}
+			}
+			multiply = 0.8
+		}
+		if = {
+			limit = {
+				NOT = {
+					scope:character = {
+						any_sub_realm_county = {
+							percent >= 0.1
+							culture = scope:character.culture
+							any_county_province = {
+								OR = {
+									terrain = forest
+									terrain = jungle
+									terrain = farmlands
+									terrain = floodplains
+									terrain = wetlands
+								}
+							}
+						}
+					}
+				}
+			}
+			multiply = 0
+		}
+	}
+}
