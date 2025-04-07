@@ -1471,8 +1471,9 @@ harm_candidacy_interaction = {
 # Request support from another character
 request_appointment_support = {
 	category = interaction_category_succession
-	common_interaction = yes
-	interface_priority = 70
+	common_interaction = no
+	interface_priority = 175
+	filter_tags = { admin_house_head }
 	custom_character_sort = { governor_efficiency candidate_score }
 
 	desc = request_appointment_support_desc
@@ -3066,6 +3067,8 @@ request_council_interaction = {
 
 	desc = request_council_interaction_desc
 
+	filter_tags = { admin_liege }
+
 	special_interaction = request_council_position
 	interface = council_task_interaction
 	ai_maybe = yes
@@ -3916,7 +3919,7 @@ castrate_child_interaction = {
 		ai_recipients = family
 		max = 5
 	}
-	ai_frequency = 12
+	ai_frequency = 36
 
 	desc = castrate_child_interaction_desc
 
@@ -4240,20 +4243,20 @@ castrate_child_interaction = {
 				ep3_castration_interest_trigger = yes
 			}
 			scope:recipient = {
-				#target is 3rd child or lower
+				#target is 4 child or lower
 				AND = {
 					ep3_ideal_castration_candidate_trigger = yes
 					NOT = { is_heir_of = scope:actor }
 					#Not oldest child
 					any_sibling = {
-						count >= 2
+						count >= 3
 						is_male = yes
 						age > scope:recipient.age
 					}
 				}
 			}
 
-			add = 100
+			add = 20
 		}
 		modifier = {
 			scope:actor = {
@@ -4268,23 +4271,11 @@ castrate_child_interaction = {
 					NOT = { is_child_of = scope:actor }
 				}
 			}
-			add = 100
-		}
-		modifier = {
-			scope:actor = {
-				has_trait = greedy
-			}
-			factor = 2
+			add = 20
 		}
 		modifier = {
 			scope:actor = {
 				has_trait = paranoid
-			}
-			factor = 2
-		}
-		modifier = {
-			scope:actor = {
-				has_trait = ambitious
 			}
 			factor = 2
 		}
@@ -4301,7 +4292,7 @@ castrate_child_interaction = {
 					value <= -50
 				}
 			}
-			factor = 2
+			factor = 1.5
 		}
 		modifier = {
 			scope:recipient = {
@@ -4319,7 +4310,7 @@ castrate_child_interaction = {
 			scope:actor = {
 				age <= 4
 			}
-			factor = 3
+			factor = 2
 		}
 		modifier = {
 			OR = {
@@ -6701,6 +6692,21 @@ force_step_down_interaction = {
 		}
 	}
 
+	is_highlighted = {
+		scope:recipient ?= {
+			any_held_title = {
+				current_heir ?= {
+					OR = {
+						scope:actor ?= this
+						house ?= scope:actor.house
+					}
+				}
+			}
+		}
+	}
+
+	highlighted_reason = HIGHLIGHTED_FORCE_STEP_DOWN_HEIR
+
 	is_valid_showing_failures_only = {
 		scope:actor = {
 			is_adult = yes
@@ -7711,6 +7717,9 @@ noble_family_adoption_interaction = {
 				any_ancestor = { this = scope:actor }
 			}
 		}
+		scope:actor = {
+			is_house_head = yes
+		}
 	}
 
 	is_valid = {}
@@ -7734,12 +7743,7 @@ noble_family_adoption_interaction = {
 			}
 			is_ruler = no
 		}
-		scope:actor = {
-			custom_tooltip = {
-				text = adopt_interaction_noble_family_house_head_tt
-				is_house_head = yes
-			}
-		}
+
 	}
 
 	send_option = {
@@ -12325,6 +12329,120 @@ ep3_governor_request_war_permission_interaction = {
 				}
 			}
 			add = 25
+		}
+	}
+}
+
+# Order Mass Arrests
+ep3_mass_arrests_interaction = {
+	icon = icon_scheme_abduct
+	category = interaction_category_hostile
+	filter_tags = { admin_house_head }
+	
+	interface_priority = 0
+
+	desc = ep3_mass_arrests_interaction_desc
+	
+	cooldown = { years = 5 }
+	cooldown_against_recipient = { years = 15 }
+
+	ai_targets = {
+		ai_recipients = vassals
+		max = 10
+	}
+	ai_target_quick_trigger = {
+		adult = yes
+	}
+	ai_frequency = 36
+
+	is_shown = {
+		has_ep3_dlc_trigger = yes
+		scope:actor = {
+			is_independent_ruler = yes
+			government_allows = administrative
+			dynasty ?= { has_dynasty_perk = ep3_administrative_legacy_5 }
+		}
+		scope:recipient = {
+			liege ?= scope:actor
+			any_held_title = {
+				is_oe_noble_family_title = yes
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			NOT = { exists = involved_activity }
+			is_imprisoned = no
+		}
+		scope:recipient = {
+			house = { is_dominant_family = no }
+			NOT = { has_strong_hook = scope:actor }
+			custom_tooltip = {
+				text = estate_is_in_capital_desc
+				domicile ?= {
+					domicile_location = scope:actor.capital_province
+				}
+			}
+		}
+	}
+	
+	auto_accept = yes
+
+	on_accept = {
+		scope:recipient.house = {
+			house_head = {
+				add_character_flag = {
+					flag = mass_arrests_house_power_malus
+					years = 10
+				}
+				# For follow-up event
+				save_scope_as = imprisoned_house_head
+			}
+			custom_tooltip = house_loses_power_rating
+			every_house_member = {
+				custom = every_house_member_tt
+				change_influence = major_influence_loss
+				custom_tooltip = {
+					text = imprisoned_by_you
+					scope:actor = {
+						imprison = {
+							target = prev
+							type = house_arrest
+						}
+					}
+				}
+				add_opinion = {
+					modifier = imprisoned_me
+					years = 10
+					target = scope:actor
+				}
+			}
+		}
+		scope:actor = {
+			add_tyranny = massive_tyranny_gain
+			add_legitimacy = medium_legitimacy_loss
+			
+			# Fire follow-up
+			trigger_event = {
+				id = ep3_decisions_event.3201
+			}
+		}
+	}
+
+	ai_potential = {
+		government_allows = administrative
+		is_adult = yes
+	}
+
+	ai_will_do = {
+		base = 0
+		modifier = {
+			scope:actor = {
+				has_relation_rival = scope:recipient
+			}
+			add = 20
+			desc = AI_YOUR_RIVAL
 		}
 	}
 }
