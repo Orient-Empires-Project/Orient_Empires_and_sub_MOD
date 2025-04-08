@@ -1,5 +1,4 @@
-﻿# keep it before EP4
-window = {
+﻿window = {
 	name = "modify_vassal_contract_interaction_window"
 	parentanchor = center
 	widgetanchor = top|hcenter
@@ -31,7 +30,7 @@ window = {
 
 		datacontext = "[ModifyVassalContractInteractionWindow.GetCharacterInteractionConfirmationWindow]"
 		datacontext = "[ModifyVassalContractInteractionWindow.GetContractPreview]"
-		datacontext = "[CharacterInteractionConfirmationWindow.GetRecipient]"
+		datacontext = "[ModifyVassalContractInteractionWindow.GetContractPreview.GetVassal]"
 
 		header_pattern_interaction = {
 			layoutpolicy_horizontal = expanding
@@ -289,6 +288,7 @@ types ModifyVassalContractsShared
 				text = "[ObligationContainerData.GetName]"
 				using = Font_Size_Medium
 				default_format = "#light_background"
+				max_width = 180
 			}
 
 			hbox = {
@@ -481,8 +481,6 @@ types ModifyVassalContractsShared
 			}
 		}
 
-		spacer = { size = {10 10} }
-
 		datacontext = "[CharacterInteractionConfirmationWindow.GetEffectsDescription.GetDisplayedEffects]"
 
 		hbox = {
@@ -509,16 +507,20 @@ types ModifyVassalContractsShared
 			layoutpolicy_horizontal = expanding
 			layoutpolicy_vertical = expanding
 
-			text_single = {
+			text_multi = {
 				visible = "[And( Not( DisplayedInteractionEffects.HasAnyEffects ), Character.GetGovernment.IsType( 'feudal_government' ) )]"
 				text = "VASSAL_CONTRACT_OBLIGATION_NO_EFFECT"
 				using = Font_Size_Medium
+				max_width = 460
+				autoresize = yes
 			}
 
-			text_single = {
+			text_multi = {
 				visible = "[And( Not( DisplayedInteractionEffects.HasAnyEffects ), Not( Character.GetGovernment.IsType( 'feudal_government' ) ) )]"
 				text = "NON_FEUDAL_VASSAL_CONTRACT_OBLIGATION_NO_EFFECT"
 				using = Font_Size_Medium
+				max_width = 460
+				autoresize = yes
 			}
 		}
 
@@ -651,6 +653,7 @@ types ModifyVassalContractsShared
 
 		vbox = {
 			layoutpolicy_horizontal = expanding
+			spacing = 8
 
 			text_single = {
 				background = {
@@ -680,24 +683,45 @@ types ModifyVassalContractsShared
 				visible = "[CharacterInteractionConfirmationWindow.HasOptions]"
 			}
 
+	
+		}
+		
+		hbox_character_interaction_acceptance = {
+			layoutpolicy_horizontal = expanding
+		}
+
+		hbox = {
+			margin = { 16 4 }
+
+			background = {
+				using = Background_Area_Dark
+			}
+
 			hbox = {
-				name = "change_only_once_text"
+				name = "vassal_contract_change_only_once_text"
 				visible = "[ObjectsEqual( GetPlayer, VassalContract.GetLiege )]"
 
 				text_single = {
 					visible = "[Character.GetGovernment.IsType('feudal_government')]"
 					text = "VASSAL_CONTRACT_OBLIGATION_ONLY_ONCE"
+					align = nobaseline
 				}
 
 				text_single = {
 					visible = "[Not( Or( Character.GetGovernment.IsType('feudal_government'), IsAdministrativeRuler( Character ) ) )]"
 					text = "NON_FEUDAL_VASSAL_CONTRACT_OBLIGATION_ONLY_ONCE"
+					align = nobaseline
 				}
 			}
-		}
-		
-		hbox_character_interaction_acceptance = {
-			layoutpolicy_horizontal = expanding
+
+			text_single = {
+				name = "province_administration_change_text"
+				visible = "[IsAdministrativeRuler( Character )]"
+
+				text = "PROVINCE_ADMINISTRATION_CHANGE_INFO"
+				default_format = "#weak"
+				align = nobaseline
+			}
 		}
 
 		button_primary = {
@@ -936,18 +960,10 @@ types ModifyVassalAdministrativeContracts
 
 	type vbox_administrative_negotiation = vbox
 	{
-		text_multi = {
-			name = "theme_administration_info"
-			layoutpolicy_horizontal = expanding
-			layoutpolicy_vertical = fixed
-
-			text = THEME_ADMINISTRATION_INFO
-		}
-
 		vbox = {
 			layoutpolicy_horizontal = expanding
 			layoutpolicy_vertical = expanding
-			spacing = 15
+			spacing = 8
 			margin_top = -5
 			margin_bottom = 5
 			
@@ -984,21 +1000,8 @@ types ModifyVassalAdministrativeContracts
 				datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelRadioButtons]"
 			}
 
-			#特殊契约
-			dynamicgridbox = {
-				name = "minor_list_levels_checkboxes"
-				datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelCheckboxes]"
-	
-				flipdirection = yes
-				datamodel_wrap = 4
-				
-				item = {
-					widget_gangqu_minor_obligation_checkbox_item = {
-						size = { 150 65 }
-					}
-				}
-			}
-			#特殊契约闭			
+			# OE added
+			oe_admin_minor_list_levels_checkboxes = {}
 
 			hbox = {
 				margin = { 40 0 }
@@ -1028,62 +1031,16 @@ types ModifyVassalAdministrativeContracts
 					}
 				}
 			}
-		}
-	}
 
-	type widget_gangqu_minor_obligation_checkbox_item = widget
-	{
-		datacontext = "[ObligationLevelCheckbox.GetContainerData]"
-		visible = "[ObligationContainerData.ShouldShow( ModifyVassalContractInteractionWindow.GetContractPreview )]"
-	
-		background = {
-			using = Background_Area_With_Header
-			alpha = 0.75
-		}
-	
-		vbox = {
-			margin_left = 10
-			spacing = 2
-	
-			text_single = {
-				layoutpolicy_horizontal = expanding
-				minimumsize = { 0 33 }
-				text = "[ObligationContainerData.GetName]"
-				using = Font_Size_Medium
-				default_format = "#high"
+			text_multi = {
+				name = "theme_administration_info"
+				max_width = 440
+				min_width = 440
+				autoresize = yes
+				margin = { 16 16 }
+
+				text = THEME_ADMINISTRATION_INFO
 			}
-	
-			hbox = {
-				layoutpolicy_horizontal = expanding
-				alwaystransparent = no
-				spacing = 5
-	
-				datacontext = "[ObligationLevelCheckbox.GetLevel( '(int32)1' )]" # First one is always no effect/disabled option
-	
-				button_checkbox_label = {
-					# Order dependent, first select the unselected level then set it as the new selected one
-					onclick = "[ModifyVassalContractInteractionWindow.SelectObligationLevel( ObligationLevelCheckbox.GetLevel( ObligationLevelCheckbox.GetUnselectedLevelIndex ) )]"
-					onclick = "[ObligationLevelCheckbox.ToggleSelection]"
-	
-					blockoverride "checkbox"
-					{
-						checked = "[ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
-						enabled = "[ModifyVassalContractInteractionWindow.IsObligationLevelEnabled( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
-					}
-	
-					blockoverride "text"
-					{
-						text = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetName]"
-						default_format = "#high"
-					}
-				}
-	
-				expand = {}
-	
-				tooltip = "[ModifyVassalContractInteractionWindow.GetObligationLevelTooltipFor( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
-			}
-	
-			expand = {}
 		}
 	}
 }

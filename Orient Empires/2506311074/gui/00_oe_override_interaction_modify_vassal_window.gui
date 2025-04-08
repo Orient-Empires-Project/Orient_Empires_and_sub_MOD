@@ -21,6 +21,8 @@ types ModifyVassalContractsShared
 		vbox_oe_negotiation = {}
 		# ee added
 		vbox_ee_negotiation = {}
+		# woc added
+		vbox_woc_feudal_negotiation = {}
 
 		vbox_clan_negotiation = {
 			name = "clan_vassal_paper_contract"
@@ -64,5 +66,74 @@ types ModifyVassalContractsShared
 	# EE's one will NOT used if OE exists.
 	type vbox_ee_negotiation = container {
 		visible = no
+	}
+	type oe_admin_minor_list_levels_checkboxes = dynamicgridbox {
+		name = "minor_list_levels_checkboxes"
+		datamodel = "[ModifyVassalContractInteractionWindow.AccessObligationLevelCheckboxes]"
+
+		flipdirection = yes
+		datamodel_wrap = 4
+		
+		item = {
+			widget_oe_minor_obligation_checkbox_item = {
+				size = { 150 65 }
+			}
+		}
+	}
+	# imported from HMI, last check before 2025.3.12
+	type widget_oe_minor_obligation_checkbox_item = widget
+	{
+		datacontext = "[ObligationLevelCheckbox.GetContainerData]"
+		visible = "[ObligationContainerData.ShouldShow( ModifyVassalContractInteractionWindow.GetContractPreview )]"
+	
+		background = {
+			using = Background_Area_With_Header
+			alpha = 0.75
+		}
+	
+		vbox = {
+			margin_left = 10
+			spacing = 2
+	
+			text_single = {
+				layoutpolicy_horizontal = expanding
+				minimumsize = { 0 33 }
+				text = "[ObligationContainerData.GetName]"
+				using = Font_Size_Medium
+				default_format = "#high"
+			}
+	
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				alwaystransparent = no
+				spacing = 5
+	
+				datacontext = "[ObligationLevelCheckbox.GetLevel( '(int32)1' )]" # First one is always no effect/disabled option
+	
+				button_checkbox_label = {
+					# Order dependent, first select the unselected level then set it as the new selected one
+					onclick = "[ModifyVassalContractInteractionWindow.SelectObligationLevel( ObligationLevelCheckbox.GetLevel( ObligationLevelCheckbox.GetUnselectedLevelIndex ) )]"
+					onclick = "[ObligationLevelCheckbox.ToggleSelection]"
+	
+					blockoverride "checkbox"
+					{
+						checked = "[ModifyVassalContractInteractionWindow.IsObligationLevelSelected( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+						enabled = "[ModifyVassalContractInteractionWindow.IsObligationLevelEnabled( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+					}
+	
+					blockoverride "text"
+					{
+						text = "[ModifyVassalContractInteractionWindowObligationLevelOption.GetName]"
+						default_format = "#high"
+					}
+				}
+	
+				expand = {}
+	
+				tooltip = "[ModifyVassalContractInteractionWindow.GetObligationLevelTooltipFor( ModifyVassalContractInteractionWindowObligationLevelOption.Self )]"
+			}
+	
+			expand = {}
+		}
 	}
 }

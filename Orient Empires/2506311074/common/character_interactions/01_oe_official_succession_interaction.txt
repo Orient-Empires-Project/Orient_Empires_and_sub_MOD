@@ -1,5 +1,5 @@
 ﻿oe_demand_admin_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	icon = demand_admin_interaction
 
 	ai_maybe = yes
@@ -21,6 +21,9 @@
 	desc = demand_admin_interaction_desc
 
 	is_shown = {
+		scope:actor = {
+			government_has_flag = government_is_celestial
+		}
 		scope:recipient = {
 			target_is_liege_or_above = scope:actor
 			is_ai = yes
@@ -53,8 +56,11 @@
 			text = cannot_take_overt_hostile_actions_against_diarch.tt
 			NOT = { scope:recipient ?= scope:actor.diarch }
 		}
-		NOT = {
-			scope:recipient = { government_has_flag = government_is_tribal }
+		custom_tooltip = {
+			text = demand_admin_tribal
+			NOT = {
+				scope:recipient = { government_has_flag = government_is_tribal }
+			}
 		}
 		custom_tooltip = {
 			text = head_of_faith_unable_to_change_government_desc
@@ -369,7 +375,7 @@
 }
 
 oe_imperor_designate_heir_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	desc = oe_imperor_designate_heir_interaction_desc
@@ -408,7 +414,7 @@ oe_imperor_designate_heir_interaction = {
 			}
 		}
 	}
-	populate_actor_list = {
+	populate_recipient_list = {
 		scope:actor = {
 			#every_vassal_or_below = { #皇帝的其他文官
 				#limit = {
@@ -450,15 +456,148 @@ oe_imperor_designate_heir_interaction = {
 				title = designate_heir_interaction_notification
 
 				left_icon = scope:recipient					
-				right_icon = scope:secondary_actor
+				right_icon = scope:secondary_recipient
 
-				set_designated_heir_unsafe = scope:secondary_actor
+				set_designated_heir_unsafe = scope:secondary_recipient
 			}
 			set_variable = {
 				name = oe_heir
-				value = scope:secondary_actor
+				value = scope:secondary_recipient
 			}
 		}
+
+			scope:recipient = {
+				primary_title = {
+					save_scope_as = target
+				}
+			}
+			# Save the score value
+			save_scope_value_as = {
+				name = support_candidate_score
+				value = {
+					value = 0
+					if = {
+						limit = { exists = scope:target }
+						add = {
+							value = "scope:target.current_heir.appointment_candidate_score(scope:target)"
+							multiply = 1.1
+						}
+						subtract = "scope:secondary_recipient.appointment_candidate_score(scope:target)"
+					}
+					min = 4 # We do this to prevent cases when the default score of the candidate is already much higher than that the heir
+					multiply = scope:actor.appointment_score_interaction_multiplier_modifiers_value
+				}
+			}
+			if = {
+				limit = {
+					scope:support_candidate_score >= 100
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 25
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 80
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 20
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 60
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 15
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 40
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 10
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 20
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 5
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 10
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 3
+				}
+			}
+			else = {
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 1
+				}
+			}
+
+			# Update the score for the corresponding title
+			scope:target = {
+				change_appointment_investment = {
+					target = scope:secondary_recipient
+					investor = scope:actor
+					value = scope:support_candidate_score
+				}
+				if = {
+					limit = { appointment_interactions_recipient_is_suitable_co_emperor_trigger = yes }
+					diarch_promoted_as_administrative_candidate_get_best_tooltip_effect = yes
+				}
+			}
+
+			# Notify the supported character (unless they are the actor)
+			scope:secondary_recipient ?= {
+				if = {
+					limit = {
+						NOT = { this = scope:actor }
+					}
+					hidden_effect = {
+						send_interface_message = {
+							type = msg_candidacy_improved
+							title = supported_candidacy_toast
+							left_icon = scope:actor
+							right_icon = scope:target
+							show_as_tooltip = {
+								scope:target = {
+									change_appointment_investment = {
+										target = scope:secondary_recipient
+										investor = scope:actor
+										value = scope:support_candidate_score
+									}
+								}
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						NOT = { house ?= scope:actor.house }
+					}
+					add_opinion = {
+						modifier = supported_candidacy_opinion
+						target = scope:actor
+						opinion = scope:opinion_change_value
+					}
+					custom_tooltip = support_candidacy_success_reward_tt
+				}
+			}
 	}
 	
 	ai_will_do = {
@@ -469,7 +608,7 @@ oe_imperor_designate_heir_interaction = {
 
 
 oe_chancellor_designate_heir_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	desc = oe_imperor_designate_heir_interaction_desc
@@ -617,7 +756,7 @@ oe_chancellor_designate_heir_interaction = {
 }
 
 set_bureaucratic_term_interaction = {  #
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -1061,7 +1200,7 @@ sent_to_bureaucracy_pool_interaction = {
 
 #送去对方府衙历练
 sent_to_bureaucracy_courtier_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	icon = demand_admin_interaction
 	target_type = title
 	target_filter = recipient_de_jure_titles

@@ -1,4 +1,22 @@
 ﻿# add official_succession_law 
+
+is_competing_for_same_title_as = {
+	allows_imperial_bureaucracy = yes
+	any_heir_title = {
+		exists = this
+		is_oe_noble_family_title = no
+		save_temporary_scope_as = temp_title
+	}
+	$CHARACTER$ = {
+		allows_imperial_bureaucracy = yes
+	}
+	scope:temp_title = {
+		any_title_heir = {
+			this = $CHARACTER$
+		}
+	}
+}
+
 any_valid_candidacy_trigger = {
 	$CANDIDATE$ = {
 		custom_tooltip = {
@@ -7,13 +25,9 @@ any_valid_candidacy_trigger = {
 				limit = {
 					$TOP_LIEGE$ = {
 						OR = {
-							has_realm_law = acclamation_succession_law
-							has_realm_law = appointment_succession_law
+							has_realm_law_flag = appointment_type_succession
 							primary_title = {
-								OR = {
-									has_title_law = acclamation_succession_law
-									has_title_law = appointment_succession_law
-								}
+								has_title_law_flag = appointment_type_succession
 							}
 						}
 					}
@@ -30,13 +44,11 @@ any_valid_candidacy_trigger = {
 						exists = holder
 						tier >= tier_duchy
 						OR = {
-							has_title_law = acclamation_succession_law
-							has_title_law = appointment_succession_law
+							has_title_law_flag = appointment_type_succession
 							has_title_law = official_succession_law
 							holder = {
 								OR = {
-									has_realm_law = acclamation_succession_law
-									has_realm_law = appointment_succession_law
+									has_realm_law_flag = appointment_type_succession
 									has_realm_law = official_succession_law
 								}
 							}
@@ -87,24 +99,6 @@ is_candidate_for_title_trigger = {
 	}
 }
 
-
-is_competing_for_same_title_as = {
-	allows_imperial_bureaucracy = yes
-	any_heir_title = {
-		exists = this
-		is_oe_noble_family_title = no
-		save_temporary_scope_as = temp_title
-	}
-	$CHARACTER$ = {
-		allows_imperial_bureaucracy = yes
-	}
-	scope:temp_title = {
-		any_title_heir = {
-			this = $CHARACTER$
-		}
-	}
-}
-
 valid_governor_contract_trigger = {
 	allows_imperial_bureaucracy = yes
 	is_alive = yes
@@ -115,6 +109,19 @@ valid_governor_contract_trigger = {
 
 is_appointment_valid_trigger = {
 	$CANDIDATE$ = {
+		trigger_if = {
+			limit = {
+				exists = $TITLE$
+			}
+			$TITLE$ = {
+				OR = {
+					has_title_law_flag = appointment_type_succession
+					holder = {
+						has_realm_law_flag = appointment_type_succession
+					}
+				}
+			}
+		}
 		trigger_if = {
 			limit = { # We check independence, not tier, to allow for admin kingdoms
 				exists = $TITLE$
