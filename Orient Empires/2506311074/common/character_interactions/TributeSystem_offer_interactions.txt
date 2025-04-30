@@ -21,38 +21,37 @@ offer_tribute_interaction = { #请求成为朝贡国
 	is_shown = {
 		NOR = {
 			scope:recipient = scope:actor
-			scope:actor = { has_relation_tributary = scope:recipient }
-			scope:actor = { has_relation_suzerain = scope:recipient }
+			scope:actor = { any_tributary = { this = scope:recipient } }
+			scope:actor = { suzerain = scope:recipient }
 			scope:actor = { is_tributary = yes }
 		}
 		scope:actor = {
-			can_be_tributary_of = { TARGET = scope:recipient }
+			is_independent_ruler = yes
+			#oe_can_be_tributary_of = { TARGET = scope:recipient }
 		}
 		scope:recipient = {
-			can_be_suzerain_of = { TARGET = scope:actor }
+			is_independent_ruler = yes
+			#oe_can_be_suzerain_of = { TARGET = scope:actor }
 		}
 	}
 	is_valid = {
-
-	}
-	
-	is_valid_showing_failures_only = {
-		
-		scope:actor = { is_available_for_activity_trigger = yes }
-
-		custom_description = {
-			text = "TributeSystem_allegiance_offer_has_been_rejected"
-			subject = scope:recipient
+		NOT = {
 			scope:actor = {
-				NOT = {
-					has_opinion_modifier = {
-						modifier = offer_tribute_refused_opinion
-						target = scope:recipient
-					}
+				any_held_title = {
+					this = scope:recipient.primary_title.de_jure_liege
 				}
 			}
 		}
-		
+	}
+	
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			is_physically_able = yes
+			is_travelling = no
+			NOT = { exists = involved_activity }
+			is_confederation_member = no
+			is_at_war = no
+		}
 	}
 
 	#send_option
@@ -70,7 +69,7 @@ offer_tribute_interaction = { #请求成为朝贡国
 	}
 
 	#Non Permanent trib
-	send_option = {										
+	send_option = {
 		flag = non_permanent_trib						# If selected then scope:flag_name will be set to yes
 		localization = non_permanent_trib				# Loc_key for option label
 		starts_enabled = { always = yes	}				# Trigger for whether this should be on when the window opens. If not defined, defaults to off
@@ -81,7 +80,41 @@ offer_tribute_interaction = { #请求成为朝贡国
 	send_option = {
 		flag = permanent_trib
 		localization = permanent_trib
-		#starts_enabled = { always = yes	}
+		starts_enabled = {}
+	}
+
+	#OE Tributary Groups
+	send_option = {
+		flag = tributary_hegemony
+		localization = tributary_hegemony
+		starts_enabled = {
+			scope:recipient = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+		}
+	}
+	send_option = {
+		flag = tributary_civilized
+		localization = tributary_civilized
+		is_shown = {
+			scope:recipient = { TributeSystem_suzerain_is_civilized_trigger = yes }
+		}
+
+	}
+
+	send_option = {
+		flag = tributary_league	
+		localization = tributary_league
+		is_shown = {
+			scope:recipient = { TributeSystem_suzerain_is_league_trigger = yes }
+		}
+
+	}
+
+	send_option = {
+		flag = tributary_patronage
+		localization = tributary_patronage
+		is_shown = {
+			scope:recipient = { TributeSystem_suzerain_is_patronage_trigger = yes }
+		}
 	}
 
 	send_options_exclusive = yes
@@ -143,14 +176,37 @@ offer_tribute_interaction = { #请求成为朝贡国
 			add = 50			
 			scope:permanent_trib = yes
 			desc = will_be_permanent_tributary
-
-			
 		}
 		modifier = { # 朝贡国
 			add = 20
 			scope:non_permanent_trib = yes
 			desc = will_be_non_permanent_tributary
 		}
+		modifier = { # 
+			add = 55			
+			scope:tributary_civilized = yes
+			scope:recipient = { TributeSystem_suzerain_is_civilized_trigger = yes }
+			desc = tributary_civilized
+		}
+		modifier = { # 
+			add = 55			
+			scope:tributary_league = yes
+			scope:recipient = { TributeSystem_suzerain_is_league_trigger = yes }
+			desc = tributary_league
+		}
+		modifier = { # 
+			add = 55			
+			scope:tributary_patronage = yes
+			scope:recipient = { TributeSystem_suzerain_is_patronage_trigger = yes }
+			desc = tributary_patronage
+		}
+		modifier = { # 
+			add = 55			
+			scope:tributary_hegemony = yes
+			scope:recipient = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+			desc = tributary_hegemony
+		}
+
 		modifier = {
 			add = 150
 			scope:actor.realm_size >= scope:recipient.realm_size
@@ -176,6 +232,22 @@ offer_tribute_interaction = { #请求成为朝贡国
 			add = true_ruler_value
 		}
 
+		modifier = {
+			add = -100
+			scope:actor = {
+				any_held_title = {
+					this = scope:recipient.primary_title.de_jure_liege
+				}
+			}
+			desc = AI_REFUSAL_IS_DE_JURE_LIEGE
+		}
+		modifier = {
+			add = -100
+			scope:recipient = {
+				has_claim_on = scope:actor.primary_title
+			}
+			desc = is_claimant
+		}
 		#以下照抄原版生活方式解锁的同盟谈判，同盟谈判基础接受度为-25
 		#照抄原版开始
 		opinion_modifier = { # More likely to accept if Recipient likes the Actor
@@ -427,19 +499,21 @@ offer_tribute_interaction = { #请求成为朝贡国
 		}
 	}
 	# 照抄原版结束
+
+
 	ai_potential = {
-		is_available_at_peace_ai_adult = yes
-		OR = {
-			ai_honor < 0
-			ai_boldness < -25
-		}
+		highest_held_title_tier >= tier_county
+		is_independent_ruler = yes
+		TributeSystem_chinese_tributary_trigger = no
 	}
 	
 	ai_targets = {
 		ai_recipients = neighboring_rulers
 	}
 	
-	ai_frequency = 24
+	ai_frequency = 12
+
+	force_notification = yes
 	
 	ai_will_do = {
 		base = 0
@@ -448,6 +522,24 @@ offer_tribute_interaction = { #请求成为朝贡国
 			add = -80			
 			scope:permanent_trib = yes
 			desc = will_be_permanent_tributary
+		}
+		modifier = { # 
+			add = -50			
+			scope:tributary_civilized = yes
+			scope:recipient = { TributeSystem_suzerain_is_civilized_trigger = no }
+			desc = tributary_civilized
+		}
+		modifier = { # 
+			add = -50			
+			scope:tributary_league = yes
+			scope:recipient = { TributeSystem_suzerain_is_league_trigger = no }
+			desc = tributary_league
+		}
+		modifier = { # 
+			add = -50			
+			scope:tributary_patronage = yes
+			scope:recipient = { TributeSystem_suzerain_is_patronage_trigger = no }
+			desc = tributary_patronage
 		}
 
 		modifier = {
@@ -508,7 +600,6 @@ offer_tribute_interaction = { #请求成为朝贡国
 	
 }
 
-
 demand_tribute_interaction = {#要求成为朝贡国 
 	category = interaction_category_diplomacy #interaction_category_tribute
 	icon = icon_liege
@@ -525,38 +616,58 @@ demand_tribute_interaction = {#要求成为朝贡国
 	is_shown = {
 		NOR = {
 			scope:actor = scope:recipient
-			scope:actor = { has_relation_tributary = scope:recipient }
-			scope:actor = { has_relation_suzerain = scope:recipient }
+			scope:actor = { any_tributary = { this = scope:recipient } }
+			scope:actor = { suzerain = scope:recipient }
 		}
 		scope:actor = {
-			can_be_suzerain_of = { TARGET = scope:recipient }
+			is_independent_ruler = yes
+			#oe_can_be_suzerain_of = { TARGET = scope:recipient }
 		}
 		scope:recipient = {
-			can_be_tributary_of = { TARGET = scope:actor }
+			is_independent_ruler = yes
+			#oe_can_be_tributary_of = { TARGET = scope:actor }
 			is_tributary = no
 		}
 	}
 	is_valid = {
-
+		#NOT = {
+			#scope:recipient = {
+				#any_held_title = {
+					#this = scope:actor.primary_title.de_jure_liege
+				#}
+			#}
+		#}
 	}
 	
 	is_valid_showing_failures_only = {
-				
-		scope:actor = { is_available_for_activity_trigger = yes }
-
-		custom_description = {
-			text = "TributeSystem_allegiance_demand_has_been_rejected"
-			subject = scope:recipient
-			scope:actor = {
+		scope:actor = {
+			NOT = { has_truce = scope:actor }
+			is_physically_able = yes
+			is_travelling = no
+			NOT = { exists = involved_activity }
+		}
+		scope:recipient = {
+			is_tributary = no
+			is_at_war = no
+			custom_tooltip = {
+				text = demand_tributary_interaction_cooldown_active_tt
 				NOT = {
 					has_opinion_modifier = {
-						modifier = demand_tribute_refused_opinion
-						target = scope:recipient
+						modifier = tributary_demanded_opinion
+						target = scope:actor
 					}
 				}
 			}
+			is_confederation_member = no
 		}
-		
+		scope:actor = {
+			custom_tooltip = {
+				text = mpo_interaction_not_neighbouring_tt
+				any_land_neighboring_realm_with_tributaries_owner = { 
+					this = scope:recipient
+				}
+			}
+		}
 	}
 	
 	can_send = {
@@ -572,7 +683,7 @@ demand_tribute_interaction = {#要求成为朝贡国
 	}
 
 	#Non Permanent trib
-	send_option = {										
+	send_option = {
 		flag = non_permanent_trib						# If selected then scope:flag_name will be set to yes
 		localization = non_permanent_trib				# Loc_key for option label
 		starts_enabled = { always = yes	}				# Trigger for whether this should be on when the window opens. If not defined, defaults to off
@@ -582,7 +693,43 @@ demand_tribute_interaction = {#要求成为朝贡国
 	#Permanent trib
 	send_option = {
 		flag = permanent_trib
-		localization = permanent_trib	
+		localization = permanent_trib
+		starts_enabled = {}
+	}
+
+	#OE Tributary Groups
+	send_option = {
+		flag = tributary_hegemony
+		localization = tributary_hegemony
+		starts_enabled = {
+			scope:actor = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+		}
+	}
+
+	send_option = {
+		flag = tributary_civilized
+		localization = tributary_civilized
+		is_shown = {
+			scope:actor = { TributeSystem_suzerain_is_civilized_trigger = yes }
+		}
+
+	}
+
+	send_option = {
+		flag = tributary_league	
+		localization = tributary_league
+		is_shown = {
+			scope:actor = { TributeSystem_suzerain_is_league_trigger = yes }
+		}
+
+	}
+
+	send_option = {
+		flag = tributary_patronage
+		localization = tributary_patronage
+		is_shown = {
+			scope:actor = { TributeSystem_suzerain_is_patronage_trigger = yes }
+		}
 	}
 
 	send_options_exclusive = yes
@@ -635,7 +782,7 @@ demand_tribute_interaction = {#要求成为朝贡国
 		base = 0
 
 		modifier = { # 永久朝贡国
-			add = -50
+			add = -55
 			scope:permanent_trib = yes
 			desc = will_be_permanent_tributary
 		}
@@ -644,6 +791,31 @@ demand_tribute_interaction = {#要求成为朝贡国
 			scope:non_permanent_trib = yes
 			desc = will_be_non_permanent_tributary
 		}
+		modifier = { # 
+			add = -50			
+			scope:tributary_civilized = yes
+			scope:actor = { TributeSystem_suzerain_is_civilized_trigger = no }
+			desc = tributary_civilized
+		}
+		modifier = { # 
+			add = -50			
+			scope:tributary_league = yes
+			scope:actor = { TributeSystem_suzerain_is_league_trigger = no }
+			desc = tributary_league
+		}
+		modifier = { # 
+			add = -50			
+			scope:tributary_patronage = yes
+			scope:actor = { TributeSystem_suzerain_is_patronage_trigger = no }
+			desc = tributary_patronage
+		}
+		modifier = { # 
+			add = -50			
+			scope:tributary_hegemony = yes
+			scope:actor = { TributeSystem_suzerain_is_hegemony_trigger = no }
+			desc = tributary_hegemony
+		}
+		
 		modifier = {
 			add = -100
 			scope:actor.realm_size < scope:recipient.realm_size
@@ -1018,12 +1190,9 @@ demand_tribute_interaction = {#要求成为朝贡国
 	}
 	##照抄原版结束
 	ai_potential = {
-		is_available_at_peace_ai_adult = yes
-		OR = {
-			ai_boldness > 25
-			ai_honor > 50
-		}
-		NOT = { government_has_flag = government_is_feudal }
+		highest_held_title_tier > 1 # at least a count-level ruler
+		is_independent_ruler = yes
+		TributeSystem_chinese_tributary_trigger = no
 	}
 	
 	ai_targets = {
@@ -1031,15 +1200,68 @@ demand_tribute_interaction = {#要求成为朝贡国
 		max = 5
 	}
 	
-	ai_frequency = 72
+	ai_frequency = 12
+
+	force_notification = yes
 	
 	ai_will_do = {
 		base = 0
+
+		modifier = { # 永久朝贡国
+			add = 50			
+			scope:permanent_trib = yes
+			desc = will_be_permanent_tributary
+		}
+		modifier = { # 朝贡国
+			add = 20
+			scope:non_permanent_trib = yes
+			desc = will_be_non_permanent_tributary
+		}
+		modifier = { # 
+			add = 50			
+			scope:tributary_civilized = yes
+			scope:actor = { TributeSystem_suzerain_is_civilized_trigger = yes }
+			desc = tributary_civilized
+		}
+		modifier = { # 
+			add = 50			
+			scope:tributary_league = yes
+			scope:actor = { TributeSystem_suzerain_is_league_trigger = yes }
+			desc = tributary_league
+		}
+		modifier = { # 
+			add = 50			
+			scope:tributary_patronage = yes
+			scope:actor = { TributeSystem_suzerain_is_patronage_trigger = yes }
+			desc = tributary_patronage
+		}
+		modifier = { # 
+			add = 50			
+			scope:tributary_hegemony = yes
+			scope:actor = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+			desc = tributary_hegemony
+		}
 
 		modifier = {
 			add = -100
 			TributeSystem_chinese_tributary_trigger = yes
 			desc = will_not_make_tributary_in_china
+		}
+		modifier = {
+			add = -100
+			scope:recipient = {
+				any_held_title = {
+					this = scope:actor.primary_title.de_jure_liege
+				}
+			}
+			desc = AI_REFUSAL_IS_DE_JURE_LIEGE
+		}
+		modifier = {
+			add = -100
+			scope:actor = {
+				has_claim_on = scope:recipient.primary_title
+			}
+			desc = is_claimant
 		}
 		modifier = {
 	  	  	add = {
@@ -1111,155 +1333,6 @@ demand_tribute_interaction = {#要求成为朝贡国
 	
 }
 
-
-bride_request_tribute_interaction = {#贿赂其成为朝贡国
-	category = interaction_category_diplomacy #interaction_category_tribute
-	icon = icon_liege
-	ai_min_reply_days = 4
-	ai_max_reply_days = 9
-	ai_frequency = 60
-
-	interface_priority = 0
-	desc = TributeSystem_demand_tribute_with_wealth_offer_desc
-	cooldown = { years = 3 }
-	greeting = positive
-	notification_text = TributeSystem_demand_tribute_with_wealth_offer_notification
-	
-	is_shown = {
-		NOT = { scope:recipient = scope:actor }
-		NOR = {
-			scope:actor = { has_relation_suzerain = scope:recipient }
-			scope:recipient = { has_relation_suzerain = scope:actor }		
-		}
-		scope:actor = {
-			can_be_suzerain_of = { TARGET = scope:recipient }
-			is_tributary = no
-		}
-		scope:recipient = {
-			can_be_tributary_of = { TARGET = scope:actor }
-		}
-	}
-	
-	is_valid_showing_failures_only = {
-		
-		scope:actor = { is_available_for_activity_trigger = yes }
-
-		custom_description = {
-			text = "TributeSystem_allegiance_demand_has_been_rejected"
-			subject = scope:recipient
-			scope:actor = {
-				NOT = {
-					has_opinion_modifier = {
-						modifier = demand_tribute_refused_opinion
-						target = scope:recipient
-					}
-				}
-			}
-		}
-		
-	}
-	
-	can_send = {
-		custom_description = { # Exploit prevention
-			text = "has_sent_interaction_already"
-			subject = scope:recipient
-			scope:actor = {
-				NOT = {
-					has_pending_interaction_of_type = bride_request_tribute_interaction
-				}
-			}
-		}
-	}
-
-	on_auto_accept = {
-
-	}
-
-	#Use hook
-	send_option = {
-		is_valid = {
-			scope:actor = {
-				has_usable_hook = scope:recipient
-			}
-		}
-		flag = hook	
-		localization = GENERIC_SPEND_A_HOOK
-	}
-	should_use_extra_icon = {
-		scope:actor = { has_usable_hook = scope:recipient }
-	}
-	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
-
-	send_options_exclusive = no
-		
-	on_accept = {
-		scope:actor = {
-			trigger_event = TributeSystem.1008
-			send_interface_toast = {
-				type = event_toast_effect_good
-				title = set_relation_tributary
-				custom_tooltip = I_GAIN_A_TRIBUTARY
-				left_icon = scope:actor
-				right_icon = scope:recipient
-			}
-			make_tributary = {
-				TYPE = tributary_non_permanent
-				TRIBUTARY = scope:recipient
-				SUZERAIN = scope:actor
-			}
-
-			TributeSystem_pay_income_function_effect = {
-				ACTOR = scope:actor
-				TARGET = scope:recipient
-				THRESHOLD = 10
-				MONTHS = 24
-			}
-			stress_impact = {
-				shy = minor_stress_impact_gain
-			}
-
-			if = {
-				limit = { scope:hook = yes }
-				use_hook = scope:recipient
-			}
-		}
-		scope:recipient = {
-			trigger_event = TributeSystem.1007
-		}
-	}
-	
-	on_decline = {
-		scope:actor = {
-			trigger_event = TributeSystem.1009
-		}
-		scope:actor = {
-			add_opinion = {
-				modifier = demand_tribute_refused_opinion
-				target = scope:recipient
-			}
-		}
-	}
-
-	#auto_accept = {
-		#custom_description = {
-			#text = auto_accept_interaction_ai	
-			#object = scope:recipient
-			#scope:recipient = {
-				#is_ai = yes
-			#}
-		#}
-	#}
-
-	ai_potential = {
-		always = no
-	}
-	
-	ai_will_do = {
-		base = 0
-	}
-	
-}
-
 free_tributary_interaction = {#宗主国抛弃朝贡国
 	category = interaction_category_diplomacy #interaction_category_tribute
 	icon = icon_liege
@@ -1275,7 +1348,7 @@ free_tributary_interaction = {#宗主国抛弃朝贡国
 	
 	is_shown = {
 		scope:actor = {
-			has_relation_tributary = scope:recipient
+			any_tributary = { this = scope:recipient }
 			is_ai = no
 		}
 	}
@@ -1364,15 +1437,15 @@ break_tributary_interaction = {#朝贡国提出终止朝贡
 	
 	is_shown = {
 		scope:actor = {
-			has_relation_suzerain = scope:recipient
+			suzerain = scope:recipient
 		}
 	}
 	
 	is_valid_showing_failures_only = {
 		scope:actor = { is_available_for_activity_trigger = yes }
 		custom_tooltip = {
-			text = is_non_permanent_tributary
-			is_non_permanent_tributary = yes
+			text = oe_is_non_permanent_tributary
+			oe_is_non_permanent_tributary = yes
 		}
 	}
 	
@@ -1453,27 +1526,98 @@ break_tributary_interaction = {#朝贡国提出终止朝贡
 	
 }
 
-#临时变永久
+#临时变永久——切换朝贡形式
 turn_non_perma_tributary_to_perma = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	icon = icon_vassal
 	desc = turn_non_perma_tributary_to_perma_desc
 
 	is_shown = {
-		scope:actor = { has_relation_tributary = scope:recipient }
-		scope:recipient = { is_non_permanent_tributary = yes }	
+		scope:recipient = { suzerain = scope:actor }
 	}
 
 	is_valid = {
-		custom_description = {
-			text = is_true_level_2_tributary
-			scope:recipient = { TributeSystem_true_tributary_EXP_MIN_trigger = { MIN = 30 } }
-		}
-		
+		has_royal_court = yes
 	}
 	cost = {
 		prestige = medium_suzerain_cost
 	}
+
+	can_send = {
+		custom_description = { #only if an option is selected
+			text = has_no_option_selected
+			switch = {
+				trigger = yes 
+				scope:non_permanent_trib = {
+				} 
+				scope:permanent_trib = {
+				} 
+				scope:tributary_civilized = {
+				} 
+				scope:tributary_league = {
+				} 
+				scope:tributary_patronage = {
+				}
+				scope:tributary_hegemony = {
+				}
+			}
+		}
+	}
+
+	#Non Permanent trib
+	send_option = {
+		flag = non_permanent_trib						# If selected then scope:flag_name will be set to yes
+		localization = non_permanent_trib				# Loc_key for option label
+		starts_enabled = { always = yes	}				# Trigger for whether this should be on when the window opens. If not defined, defaults to off
+
+	}
+
+	#Permanent trib
+	send_option = {
+		flag = permanent_trib
+		localization = permanent_trib
+		starts_enabled = {}
+	}
+
+	#OE Tributary Groups
+	send_option = {
+		flag = tributary_hegemony
+		localization = tributary_hegemony
+		starts_enabled = {
+			scope:actor = { TributeSystem_suzerain_is_hegemony_trigger = yes }
+		}
+	}
+
+	send_option = {
+		flag = tributary_civilized
+		localization = tributary_civilized
+		is_shown = {
+			scope:actor = { TributeSystem_suzerain_is_civilized_trigger = yes }
+		}
+
+	}
+
+	send_option = {
+		flag = tributary_league	
+		localization = tributary_league
+		is_shown = {
+			scope:actor = { TributeSystem_suzerain_is_league_trigger = yes }
+		}
+
+	}
+
+	send_option = {
+		flag = tributary_patronage
+		localization = tributary_patronage
+		is_shown = {
+			scope:actor = { TributeSystem_suzerain_is_patronage_trigger = yes }
+		}
+	}
+
+	send_options_exclusive = yes
+
+	can_send_despite_rejection = yes
+
 	on_accept = {
 		scope:recipient = {
 			custom_description = {
@@ -1486,12 +1630,7 @@ turn_non_perma_tributary_to_perma = {
 						TRIBUTARY = scope:recipient
 						#TRIBUTARY_BASE_TYPE = flag:non_permanent
 					}
-					#TODO:MAKE SOME KIND OF EFFECT/S + TRIGGER/S THAT WOULD AUTOMATICALLY ASSIGN CORRECT PERMA TRIB TYPE BASED ON THE NON PERMA TRIB TYPE ~ T.
-					make_tributary = {
-						TYPE = tributary_permanent
-						SUZERAIN = scope:actor
-						TRIBUTARY = scope:recipient
-					}				
+					demand_tribute_effect = yes			
 				}		
 			}
 		}
@@ -1883,7 +2022,7 @@ vassalize_tributary = {
 	icon = icon_vassal
 
 	is_shown = {
-		scope:actor = { has_relation_tributary = scope:recipient }
+		scope:recipient = { suzerain = scope:actor }
 		scope:actor = { TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 60 } }
 	}
 
@@ -2305,7 +2444,7 @@ annex_tributary = {
 	icon = icon_vassal
 
 	is_shown = {
-		scope:actor = { has_relation_tributary = scope:recipient }
+		scope:recipient = { suzerain = scope:actor }
 		scope:actor = { TributeSystem_suzerain_EXP_MIN_trigger = { MIN = 100 } }
 	}
 
@@ -2766,7 +2905,7 @@ colorize_tributary = {
 
 	is_shown = {
 		scope:actor = { exists = primary_title }
-		scope:actor = { has_relation_tributary = scope:recipient }
+		scope:recipient = { suzerain = scope:actor }
 	}
 
 	is_valid = {
@@ -2794,304 +2933,6 @@ colorize_tributary = {
 #朝贡点数互动
 ###################
 
-
-#AI朝贡
-#ai_offer_tribute_interaction = { #ai 朝贡
-#	category = interaction_category_diplomacy #interaction_category_tribute
-#	icon = icon_vassal
-#	use_diplomatic_range = yes
-#	ai_min_reply_days = 4
-#	ai_max_reply_days = 9
-#	interface_priority = 60
-#	desc = TributeSystem_offer_tribute_desc	
-#	greeting = positive
-#	notification_text = offer_gold_tribute_interaction
-#	cooldown = { years = 2 }
-#
-#	is_shown = {
-#		scope:actor = { has_relation_suzerain = scope:recipient }
-#		scope:actor = { is_ai = yes }
-#	}
-#	is_valid = {
-#		scope:actor = { has_relation_suzerain = scope:recipient }
-#	}
-#	
-#	is_valid_showing_failures_only = {
-#		
-#		scope:recipient = { is_available_for_activity_trigger = yes }
-#
-#		custom_description = {
-#			text = "TributeSystem_allegiance_offer_has_been_rejected"
-#			subject = scope:recipient
-#			scope:actor = {
-#				NOT = {
-#					has_opinion_modifier = {
-#						modifier = offer_tribute_refused_opinion
-#						target = scope:recipient
-#					}
-#				}
-#			}
-#		}
-#		
-#	}
-#
-#	#send_option
-#	
-#	can_send = {
-#		custom_description = { # Exploit prevention
-#			text = "has_sent_interaction_already"
-#			subject = scope:recipient
-#			scope:actor = {
-#				NOT = {
-#					has_pending_interaction_of_type = offer_tribute_interaction
-#				}
-#			}
-#		}
-#	}
-#
-#	#Non Permanent trib
-#	send_option = {										
-#		flag = non_permanent_trib						# If selected then scope:flag_name will be set to yes
-#		localization = non_permanent_trib				# Loc_key for option label
-#		starts_enabled = { always = yes	}				# Trigger for whether this should be on when the window opens. If not defined, defaults to off
-#
-#	}
-#
-#	#Permanent trib
-#	send_option = {
-#		flag = permanent_trib
-#		localization = permanent_trib
-#		#starts_enabled = { always = yes	}
-#	}
-#
-#	send_options_exclusive = yes
-#
-#	can_send_despite_rejection = yes
-#
-#	on_auto_accept = {
-#		scope:recipient = {
-#			trigger_event = TributeSystem.1001
-#		}
-#	}
-#		
-#	on_accept = {
-#		scope:recipient = {
-#			# Verify that they could become friend
-#			if = {
-#				limit = {
-#					NAND = {
-#						has_relation_friend = scope:actor
-#						has_relation_lover = scope:actor
-#						has_relation_soulmate = scope:actor
-#						has_relation_best_friend = scope:actor
-#					}
-#				}
-#				gifting_leads_towards_friendship_effect = yes
-#			}
-#		}
-#		# Warning for multiple gifts
-#		if = {
-#			limit = {
-#				scope:recipient = {
-#					has_opinion_modifier = {
-#						target = scope:actor
-#						modifier = gift_opinion
-#					}
-#				}
-#			}
-#			custom_tooltip = ALREADY_SENT_GIFT_WARNING
-#		}
-#		else = { # Struggle Catalyst
-#			limit = {
-#				scope:actor = {
-#					any_character_struggle = {
-#						involvement = involved
-#						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
-#							CATALYST = catalyst_tribute_important 
-#							CHAR = scope:recipient
-#						}
-#					}
-#				}
-#			}
-#			hidden_effect = {
-#				scope:actor = {
-#					every_character_struggle = {
-#						involvement = involved
-#						activate_struggle_catalyst = {
-#							catalyst = catalyst_tribute_important 
-#							character = scope:actor
-#						}
-#					}
-#				}
-#			}
-#		}
-#		scope:recipient = {
-#			add_opinion = {
-#				target = scope:actor
-#				modifier = gift_opinion
-#				opinion = send_gift_opinion
-#			}
-#		}
-#		#进贡数额
-#		if = {
-#			limit = {
-#				scope:recipient = { is_ai = yes }
-#			}
-#			random = {
-#				chance = 33
-#				modifier = {}
-#				scope:actor = {
-#					tributary_change_tribute_exp_effect = { EXP = minor_tribute_exp_value }
-#				}
-#			}
-#			random = {
-#				chance = 33
-#				modifier = {}
-#				scope:actor = {
-#					tributary_change_tribute_exp_effect = { EXP = medium_tribute_exp_value }
-#				}
-#			}
-#			random = {
-#				chance = 33
-#				modifier = {}
-#				scope:actor = {
-#					tributary_change_tribute_exp_effect = { EXP = major_tribute_exp_value }
-#				}
-#			}
-#			scope:recipient = {
-#				suzerain_change_tribute_exp_effect = { EXP = minor_tribute_exp_value }
-#			}
-#		}
-#		else_if = {
-#			scope:recipient = { is_ai = no }
-#			random = {
-#				chance = 25
-#				send_interface_toast = {
-#					title = offer_gold_tribute_interaction_notification
-#					right_icon = scope:recipient
-#				}
-#				scope:actor = {
-#					tributary_change_tribute_exp_effect = { EXP = minor_tribute_exp_value }
-#				}
-#				scope:recipient = { add_gold = scope:actor.minor_gold_value } 
-#			}
-#			random = {
-#				chance = 25
-#				send_interface_toast = {
-#					title = offer_gold_tribute_interaction_notification
-#					right_icon = scope:recipient
-#				}
-#				scope:actor = {
-#					tributary_change_tribute_exp_effect = { EXP = medium_tribute_exp_value }
-#				}
-#				scope:recipient = { add_gold = scope:actor.medium_gold_value } 
-#			}
-#			random = {
-#				chance = 25
-#				send_interface_toast = {
-#					title = offer_gold_tribute_interaction_notification
-#					right_icon = scope:recipient
-#				}
-#				scope:actor = {
-#					tributary_change_tribute_exp_effect = { EXP = major_tribute_exp_value }
-#				}
-#				scope:recipient = { add_gold = scope:actor.major_gold_value }
-#			}
-#			random = {
-#				chance = 25
-#				send_interface_toast = {
-#					title = offer_prestige_tribute_interaction_notification
-#					right_icon = scope:recipient
-#				}
-#				scope:actor = {
-#					tributary_change_tribute_exp_effect = { EXP = medium_tribute_exp_value }
-#				}
-#				scope:recipient = { add_prestige = scope:actor.medium_prestige_value }
-#			}
-#			scope:recipient = {
-#				trigger_event = TributeSystem.1017 #选择赏赐规模，选择加点类型		
-#			}
-#		}
-#	}
-#
-#	on_decline = {
-#		scope:actor = {
-#			trigger_event = TributeSystem.1003
-#		}
-#		scope:actor = {
-#			add_opinion = {
-#				modifier = offer_tribute_refused_opinion
-#				target = scope:recipient
-#			}
-#		}
-#	}
-#
-#	auto_accept = yes
-#	
-#	# 照抄原版结束
-#	ai_potential = {
-#		is_at_war = no
-#	}
-#	
-#
-#	ai_target_quick_trigger = { adult = yes }
-#	ai_targets = {
-#		ai_recipients = neighboring_rulers
-#		max = 3
-#	}
-#	
-#	ai_frequency = 12
-#	
-#	ai_will_do = {
-#		base = 20
-#		
-#		modifier = {
-#			add = -100
-#			TributeSystem_chinese_tributary_trigger = yes
-#			desc = will_not_make_tributary_in_china
-#		}
-#
-#		modifier = {
-#			scope:recipient.realm_size > scope:actor.realm_size
-#			add = 20
-#		}
-#		modifier = {
-#			scope:recipient.realm_size < scope:actor.realm_size
-#			factor = 0
-#		}
-#		modifier = {
-#			scope:recipient.realm_size > scope:actor.realm_size
-#			add = 20
-#		}
-#		modifier = {
-#			scope:recipient.realm_size < scope:actor.realm_size
-#			factor = 0
-#		}
-#		modifier = {
-#			scope:actor = {
-#				OR = {
-#					has_trait = craven
-#					has_trait = trusting
-#					has_trait = lazy
-#				}
-#			}
-#			add = 40
-#		}
-#		modifier = {
-#			scope:actor = {
-#				OR = {
-#					has_trait = brave
-#					has_trait = paranoid
-#					has_trait = diligent
-#				}
-#			}
-#			add = -60
-#		}
-#	}
-#	
-#}
-
-
 #金钱进贡
 offer_gold_tribute_interaction = {
 	category = interaction_category_diplomacy #interaction_category_tribute
@@ -3109,7 +2950,7 @@ offer_gold_tribute_interaction = {
 		max = 3
 	}
 	is_shown = {
-		scope:actor = { has_relation_suzerain = scope:recipient }
+		scope:actor = { suzerain = scope:recipient }
 	}
 	is_valid = {
 	}
@@ -3136,7 +2977,7 @@ offer_gold_tribute_interaction = {
 	}
 
 	#半年收入
-	send_option = {										
+	send_option = {
 		starts_enabled = {
 			scope:actor.gold >= scope:actor.minor_gold_value 
 		}
@@ -3146,7 +2987,7 @@ offer_gold_tribute_interaction = {
 
 	}
 	#一年收入
-	send_option = {										
+	send_option = {
 		starts_enabled = { 
 			scope:actor.gold >= scope:actor.medium_gold_value
 		}
@@ -3476,7 +3317,7 @@ offer_prestige_tribute_interaction = {
 	notification_text = SEND_GIFT_PROPOSAL
 
 	is_shown = {
-		scope:actor = { has_relation_suzerain = scope:recipient }
+		scope:actor = { suzerain = scope:recipient }
 		scope:actor = { is_ai = no }
 	}
 	is_valid = {
@@ -3504,7 +3345,7 @@ offer_prestige_tribute_interaction = {
 	}
 
 	#少数威望
-	send_option = {										
+	send_option = {
 		starts_enabled = {
 			scope:actor.prestige >= scope:actor.minor_prestige_value 
 		}
@@ -3514,7 +3355,7 @@ offer_prestige_tribute_interaction = {
 
 	}
 	#中等威望
-	send_option = {										
+	send_option = {
 		starts_enabled = { 
 			scope:actor.prestige >= scope:actor.medium_prestige_value
 		}
@@ -3750,10 +3591,7 @@ offer_prestige_tribute_interaction = {
 	ai_frequency = 12
 
 	ai_potential = {
-		#any_relation = {
-			#type = suzerain
-			#count >= 1
-		#}
+		exists = suzerain
 	}
 
 	auto_accept = {
@@ -3818,7 +3656,7 @@ offer_courtier_beauty_interaction = {
 	}
 	is_shown = {
 		scope:actor = {
-			has_relation_suzerain = scope:recipient
+			suzerain = scope:recipient
 			is_ai = no
 		}
 		scope:recipient = { 
@@ -3940,7 +3778,7 @@ offer_tribute_artifact_interaction = {
 		}
 		scope:actor = {
 			has_any_artifact = yes
-			has_relation_suzerain = scope:recipient
+			suzerain = scope:recipient
 			scope:actor = { is_ai = no }
 		}
 	}
@@ -4605,10 +4443,7 @@ offer_tribute_artifact_interaction = {
 	}
 	
 	ai_potential = {
-		any_relation = {
-			type = suzerain
-			count >= 1
-		}
+		exists = suzerain
 		trigger_if = {
 			limit = {
 				exists = scope:target.var:banner_dynasty
@@ -5044,8 +4879,8 @@ negotiate_currency_treaty_interaction = {
 
 	is_shown = {
 		OR = {
-			scope:actor = { has_relation_suzerain = scope:recipient }
-			scope:actor = { has_relation_tributary = scope:recipient }
+			scope:actor = { suzerain = scope:recipient }
+			scope:recipient = { suzerain = scope:actor }
 		}
 		scope:actor = { is_ai = no }
 	}
@@ -5075,7 +4910,7 @@ negotiate_currency_treaty_interaction = {
 
 
 	#三年收入
-	send_option = {										
+	send_option = {
 		starts_enabled = { 
 			scope:actor.monthly_character_income > 0
 		}
@@ -5084,7 +4919,7 @@ negotiate_currency_treaty_interaction = {
 
 	}
 	#十年收入
-	send_option = {										
+	send_option = {
 		starts_enabled = {
 			scope:actor.monthly_character_income > 0
 		}
@@ -5287,7 +5122,7 @@ negotiate_currency_treaty_interaction = {
 		}
 		#点数增长用action TributeSystem_all_at_year_start_on_action
 		if = {
-			limit = { scope:actor = { has_relation_suzerain = scope:recipient } }
+			limit = { scope:actor = { suzerain = scope:recipient } }
 			scope:recipient = { trigger_event = TributeSystem.1017 }
 		}
 	}
@@ -5419,7 +5254,7 @@ bestow_gold_interaction = {
 	notification_text = SEND_GIFT_PROPOSAL
 
 	is_shown = {
-		scope:actor = { has_relation_tributary = scope:recipient }
+		scope:recipient = { suzerain = scope:actor }
 		scope:actor = { is_ai = no }
 	}
 	is_valid = {
@@ -5447,7 +5282,7 @@ bestow_gold_interaction = {
 	}
 
 	#半年收入
-	send_option = {										
+	send_option = {
 		starts_enabled = {
 			scope:actor.gold >= scope:recipient.minor_gold_value 
 		}
@@ -5457,7 +5292,7 @@ bestow_gold_interaction = {
 
 	}
 	#一年收入
-	send_option = {										
+	send_option = {
 		starts_enabled = { 
 			scope:actor.gold >= scope:recipient.medium_gold_value
 		}
@@ -5778,9 +5613,9 @@ swing_tribute_exp_currency_interaction = {
 
 	is_shown = {
 		OR = {
-			scope:actor = { has_relation_tributary = scope:recipient }	
+			scope:recipient = { suzerain = scope:actor }	
 			AND = {
-				scope:recipient = { has_relation_tributary = scope:actor }
+				scope:recipient = { any_tributary = { this = scope:actor } }
 				scope:recipient = { TributeSystem_level_3_tributary_trigger = yes }
 			}					
 		}

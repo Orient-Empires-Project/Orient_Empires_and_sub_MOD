@@ -33,23 +33,7 @@ celestial_government = {
 
 	tax_slot_type = celestial_tax_slot
 
-	vassal_contract = {
-		imperial_government_taxes
-		special_imperial_bureau
-
-		fortification_rights
-		coinage_rights
-		heir_succession_rights
-		automony_rights
-
-		#special_contract
-		religious_rights
-		war_declaration_rights
-		council_rights
-		#title_revocation_rights
-		title_creation_rights
-		#marriage_favor_rights
-	}
+	vassal_contract_group = celestial_vassal
 
 	character_modifier = {
 		religious_head_opinion = 15
@@ -61,7 +45,8 @@ celestial_government = {
 		vassal_limit = 50
 
 
-		ai_war_chance = 0.5
+		ai_war_chance = 2
+		title_creation_cost_mult = 0.5
 	}
 
 	flag = may_elevate_co_monarch
@@ -111,23 +96,7 @@ legion_government = {
 	flag = government_can_raid_rule
 	flag = government_use_bureaucracy
 
-	vassal_contract = {
-		legion_government_obligations
-		#special_contract
-		religious_rights
-		war_declaration_rights
-		council_rights
-		title_revocation_rights
-
-		automony_rights
-		title_creation_rights
-
-		fortification_rights
-		coinage_rights
-		succession_rights
-		heir_succession_rights
-		marriage_favor_rights
-	}
+	vassal_contract_group = legion_vassal
 
 	character_modifier = {
 		knight_limit = 12
@@ -225,7 +194,7 @@ bureau_government = {
 		highest_held_title_tier <= tier_duchy
 	}
 	
-	character_modifier = {#民州
+	character_modifier = { #民州
 		domain_limit = -5
 		levy_size = -0.5 #休养生息
 		knight_limit = -2 #以文致治
@@ -239,12 +208,18 @@ bureau_government = {
 		use_legends = no
 	}
 
-	vassal_contract = { republic_government_obligations }
+	vassal_contract_group = republic_vassal
+
 	color = { 124 222 127 }
 	flag = government_is_bureau
 
-	flag = government_is_administrative
+	#flag = government_is_administrative
 	flag = adult_rulers_only
+
+	flag = government_use_estate #东方庄园
+
+	# These flags only exist for loc and in-game descriptions
+	flag = government_has_influence
 }
 
 ulus_government = {
@@ -255,26 +230,21 @@ ulus_government = {
 		legitimacy = yes
 	}
 
-	supply_limit_mult_for_others = -0.5
-	primary_holding = tribal_holding
-	valid_holdings = { castle_holding city_holding }
-	#required_county_holdings = { tribal_holding }
+	domicile_type = yurt
+
+	primary_holding = castle_holding
+	valid_holdings = { city_holding tribal_holding nomad_holding } #
+	#required_county_holdings = { nomad_holding }
+
+	generated_character_template = nomadic_chieftain_character
+
 	affected_by_development = no
 
 	fallback = 5
 
 	prestige_opinion_override = { -5 0 10 15 30 45 }
 
-	vassal_contract = {
-		tribal_government_obligations
-		special_contract
-		religious_rights
-		war_declaration_rights
-		council_rights
-		title_revocation_rights
-
-		marriage_favor_rights
-	}
+	vassal_contract_group = ulus_vassal
 
 	ai = {
 		use_legends = yes
@@ -296,7 +266,17 @@ ulus_government = {
 	}
 	
 	flag = government_can_raid_rule
-	flag = government_is_ulus
+	flag = government_can_use_tributary_men_at_arms
+	#flag = can_start_war_with_raised_troops
+	flag = ignores_faith_marriage_penalties
+	#flag = no_hostile_attrition_in_steppe # Done in code, here for loc
+	#flag = movement_speed_from_government
+	#flag = land_raiding_movement_speed_from_government
+	flag = can_raze_holdings
+
+
+
+
 	color = hsv{ 0.32 0.25 0.36 }
 }
 
@@ -317,7 +297,6 @@ imperial_government = {
 		use_as_base_on_landed = yes
 		use_as_base_on_rank_up = yes
 		#inherit_from_dynastic_government = no
-		
 	}
 
 	domicile_type = estate
@@ -337,26 +316,7 @@ imperial_government = {
 
 	tax_slot_type = celestial_tax_slot
 
-	vassal_contract = {
-		imperial_government_taxes
-		special_imperial_bureau
-
-		#special_contract
-		fortification_rights
-		coinage_rights
-		legal_penalty
-		automony_rights
-
-		war_declaration_rights
-		council_rights
-		#title_creation_rights
-		heir_succession_rights
-		
-
-		#religious_rights
-		title_revocation_rights
-		#marriage_favor_rights
-	}
+	vassal_contract_group = imperial_vassal
 
 	character_modifier = {
 		religious_head_opinion = 15
@@ -368,6 +328,8 @@ imperial_government = {
 		vassal_limit = 100
 
 		title_creation_cost_mult = 0.5
+
+		ai_war_chance = 0.5
 	}
 	flag = government_is_celestial #皇权大一统
 	flag = government_use_bureaucracy	#流官制度
@@ -379,5 +341,49 @@ imperial_government = {
 	flag = government_has_powerful_families
 
 	color = { 250 200 100 }
+}
 
+
+mandala_government = {
+	government_rules = {
+		create_cadet_branches = yes
+		rulers_should_have_dynasty = yes
+		dynasty_named_realms = yes
+		royal_court = yes
+		landless_playable = yes
+		allow_out_of_realm_inheritance = yes
+		#uses_culture_and_house_head_named_realms = yes
+		legitimacy = yes
+		subject_men_at_arms = yes
+	}
+
+	domicile_type = estate
+
+	affected_by_development = no
+
+	fallback = 5
+
+	#primary_heritages = { heritage_chinese }
+	primary_holding = castle_holding
+	valid_holdings = { city_holding church_holding }
+	required_county_holdings = { church_holding }
+
+	can_get_government = {
+		is_independent_ruler = no
+		highest_held_title_tier <= tier_duchy
+	}
+	
+	character_modifier = {
+		domain_limit = -10
+		monthly_piety = 10
+		liege_opinion = 10
+		suzerain_opinion = 20
+	}
+
+	vassal_contract_group = tributary_patronage
+
+	color = { 124 222 127 }
+	flag = government_is_mandala
+
+	flag = adult_rulers_only
 }

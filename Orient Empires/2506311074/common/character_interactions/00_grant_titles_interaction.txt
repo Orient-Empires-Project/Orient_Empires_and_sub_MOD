@@ -38,6 +38,12 @@ grant_titles_interaction = {
 			}
 			scope:recipient = { NOT = { government_allows = administrative } }
 		}
+		trigger_if = {
+			limit = {
+				scope:actor = { government_has_flag = government_is_nomadic }
+			}
+			scope:recipient = { NOT = { government_has_flag = government_is_herder } }
+		}
 	}
 
 	is_valid_showing_failures_only = {
@@ -132,6 +138,37 @@ grant_titles_interaction = {
 				limit = { is_oe_noble_family_title = yes }
 				custom_tooltip = {
 					text = GRANT_TITLES_ITEM_CANT_GIVE_NOBLE_FAMILY
+					always = no
+				}
+			}
+
+			trigger_if = {
+				limit = {
+					scope:actor = {
+						NOT = {
+							has_government = nomad_government
+						}
+					}
+					title_province = {
+						OR = {
+							has_holding_type = nomad_holding
+							has_holding_type = herder_holding
+						}
+					}
+					scope:recipient = {
+						is_ruler = no
+					}
+				}
+				custom_tooltip = {
+					text = GRANT_TITLES_ITEM_CANT_GIVE_NOMADIC_TITLES_TO_NON_NOMADS_TITLE
+					always = no
+				}
+			}
+
+			trigger_if = {
+				limit = { is_nomad_title = yes }
+				custom_tooltip = {
+					text = GRANT_TITLES_ITEM_CANT_GIVE_NOMAD_TITLE
 					always = no
 				}
 			}
@@ -347,35 +384,6 @@ grant_titles_interaction = {
 		flag = special_imperial_royal_0
 		localization = special_imperial_royal_0
 	}
-	#send_option = {
-		#is_shown = {
-			#OR = {
-				#AND = {
-					#scope:actor = { government_has_flag = government_is_celestial }
-					#scope:recipient = { is_ruler = no }
-				#}
-				#scope:recipient = { government_has_flag = government_is_celestial }
-			#}
-			#scope:actor = { highest_held_title_tier = tier_empire }
-			#OR = {
-				#scope:actor = {
-					#NOT = {
-						#any_vassal = { vassal_contract_has_flag = special_imperial_royal_2 }
-					#}
-				#}
-				#AND = {
-					#scope:actor = {
-						#any_vassal = {
-							#count = 1
-							#vassal_contract_has_flag = special_imperial_royal_2
-						#}
-					#}
-				#}
-			#}
-		#}
-		#flag = special_imperial_royal_2
-		#localization = special_imperial_royal_2
-	#}
 	send_options_exclusive = yes
 	auto_accept = yes
 
@@ -386,87 +394,106 @@ grant_titles_interaction = {
 	}
 
 	on_accept = {
-				# force AI grant by whole duchy in new conquered land
-				if = {
-					limit = {
-						scope:actor = {
-							is_ai = yes
-							domain_limit_available < 0
-							highest_held_title_tier >= tier_kingdom
-						}
-						scope:recipient = {
-							OR = {
-								is_landed = no
-								domain_limit_available > 0
-							}
-						}
-						any_in_list = {
-							list = target_titles
-							tier = tier_county
-							duchy = {
-								any_de_jure_county = {
-									holder = scope:actor
-									NOT = { is_in_list = target_titles }
-								}
-							}
-						}
-					}
-					random_in_list = {
-						list = target_titles
-						limit = {
-							tier = tier_county
-							duchy = {
-								any_de_jure_county = {
-									holder = scope:actor
-									NOT = { is_in_list = target_titles }
-								}
-							}
-						}
-						duchy = {
-							every_de_jure_county = {
-								limit = {
-									holder = scope:actor
-									NOT = { is_in_list = target_titles }
-								}
-								add_to_list = target_titles
-								add_to_list = additional_target_titles
-							}
-							if = {
-								limit = {
-									holder ?= scope:actor
-								}
-								add_to_list = target_titles
-								add_to_list = additional_target_titles
-							}
-							else_if = {
-								limit = { is_title_created = no }
-								create_title_and_vassal_change = {
-									type = created
-									save_scope_as = creation_change
-								}
-								change_title_holder = {
-									holder = scope:actor
-									change = scope:creation_change
-								}
-								resolve_title_and_vassal_change = scope:creation_change
-								add_to_list = target_titles
-								add_to_list = additional_target_titles
-							}
-						}
-						create_title_and_vassal_change = {
-							type = appointment
-							save_scope_as = change
-						}
-						every_in_list = {
-							list = additional_target_titles
-							change_title_holder = {
-								holder = scope:recipient
-								change = scope:change
-							}
-						}
-						resolve_title_and_vassal_change = scope:change
+		# force AI grant by whole duchy in new conquered land
+		if = {
+			limit = {
+				scope:actor = {
+					is_ai = yes
+					domain_limit_available < 0
+					highest_held_title_tier >= tier_kingdom
+				}
+				scope:recipient = {
+					OR = {
+						is_landed = no
+						domain_limit_available > 0
 					}
 				}
+				any_in_list = {
+					list = target_titles
+					tier = tier_county
+					duchy = {
+						any_de_jure_county = {
+							holder = scope:actor
+							NOT = { is_in_list = target_titles }
+						}
+					}
+				}
+			}
+			random_in_list = {
+				list = target_titles
+				limit = {
+					tier = tier_county
+					duchy = {
+						any_de_jure_county = {
+							holder = scope:actor
+							NOT = { is_in_list = target_titles }
+						}
+					}
+				}
+				duchy = {
+					every_de_jure_county = {
+						limit = {
+							holder = scope:actor
+							NOT = { is_in_list = target_titles }
+						}
+						add_to_list = target_titles
+						add_to_list = additional_target_titles
+					}
+					if = {
+						limit = {
+							holder ?= scope:actor
+						}
+						add_to_list = target_titles
+						add_to_list = additional_target_titles
+					}
+					else_if = {
+						limit = { is_title_created = no }
+						create_title_and_vassal_change = {
+							type = created
+							save_scope_as = creation_change
+						}
+						change_title_holder = {
+							holder = scope:actor
+							change = scope:creation_change
+						}
+						resolve_title_and_vassal_change = scope:creation_change
+						add_to_list = target_titles
+						add_to_list = additional_target_titles
+					}
+				}
+				create_title_and_vassal_change = {
+					type = appointment
+					save_scope_as = change
+				}
+				every_in_list = {
+					list = additional_target_titles
+					change_title_holder = {
+						holder = scope:recipient
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					government_has_flag = government_is_nomadic
+					vassal_limit_available <= 0
+					is_independent_ruler = yes
+					scope:recipient = {
+						NOT = { is_vassal_of = scope:actor }
+					}
+				}
+			}
+			custom_tooltip = grant_title_nomad_and_at_vassal_limit
+		}
+		scope:recipient = {
+			add_character_flag = {
+				flag = domicile_culture_and_faith_check
+				days = 1
+			}
+		}
 		if = {
 			limit = {
 				scope:recipient = {
@@ -1291,6 +1318,25 @@ grant_titles_interaction = {
 			hidden_effect = {
 				if = {
 					limit = {
+						government_has_flag = government_is_nomadic
+						vassal_limit_available <= 0
+						is_independent_ruler = yes
+						scope:recipient = {
+							NOT = { is_vassal_of = scope:actor }
+						}
+					}
+					send_interface_toast = {
+						type = event_toast_effect_neutral
+						title = grant_titles_interaction_notification
+						
+						left_icon = scope:actor
+						right_icon = scope:recipient
+						
+						custom_tooltip = grant_titles_interaction_notification_effect_7
+					}
+				}
+				else_if = {
+					limit = {
 						any_in_list = {
 							list = target_titles
 							count = 1
@@ -1594,7 +1640,7 @@ grant_titles_interaction = {
 		}
 		else_if = {
 			limit = {
-				scope:special_imperial_royal_0	= yes
+				scope:special_imperial_royal_0 = yes
 			}
 			scope:recipient = {
 				show_as_tooltip = {
@@ -1602,20 +1648,6 @@ grant_titles_interaction = {
 				}
 				trigger_event = {
 					on_action = interaction_change_to_special_imperial_royal_0_action
-					delayed = yes
-				}
-			}
-		}
-		else_if = {
-			limit = {
-				scope:special_imperial_royal_2	= yes
-			}
-			scope:recipient = {
-				show_as_tooltip = {
-					interaction_change_to_special_imperial_royal_2_effects = yes
-				}
-				trigger_event = {
-					on_action = interaction_change_to_special_imperial_royal_2_action
 					delayed = yes
 				}
 			}
@@ -2822,20 +2854,6 @@ grant_governorship_interaction = {
 						}
 						trigger_event = {
 							on_action = interaction_change_to_special_imperial_royal_0_action
-							delayed = yes
-						}
-					}
-				}
-				else_if = {
-					limit = {
-						scope:special_imperial_royal_2	= yes
-					}
-					scope:recipient = {
-						show_as_tooltip = {
-							interaction_change_to_special_imperial_royal_2_effects = yes
-						}
-						trigger_event = {
-							on_action = interaction_change_to_special_imperial_royal_2_action
 							delayed = yes
 						}
 					}

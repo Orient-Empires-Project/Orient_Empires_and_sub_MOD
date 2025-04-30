@@ -624,9 +624,97 @@ support_candidacy_interaction = {
 	}
 
 	is_valid_showing_failures_only = {
-		any_valid_title_to_grant_trigger = {
-			CANDIDATE = scope:secondary_recipient
-			TOP_LIEGE = scope:recipient
+		scope:secondary_recipient ?= {
+			# This is broken out from any_valid_title_to_grant_trigger because of performance reasons
+			# When realms get really large, the AI needs a fixed pool of characters to promote
+			# Otherwise performance tanks significantly in the form of 'stutters'or smaller freezes
+			trigger_if = { # First, if the realm is enormous, restrict the candidate pool to the most immediate of family members
+				limit = {
+					scope:actor.top_liege.realm_size >= 250
+					NOR = {
+						this = scope:actor
+						scope:actor.primary_heir ?= this
+						scope:actor.house.house_head ?= this
+						is_close_family_of = scope:actor
+					}
+				}
+				static_group_filter = {
+					group = ai_filter
+					match = {
+						value = 1
+						subtract = {
+							add = scope:actor.top_liege.realm_size
+							multiply = 0.001
+							multiply = 3
+							min = 0.1
+							max = 0.9
+						}
+					}
+				}
+			}
+			trigger_else_if = { # Otherwise, go for close + extended family
+				limit = {
+					scope:actor.top_liege.realm_size >= 150
+					NOR = {
+						this = scope:actor
+						scope:actor.primary_heir ?= this
+						scope:actor.house.house_head ?= this
+						is_close_or_extended_family_of = scope:actor
+					}
+				}
+				static_group_filter = {
+					group = ai_filter
+					match = {
+						value = 1
+						subtract = {
+							add = scope:actor.top_liege.realm_size
+							multiply = 0.001
+							multiply = 3
+							min = 0.1
+							max = 0.9
+						}
+					}
+				}
+			}
+			trigger_else = {
+				always = yes
+			}
+			trigger_if = { # If the realm is large enough, the AI starts ignoring counties in their support
+				limit = {
+					scope:actor.top_liege.realm_size >= 150
+				}
+				save_temporary_scope_as = candidate_temp
+				custom_tooltip = {
+					text = support_candidacy_can_appoint_for_title_tt
+					scope:recipient.primary_title = {
+						any_in_de_jure_hierarchy = {
+							continue = {
+								tier > tier_duchy
+								tier <= tier_county
+							}
+
+							save_temporary_scope_as = title_temp
+							scope:candidate_temp = { can_appoint_for_title = scope:title_temp }
+						}
+					}
+				}
+			}
+			trigger_else = {
+				save_temporary_scope_as = candidate_temp
+				custom_tooltip = {
+					text = support_candidacy_can_appoint_for_title_tt
+					scope:recipient.primary_title = {
+						any_in_de_jure_hierarchy = {
+							continue = {
+								tier > tier_duchy
+							}
+
+							save_temporary_scope_as = title_temp
+							scope:candidate_temp = { can_appoint_for_title = scope:title_temp }
+						}
+					}
+				}
+			}
 		}
 		scope:actor = {
 			NOT = { is_at_war_with = scope:recipient }
@@ -9472,7 +9560,7 @@ request_co_emperor_interaction = {
 				scope:recipient = {
 					custom_tooltip = {
 						text = declare_me_co_emperor_interaction.tt.effect
-						start_diarchy = co_emperorship
+						try_start_diarchy = co_emperorship
 						set_diarch = scope:actor
 					}
 					if = {

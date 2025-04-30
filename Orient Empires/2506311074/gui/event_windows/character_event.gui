@@ -1,6 +1,8 @@
 window = {
 	name = "character_event"
 
+	visible = "[Not(HasOpenSuccession( GetPlayer ))]"
+
 	parentanchor = center
 	widgetanchor = center
 	size = { 1120 585 }
@@ -43,36 +45,7 @@ window = {
 		on_start = "[GetVariableSystem.Set( 'event_window_mouse_leave', 'true' )]"
 	}
 
-	widget = {
-		visible = "[Not(GameHasMultiplePlayers)]"
-		size = { 100% 100% }
-
-		icon = {
-			visible = "[Not(GetVariableSystem.Exists( 'event_window_mouse_leave'))]"
-			parentanchor = center
-			size = { 200% 200% }
-			alwaystransparent = yes
-			texture = "gfx/interface/component_masks/mask_fade_circle.dds"
-			color = { 0.1 0.1 0.1 1 }
-			alpha = 0
-
-			state = {
-				name = appear
-				trigger_on_create = yes
-				delay = 0.2
-				using = Animation_Curve_Default
-				alpha = 0.6
-				duration = 0.8
-			}
-
-			state = {
-				name = _hide
-				using = Animation_Curve_Default
-				duration = 3
-				alpha = 0
-			}
-		}
-	}
+	event_window_dimmer_widget = {}
 
 	widget = {
 		size = { 100% 100% }
@@ -81,19 +54,61 @@ window = {
 	}
 
 	event_window_background_widget = {
-		margin = { 30 20 }
+		margin = { 40 20 }
+
+		state = {
+			name = _show
+			using = Animation_FadeIn_Standard
+			duration = 0.7
+		}
+
+		state = {
+			#TODO[WL]: TIT-53953 Add a trigger
+			name = background_shake_loop
+			next = background_shake_loop_1
+			duration = 0.0
+			alpha = 1.0
+		}
+
+		state = {
+			name = background_shake_loop_1
+			next = background_shake_loop_2
+			position = { -6 0 }
+			duration = 0.2
+		}
+
+		state = {
+			name = background_shake_loop_2
+			next = background_shake_loop_3
+			position = { 5 0 }
+			duration = 0.12
+		}
+
+		state = {
+			name = background_shake_loop_3
+			next = background_shake_loop_1
+			position = { 7 1 }
+			duration = 0.12
+		}
 
 		blockoverride "event_picture_properties"
 		{}
 	}
 
+	#Background VFX
+	margin_widget = {
+		name = "background_shader_vfx_container"
+		position = { 40 20 }
+		size = { 100% 100% }
+		margin = { 40 20 }
+	}
+
 	###CHARACTERS
 	widget = {
-		name = "characters"
 		layoutstretchfactor_horizontal = 55
 		parentanchor = bottom|hcenter
+		position = { -40 -15 }
 		size = { 100% 100% }
-		position = { -30 -15 }
 		scissor = yes
 
 		state = {
@@ -105,19 +120,49 @@ window = {
 			duration = 0.5
 		}
 
+		state = {
+			# TODO[WL]: TIT-53953 Add a trigger
+			name = character_shake_loop
+			next = character_shake_loop_1
+			duration = 0.0
+			alpha = 1.0
+		}
+
+		state = {
+			name = character_shake_loop_1
+			next = character_shake_loop_2
+			position = { -35 -15 }
+			duration = 0.2
+		}
+
+		state = {
+			name = character_shake_loop_2
+			next = character_shake_loop_3
+			position = { -27 -15 }
+			duration = 0.12
+		}
+
+		state = {
+			name = character_shake_loop_3
+			next = character_shake_loop_1
+			position = { -25 -17 }
+			duration = 0.12
+		}
+
 		### RIGHT CHARACTER ###
 		widget = {
 			parentanchor = bottom|right
-			position = { 10 0 }
+			position = { 20 0 }
 			size = { 330 558 }
 
 			allow_outside = no
+			
 			portrait_event = {
 				name = "portrait_right"
 				datacontext = "[EventWindowData.GetPortraitCharacter('right_portrait')]"
 				visible = "[EventWindowData.HasPortraitCharacter('right_portrait')]"
 				parentanchor = bottom|hcenter
-				position = { -80 -1 }
+				position = { -80 -2 }
 				size = { 500 558 }
 
 				blockoverride "portrait_button"
@@ -127,7 +172,9 @@ window = {
 					alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('right_portrait'))]"
 
 					tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('right_portrait')]"
-					tooltip_offset = { -210 0 }
+					tooltip_offset = { 100 600 }
+					using = tooltip_es
+					tooltip_widgetanchor = center
 				}
 
 				blockoverride "highlight_visible"
@@ -163,7 +210,7 @@ window = {
 		## LEFT CHARACTER ###
 		widget = {
 			parentanchor = bottom|hcenter
-			position = { 90 -1 }
+			position = { 100 - }
 			size = { 330 558 }
 
 			allow_outside = no
@@ -178,13 +225,14 @@ window = {
 
 				blockoverride "portrait_button"
 				{
-					size = { 700 558 }
+					size = { 1000 558 }
 					portrait_texture = "[EventWindowData.GetAnimatedEventPortraitTexture('left_portrait', 'camera_event_left', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
 					alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('left_portrait'))]"
 
 					tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('left_portrait')]"
-					using = tooltip_below
 					tooltip_widgetanchor = center
+					tooltip_offset = { 350 600 }
+					using = tooltip_ws
 				}
 
 				blockoverride "highlight_visible"
@@ -229,7 +277,7 @@ window = {
 
 			blockoverride "portrait_button"
 			{
-				size = { 700 558 }
+				size = { 1000 558 }
 				portrait_texture = "[EventWindowData.GetAnimatedEventPortraitTexture('left_portrait', 'camera_event_center', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
 				alwaystransparent = "[Not(EventWindowData.ShouldShowPortraitInfo('left_portrait'))]"
 				tooltip_visible = "[EventWindowData.ShouldShowPortraitInfo('left_portrait')]"
@@ -268,21 +316,15 @@ window = {
 
 	# Event Effect Video
 	event_window_effect_2d_widget = {
-		margin = { 30 20 }
+		margin = { 40 20 }
 	}
 
-	# Window Edge Fade
-	icon = {
-		texture = "gfx/interface/colors/black.dds"
-		parentanchor = right|vcenter
-		position = { -22 0 }
-		size = {2% 96%}
-		using = Mask_Rough_Edges
-
-		modify_texture = {
-			texture = "gfx/interface/component_masks/mask_fade_horizontal.dds"
-			blend_mode = alphaMultiply
-		}
+	#Foreground VFX
+	margin_widget = {
+		name = "foreground_shader_vfx_container"
+		position = { 40 20 }
+		size = { 100% 100% }
+		margin = { 40 20 }
 	}
 
 	vbox = {
@@ -318,7 +360,7 @@ window = {
 
 					widget = {
 						size = { 155% 96%}
-						position = { -5 18 }
+						position = { 5 18 }
 
 						background = {
 							texture = "gfx/interface/component_tiles/tile_window_background_no_edge.dds"
@@ -407,20 +449,70 @@ window = {
 								}
 							}
 
-
-							vbox = {
-								name = "custom_widgets_container"
+							# Has a parent hbox to hack around layout set in type so it can be placed differently here and in Activity events. 
+							hbox = {
 								layoutpolicy_horizontal = expanding
+								
+								hbox = {
+									name = "custom_widgets_container"
+									layoutpolicy_horizontal = expanding
+									margin = { 15 0 }
 
-								state = {
-									trigger_on_create = yes
-									name = appear_test
-									delay = 0.8
-									using = Animation_Curve_Default
-									alpha = 1
-									duration = 0.6
+									state = {
+										trigger_on_create = yes
+										name = appear_test
+										delay = 0.8
+										using = Animation_Curve_Default
+										alpha = 1
+										duration = 0.6
+									}
+								}
+
+								expand = {}
+							}
+							## anime core lib added:
+							# scrollable option
+							fixedgridbox = {
+								name = "option_grid"
+								addcolumn = 540
+								addrow = 42
+								datamodel = "[EventWindowData.GetOptions]"
+								visible = "[LessThanOrEqualTo_int32( GetDataModelSize(EventWindowData.GetOptions), '(int32)3')]"
+
+								item = {
+									button_eventoption = {}
 								}
 							}
+							scrollbox = {
+								name = "option_scrollbox"
+								layoutpolicy_horizontal = expanding
+								layoutpolicy_vertical = expanding
+								minimumsize = { 0 180 }
+								visible = "[GreaterThanOrEqualTo_int32( GetDataModelSize(EventWindowData.GetOptions), '(int32)4')]"
+								blockoverride "scrollbox_content"
+								{
+									margin = { 17 10 }
+									spacing = 10
+									fixedgridbox = {
+										name = "option_grid_more"
+										addcolumn = 640
+										addrow = 42
+										datamodel = "[EventWindowData.GetOptions]"
+
+										item = {
+											button_eventoption = {}
+										}
+									}
+								}
+							}
+							
+							widget = {
+								name = "characters_spacer"
+								layoutpolicy_horizontal = expanding
+								layoutpolicy_vertical = expanding
+								layoutstretchfactor_horizontal = 55
+							}
+							## anime core lib add end
 
 							vbox = {
 								name = "travel_event_info"
@@ -469,7 +561,13 @@ window = {
 
 												### Location Name
 												text_single = {
+													text = "[Province.GetNameNoTooltip]"
+													visible = "[Or( ObjectsEqual( Province.GetTerrain.GetName,  GetTerrain( 'coastal_sea' ).GetName ), ObjectsEqual( Province.GetTerrain.GetName, GetTerrain( 'sea' ).GetName ) ) ]"
+													align = left|nobaseline
+												}
+												text_single = {
 													text = "[Province.GetName]"
+													visible = "[Not( Or( ObjectsEqual( Province.GetTerrain.GetName,  GetTerrain( 'coastal_sea' ).GetName ), ObjectsEqual( Province.GetTerrain.GetName, GetTerrain( 'sea' ).GetName ) ) ) ]"
 													align = left|nobaseline
 												}
 
@@ -543,37 +641,8 @@ window = {
 									}
 								}
 							}
-							#为什么流浪，流浪远方
-							fixedgridbox = {
-								name = "option_grid"
-								addcolumn = 500
-								addrow = 42
-								datamodel = "[EventWindowData.GetOptions]"
-								visible = "[LessThanOrEqualTo_int32( GetDataModelSize(EventWindowData.GetOptions), '(int32)3')]"
-								item = {
-									button_eventoption = {}
-								}
-							}
 
-							#滚动条
-							scrollbox = {
-								name = "option_scrollbox"
-								layoutpolicy_horizontal = expanding
-								minimumsize = { 0 170 }
-								visible = "[GreaterThanOrEqualTo_int32( GetDataModelSize(EventWindowData.GetOptions), '(int32)4')]"
-								blockoverride "scrollbox_content"
-								{
-									margin = { -10 5 }
-									fixedgridbox = {
-										addcolumn = 500
-										addrow = 42
-										datamodel = "[EventWindowData.GetOptions]"
-										item = {
-											button_eventoption = {}
-										}
-									}
-								}
-							}
+							# anime core lib moved
 						}
 					}
 				}
@@ -929,22 +998,15 @@ window = {
 
 			icon = {
 				name = "theme_header"
-				position = { 24 6 }
-				size = { 1050 76 }
-				texture = "gfx/interface/window_event/header_neutral.dds"
+				position = { 24 20 }
+				size = { 1072 57 }
+				texture = "[EventWindowData.GetThemeHeader]"
 
 				modify_texture = {
 					name = overlay
 					texture = "gfx/interface/component_effects/effect_header_blue_shine.dds"
 					blend_mode = colordodge
 					translate_uv = { 0.6 0 }
-				}
-
-				modify_texture = {
-					name = mask
-					texture = "gfx/interface/component_masks/mask_fade_horizontal_right.dds"
-					blend_mode = alphamultiply
-					translate_uv = { 0.2 0 }
 				}
 
 				state = {
@@ -990,7 +1052,7 @@ window = {
 			text_single = {
 				name = "title"
 				parentanchor = vcenter
-				position = { 110 4 }
+				position = { 128 7 }
 				fontsize = 29
 				fontsize_min = 16
 				text = "[EventWindowData.GetTitle]"
@@ -1027,8 +1089,8 @@ window = {
 			icon = {
 				name = "theme_icon"
 				parentanchor = vcenter
-				position = { 20 9 }
-				size = { 80 80 }
+				position = { 28 10 }
+				size = { 90 90 }
 				texture = "[EventWindowData.GetThemeIcon]"
 
 				modify_texture = {
@@ -1103,727 +1165,5 @@ window = {
 
 		using = Event_Window_Debug_Info
 	}
-}
 
-######################################################
-################ TYPES AND TEMPLATES #################
-######################################################
-
-types Events
-{
-	type event_portrait_status_icons_left = container {
-		flowcontainer = {
-			ignoreinvisible = yes
-			direction = horizontal
-
-			coa_realm_small_crown = {
-				visible = "[Character.HasLandedTitles]"
-				parentanchor = bottom
-			}
-
-			portrait_status_icons = {}
-		}
-	}
-
-	type event_portrait_status_icons_right = container {
-		flowcontainer = {
-			ignoreinvisible = yes
-			direction = horizontal
-
-			portrait_status_icons = {}
-
-			coa_realm_small_crown = {
-				visible = "[Character.HasLandedTitles]"
-			}
-		}
-	}
-
-	type button_eventoption = button_event_standard
-	{
-		name = "event_option_button"
-		size = { 500 36 }
-		enabled = "[EventOption.IsValid]"
-
-		default_clicksound = "event:/SFX/UI/Generic/sfx_ui_generic_icon_select"
-		onclick = "[EventOption.Select]"
-		clicksound = "[EventOption.GetClickSound]"
-
-		block "onmousehierarchy_callbacks" {
-			onmousehierarchyenter = "[EventOption.OnEnter]"
-			onmousehierarchyleave = "[EventOption.OnLeave]"
-		}
-
-		icon = {
-			texture = "gfx/interface/buttons/button_event.dds"
-			alpha = 1
-			spriteType = Corneredtiled
-			spriteborder = { 3 3 }
-			framesize = { 249 78 }
-			size = { 100% 100% }
-
-			modify_texture = {
-				name = "mask"
-				texture = "gfx/interface/component_masks/mask_fade_horizontal_middle_thick.dds"
-				spriteType = Corneredtiled
-				spriteborder_left = 40
-				spriteborder_right = 40
-				blend_mode = alphamultiply
-			}
-		}
-
-		# Trick to not have the option text steal tooltips from the trait/skill grid
-		hbox = {
-			tooltip = "[EventOption.GetTooltip]"
-			tooltip_visible = "[Not( StringIsEmpty( EventOption.GetTooltip ) )]"
-
-			block "option_tooltip_position"
-			{
-				using = tooltip_ws
-				tooltip_offset = { -80 0 }
-			}
-
-			# Wider tooltips for the effects
-			tooltipwidget = {
-				using = DefaultTooltipWidget
-			}
-		}
-
-		modify_texture = {
-			name = "mask"
-			texture = "gfx/interface/component_masks/mask_fade_horizontal_middle_thick.dds"
-			spriteType = Corneredtiled
-			spriteborder_left = 40
-			spriteborder_right = 40
-			blend_mode = alphamultiply
-		}
-
-		animation_glow_event = {
-			name = "special_option"
-			visible = "[And(EventOption.HasFlag('special'), Not(EventOption.HasFlag('dangerous')))]"
-		}
-
-		animation_glow_event = {
-			name = "dangerous_option"
-			visible = "[EventOption.HasFlag('dangerous')]"
-			using = Color_Red
-		}
-
-		### BUTTON CONTENT ####
-		hbox = {
-			margin = { 5 0 }
-
-			hbox = {
-				fixedgridbox = {
-					name = "reason_icons"
-					datamodel = "[EventOption.Reasons]"
-					addcolumn = 34
-					addrow = 34
-					flipdirection = yes
-
-					item = {
-						container = {
-							icon = {
-								name = "trait_icon"
-								datacontext = "[ReasonItem.GetTrait]"
-
-								visible = "[ReasonItem.IsTrait]"
-								alwaystransparent = yes
-
-								texture = "[Trait.GetIcon(GetPlayer)]"
-								size = { 34 34 }
-
-								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_TRAIT"
-								using = tooltip_nw
-							}
-
-							icon = {
-								name = "skill_icon"
-								datacontext = "[ReasonItem.GetSkillItem]"
-
-								visible = "[ReasonItem.IsSkill]"
-								alwaystransparent = yes
-
-								texture = "gfx/interface/icons/icon_skills.dds"
-								size = { 34 34 }
-								framesize = { 60 60 }
-								frame = "[SkillItem.GetFrame]"
-
-								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_SKILL"
-								using = tooltip_ws
-							}
-
-							icon = {
-								name = "dread_icon"
-								visible = "[ReasonItem.IsFlag( 'dread' )]"
-								size = { 34 34 }
-								texture = "gfx/interface/icons/icon_dread.dds"
-								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_DREAD"
-							}
-
-							icon = {
-								name = "activity_intent_icon"
-								visible = "[ReasonItem.IsFlag( 'activity_intent' )]"
-								size = { 34 34 }
-								texture = "[GetPlayer.GetInvolvedActivity.GetType.GetIcon]"
-								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_ACTIVITY_INTENT"
-							}
-
-							icon = {
-								name = "prestige_icon"
-								visible = "[ReasonItem.IsFlag( 'prestige_level' )]"
-								size = { 34 34 }
-								texture = "[GetPlayer.GetPrestigeLevelTexture]"
-								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_PRESTIGE_LEVEL"
-							}
-
-							icon = {
-								name = "piety_icon"
-								visible = "[ReasonItem.IsFlag( 'piety_level' )]"
-								size = { 34 34 }
-								texture = "[GetPlayer.GetPietyLevelTexture]"
-								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_PIETY_LEVEL"
-							}
-
-							icon = {
-								name = "faith_icon"
-								visible = "[ReasonItem.IsFlag( 'faith' )]"
-								size = { 34 34 }
-								texture = "[GetPlayer.GetFaith.GetIcon]"
-								tooltip = "EVENT_WINDOW_OPTION_AVAILABLE_FAITH"
-							}
-						}
-					}
-				}
-
-				warning_icon = {
-					visible = "[And( EventOption.IsTimeoutOption, And( GameHasMultiplePlayers, LessThanOrEqualTo_int32( EventWindowData.GetDaysRemaining, '(int32)30' ) ) )]"
-					name = "timeout_icon"
-					size = { 30 30 }
-					tooltip = EVENT_WINDOW_DAYS_REMAINING
-				}
-			}
-
-			###### SPACER ######
-			hbox = {
-				name = "spacer_effects"
-				datamodel = "[EventOption.Effects]"
-
-				item = {
-					container = {
-						container = {
-							visible = "[OptionEffectItem.IsTrait]"
-							alwaystransparent = yes
-
-							spacer = {
-								datacontext = "[OptionEffectItem.GetTrait]"
-								size = { 34 34 }
-							}
-						}
-
-						spacer = {
-							visible = "[OptionEffectItem.IsStress]"
-							size = { 34 34 }
-						}
-
-						spacer = {
-							visible = "[OptionEffectItem.IsScheme]"
-							size = { 34 34 }
-						}
-
-						spacer = {
-							visible = "[OptionEffectItem.IsDeath]"
-							size = { 34 34 }
-						}
-					}
-				}
-			}
-
-			text_single = {
-				layoutpolicy_horizontal = expanding
-				margin = { 5 0 }
-				alwaystransparent = yes
-
-				text = "[EventOption.GetText]"
-				autoresize = no
-				default_format = "#high"
-				align = center|nobaseline
-				fontsize_min = 12
-			}
-
-			##### SPACER #####
-			hbox = {
-				hbox = {
-					name = "reason_spacers"
-					datamodel = "[EventOption.Reasons]"
-					item = {
-						spacer = {
-							size = { 34 34 }
-						}
-					}
-				}
-
-				hbox = {
-					name = "timeout_spacer"
-					visible = "[And( EventOption.IsTimeoutOption, And( GameHasMultiplePlayers, LessThanOrEqualTo_int32( EventWindowData.GetDaysRemaining, '(int32)30' ) ) )]"
-
-					spacer = {
-						size = { 34 34 }
-					}
-				}
-			}
-
-			hbox = {
-				name = "effects_grid"
-				datamodel = "[EventOption.Effects]"
-
-				item = {
-					container = {
-						container = {
-							visible = "[OptionEffectItem.IsTrait]"
-							alwaystransparent = yes
-
-							icon = {
-								datacontext = "[OptionEffectItem.GetTrait]"
-								name = "trait_icon"
-								size = { 34 34 }
-								texture = "[Trait.GetIcon(GetPlayer)]"
-							}
-
-							icon = {
-								visible = "[OptionEffectItem.IsGain]"
-								texture = "gfx/interface/icons/symbols/icon_plus_small.dds"
-								name = "gain"
-								size = { 20 20 }
-							}
-
-							icon = {
-								visible = "[OptionEffectItem.IsLoss]"
-								texture = "gfx/interface/icons/symbols/icon_minus_small.dds"
-								name = "loss"
-								size = { 20 20 }
-							}
-						}
-
-						container = {
-							visible = "[OptionEffectItem.IsStress]"
-							alwaystransparent = yes
-
-							icon = {
-								visible = "[And(OptionEffectItem.IsGain,Not(OptionEffectItem.IsCritical))]"
-								texture = "gfx/interface/icons/stress/icon_stress_gain.dds"
-								name = "stress_gain"
-								size = { 34 34 }
-							}
-
-							icon = {
-								visible = "[OptionEffectItem.IsLoss]"
-								texture = "gfx/interface/icons/stress/icon_stress_loss.dds"
-								name = "stress_loss"
-								size = { 34 34 }
-							}
-
-							icon = {
-								visible = "[OptionEffectItem.IsCritical]"
-								texture = "gfx/interface/icons/stress/icon_stress_gain_critical.dds"
-								name = "stress_critical"
-								size = { 34 34 }
-							}
-						}
-
-						icon = {
-							name = "death"
-							visible = "[OptionEffectItem.IsDeath]"
-							size = { 34 34 }
-							texture = "gfx/interface/icons/icon_dead.dds"
-						}
-
-						icon = {
-							name = "scheme"
-							visible = "[OptionEffectItem.IsScheme]"
-							size = { 34 34 }
-							texture = "[OptionEffectItem.GetScheme.GetIcon]"
-						}
-					}
-				}
-			}
-		}
-	}
-
-	type event_window_background_widget = margin_widget
-	{
-		size = { 100% 100% }
-		alwaystransparent = yes
-		datacontext = "[EventWindowData.GetEventBackgroundData]"
-
-		icon = {
-			name = "event_picture_with_mask"
-			visible = "[And( Not( EventWindowBackgroundData.HasVideo ), EventWindowBackgroundData.HasVideoMask ) )]"
-			texture = "[EventWindowBackgroundData.GetTexture]"
-			size = { 100% 100% }
-
-			modify_texture = {
-				video = "[EventWindowBackgroundData.GetVideoMask]"
-				blend_mode = alphamultiply
-
-				block "event_mask_properties"
-				{
-					loop = no
-				}
-			}
-
-			block "event_picture_properties"
-			{
-			}
-		}
-
-		icon = {
-			name = "event_picture"
-			visible = "[Not( Or( EventWindowBackgroundData.HasVideo, EventWindowBackgroundData.HasVideoMask) )]"
-			texture = "[EventWindowBackgroundData.GetTexture]"
-			size = { 100% 100% }
-
-			block "event_mask" {
-				modify_texture = {
-					name = mask
-					texture = "gfx/interface/window_event/mask_event_image_large.dds"
-					blend_mode = alphamultiply
-
-					block "event_mask_properties"
-					{
-						loop = no
-					}
-				}
-			}
-
-			block "event_picture_properties"
-			{
-			}
-		}
-
-		video_icon = {
-			name = "event_video"
-			visible = "[EventWindowBackgroundData.HasVideo]"
-			video = "[EventWindowBackgroundData.GetVideo]"
-			size = { 100% 100% }
-			loop = no
-
-			block "event_video_properties"
-			{
-			}
-		}
-	}
-
-	type event_window_transition_widget = margin_widget {
-		size = { 100% 100% }
-		alwaystransparent = no
-		datacontext = "[EventWindowData.GetEventTransitionData]"
-		visible = "[EventWindowData.IsShowingTransition]"
-
-		icon = {
-			name = "event_transition_picture_with_mask"
-			visible = "[And( Not( EventWindowTransitionData.HasVideo ), EventWindowTransitionData.HasVideoMask )]"
-			texture = "[EventWindowTransitionData.GetTexture]"
-			size = { 100% 100% }
-
-			modify_texture = {
-				video = "[EventWindowTransitionData.GetVideoMask]"
-				blend_mode = alphamultiply
-				restart_on_show = yes
-
-				block "event_transition_mask_properties"
-				{
-					loop = no
-				}
-			}
-
-			block "event_transition_picture_properties"
-			{
-			}
-		}
-
-		icon = {
-			name = "event_transition_picture"
-			visible = "[Not( Or( EventWindowTransitionData.HasVideo, EventWindowTransitionData.HasVideoMask) )]"
-			texture = "[EventWindowTransitionData.GetTexture]"
-			size = { 100% 100% }
-
-			block "event_transition_picture_properties"
-			{
-			}
-		}
-
-		video_icon = {
-			name = "event_transition_video"
-			visible = "[EventWindowTransitionData.HasVideo]"
-			video = "[EventWindowTransitionData.GetVideo]"
-			size = { 100% 100% }
-			loop = no
-			restart_on_show = yes
-
-			block "event_transition_video_properties"
-			{
-			}
-		}
-	}
-
-	type event_window_effect_2d_widget = margin_widget {
-		size = { 100% 100% }
-		datacontext = "[EventWindowData.GetEvent2DEffectData]"
-		visible = "[And( Not( EventWindowData.IsShowingTransition ), EventWindow2DEffectData.HasEffect )]"
-
-		video_icon = {
-			name = "event_effect_2d_video_no_mask"
-			video = "[EventWindow2DEffectData.GetVideo]"
-			visible = "[Not( EventWindow2DEffectData.HasMask )]"
-			size = { 100% 100% }
-			loop = "[EqualTo_CFixedPoint( EventWindow2DEffectData.GetDuration, '(CFixedPoint)0.0' )]"
-			restart_on_show = yes
-
-			block "event_effect_2d_video_properties"
-			{
-			}
-		}
-
-		## VIDEO EVENT EFFECT
-
-		video_icon = {
-			name = "event_effect_2d_video_with_texture_mask"
-			video = "[EventWindow2DEffectData.GetVideo]"
-			visible = "[And( EventWindow2DEffectData.HasMask, EventWindow2DEffectData.IsTextureMask )]"
-			size = { 100% 100% }
-			loop = "[EqualTo_CFixedPoint( EventWindow2DEffectData.GetDuration, '(CFixedPoint)0.0' )]"
-			restart_on_show = yes
-
-			modify_texture = {
-				name = mask
-				texture= "gfx/interface/window_event/mask_event_image_large.dds"
-				blend_mode = alphamultiply
-
-				block "event_effect_2d_video_properties"
-				{
-				}
-
-			}
-
-		}
-
-		video_icon = {
-			name = "event_effect_2d_video_with_video_mask"
-			video = "[EventWindow2DEffectData.GetVideo]"
-			visible = "[And( EventWindow2DEffectData.HasMask, EventWindow2DEffectData.IsVideoMask )]"
-			size = { 100% 100% }
-			loop = "[EqualTo_CFixedPoint( EventWindow2DEffectData.GetDuration, '(CFixedPoint)0.0' )]"
-			restart_on_show = yes
-
-			block "event_effect_2d_video_properties"
-			{
-			}
-		}
-	}
-}
-
-template artifact_event_flowcontainer {
-
-	tooltipwidget = {
-		artifact_tooltip = {}
-	}
-
-	icon_artifact = {
-		parentanchor = hcenter
-	}
-
-	text_label_center = {
-		alwaystransparent = yes
-		text = "[Artifact.GetNameNoTooltip]"
-		max_width = 160
-		parentanchor = hcenter
-		align = center
-		fontsize_min = 12
-		multiline = yes
-	}
-}
-
-template Event_Window_Debug_Info
-{
-	button_round = {
-		alwaystransparent = no
-		tooltip = "REGENERATE_EVENT_CONTENTS"
-		using = tooltip_below
-
-		using = Animation_ShowHide_Quick
-
-		block "event_reset_onclick"
-		{
-			onclick = "[EventWindow.ResetContents]"
-		}
-
-		button_replace = {
-			parentanchor = center
-			alwaystransparent = yes
-		}
-	}
-
-	button_round = {
-		size = { 40 40 }
-
-		button_icon = {
-			size = { 100% 100% }
-			texture = "gfx/interface/icons/flat_icons/data_system.dds"
-			tooltip = "TOGGLE_DATA_SYSTEM"
-			using = tooltip_below
-			onclick = "[ExecuteConsoleCommand('Localization.ToggleSkipDataSystemInLocOutput')]"
-			fontsize = 24
-		}
-	}
-
-	button_round = {
-		size = { 40 40 }
-
-		button_icon = {
-			size = { 30 30 }
-			parentanchor = center
-			texture = "gfx/interface/icons/flat_icons/history.dds"
-			tooltip = "TOGGLE_DEBUG_OPTION_TOOLTIPS"
-			using = tooltip_below
-			onclick = "[EventWindowData.ToggleDebugOptionTooltips]"
-			fontsize = 24
-		}
-	}
-
-	button_round = {
-		size = { 40 40 }
-		button_copy = {
-			parentanchor = center
-			onclick = "[EventWindowData.CopyToClipboard]"
-			tooltip = "COPY_EVENT_CONTENTS"
-		}
-	}
-
-	button_round = {
-		name = "debug_icon"
-		size = { 40 40 }
-		button_search = {
-			parentanchor = center
-			size = { 26 26 }
-			tooltip = "EVENT_DEBUG_TOOLTIP"
-			using = tooltip_se
-			onclick = "[EventWindowData.DebugOpen]"
-			button_ignore = none
-		}
-	}
-
-	container = {
-		tooltip = "[EventWindowData.GetTriggerBreakdown]"
-		using = tooltip_es
-		icon = {
-			visible = "[EventWindowData.IsTriggerFulfilled]"
-			size = { 40 40 }
-			texture = "gfx/interface/icons/symbols/icon_check.dds"
-		}
-
-		icon = {
-			visible = "[Not( EventWindowData.IsTriggerFulfilled )]"
-			size = { 40 40 }
-			texture = "gfx/interface/icons/symbols/icon_cross.dds"
-		}
-	}
-
-	button = {
-		size = { 40 40 }
-
-		button = {
-			size = { 100% 100% }
-			tooltip = "[EventWindowData.GetDebugInfo]"
-			using = tooltip_es
-			onclick = "[EventWindowData.CopyToClipboard]"
-			onrightclick = "[EventWindowData.DebugOpen]"
-			button_ignore = none
-			raw_text = "?"
-			fontsize = 24
-		}
-	}
-}
-
-template Event_Window_Debug_OptionTooltips
-{
-	allow_outside = "[EventWindowData.ShowDebugOptionTooltips]"
-	vbox = {
-		name = "event_window_debug_tooltip_list"
-		visible_at_creation = no
-		visible = "[EventWindowData.ShowDebugOptionTooltips]"
-		alwaystransparent = no
-
-		position = { 20 -18 }
-		size = { 600 100% }
-		parentanchor = left|bottom
-		widgetanchor = right|bottom
-
-		vbox = {
-			layoutpolicy_vertical = expanding
-			layoutpolicy_horizontal = expanding
-			alwaystransparent = no
-
-			datamodel = "[EventWindowData.GetOptions]"
-			expand = {}
-			item = {
-				hbox = {
-					datacontext = "[GetDeepestTooltipInfo]"
-					alwaystransparent = no
-
-					layoutpolicy_horizontal = expanding
-					expand = {}
-					# This is a copy of gui template 'DefaultTooltipWidget'
-					container = {
-						using = GeneralTooltipSetup
-						alwaystransparent = no
-
-						widget = {
-							name = "background"
-							using = DefaultTooltipBackground
-							size = { 100% 100% }
-							alwaystransparent = no
-						}
-
-						flowcontainer = {
-							direction = vertical
-							margin_right = 10
-
-							textbox = {
-								name = "TooltipText"
-								text = "[EventOption.GetTooltip]"
-								using = DefaultTooltipText
-								margin = { 20 20 }
-								margin_top = 10
-								alwaystransparent = no
-							}
-
-							textbox = {
-								name = "TooltipTextShortcut"
-								using = DefaultTooltipText
-								parentanchor = right
-								margin_top = -20
-								margin_bottom = 15
-								margin_right = 15
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-template Event_Window_Default_Transition_States
-{
-	state = {
-		name = _show
-		using = Animation_FadeIn_Standard
-		duration = 0.25
-	}
-
-	state = {
-		name = _hide
-		using = Animation_FadeOut_Standard
-		duration = 0.5
-	}
 }

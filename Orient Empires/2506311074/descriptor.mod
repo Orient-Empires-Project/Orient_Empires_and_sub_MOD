@@ -1,15 +1,7 @@
-version="1.14.*"
+version="1.16"
 tags={
-	"Graphics"
-	"Map"
-	"Historical"
-	"Religion"
-	"Culture"
-	"Decisions"
-	"Events"
-	"Character Interactions"
-	"Bookmarks"
+	"Utilities"
 }
 name="Oriental Empires"
-supported_version="1.15.*"
+supported_version="1.16.*"
 remote_file_id="2506311074"
