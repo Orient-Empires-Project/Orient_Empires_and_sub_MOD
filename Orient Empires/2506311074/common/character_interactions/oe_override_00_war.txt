@@ -27,8 +27,25 @@
 		scope:actor = {
 			NOT = { has_trait = incapable }
 			can_attack_in_hierarchy = scope:recipient
-			NOT = {
-				has_raised_armies = yes
+			trigger_if = {
+				limit = {
+					NOT = {
+						government_has_flag = can_start_war_with_raised_troops
+					}
+				}
+				NOT = {
+					has_raised_armies = yes
+				}
+			}
+			trigger_else = {
+				custom_description = {
+					text = army_blocks_defender_army
+					NOT = {
+						any_army = {
+							location.county.holder ?= scope:recipient
+						}
+					}
+				}
 			}
 			has_any_display_cb_on = scope:recipient
 			NOT = {
@@ -76,8 +93,13 @@
 				}
 			}
 		}
-		scope:recipient = { NOT = { has_strong_hook = scope:actor } }
 		scope:recipient = {
+			custom_tooltip = {
+				text = is_a_herder_recipient_tt
+				NOT = { government_has_flag = government_is_herder } # herders can't fight
+			}
+			NOT = { is_tributary_of_suzerain_or_above = scope:actor } # can't fight your tributaries or your tributaries' tributaries
+			NOT = { has_strong_hook = scope:actor }
 			trigger_if = {
 				limit = { is_imprisoned = yes }
 				NOT = {
@@ -178,6 +200,18 @@
 							any_liege_or_above = { this = scope:recipient }
 						}
 					}
+				}
+			}
+		}
+		trigger_if = {
+			limit = {
+				scope:actor = {
+					is_confederation_member = yes
+				}
+			}
+			NOT = {
+				scope:recipient = {
+					is_member_of_confederation = scope:actor.confederation
 				}
 			}
 		}
