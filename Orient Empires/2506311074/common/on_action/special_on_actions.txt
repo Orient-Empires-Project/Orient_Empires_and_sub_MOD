@@ -2,7 +2,7 @@
 	on_actions = {
 		oe_info_effects
 		story_on_start
-		#destroy_void_title
+		oe_extra_nomad_region
 	}
 }
 oe_info_effects = {
@@ -15,36 +15,6 @@ oe_info_effects = {
 		}
 	}
 }
-
-destroy_void_title = {
-	effect = {
-		if = { #公国头衔
-			limit = {
-				exists = title:e_celestia.holder
-			}
-			title:e_celestia.holder = {
-				every_held_title = {
-					limit = {
-						tier = tier_duchy
-						is_landless_type_title = no
-						is_oe_noble_family_title = no
-						title_capital_county = {
-							OR = {
-								NOT = { holder = root }
-								NOT = { holder.top_liege = root }
-							}
-						}
-					}
-					holder = {
-						destroy_title = prev
-					}
-				}			
-			}
-		}
-	}
-}
-
-
 
 
 # root = character gaining vassal
@@ -2071,7 +2041,7 @@ story_on_death = {
 		if = {
 			limit = {
 				game_start_date = 617.8.1 #长歌行
-				title:e_celestia.holder ?= character:247726
+				#title:e_celestia.holder ?= character:247726
 				root = character:247726
 			}
 			if = {
@@ -2083,17 +2053,35 @@ story_on_death = {
 					limit = {
 						character:247755 = { is_alive = yes }
 					}
-					character:247755 = {
-						get_title = title:e_celestia
+					create_title_and_vassal_change = {
+						type = usurped
+						save_scope_as = change
+						add_claim_on_loss = no
 					}
+					title:e_celestia = {
+						change_title_holder = {
+							holder = character:247755
+							change = scope:change
+						}
+					}
+					resolve_title_and_vassal_change = scope:change
 				}
 				else_if = {
 					limit = {
 						character:247761 = { is_alive = yes }
 					}
-					character:247761 = {
-						get_title = title:e_celestia
+					create_title_and_vassal_change = {
+						type = usurped
+						save_scope_as = change
+						add_claim_on_loss = no
 					}
+					title:e_celestia = {
+						change_title_holder = {
+							holder = character:247761
+							change = scope:change
+						}
+					}
+					resolve_title_and_vassal_change = scope:change
 				}
 				else = {
 					title:d_dianqian.holder = {
@@ -2398,6 +2386,14 @@ story_on_start = {
 			limit = {
 				game_start_date = 617.8.1
 			}
+			title:e_celestia = {
+				every_dejure_vassal_title_holder = {
+					if = {
+						limit = { is_independent_ruler = yes }
+						add_pressed_claim = title:e_celestia
+					}
+				}
+			}
 			if = {
 				limit = {
 					title:d_hedong.holder = { is_ai = yes }
@@ -2583,6 +2579,235 @@ story_title_gain_effects = {
 					}
 				}
 				resolve_title_and_vassal_change = scope:change
+			}
+		}
+	}
+}
+
+
+oe_extra_nomad_region = {
+	effect = {
+		
+		# Extra Nomad Regions
+		#tunguse
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = tunguse_nomad_region_on
+			}
+			start_situation = {
+				type = game_rule_extra_nomads_tunguse
+				start_phase = situation_steppe_abundant_grazing_season
+				save_scope_as = my_situation
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+							OR = {
+								culture = { has_cultural_pillar = heritage_tunguse }
+								culture = { has_cultural_pillar = heritage_sahelian }
+								culture = { has_cultural_pillar = heritage_okhotsk }
+								culture = { has_cultural_pillar = heritage_yeniseian }
+								culture = { has_cultural_pillar = heritage_hunnic }
+								culture = { has_cultural_pillar = heritage_mongolic }
+								culture = { has_cultural_pillar = heritage_turkic }
+							}
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
+			}
+		}
+		#amdo
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = amdo_nomad_region_on
+			}
+			start_situation = {
+				type = game_rule_extra_nomads_amdo
+				start_phase = situation_steppe_abundant_grazing_season
+				save_scope_as = my_situation
+				sub_region = {
+					key = amdo_nomads
+					start_phase = situation_steppe_abundant_grazing_season
+					map_color = { 34 255 76 }
+					geographical_regions = { amdo_nomad_area }
+				}
+				sub_region = {
+					key = gyalrong_nomads
+					start_phase = situation_steppe_abundant_grazing_season
+					map_color = { 34 255 76 }
+					geographical_regions = { gyalrong_nomad_area }
+				}
+				sub_region = {
+					key = kham_nomads
+					start_phase = situation_steppe_severe_drought_season
+					map_color = { 24 155 76 }
+					geographical_regions = { kham_nomad_area }
+				}
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
+			}
+		}
+		#tibet
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = tibet_nomad_region_on
+			}
+		    start_situation = { 
+				type = game_rule_extra_nomads_tibet
+				start_phase = situation_steppe_severe_drought_season
+				save_scope_as = my_situation
+				sub_region = {
+					key = tibet_nomads
+					start_phase = situation_steppe_abundant_grazing_season
+					map_color = { 155 62 0 }
+					geographical_regions = { tibet_nomad_area }
+				}
+				sub_region = {
+					key = ngari_nomads
+					start_phase = situation_steppe_severe_drought_season
+					map_color = { 255 232 100 }
+					geographical_regions = { ngari_nomad_area }
+				}
+				sub_region = {
+					key = lhomon_nomads
+					start_phase = situation_steppe_abundant_grazing_season
+					map_color = { 100 46 92 }
+					geographical_regions = { lhomon_nomad_area }
+				}
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+							OR = {
+								culture = { has_cultural_pillar = heritage_tibetan }
+								culture = { has_cultural_pillar = heritage_qiangic }
+							}
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
+			}
+		}	
+		#nanzhong
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = nanzhong_nomad_region_on
+			}
+		    start_situation = { 
+				type = game_rule_extra_nomads_nanzhong
+				start_phase = situation_steppe_abundant_grazing_season
+				save_scope_as = my_situation
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+							OR = {
+								culture = { has_cultural_pillar = heritage_tibetan }
+								culture = { has_cultural_pillar = heritage_qiangic }
+								culture = { has_cultural_pillar = heritage_yues }
+								culture = { has_cultural_pillar = heritage_burman }
+
+								culture = culture:tai
+								culture = culture:pyu
+								culture = culture:laos
+								culture = culture:ava
+								culture = culture:lisu
+							}
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
 			}
 		}
 	}
