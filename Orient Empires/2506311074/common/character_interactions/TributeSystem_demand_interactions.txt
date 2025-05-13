@@ -21,19 +21,19 @@ demand_tribute_payment_interaction = {
 
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
-		scope:actor = {
-			OR = {
-				AND = {
-					TributeSystem_suzerain_can_demand_high_trigger = yes
-					has_relation_tributary = scope:recipient
-				}
-				AND = {
-					has_relation_suzerain = scope:recipient
-					TributeSystem_true_level_2_tributary_trigger = yes
-					is_ai = no
-				}
+		OR = {
+			scope:recipient = {
+				suzerain ?= scope:actor
+				TributeSystem_true_level_2_tributary_trigger = yes
 			}
+			scope:actor = {
+				suzerain ?= scope:recipient
+				TributeSystem_true_level_3_tributary_trigger = yes
+				is_ai = no
+			}
+
 		}
+
 	}
 
 	is_valid_showing_failures_only = {
@@ -166,484 +166,482 @@ demand_tribute_payment_interaction = {
 }
 
 #索取侍臣，高级宗主国、3级朝贡国可用
-demand_courtier_beauty_interaction = {
-	category = interaction_category_diplomacy #interaction_category_tribute
-	common_interaction = yes
-	greeting = positive
-	icon = guest
-	desc = demand_courtier_beauty_interaction_desc
-	needs_recipient_to_open = yes
-	cooldown = { years = 2 }
-	ai_frequency = 48
-	ai_target_quick_trigger = { adult = yes }
-	ai_targets = { ai_recipients = neighboring_rulers max = 3 }
-	redirect = {
-		scope:recipient = {		
-			if = {
-				limit = {
-					is_ruler = no
-					exists = liege
-				}
-				save_scope_as = secondary_actor
-				liege = {
-					save_scope_as = recipient
-				}
-			}
-		}
-	}
+#demand_courtier_beauty_interaction = {
+	#category = interaction_category_diplomacy #interaction_category_tribute
+	#common_interaction = no
+	#greeting = positive
+	#icon = guest
+	#desc = demand_courtier_beauty_interaction_desc
+	#needs_recipient_to_open = yes
+	#cooldown = { years = 2 }
+	#ai_frequency = 48
+	#ai_target_quick_trigger = { adult = yes }
+	#ai_targets = { ai_recipients = neighboring_rulers max = 3 }
+	#redirect = {
+		#scope:recipient = {		
+			#if = {
+				#limit = {
+					#is_ruler = no
+					#exists = liege
+				#}
+				#save_scope_as = secondary_actor
+				#liege = {
+					#save_scope_as = recipient
+				#}
+			#}
+		#}
+	#}
+	#populate_actor_list = {
+		#scope:recipient = {
+			#every_courtier = {
+				#limit = {
+					#is_at_home = yes
+					#is_ruler = no
+				#}
+				#add_to_list = characters
+			#}
+		#}
+	#}
+	#is_shown = {
+		#NOT = { scope:recipient = scope:actor }
+		#scope:actor = {
+			#OR = {
+				#AND = {
+					#TributeSystem_suzerain_can_demand_high_trigger = yes
+					#any_tributary = { this = scope:recipient }
+				#}
+				#AND = {
+					#suzerain ?= scope:recipient
+					#TributeSystem_true_level_3_tributary_trigger = yes
+				#}
+			#}
+			#is_ai = no
+		#}
+		#scope:recipient = { 
+			#is_adult = yes
+			#trigger_if = {
+				#limit = { exists = top_liege }
+				#NOT = { top_liege ?= scope:actor }
+			#}
+		#}
+	#}
+	#has_valid_target_showing_failures_only = {
+		#scope:secondary_actor = {
+			#is_imprisoned = no
+			#is_incapable = no
+		#}
+	#}
+	#is_valid_showing_failures_only = {
+		#scope:actor = {
+			#is_imprisoned = no
+			#is_incapable = no
+		#}
+		#scope:recipient = { is_available_for_activity_trigger = yes }
+	#}
 
-	populate_actor_list = {
-		scope:recipient = {
-			every_courtier = {
-				limit = {
-					is_at_home = yes
-					is_ruler = no
-				}
-				add_to_list = characters
-			}
-		}
-	}
+	#can_send = {
+		#custom_description = { #only if an option is selected
+			#text = has_no_option_selected
+			#switch = {
+				#trigger = yes
+				#scope:tributary_exp = {
+				#}
+				#scope:gold = {
+				#}
+				#scope:favor = {
+				#} 
+				#scope:hook = {
+				#} 
+			#}
+		#}
+	#}
+
+	#send_option = {
+		#is_shown = {
+			#scope:actor = { TributeSystem_suzerain_EXP_MIN_trigger = { MIN = tribute_courtier_beauty_value } }
+		#}
+		#is_valid = { }
+		#flag = tributary_exp
+		#localization = GENERIC_SPEND_TRIBUTARY_EXP
+	#}
+
+	## If you don't have what they're worth, pay me what you have!
+	#send_option = {
+		#is_shown = {
+			#exists = scope:recipient
+		#}
+		#is_valid = {
+			#exists = scope:recipient
+			#scope:actor = {
+				#gold > scope:secondary_actor.tribute_courtier_beauty_gold_value
+			#}
+		#}
+		#flag = gold
+		#localization = "RANSOM_GOLD_PAY_OPTION"
+	#}
 	
-	is_shown = {
-		NOT = { scope:recipient = scope:actor }
-		scope:actor = {
-			OR = {
-				AND = {
-					TributeSystem_suzerain_can_demand_high_trigger = yes
-					has_relation_tributary = scope:recipient
-				}
-				AND = {
-					has_relation_suzerain = scope:recipient
-					TributeSystem_true_level_3_tributary_trigger = yes
-				}
-			}
-			is_ai = no
-		}
-		scope:recipient = { 
-			is_adult = yes
-			trigger_if = {
-				limit = { exists = top_liege }
-				NOT = { top_liege ?= scope:actor }
-			}
-		}
-	}
-	has_valid_target_showing_failures_only = {
-		scope:secondary_actor = {
-			is_imprisoned = no
-			is_incapable = no
-		}
-	}
-	is_valid_showing_failures_only = {
-		scope:actor = {
-			is_imprisoned = no
-			is_incapable = no
-		}
-		scope:recipient = { is_available_for_activity_trigger = yes }
-	}
+	#send_option = {
+		#is_valid = {
+			#exists = scope:recipient
+			#scope:recipient = {
+				#can_add_hook = { #To match the hook added through ransom_interaction_effect
+					#target = scope:actor
+					#type = favor_hook
+				#}
+			#}
+		#}
+		#flag = favor
+		#localization = "RANSOM_OWE_FAVOR_OPTION"
+	#}
 
-	can_send = {
-		custom_description = { #only if an option is selected
-			text = has_no_option_selected
-			switch = {
-				trigger = yes
-				scope:tributary_exp = {
-				}
-				scope:gold = {
-				}
-				scope:favor = {
-				} 
-				scope:hook = {
-				} 
-			}
-		}
-	}
+	##Use hook
+	#send_option = {
+		#is_valid = {
+			#exists = scope:recipient
+			#scope:actor = {
+				#has_usable_hook = scope:recipient
+			#}
+		#}
+		#flag = hook
+		#localization = SCHEME_HOOK
+	#}
+	#should_use_extra_icon = {
+		#scope:actor = { has_usable_hook = scope:recipient }
+	#}
+	#extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
 
-	send_option = {
-		is_shown = {
-			scope:actor = { TributeSystem_suzerain_EXP_MIN_trigger = { MIN = tribute_courtier_beauty_value } }
-		}
-		is_valid = { }
-		flag = tributary_exp
-		localization = GENERIC_SPEND_TRIBUTARY_EXP
-	}
+	#send_options_exclusive = yes
 
-	# If you don't have what they're worth, pay me what you have!
-	send_option = {
-		is_shown = {
-			exists = scope:recipient
-		}
-		is_valid = {
-			exists = scope:recipient
-			scope:actor = {
-				gold > scope:secondary_actor.tribute_courtier_beauty_gold_value
-			}
-		}
-		flag = gold
-		localization = "RANSOM_GOLD_PAY_OPTION"
-	}
+	#localization_values = {
+		#EXTORTIONATE_RANSOM_COST = scope:secondary_actor.increased_ransom_cost_value
+		#RANSOM_COST = scope:secondary_actor.tribute_courtier_beauty_gold_value
+		#CURRENT_GOLD = scope:actor.gold
+	#}
+
+	#on_accept = {
+		#if = {
+			#limit = { scope:tributary_exp = yes }
+			#scope:actor = {
+				#set_variable = {
+					#name = tribute_exp_loss
+					#value = {
+						#value = tribute_courtier_beauty_value #评定侍臣价值
+						#multiply = -1
+					#}
+				#}
+				#spend_tribute_exp_effect = yes
+				#remove_variable = tribute_exp_loss
+			#}
+		#}
+		#if = {
+			#limit = { scope:gold = yes }
+			#send_interface_toast = {
+				#title = demand_payment_interaction_message
+				#left_icon = scope:recipient
 	
-	send_option = {
-		is_valid = {
-			exists = scope:recipient
-			scope:recipient = {
-				can_add_hook = { #To match the hook added through ransom_interaction_effect
-					target = scope:actor
-					type = favor_hook
-				}
-			}
-		}
-		flag = favor
-		localization = "RANSOM_OWE_FAVOR_OPTION"
-	}
+				#scope:actor = {
+					#if = {
+						#limit = {
+							#gold > scope:secondary_actor.tribute_courtier_beauty_gold_value
+						#}
+						#pay_short_term_gold = {
+							#target = scope:recipient
+							#gold = scope:secondary_actor.tribute_courtier_beauty_gold_value
+						#}
+					#}
+					#else = {
+						#pay_short_term_gold = {
+							#target = scope:recipient
+							#gold = {
+								#value = scope:actor.gold
+								#floor = yes
+							#}
+						#}
+					#}
+				#}
+			#}
+		#}
+		#if = {
+			#limit = { scope:hook = yes }
+			#scope:actor = {
+				#use_hook = scope:recipient
+			#}
+		#}
+		#scope:secondary_actor = { add_character_flag = offered_courtier }
+		#scope:actor = {
+			#send_interface_toast = {
+				#type = event_generic_neutral
+				#title = demand_payment_interaction_message
+				#left_icon = scope:recipient
+			
+				#show_as_tooltip = {
+					#add_courtier = scope:secondary_actor
+				#}
+			#}
+			#add_courtier = scope:secondary_actor
+		#}
+		#if = { # Struggle Catalyst
+			#limit = {
+				#scope:actor = {
+					#any_character_struggle = {
+						#involvement = involved
+						#activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
+							#CATALYST = catalyst_tribute_aid
+							#CHAR = scope:recipient
+						#}
+					#}
+				#}
+			#}
+			#hidden_effect = {
+				#scope:actor = {
+					#every_character_struggle = {
+						#involvement = involved
+						#activate_struggle_catalyst = {
+							#catalyst = catalyst_tribute_aid
+							#character = scope:actor
+						#}
+					#}
+				#}
+			#}
+		#}
+		#demand_cost_tribute_exp_effect = { EXP = massive_tribute_exp_value }
+	#}
+	#on_decline = {
+		#scope:recipient = {
+			#add_opinion = {
+				#modifier = taxation_tour_opinion
+				#target = scope:actor
+				#opinion = -30
+			#}
+		#}
+	#}
+	#ai_accept = {
+		#base = 0
+		#modifier = { # Accept more than half the ransom (unless greedy)
+			#add = 25
+			#scope:tributary_exp = yes
 
-	#Use hook
-	send_option = {
-		is_valid = {
-			exists = scope:recipient
-			scope:actor = {
-				has_usable_hook = scope:recipient
-			}
-		}
-		flag = hook
-		localization = SCHEME_HOOK
-	}
-	should_use_extra_icon = {
-		scope:actor = { has_usable_hook = scope:recipient }
-	}
-	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+		#}
+		#modifier = { # Accept more than half the ransom (unless greedy)
+			#add = 25
+			#scope:gold = yes
+			#AND = {
+				#scope:actor = { gold >= scope:secondary_actor.half_ransom_cost_value }
+				#NOT = { scope:recipient.ai_greed >= medium_positive_ai_value }
+			#}
+			#desc = "GOLD_POSITIVE_REASON"
+		#}
+		#modifier = {
+			#add = 20
+			#scope:favor = yes
+			#desc = "FAVOR_POSITIVE_REASON"
+		#}
+		#modifier = {
+			#add = -200
+			#scope:recipient = { is_close_family_of = scope:secondary_actor }
+			#desc = "CLOSE_FAMILY_MEMBER"
+		#}
+		#modifier = {
+			#add = -50
+			#scope:recipient = {
+				#dynasty = scope:secondary_actor.dynasty
+			#}		
+			#desc = "DYNASTY_MEMBER"
+		#}
+		########## PERSONALITY
 
-	send_options_exclusive = yes
+		#bp2_hostage_demand_personality_modifier = yes
+#
+		########## OPINION
 
-	localization_values = {
-		EXTORTIONATE_RANSOM_COST = scope:secondary_actor.increased_ransom_cost_value
-		RANSOM_COST = scope:secondary_actor.tribute_courtier_beauty_gold_value
-		CURRENT_GOLD = scope:actor.gold
-	}
-
-	on_accept = {
-		if = {
-			limit = { scope:tributary_exp = yes }
-			scope:actor = {
-				set_variable = {
-					name = tribute_exp_loss
-					value = {
-						value = tribute_courtier_beauty_value #评定侍臣价值
-						multiply = -1
-					}
-				}
-				spend_tribute_exp_effect = yes
-				remove_variable = tribute_exp_loss
-			}
-		}
-		if = {
-			limit = { scope:gold = yes }
-			send_interface_toast = {
-				title = demand_payment_interaction_message
-				left_icon = scope:recipient
-	
-				scope:actor = {
-					if = {
-						limit = {
-							gold > scope:secondary_actor.tribute_courtier_beauty_gold_value
-						}
-						pay_short_term_gold = {
-							target = scope:recipient
-							gold = scope:secondary_actor.tribute_courtier_beauty_gold_value
-						}
-					}
-					else = {
-						pay_short_term_gold = {
-							target = scope:recipient
-							gold = {
-								value = scope:actor.gold
-								floor = yes
-							}
-						}
-					}
-				}
-			}
-		}
-		if = {
-			limit = { scope:hook = yes }
-			scope:actor = {
-				use_hook = scope:recipient
-			}
-		}
-		scope:secondary_actor = { add_character_flag = offered_courtier }
-		scope:actor = {
-			send_interface_toast = {
-				type = event_generic_neutral
-				title = demand_payment_interaction_message
-				left_icon = scope:recipient
-				
-				show_as_tooltip = {
-					add_courtier = scope:secondary_actor
-				}
-			}
-			add_courtier = scope:secondary_actor
-		}
-		if = { # Struggle Catalyst
-			limit = {
-				scope:actor = {
-					any_character_struggle = {
-						involvement = involved
-						activate_struggle_catalyst_secondary_character_involvement_involved_trigger = {
-							CATALYST = catalyst_tribute_aid
-							CHAR = scope:recipient
-						}
-					}
-				}
-			}
-			hidden_effect = {
-				scope:actor = {
-					every_character_struggle = {
-						involvement = involved
-						activate_struggle_catalyst = {
-							catalyst = catalyst_tribute_aid
-							character = scope:actor
-						}
-					}
-				}
-			}
-		}
-		demand_cost_tribute_exp_effect = { EXP = massive_tribute_exp_value }
-	}
-	on_decline = {
-		scope:recipient = {
-			add_opinion = {
-				modifier = taxation_tour_opinion
-				target = scope:actor
-				opinion = -30
-			}
-		}
-	}
-	ai_accept = {
-		base = 0
-		modifier = { # Accept more than half the ransom (unless greedy)
-			add = 25
-			scope:tributary_exp = yes
-
-		}
-		modifier = { # Accept more than half the ransom (unless greedy)
-			add = 25
-			scope:gold = yes
-			AND = {
-				scope:actor = { gold >= scope:secondary_actor.half_ransom_cost_value }
-				NOT = { scope:recipient.ai_greed >= medium_positive_ai_value }
-			}
-			desc = "GOLD_POSITIVE_REASON"
-		}
-		modifier = {
-			add = 20
-			scope:favor = yes
-			desc = "FAVOR_POSITIVE_REASON"
-		}
-		modifier = {
-			add = -200
-			scope:recipient = { is_close_family_of = scope:secondary_actor }
-			desc = "CLOSE_FAMILY_MEMBER"
-		}
-		modifier = {
-			add = -50
-			scope:recipient = {
-				dynasty = scope:secondary_actor.dynasty
-			}		
-			desc = "DYNASTY_MEMBER"
-		}
-		######### PERSONALITY
-
-		bp2_hostage_demand_personality_modifier = yes
-
-		######### OPINION
-
-		opinion_modifier = { # Opinion Factor
-			who = scope:recipient
-			opinion_target = scope:actor
-			multiplier = 0.5
-			desc = AI_OPINION_REASON
-		}
-		opinion_modifier = { # Opinion Factor
-			who = scope:recipient
-			opinion_target = scope:secondary_actor
-			multiplier = -0.1
-			desc = AI_OPINION_REASON
-		}
-
-		######### RELATIONS
-
-		bp2_hostage_relation_modifier = yes
-
-		######### DREAD
-
-		modifier = {
-			add = intimidated_halved_reason_value
-			scope:recipient = {
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 1
-				}
-			}
-			desc = INTIMIDATED_REASON
-		}
-		modifier = {
-			add = cowed_halved_reason_value
-			scope:recipient = {
-				has_dread_level_towards = {
-					target = scope:actor
-					level = 2
-				}
-			}
-			desc = COWED_REASON
-		}
-
-		######### HOSTAGE IMPORTANCE
-		
-		modifier = {
-			exists = scope:secondary_actor
-			add = interaction_recipient_hostage_value
-			desc = HOSTAGE_VALUE_RECIPIENT_REASON
-		}
-
-		######### RELATIVE POWER
-
-		bp2_hostage_tier_neighbor_modifier = { # Realm relative position
-			SENDER = scope:actor
-			RECEIVER = scope:recipient
-		}
-		bp2_hostage_claims_casus_bellis_modifier = { # Desire for land/war
-			SENDER = scope:actor
-			RECEIVER = scope:recipient
-		}
-		bp2_hostage_vassals_lieges_modifier = { # Political situation
-			SENDER = scope:actor
-			RECEIVER = scope:recipient
-		}
-		bp2_hostage_relative_strength_modifier = { # Relative military strength
-			SENDER = scope:actor
-			RECEIVER = scope:recipient
-		}
-		modifier = {
-			desc = HOSTAGE_IMMINENT_THREAT_REASON
-			scope:actor = { has_any_cb_on = scope:recipient }
-			scope:actor.current_strength_with_allies_fifty_percent_value > scope:recipient.current_strength_with_allies_value
-			add = 25
-		}
-
-		######### CULTURAL DIFFERENCES
-
-		bp2_hostage_culture_faith_modifier = {
-			SENDER = scope:actor
-			RECEIVER = scope:recipient
-		}
-
-		######### CULTURAL TRADITIONS
-
-		modifier = {
-			scope:recipient.culture = { has_cultural_tradition = tradition_equitable }
-			add = 25
-			desc = HOSTAGE_EQUITABLE_TRADITION_REASON
-		}
-		modifier = {
-			scope:recipient.culture = { has_cultural_tradition = tradition_esteemed_hospitality }
-			add = 25
-			desc = HOSTAGE_ESTEEMED_HOSPITALITY_TRADITION_REASON
-		}
-		modifier = {
-			scope:recipient = {
-				is_vassal_of = scope:actor
-				culture = { has_cultural_tradition = tradition_loyal_soldiers }
-			}
-			add = 25
-			desc = HOSTAGE_LOYAL_SUBJECTS_TRADITION_REASON
-		}
-
-		######### OTHER
-
-		modifier = { # Hostage died on their watch
-			exists = scope:actor.var:hostage_died
-			scope:recipient = {
-				NOR = {
-					var:let_my_hostage_die ?= scope:actor
-					has_opinion_modifier = {
-						target = scope:actor
-						modifier = killed_hostage_opinion
-					}
-				}
-			}
-			desc = HOSTAGE_PREVIOUSLY_DIED_REASON
-			add = -25
-		}
-		modifier = { # MY Hostage died on their watch
-			scope:recipient = {
-				var:let_my_hostage_die ?= scope:actor
-				NOT = {
-					has_opinion_modifier = {
-						target = scope:actor
-						modifier = killed_hostage_opinion
-					}
-				}
-			}
-			desc = HOSTAGE_PREVIOUSLY_DIED_HOME_COURT_REASON
-			add = -100
-		}
-		modifier = { # Killed my hostage!!!
-			scope:recipient = {
-				has_opinion_modifier = {
-					target = scope:actor
-					modifier = killed_hostage_opinion
-				}
-			}
-			desc = HOSTAGE_KILLED_REASON
-			add = -200
-		}
-		modifier = { # Already have a truce
-			scope:actor ?= { has_truce = scope:recipient }
-			desc = HOSTAGE_ACTOR_EXISTING_TRUCE_REASON
-			add = -20
-		}
-		modifier = { # Already fighting a war
-			scope:recipient ?= { is_at_war = yes }
-			desc = HOSTAGE_AT_WAR_REASON
-			add = 15
-		}
-		modifier = { # Already have your hostage
-			scope:recipient = {
-				any_warden_hostage = { home_court ?= scope:actor }
-			}
-			desc = HOSTAGE_ALREADY_OFFERED_REASON
-			add = 50
-		}
-		modifier = { # Attacked a hostage's home court
-			add = -50
-			scope:actor = { has_character_modifier = attacked_home_court }
-			desc = attacked_home_court
-		}
-		modifier = {
-			scope:hook = yes
-			add = 40
-			desc = SCHEME_WEAK_HOOK_USED
-		}
-	}
-
-	auto_accept = {
-		custom_description = {
-			text = "spending_hook"
-			subject = scope:actor
-			object = scope:recipient
-			scope:hook = yes
-			scope:actor = { has_strong_hook = scope:recipient }
-		}
-	}
-	ai_will_do = {
-		base = 0
-	}
-}
+		#opinion_modifier = { # Opinion Factor
+			#who = scope:recipient
+			#opinion_target = scope:actor
+			#multiplier = 0.5
+			#desc = AI_OPINION_REASON
+		#}
+		#opinion_modifier = { # Opinion Factor
+			#who = scope:recipient
+			#opinion_target = scope:secondary_actor
+			#multiplier = -0.1
+			#desc = AI_OPINION_REASON
+		#}
+#
+		########## RELATIONS
+#
+		#bp2_hostage_relation_modifier = yes
+#
+		########## DREAD
+#
+		#modifier = {
+			#add = intimidated_halved_reason_value
+			#scope:recipient = {
+				#has_dread_level_towards = {
+					#target = scope:actor
+					#level = 1
+				#}
+			#}
+			#desc = INTIMIDATED_REASON
+		#}
+		#modifier = {
+			#add = cowed_halved_reason_value
+			#scope:recipient = {
+				#has_dread_level_towards = {
+					#target = scope:actor
+					#level = 2
+				#}
+			#}
+			#desc = COWED_REASON
+		#}
+#
+		########## HOSTAGE IMPORTANCE
+#		
+		#modifier = {
+			#exists = scope:secondary_actor
+			#add = interaction_recipient_hostage_value
+			#desc = HOSTAGE_VALUE_RECIPIENT_REASON
+		#}
+#
+		########## RELATIVE POWER
+#
+		#bp2_hostage_tier_neighbor_modifier = { # Realm relative position
+			#SENDER = scope:actor
+			#RECEIVER = scope:recipient
+		#}
+		#bp2_hostage_claims_casus_bellis_modifier = { # Desire for land/war
+			#SENDER = scope:actor
+			#RECEIVER = scope:recipient
+		#}
+		#bp2_hostage_vassals_lieges_modifier = { # Political situation
+			#SENDER = scope:actor
+			#RECEIVER = scope:recipient
+		#}
+		#bp2_hostage_relative_strength_modifier = { # Relative military strength
+			#SENDER = scope:actor
+			#RECEIVER = scope:recipient
+		#}
+		#modifier = {
+			#desc = HOSTAGE_IMMINENT_THREAT_REASON
+			#scope:actor = { has_any_cb_on = scope:recipient }
+			#scope:actor.current_strength_with_allies_fifty_percent_value > scope:recipient.current_strength_with_allies_value
+			#add = 25
+		#}
+#
+		########## CULTURAL DIFFERENCES
+#
+		#bp2_hostage_culture_faith_modifier = {
+			#SENDER = scope:actor
+			#RECEIVER = scope:recipient
+		#}
+#
+		########## CULTURAL TRADITIONS
+#
+		#modifier = {
+			#scope:recipient.culture = { has_cultural_tradition = tradition_equitable }
+			#add = 25
+			#desc = HOSTAGE_EQUITABLE_TRADITION_REASON
+		#}
+		#modifier = {
+			#scope:recipient.culture = { has_cultural_tradition = tradition_esteemed_hospitality }
+			#add = 25
+			#desc = HOSTAGE_ESTEEMED_HOSPITALITY_TRADITION_REASON
+		#}
+		#modifier = {
+			#scope:recipient = {
+				#is_vassal_of = scope:actor
+				#culture = { has_cultural_tradition = tradition_loyal_soldiers }
+			#}
+			#add = 25
+			#desc = HOSTAGE_LOYAL_SUBJECTS_TRADITION_REASON
+		#}
+#
+		########## OTHER
+#
+		#modifier = { # Hostage died on their watch
+			#exists = scope:actor.var:hostage_died
+			#scope:recipient = {
+				#NOR = {
+					#var:let_my_hostage_die ?= scope:actor
+					#has_opinion_modifier = {
+						#target = scope:actor
+						#modifier = killed_hostage_opinion
+					#}
+				#}
+			#}
+			#desc = HOSTAGE_PREVIOUSLY_DIED_REASON
+			#add = -25
+		#}
+		#modifier = { # MY Hostage died on their watch
+			#scope:recipient = {
+				#var:let_my_hostage_die ?= scope:actor
+				#NOT = {
+					#has_opinion_modifier = {
+						#target = scope:actor
+						#modifier = killed_hostage_opinion
+					#}
+				#}
+			#}
+			#desc = HOSTAGE_PREVIOUSLY_DIED_HOME_COURT_REASON
+			#add = -100
+		#}
+		#modifier = { # Killed my hostage!!!
+			#scope:recipient = {
+				#has_opinion_modifier = {
+					#target = scope:actor
+					#modifier = killed_hostage_opinion
+				#}
+			#}
+			#desc = HOSTAGE_KILLED_REASON
+			#add = -200
+		#}
+		#modifier = { # Already have a truce
+			#scope:actor ?= { has_truce = scope:recipient }
+			#desc = HOSTAGE_ACTOR_EXISTING_TRUCE_REASON
+			#add = -20
+		#}
+		#modifier = { # Already fighting a war
+			#scope:recipient ?= { is_at_war = yes }
+			#desc = HOSTAGE_AT_WAR_REASON
+			#add = 15
+		#}
+		#modifier = { # Already have your hostage
+			#scope:recipient = {
+				#any_warden_hostage = { home_court ?= scope:actor }
+			#}
+			#desc = HOSTAGE_ALREADY_OFFERED_REASON
+			#add = 50
+		#}
+		#modifier = { # Attacked a hostage's home court
+			#add = -50
+			#scope:actor = { has_character_modifier = attacked_home_court }
+			#desc = attacked_home_court
+		#}
+		#modifier = {
+			#scope:hook = yes
+			#add = 40
+			#desc = SCHEME_WEAK_HOOK_USED
+		#}
+	#}
+#
+	#auto_accept = {
+		#custom_description = {
+			#text = "spending_hook"
+			#subject = scope:actor
+			#object = scope:recipient
+			#scope:hook = yes
+			#scope:actor = { has_strong_hook = scope:recipient }
+		#}
+	#}
+	#ai_will_do = {
+		#base = 0
+	#}
+#}
 
 #索取宝物，初级宗主国、3级朝贡国可用
 demand_tribute_artifact_interaction = {
 	category = interaction_category_diplomacy #interaction_category_tribute
-	common_interaction = yes
-	interface_priority = 60
+	common_interaction = no
+	interface_priority = 2
 	use_diplomatic_range = yes
 	desc = demand_tribute_artifact_interaction_desc
 	icon = artisan_inspiration
@@ -661,26 +659,21 @@ demand_tribute_artifact_interaction = {
 
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
-		scope:actor = {
-			OR = {
-				AND = {
-					has_relation_tributary = scope:recipient
-					TributeSystem_suzerain_can_demand_medium_trigger = yes
-				}
-				AND = {
-					has_relation_suzerain = scope:recipient
-					TributeSystem_true_level_3_tributary_trigger = yes
-				}
+		OR = {
+			scope:actor = {
+				suzerain ?= scope:recipient
+				TributeSystem_true_level_3_tributary_trigger = yes
+				is_ai = no
 			}
-			is_ai = no
-		}
-		scope:recipient = { has_any_artifact = yes }
+			scope:recipient = {
+				suzerain ?= scope:actor
+				TributeSystem_true_level_4_tributary_trigger = yes
+			}
+		}		
 	}
 	
 	is_valid_showing_failures_only = {
-
-		scope:recipient = { is_available_for_activity_trigger = yes }
-
+		scope:recipient = { has_any_artifact = yes }
 		scope:actor = {
 			NOT = {
 				is_at_war_with = scope:recipient
@@ -1400,8 +1393,8 @@ demand_tribute_artifact_interaction = {
 call_suzerain_to_war = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	use_diplomatic_range = no
-	interface_priority = 100
-	common_interaction = yes
+	interface_priority = 10
+	common_interaction = no
 	interface = call_ally
 	special_interaction = call_ally_interaction
 	popup_on_receive = yes
@@ -1415,7 +1408,7 @@ call_suzerain_to_war = {
 		scope:actor = { #put here every tributary type which should be able to call suzerain
 			is_at_war = yes
 			is_tributary = yes
-			has_relation_suzerain = scope:recipient
+			suzerain ?= scope:recipient
 
 			NOT = { is_at_war_with = scope:recipient }
 		}
@@ -1425,9 +1418,9 @@ call_suzerain_to_war = {
 		NOR = {
 			scope:actor = {
 				AND = {
-					exists = var:my_suzerain
+					exists = suzerain
 					any_war_ally = {
-						this = var:my_suzerain
+						this = suzerain
 					}
 				}
 			}
@@ -2182,8 +2175,8 @@ call_tributary_to_war = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	use_diplomatic_range = no
 	use_diplomatic_range = no
-	interface_priority = 100
-	common_interaction = yes
+	interface_priority = 10
+	common_interaction = no
 	interface = call_ally
 	special_interaction = call_ally_interaction
 	popup_on_receive = yes
@@ -2194,7 +2187,7 @@ call_tributary_to_war = {
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
-			has_relation_tributary = scope:recipient
+			any_tributary = { this = scope:recipient }
 			is_at_war = yes
 		}	
 		NOT = { is_at_war_with = scope:recipient }
@@ -2892,7 +2885,7 @@ call_tributary_to_war = {
 tribute_join_war_interaction = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	interface = interfere_in_war
-	interface_priority = 90
+	interface_priority = 9
 	special_interaction = interfere_in_war_interaction
 	popup_on_receive = yes
 	desc = join_war_interaction_desc
@@ -2911,8 +2904,8 @@ tribute_join_war_interaction = {
 			}
 		}
 		OR = {
-			scope:actor = { has_relation_suzerain = scope:recipient }
-			scope:actor = { has_relation_tributary = scope:recipient }
+			scope:actor = { suzerain ?= scope:recipient }
+			scope:recipient = { suzerain ?= scope:actor }
 		}
 	}
 
@@ -3215,7 +3208,7 @@ tribute_join_war_interaction = {
 stop_attacker_tributary_war_interaction = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	interface = interfere_in_war
-	interface_priority = 90
+	interface_priority = 9
 	special_interaction = interfere_in_war_interaction
 	ai_accept_negotiation = yes
 	popup_on_receive = yes
@@ -3242,7 +3235,7 @@ stop_attacker_tributary_war_interaction = {
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
 		scope:recipient = {
-			has_relation_suzerain = scope:actor
+			suzerain ?= scope:actor
 			highest_held_title_tier > tier_barony
 			any_character_war = {
 				primary_attacker = scope:recipient
@@ -3310,7 +3303,7 @@ stop_attacker_tributary_war_interaction = {
 stop_defender_tributary_war_interaction = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	interface = interfere_in_war
-	interface_priority = 90
+	interface_priority = 9
 	special_interaction = interfere_in_war_interaction
 	ai_accept_negotiation = yes
 	popup_on_receive = yes
@@ -3336,7 +3329,7 @@ stop_defender_tributary_war_interaction = {
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
 		scope:recipient = {
-			has_relation_suzerain = scope:actor
+			suzerain ?= scope:actor
 			highest_held_title_tier > tier_barony
 			any_character_war = {
 				primary_defender = scope:recipient
@@ -3405,7 +3398,7 @@ stop_defender_tributary_war_interaction = {
 TributeSystem_purchase_truce_interaction = {
 	interface_priority = 30
 	category = interaction_category_diplomacy #interaction_category_tribute
-	#common_interaction = yes
+	#common_interaction = no
 	desc = purchase_truce_interaction_desc
 	icon = icon_retreat
 
@@ -3421,8 +3414,8 @@ TributeSystem_purchase_truce_interaction = {
 		NOT = { scope:actor = scope:recipient }
 		# Scope:actor needs to either be involved in certain struggle types or else have a specific perk.
 		OR = {
-			scope:actor = { has_relation_suzerain = scope:recipient }
-			scope:actor = { has_relation_tributary = scope:recipient }
+			scope:actor = { suzerain ?= scope:recipient }
+			scope:recipient = { suzerain ?= scope:actor }
 		}
 	}
 
@@ -3983,7 +3976,7 @@ TributeSystem_purchase_truce_interaction = {
 TributeSystem_buy_claim_interaction = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	icon = vassal_claim_liege_title_interaction
-	interface_priority = 100
+	interface_priority = 10
 	desc = buy_claim_interaction_desc
 	target_type = title
 	target_filter = recipient_domain_titles
@@ -3992,7 +3985,7 @@ TributeSystem_buy_claim_interaction = {
 	is_shown = {
 		NOT = { scope:recipient = scope:actor }
 		scope:actor = {
-			has_relation_suzerain = scope:recipient
+			suzerain ?= scope:recipient
 			TributeSystem_true_level_3_tributary_trigger = yes
 			scope:recipient = { TributeSystem_suzerain_is_civilized_trigger = yes }
 		}
@@ -4170,7 +4163,7 @@ TributeSystem_buy_claim_interaction = {
 TributeSystem_buy_innovation_interaction = {
 	category = interaction_category_diplomacy #interaction_category_tribute
 	icon = vassal_claim_liege_title_interaction
-	interface_priority = 100
+	interface_priority = 10
 	desc = TributeSystem_buy_innovation_interaction_desc
 
 	ignores_pending_interaction_block = yes
@@ -4180,12 +4173,12 @@ TributeSystem_buy_innovation_interaction = {
 		scope:actor = {
 			OR = {
 				AND = {
-					has_relation_tributary = scope:recipient
+					any_tributary = { this = scope:recipient }
 					TributeSystem_suzerain_is_league_trigger = yes
 					TributeSystem_level_2_suzerain_trigger = yes
 				}
 				AND = {
-					has_relation_suzerain = scope:recipient
+					suzerain ?= scope:recipient
 					TributeSystem_level_3_tributary_trigger = yes
 					OR = {
 						scope:recipient = { TributeSystem_suzerain_is_civilized_trigger = yes }
@@ -4234,7 +4227,7 @@ demand_currency_treaty_interaction = {
 	use_diplomatic_range = yes
 	ai_min_reply_days = 4
 	ai_max_reply_days = 9
-	interface_priority = 70
+	interface_priority = 7
 	desc = demand_currency_treaty_interaction_desc
 	greeting = positive
 	#notification_text = SEND_GIFT_PROPOSAL
@@ -4242,7 +4235,8 @@ demand_currency_treaty_interaction = {
 	cooldown = { years = 5 }
 
 	is_shown = {
-		scope:actor = { has_relation_tributary = scope:recipient }
+		NOT = { scope:recipient = scope:actor }
+		scope:recipient = { suzerain ?= scope:actor }
 		scope:actor = { is_ai = no }
 	}
 	is_valid = {
@@ -4433,7 +4427,7 @@ demand_currency_treaty_interaction = {
 		}
 		#点数增长用action TributeSystem_all_at_year_start_on_action
 		#if = {
-			#limit = { scope:actor = { has_relation_suzerain = scope:recipient } }
+			#limit = { scope:actor = { suzerain ?= scope:recipient } }
 			#scope:recipient = { trigger_event = TributeSystem.1017 }
 		#}
 	}

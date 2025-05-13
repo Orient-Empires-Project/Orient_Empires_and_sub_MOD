@@ -2,197 +2,109 @@
 # Admin Government
 ##################################################
 
-#create_noble_family_effect = {
-#	debug_log = create_noble_family_title
+create_noble_family_effect = {
+	#debug_log = create_noble_family_title
 
-#	save_scope_as = new_noble_family_holder
-#	hidden_effect = { # NF can only be held by house heads
-#		house ?= {
-#			if = {
-#				limit = { house_head != scope:new_noble_family_holder }
-#				set_house_head = scope:new_noble_family_holder
-#			}
-#		}
-#	}
-#	give_noble_family_title = {
-#		name = noble_family_name
-#		article = DEFAULT_TITLE_NAME_ARTICLE
-#		save_scope_as = new_title
-#	}
-#
-#	#添加头衔转换
-#	scope:new_title = {
-#		if = {
-#			limit = {
-#				NOT = { exists = holder }
-#			}
-#			scope:new_noble_family_holder = {
-#				become_title_holder_effect = { TITLE = scope:new_title }
-#			}
-#		}
-#	}
-#	#转换完毕
-#
-#	scope:new_title = {
-#		holder = {
-#			save_scope_as = noble_family_head
-#		}
-#		set_coa = scope:noble_family_head.house
-#	}
-#	custom_description = {
-#		text = create_noble_family_tt
-#	}
-#	#Notifications
-#	top_liege ?= {
-#		every_vassal = {
-#			limit = {
-#				is_ai = no
-#				NOT = { this = scope:new_noble_family_holder }
-#			}
-#			trigger_event = {
-#				id = ep3_emperor_yearly.2410
-#				days = 1
-#			}
-#		}
-#	}
-#	debug_log_scopes = yes
-#}
+	save_scope_as = new_noble_family_holder
+	hidden_effect = { # NF can only be held by house heads
+		if = { # Start by checking that we are not the house head already
+			limit = {
+				house ?= {
+					house_head != scope:new_noble_family_holder
+				}
+			}
+			if = { # If not, let's see if it would be reasonable to become house head...
+				limit = {
+					house ?= {
+						house_head ?= {
+							top_liege = scope:new_noble_family_holder.top_liege
+							OR = {
+								is_ruler = no
+								primary_title = {
+									tier <= tier_county
+								}
+							}
+							is_ai = yes #  Don't steal house head from a player
+						}
+					}
+				}
+				house = { set_house_head = scope:new_noble_family_holder }
+			}
+			else = { # ... Otherwise, we create a cadet branch
+				create_cadet_branch = yes
+			}
+		}
+	}
 
-admin_change_government_effect = {
-	# Make sure you only use this effect on characters you are sure should change government! Since we don't do any extended triggers here.
-	# For a consistent behaviour, this effect is based on "convert_whole_realm_to_feudalism_effect"
-	
-	# First, let's see if the character only has their noble family title - then we don't bother changing their government
-	# We only destroy the family title to make sure it doesn't linger
 	if = {
 		limit = {
-			is_landed = no
-			any_held_title = {
-                # 仅限原版世族
-				is_noble_family_title = yes
-			}
-			NOT = {
-				any_held_title = {
-					is_noble_family_title = no
-				}
-			}
+			is_ruler = yes
+			has_government = imperial_government
 		}
-		every_held_title = {
-			limit = {
-				is_noble_family_title = yes
+		give_noble_family_title = {
+			name = noble_family_name
+			article = DEFAULT_TITLE_NAME_ARTICLE
+			government = imperial_government
+			save_scope_as = new_title
+		}
+		scope:new_title ?= {
+			holder = {
+				save_scope_as = noble_family_head
 			}
-			save_temporary_scope_as = family_title
-			prev = { destroy_title = scope:family_title }
+			set_coa = scope:noble_family_head.house
+		}
+	}
+	else_if = {
+		limit = {
+			is_ruler = yes
+			has_government = ulus_government
+		}
+		give_noble_family_title = {
+			name = noble_family_name
+			article = DEFAULT_TITLE_NAME_ARTICLE
+			government = ulus_government
+			save_scope_as = new_title
+		}
+		scope:new_title ?= {
+			holder = {
+				save_scope_as = noble_family_head
+			}
+			set_coa = scope:noble_family_head.house
+		}
+	}
+	else = {
+		give_noble_family_title = {
+			name = noble_family_name
+			article = DEFAULT_TITLE_NAME_ARTICLE
+			save_scope_as = new_title
+		}
+		scope:new_title = {
+			holder = {
+				save_scope_as = noble_family_head
+			}
+			set_coa = scope:noble_family_head.house
+		}
+	}
+	custom_description = {
+		text = create_noble_family_tt
+	}
+
+	#Notifications
+	top_liege ?= {
+		every_vassal = {
+			limit = {
+				is_ai = no
+				NOT = { this = scope:new_noble_family_holder }
+			}
+			trigger_event = {
+				id = ep3_emperor_yearly.2410
+				days = 1
+			}
 		}
 	}
 
-	### OE
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			OR = {
-				liege = { government_has_flag = government_is_celestial }
-				liege = { government_has_flag = government_is_ulus }
-			}
-		}
-		change_to_celes_government_effect = yes
-	}
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			NOT = { government_has_flag = government_is_celestial }
-			OR = {
-				liege = { government_has_flag = government_is_legion }
-			}
-		}
-		change_government = legion_government
-	}
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			NOT = { government_has_flag = government_is_celestial }
-			OR = {
-				liege = { government_has_flag = government_is_ulus }
-			}
-		}
-		change_government = ulus_government
-	}
-	
-	# If not, let's change the government type
-	# If liege has clan - Become clan!
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			NOT = { government_has_flag = government_is_celestial }
-			OR = {
-				liege = { government_has_flag = government_is_clan }
-				AND = {
-					liege = { government_has_flag = government_is_tribal }
-					religion = religion:islam_religion
-				}
-			}
-		}
-		change_government = clan_government
-	}
-	# If liege has feudal - Become feudal!
-	else_if = {
-		limit = {
-			is_independent_ruler = no
-			NOT = { government_has_flag = government_is_celestial }
-			OR = {
-				liege = { government_has_flag = government_is_feudal }
-				AND = {
-					liege = { government_has_flag = government_is_tribal }
-					NOT = { religion = religion:islam_religion }
-				}
-			}
-		}
-		change_government = feudal_government
-	}
-	# 华夏传承独立转律令  （独立公爵级行政化？
-	else_if = {
-		limit = {
-			is_independent_ruler = yes
-			is_legion_government_trigger = yes
-		}
-		change_government = legion_government
-	}
-	else_if = {
-		limit = {
-			is_independent_ruler = yes
-			culture = { has_cultural_pillar = heritage_chinese }
-		}
-		change_to_celes_government_effect = yes
-	}
-	# If you're an independent Muslim ruler - Become clan!
-	else_if = {
-		limit = {
-			is_independent_ruler = yes
-			faith = { religion_tag = islam_religion }
-		}
-		change_government = clan_government
-	}
-	# If you're an independent ruler with anything else - Become feudal!
-	else = { change_government = feudal_government }
-	
-	# Finally, let's double-check and see if there are any remaining family titles we should destroy
-	if = {
-		limit = {
-			NOT = { government_has_flag = government_use_estate }
-			any_held_title = {
-				is_oe_noble_family_title = yes
-			}
-		}
-		every_held_title = {
-			limit = {
-				is_oe_noble_family_title = yes
-			}
-			save_temporary_scope_as = family_title
-			prev = { destroy_title = scope:family_title }
-		}
-	}
+	#debug_log_scopes = yes
 }
-
 
 procure_estate_interaction_effect = {
 	if = {
@@ -326,7 +238,7 @@ procure_estate_interaction_effect = {
 		else = {
 			change_government = administrative_government
 		}
-		
+
 		hidden_effect = {
 			if = {
 				limit = {
@@ -370,6 +282,142 @@ procure_estate_interaction_effect = {
 				right_icon = scope:recipient
 				custom_tooltip = procure_estate_message_tt
 			}
+		}
+	}
+}
+
+
+admin_change_government_effect = {
+	# Make sure you only use this effect on characters you are sure should change government! Since we don't do any extended triggers here.
+	# For a consistent behaviour, this effect is based on "convert_whole_realm_to_feudalism_effect"
+	
+	# First, let's see if the character only has their noble family title - then we don't bother changing their government
+	# We only destroy the family title to make sure it doesn't linger
+	if = {
+		limit = {
+			is_landed = no
+			any_held_title = {
+                # 仅限原版世族
+				is_noble_family_title = yes
+			}
+			NOT = {
+				any_held_title = {
+					is_noble_family_title = no
+				}
+			}
+		}
+		every_held_title = {
+			limit = {
+				is_noble_family_title = yes
+			}
+			save_temporary_scope_as = family_title
+			prev = { destroy_title = scope:family_title }
+		}
+	}
+
+	### OE
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			OR = {
+				liege = { government_has_flag = government_is_celestial }
+				liege = { government_has_flag = government_is_ulus }
+			}
+		}
+		change_to_celes_government_effect = yes
+	}
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_legion }
+			}
+		}
+		change_government = legion_government
+	}
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_ulus }
+			}
+		}
+		change_government = ulus_government
+	}
+	
+	# If not, let's change the government type
+	# If liege has clan - Become clan!
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_clan }
+				AND = {
+					liege = { government_has_flag = government_is_tribal }
+					religion = religion:islam_religion
+				}
+			}
+		}
+		change_government = clan_government
+	}
+	# If liege has feudal - Become feudal!
+	else_if = {
+		limit = {
+			is_independent_ruler = no
+			NOT = { government_has_flag = government_is_celestial }
+			OR = {
+				liege = { government_has_flag = government_is_feudal }
+				AND = {
+					liege = { government_has_flag = government_is_tribal }
+					NOT = { religion = religion:islam_religion }
+				}
+			}
+		}
+		change_government = feudal_government
+	}
+	# 华夏传承独立转律令  （独立公爵级行政化？
+	else_if = {
+		limit = {
+			is_independent_ruler = yes
+			is_legion_government_trigger = yes
+		}
+		change_government = legion_government
+	}
+	else_if = {
+		limit = {
+			is_independent_ruler = yes
+			culture = { has_cultural_pillar = heritage_chinese }
+		}
+		change_to_celes_government_effect = yes
+	}
+	# If you're an independent Muslim ruler - Become clan!
+	else_if = {
+		limit = {
+			is_independent_ruler = yes
+			faith = { religion_tag = islam_religion }
+		}
+		change_government = clan_government
+	}
+	# If you're an independent ruler with anything else - Become feudal!
+	else = { change_government = feudal_government }
+	
+	# Finally, let's double-check and see if there are any remaining family titles we should destroy
+	if = {
+		limit = {
+			NOT = { government_has_flag = government_use_estate }
+			any_held_title = {
+				is_oe_noble_family_title = yes
+			}
+		}
+		every_held_title = {
+			limit = {
+				is_oe_noble_family_title = yes
+			}
+			save_temporary_scope_as = family_title
+			prev = { destroy_title = scope:family_title }
 		}
 	}
 }
@@ -672,11 +720,11 @@ ep3_pick_random_maa_regiment_effect = {
 			}
 			1 = {
 				trigger = {
-					culture = { has_cultural_parameter = unlock_maa_mangudai }
+					culture = { has_cultural_parameter = unlock_maa_oe_mangudai }
 				}
 				save_scope_value_as = {
 					name = maa_to_create
-					value = flag:mangudai
+					value = flag:oe_mangudai
 				}
 			}
 			1 = {
@@ -796,7 +844,19 @@ ep3_pick_random_maa_regiment_effect = {
 			}
 			1 = {
 				trigger = {
-					culture = { has_cultural_parameter = unlock_maa_horse_archers }
+					culture = { has_cultural_parameter = unlock_maa_maturkan_warriors }
+				}
+				save_scope_value_as = {
+					name = maa_to_create
+					value = flag:maturkan_warriors
+				}
+			}
+			1 = {
+				trigger = {
+					OR = {
+						culture = { culture_has_archer_cavalry_maa = yes }
+						mpo_can_recruit_nomad_maa_trigger = yes
+					}
 				}
 				save_scope_value_as = {
 					name = maa_to_create
@@ -1176,6 +1236,15 @@ ep3_pick_random_maa_regiment_effect = {
 			}
 			1 = {
 				trigger = {
+					mpo_can_recruit_nomad_maa_trigger = yes
+				}
+				save_scope_value_as = {
+					name = maa_to_create
+					value = flag:steppe_raiders
+				}
+			}
+			1 = {
+				trigger = {
 					culture = { has_cultural_parameter = unlock_maa_conrois }
 				}
 				save_scope_value_as = {
@@ -1462,6 +1531,12 @@ ep3_create_random_maa_regiment_effect = {
 					SIZE = $SIZE$
 				}
 			}
+			flag:maturkan_warriors = {
+				create_maa_or_upgrade_regiment_effect = {
+					TYPE = maturkan_warriors
+					SIZE = $SIZE$
+				}
+			}
 			flag:horse_archers = {	
 				create_maa_or_upgrade_regiment_effect = {
 					TYPE = horse_archers
@@ -1678,6 +1753,12 @@ ep3_create_random_maa_regiment_effect = {
 					SIZE = $SIZE$
 				}
 			}
+			flag:steppe_raiders = {
+				create_maa_or_upgrade_regiment_effect = {
+					TYPE = steppe_raiders
+					SIZE = $SIZE$
+				}
+			}
 			flag:conrois = {	
 				create_maa_or_upgrade_regiment_effect = {
 					TYPE = conrois
@@ -1739,7 +1820,7 @@ ep3_create_random_maa_regiment_effect = {
 					SIZE = $SIZE$
 				}				
 			}
-			flag:mangudai = {
+			flag:oe_mangudai = {
 				create_maa_or_upgrade_regiment_effect = {
 					TYPE = light_cavalry
 					SIZE = $SIZE$

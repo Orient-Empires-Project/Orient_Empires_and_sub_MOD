@@ -72,6 +72,7 @@
 
 	is_shown = {
 		scope:recipient = {
+			NOT = { government_has_flag = government_is_herder } # They have their own interaction without cooldowns/maluses
 			is_landed_or_landless_administrative = yes
 			# should be shown but be disabled for indirect vassals
 			target_is_liege_or_above = scope:actor
@@ -215,7 +216,10 @@
 
 	has_valid_target = {
 		scope:target = {
-			NOT = { is_oe_noble_family_title = yes }
+			NOR = { 
+				is_oe_noble_family_title = yes 
+				is_nomad_title = yes
+			}
 		}
 	}
 
@@ -623,6 +627,9 @@
 		if = {
 			limit = {
 				scope:landed_title.tier != tier_barony
+				NOT = {
+					scope:recipient = { government_has_flag = government_is_herder }
+				}
 				oe_revocation_tyranny_trigger = yes
 			}
 			scope:actor = {
@@ -632,22 +639,39 @@
 		}
 		if = {
 			limit = {
-				oe_war_for_revoke_effect_trigger = yes
+				scope:recipient = { government_has_flag = government_is_herder }
 			}
-			war_for_revoke_effect = {
-				LIEGE = scope:actor
-				REBEL = scope:recipient
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					opinion = -10 # Herders don't care much
+					modifier = revoked_title
+				}
 			}
 		}
-		scope:recipient = {
-			add_opinion = {
-				target = scope:actor
-				modifier = revoked_title
+		else = {
+			if = {
+				limit = {
+					oe_war_for_revoke_effect_trigger = yes
+				}
+				war_for_revoke_effect = {
+					LIEGE = scope:actor
+					REBEL = scope:recipient
+				}
+			}
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					modifier = revoked_title
+				}
 			}
 		}
 		if = {
 			limit = {
 				scope:actor = { has_realm_law_flag = vassal_refusal_is_treason }
+				NOT = {
+					scope:recipient = { government_has_flag = government_is_herder }
+				}
 			}
 			scope:actor = {
 				add_opinion = {
@@ -743,6 +767,14 @@
 			scope:hook = yes
 			add = 40
 			desc = SCHEME_WEAK_HOOK_USED
+		}
+		
+		modifier = {
+			scope:recipient = {
+				government_has_flag = government_is_herder
+			}
+			add = 40
+			desc = MIGRATION_INTERACTION_HERDER
 		}
 
 		opinion_modifier = { # Opinion Factor

@@ -1,0 +1,975 @@
+﻿special_imperial_bureau = {
+	display_mode = radiobutton
+	is_shown = {
+	}
+	obligation_levels = {
+		special_imperial_bureau_0 = {#民州
+			default = yes
+			position = { 0 0 }
+			icon = "gfx/interface/icons/theme_administration_types/icon_balanced_administration.dds"
+
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							is_ai = yes
+						}
+					}
+					add = 1
+				}
+			}
+			ai_subject_desire = 0
+
+			score = 0
+			color = { 0.7 0.7 0.7 1.0 }
+			
+			subject_modifier = {
+				domain_limit = -3
+				governor_xp_gain_mult = 0.2
+			}
+
+			flag = imperial_contract_0
+			flag = imperial_bureau_0
+		}
+		special_imperial_bureau_1 = { #升府
+			position = { 2 0 }
+			icon = "gfx/interface/icons/theme_administration_types/icon_civilian_administration.dds"
+			score = 2
+			color = { 0.2 0.2 0.7 1.0 }
+
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+				scope:liege = {
+					OR = {
+						is_independent_ruler = yes
+						vassal_contract_has_flag = imperial_bureau_1
+					}
+				}
+			}
+
+			tax_factor = 0.5  #计划单列
+	
+			liege_modifier = {
+				long_reign_bonus_mult = 0.05 #对扬皇恩
+				domain_limit = -0.5 #每个府多占用半个直辖上限（数值平衡）
+
+				legitimacy_baseline_add = 30
+			}
+			subject_modifier = {
+				domain_limit = -5 #一官一任
+				levy_size = -0.3 #休养生息
+				knight_limit = -2 #以文致治
+				men_at_arms_cap = -2 #削兵夺权
+				men_at_arms_title_limit = -2
+				men_at_arms_title_cap = -2
+				monthly_county_control_growth_factor = 0.1 #州县编户
+
+				build_gold_cost = 0.1 #通货膨胀
+				build_speed = -0.1 #百业俱兴
+				development_growth_factor = 0.2 #劝农务本
+				county_opinion_add = 10 #休养生息
+			}
+			flag = imperial_contract_0
+			flag = imperial_bureau_1
+
+			flag = admin_stewardship_obligation_bonus
+			flag = admin_influence_construction_bonus
+			flag = admin_ai_is_builder
+			flag = obligation_high_taxes
+			
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							is_ai = yes
+							OR = {
+								has_trait = education_stewardship
+								stewardship >= very_high_skill_rating
+								AND = { # Large semi-coastal themes are good for an economic focus
+									any_sub_realm_county = { count >= 2 is_coastal_county = yes }
+									any_sub_realm_county = { count >= 2 is_coastal_county = no }
+								}
+							}
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:liege = {
+							ai_has_economical_boom_personality = yes
+						}
+					}
+					add = 1
+				}
+				if = {
+					limit = {
+						scope:liege = {
+							any_vassal = {
+								count >= 3
+								vassal_contract_has_flag = imperial_bureau_1
+							}
+						}
+					}
+					factor = 0
+				}
+			}
+			ai_subject_desire = 0
+		}
+		special_imperial_bureau_2 = {#榷司	
+			position = { 2 1 }
+			icon = "gfx/interface/icons/theme_administration_types/icon_naval_administration.dds"
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+				scope:liege = {
+					OR = {
+						is_independent_ruler = yes
+						vassal_contract_has_flag = imperial_bureau_2
+					}
+				}
+				custom_tooltip = {
+					text = special_imperial_bureau_2_desc
+					scope:subject = {
+						scope:subject.primary_title.tier < tier_kingdom
+						any_held_county = {
+							OR = {
+								is_coastal_county = yes
+								any_neighboring_county = {
+									holder = {
+										NOR = {
+											top_liege = scope:subject.top_liege
+											top_liege = { is_at_war_with = scope:subject.top_liege }
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			score = 2
+			tax_factor = 1 #榷务多利						
+
+			liege_modifier = {
+				opinion_of_different_culture = 3 #文化交流
+				domain_limit = -1 #每个榷司多占用一个直辖上限（数值平衡）
+				legitimacy_baseline_add = 30
+
+				embarkation_cost_mult = -0.1
+				naval_movement_speed_mult = 0.1
+			}
+			subject_modifier = {
+				development_growth_factor = 0.15 #贸易繁荣
+				opinion_of_different_culture = 10 #文化交流
+				monthly_county_control_growth_add = -0.2 #人员混杂
+				levy_size = -0.8 #商贸优先
+				vassal_limit = -10 #特区特管
+				domain_limit = -5
+				knight_limit = -2 #以文致治
+				men_at_arms_cap = -2 #削兵夺权
+
+				embarkation_cost_mult = -0.5
+				naval_movement_speed_mult = 0.25
+				no_disembark_penalty = yes
+				coastal_advantage = -10
+			}
+			flag = imperial_contract_0
+			flag = imperial_bureau_2
+
+			flag = admin_naval_duchy_expansion_unlocked
+			flag = admin_tradeport_obligation_bonus
+			#flag = admin_theme_naval
+			
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = { is_ai = yes }
+					}
+					if = {
+						limit = { # Large coastal areas qualify as good naval themes
+							scope:subject = {
+								any_sub_realm_county = {
+									count >= 3
+									is_coastal_county = yes
+								}
+							}
+							scope:liege = { # But don't go overboard with naval themes
+							any_vassal = {
+								percent < 0.15
+								vassal_contract_has_flag = special_imperial_bureau_2
+							}
+						}
+						}
+						add = 3
+					}
+					
+					if = {
+						limit = { # Islands are good naval candidates
+							scope:subject = {
+								any_sub_realm_county = {
+									percent >= 0.95
+									is_coastal_county = yes
+									OR = {
+										any_neighboring_county = {
+											percent >= 0.95
+											holder = {
+												OR = {
+													this = scope:subject
+													any_liege_or_above = { this = scope:subject }
+												}
+											}
+										}
+										any_neighboring_county = { count < 1 }
+									}
+								}
+							}
+						}
+						add = 8
+					}
+
+					if = {
+						limit = {
+							scope:liege = {
+								any_vassal = {
+									count >= 2
+									vassal_contract_has_flag = imperial_bureau_1
+								}
+							}
+						}
+						factor = 0
+					}
+				}
+			}
+			ai_subject_desire = 0
+		}
+		#level = 3
+		special_imperial_legion_0 = { #卫戍
+			position = { 1 0 }
+			icon = "gfx/interface/icons/theme_administration_types/icon_military_administration.dds"
+
+			score = 1
+			color = { 0.7 0.2 0.2 1.0 }
+
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+				scope:liege = {
+					OR = {
+						is_independent_ruler = yes
+						vassal_contract_has_flag = imperial_contract_1
+					}
+				}
+			}
+
+			flag = imperial_contract_1
+			flag = imperial_legion_0
+
+			flag = admin_martial_obligation_bonus
+			flag = obligation_high_levies
+
+			flag = vassal_contract_liege_forced_war_override
+
+			tax_factor = -0.75
+			levies_factor = 0.75
+
+			liege_modifier = {				
+				#vassal_limit = 0.2 #每个军府额少占用四分之一的封臣上限
+				levy_reinforcement_rate = 0.05 #每个军府提供5%的征召兵恢复速度
+
+				legitimacy_loss_mult = 0.1
+			}
+			subject_modifier = {
+				levy_size = 0.75
+				men_at_arms_maintenance = -0.2
+
+				development_growth_factor = -0.25
+				monthly_county_control_growth_factor = 0.1
+				maa_damage_mult = 0.1
+				men_at_arms_title_cap = 2
+
+				hostile_county_attrition = -0.3
+				hostile_raid_time = 0.75
+			}
+
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							stewardship < scope:subject.martial
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:subject = {
+							any_held_county = {
+								any_neighboring_county = {
+									holder = {
+										NOR = {
+											top_liege = scope:subject.top_liege
+											top_liege = { is_at_war_with = scope:subject.top_liege }
+										}
+									}
+								}
+							}
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:liege = {
+							ai_has_warlike_personality = yes
+						}
+					}
+					add = 1
+				}
+			}
+			ai_subject_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							OR = {
+								has_trait = education_martial
+								martial >= very_high_skill_rating
+								primary_title = { any_owned_title_maa_regiment = { count > 4 } }
+								AND = { # Large inland themes are good for military
+									any_sub_realm_county = { count >= 5 }
+									any_sub_realm_county = { percent >= 0.95 is_coastal_county = no }
+								}
+							}
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:subject = {
+							learning < scope:subject.martial
+						}
+					}
+					add = 2
+				}		
+			}
+		}
+		#level = 4
+		special_imperial_legion_1 = { #防御(禁军)
+			position = { 0 2 }
+			icon = "gfx/interface/icons/tax_slot_obligations/iqta_special_rights_tax_collector.dds"
+			score = 1
+
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+				scope:liege = {
+					OR = {
+						is_independent_ruler = yes
+						vassal_contract_has_flag = imperial_legion_1
+					}
+				}
+			}
+
+			tax_factor = -0.75 #额外军饷
+			levies_factor = -0.7 #驻军兵源
+			liege_modifier = {
+				#knight_limit = -2 #=遣将指挥
+				men_at_arms_limit = 1 #禁军兵源
+				men_at_arms_maintenance = 0.05 #禁军军饷
+				men_at_arms_title_limit = 2
+				men_at_arms_title_cap = 2
+
+				legitimacy_loss_mult = 0.1
+			}
+			subject_modifier = {
+				knight_limit = 2 #驻军将领
+     			men_at_arms_cap = 2 #禁军驻守
+				men_at_arms_maintenance = -0.2 #额外军饷
+     			supply_limit_mult = 0.15 #优先补给
+     			development_growth_factor = -0.1 #军事优先
+				
+				fort_level = 2
+				defender_advantage = 6
+			}
+			flag = imperial_contract_1
+			flag = imperial_legion_1
+			flag = admin_theme_frontier
+
+			flag = vassal_contract_liege_forced_war_override
+			
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							is_ai = yes
+							OR = {
+								has_trait = education_martial
+								martial >= very_high_skill_rating
+								primary_title = { any_owned_title_maa_regiment = { count > 4 } }
+								AND = { # Large inland themes are good for military
+									any_sub_realm_county = { count >= 5 }
+									any_sub_realm_county = { percent >= 0.95 is_coastal_county = no }
+								}
+							}
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:liege = {
+							ai_has_warlike_personality = yes
+						}
+					}
+					add = 3
+				}
+			}
+			ai_subject_desire = 0
+		}
+		#level = 5
+		special_imperial_legion_2 = { #藩镇
+			position = { 0 1 }
+			icon = "gfx/interface/icons/theme_administration_types/icon_frontier_administration.dds"
+
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+				scope:liege = {
+					OR = {
+						is_independent_ruler = yes
+						vassal_contract_has_flag = imperial_legion_2
+					}
+				}
+			}
+
+			score = 3
+			tax_factor = -0.8 #不输贡赋
+			levies_factor = -1 #不听征调
+			liege_modifier = {
+				men_at_arms_cap = 0.2 #拣选兵甲
+				army_maintenance_mult = 0.05 #劳军监军
+				#levy_size = -0.1 #地方养兵
+				#domain_limit = -0.2 #流失直辖
+				#knight_limit = -0.5 #流失将佐
+
+				legitimacy_baseline_add = 50
+				legitimacy_loss_mult = 0.2
+			}
+			subject_modifier = {
+				knight_limit = 5 #牙将
+				men_at_arms_cap = 5 #牙兵
+				men_at_arms_maintenance = -0.35 #以利豢兵（平衡军费）
+				opinion_of_different_culture = 10 #不问出身
+				development_growth_factor = -0.15 #军事优先
+				monthly_county_control_growth_factor = -0.25 #武人跋扈
+				opinion_of_liege = -20 #不奉王命
+				fellow_subject_opinion = -20 #武夫
+				ai_war_chance = 2 #好战
+
+				men_at_arms_title_limit = 2
+				men_at_arms_title_cap = 3
+
+				# Values to tweak the AI slightly in order to make them more likely to declare war
+				ai_boldness = 20
+				ai_rationality = -15
+			}
+			flag = imperial_contract_1
+			flag = imperial_legion_2
+
+			flag = admin_prowess_obligation_bonus
+			flag = admin_duchy_expansion_unlocked
+			flag = admin_ai_is_warlike
+			flag = admin_theme_frontier
+			flag = admin_theme_can_raid
+
+			flag = vassal_contract_war_override
+			
+			ai_liege_desire = { 
+				value = 0
+				if = {
+					limit = {
+						scope:liege = {
+							ai_has_warlike_personality = yes
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:subject = {
+							any_sub_realm_county = {
+								any_neighboring_county = {
+									holder = {
+										NOT = { top_liege = scope:subject.top_liege }
+									}
+								}
+							}
+						}
+					}
+					add = 3
+				}
+			}
+			ai_subject_desire = {
+				value = 3
+				if = {
+					limit = {
+						scope:subject = {
+							is_ai = yes
+							OR = {
+								has_trait = education_martial
+								martial >= very_high_skill_rating
+								primary_title = { any_owned_title_maa_regiment = { count > 4 } }
+								AND = { # Large inland themes are good for military
+									any_sub_realm_county = { count >= 5 }
+									any_sub_realm_county = { percent >= 0.95 is_coastal_county = no }
+								}
+							}
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:subject = {
+							any_sub_realm_county = {
+								any_neighboring_county = {
+									holder = {
+										NOT = { top_liege = scope:subject.top_liege }
+									}
+								}
+							}
+						}
+					}
+					add = 2
+				}
+			}
+		}
+		#level = 6
+		special_imperial_legion_4 = { #都护
+			position = { 0 2 }
+			icon = "gfx/interface/icons/traits/longyou.dds"
+
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+				scope:liege = {
+					OR = {
+						is_independent_ruler = yes
+						vassal_contract_has_flag = imperial_legion_4
+					}
+				}
+				custom_tooltip = {
+					text = special_imperial_legion_4_desc
+					scope:subject.primary_title.tier >= tier_duchy
+					scope:subject = { 
+						NOT = {
+							capital_province.empire ?= scope:liege.capital_province.empire
+						}
+					}
+				}
+			}
+
+			score = 2
+			tax_factor = -0.8 #罕征贡赋
+			levies_factor = -1 #驻军屯守
+			liege_modifier = {
+				monthly_prestige_gain_mult = 0.05 #扬威四夷
+				army_maintenance_mult = 0.05 #劳师远征
+				knight_limit = -1  #遣将指挥
+
+				legitimacy_baseline_add = -50
+				legitimacy_gain_mult = 0.2
+			}
+			subject_modifier = {
+				knight_limit = 3  #遣将指挥
+				men_at_arms_cap = 2 #都护驻军
+				men_at_arms_maintenance = -0.15 #朝廷军饷
+				monthly_influence = 3 #扬威异域
+				monthly_county_control_growth_add = 0.5
+				different_culture_opinion = 15 #文化交流
+				different_faith_opinion = 15 #宗教交流
+				glory_hound_opinion = 20
+
+				fort_level = 2
+				defender_advantage = 6
+				hostile_county_attrition = -0.3
+				hostile_raid_time = 0.75
+				
+				# Values to tweak the AI slightly in order to make them more likely to declare war
+				ai_boldness = 20
+				ai_rationality = -15
+			}
+			flag = imperial_contract_1
+			flag = imperial_legion_4
+
+			flag = admin_prowess_obligation_bonus
+			flag = admin_duchy_expansion_unlocked
+			flag = admin_ai_is_warlike
+			flag = admin_theme_frontier
+			flag = admin_theme_naval
+			flag = admin_theme_can_raid
+			
+			ai_liege_desire = 2
+			ai_subject_desire = 4
+		}
+		#level = 7
+		special_imperial_royal_0 = { #寺监
+			position = { 1 1 }
+			score = 0
+			icon = "gfx/interface/icons/theme_administration_types/icon_imperial_administration.dds"
+			color = { 0.7 0.0 0.7 1.0 }
+
+			is_valid = {
+				scope:liege = {
+					highest_held_title_tier = tier_empire
+				}
+				scope:liege = {
+					OR = {
+						is_independent_ruler = yes
+						vassal_contract_has_flag = imperial_royal_0
+					}
+				}
+			}
+
+			tax = 1 #专营专利
+			levies = -1 #削兵夺权
+
+			liege_modifier = {
+				development_growth_factor = -0.05 #圈地妨农
+				monthly_prestige_gain_per_legitimacy_level_add = 0.5
+				legitimacy_gain_mult = 0.2
+				court_grandeur_baseline_add = 10
+
+				monthly_income_mult = -0.02 #宗室俸禄
+				domain_limit = -0.5 #每个朝廷特使占用0.5个直辖
+				build_gold_cost = 0.1 #宗室腐化
+				build_speed = -0.1 #大兴土木			
+			}
+			subject_modifier = {
+				court_grandeur_baseline_add = 10
+				levy_size = -3
+				domain_limit = -2
+				monthly_county_control_growth_factor = 0.2 #上命下达
+				county_opinion_add = -20 #垄断经营
+				
+				monthly_prestige_gain_per_legitimacy_level_add = 0.5 #君临一方
+				monthly_dynasty_prestige = 0.05  #宗枝繁茂
+				development_growth_factor = -0.3 #圈地妨农
+				max_hostile_schemes_add = 1 #密谋造反
+				owned_hostile_scheme_success_chance_add = 25 #伪造宣称
+
+				tyranny_loss_mult = -0.5
+				#fertility = 0.1 #临幸妃嫔
+				#stress_loss_mult = 0.1 #游猎驰骋
+				#general_opinion = -10 #宴游怠政
+			}
+
+			flag = imperial_contract_2
+			flag = imperial_royal_0
+
+			flag = admin_theme_imperial
+			flag = admin_prestige_obligation_bonus
+			flag = admin_cannot_revoke_titles_without_cause
+			flag = obligation_high_taxes
+			
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							any_sub_realm_county = {
+								count >= 1
+								title_province = {
+									has_special_building_slot = yes
+								}
+							}
+						}
+					}
+					add = 5
+				}
+				if = {
+					limit = {
+						exists = scope:liege.house
+						exists = scope:subject.house
+						scope:liege.house = scope:subject.house
+					}
+					add = 4
+				}
+				if = {
+					limit = {
+						scope:liege = {
+							any_vassal = {
+								count >= 1
+								vassal_contract_has_flag = imperial_royal_0
+							}
+						}
+					}
+					factor = 0
+				}
+			}
+			ai_subject_desire = 0
+		}
+	 }		
+}
+
+
+heir_succession_rights = {
+	display_mode = checkbox
+	is_shown = {
+		scope:liege = {
+			is_independent_ruler = yes
+		}
+	}
+	obligation_levels = {
+		heir_succession_rights_default = {
+			default = yes
+			position = { 0 1 }
+
+			ai_liege_desire = 10
+			ai_subject_desire = 0
+
+			flag = heir_succession_rights_default
+		}
+		heir_succession_rights_unlock = {
+			is_valid = {
+			}
+			score = 5
+			parent = heir_succession_rights_default
+			position = { 0 2 }
+
+			subject_opinion = 30
+
+			flag = heir_succession_rights_unlock
+
+			ai_liege_desire = 0
+			ai_subject_desire = 0
+		}
+	}
+}
+
+automony_rights = { #to check
+	display_mode = checkbox
+	is_shown = {
+		scope:liege = {
+			is_independent_ruler = yes
+		}
+	}
+	obligation_levels = {
+		automony_rights_default = {
+			default = yes
+			position = { 0 1 }
+
+			ai_liege_desire = 10
+			ai_subject_desire = 0
+
+			flag = automony_rights_default
+		}
+		special_imperial_legion_3 = { #羁縻
+
+			is_valid = {
+				scope:subject = { 
+					capital_county ?= {
+						OR = {
+							NOT = { culture = { has_same_culture_heritage = scope:liege.culture } }
+							NOT = { faith.religion = scope:liege.faith.religion }
+						}
+					}
+				}
+			}		
+			position = { 0 2 }
+
+			parent = automony_rights_default
+			score = 0
+			tax_factor = -0.9 #罕征贡赋
+			levies_factor = -1 #不征兵员
+			liege_modifier = {
+				monthly_piety_gain_mult = 0.05 #敷施王化
+			}
+			subject_modifier = {
+				#monthly_dynasty_prestige = 0.1 #羁縻官爵
+     			cultural_head_fascination_mult = 0.05 #技术交流
+				levy_reinforcement_rate_different_faith = 0.05
+				minority_opinion = 20
+			}
+
+			flag = automony_rights_rights_unlock
+			
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = { 
+							capital_county ?= {
+								OR = {
+									NOT = { culture = { has_same_culture_heritage = scope:liege.culture } }
+									NOT = { faith.religion = scope:liege.faith.religion }
+								}
+							}
+						}
+					}
+					add = 4
+				}	
+			}
+			ai_subject_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = { 
+							capital_county ?= {
+								OR = {
+									NOT = { culture = { has_same_culture_heritage = scope:liege.culture } }
+									NOT = { faith.religion = scope:liege.faith.religion }
+								}
+							}
+						}
+					}
+					add = 4
+				}
+			}
+		}
+	}
+}
+
+
+#提举常平
+#提点刑狱
+legal_penalty = {
+	display_mode = checkbox
+	obligation_levels = {
+		legal_penalty_default = {
+			default = yes
+			position = { 0 0 }
+
+			ai_liege_desire = 1
+			ai_subject_desire = 0
+		}
+		legal_penalty_granted = {
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+			}
+			parent = legal_penalty_default
+			position = { 1 0 }
+			score = 0
+
+			subject_opinion = 10
+			levies_factor = -0.25
+
+			liege_modifier = {
+				tyranny_loss_mult = -0.1
+			}
+
+			tax_factor = march_contract_taxes
+
+			subject_modifier = {
+				monthly_county_control_growth_add = 0.5
+				
+				garrison_size = 0.2
+				levy_reinforcement_rate = 0.2
+			}
+
+			flag = legal_penalty_granted
+			flag = vassal_contract_increase_prestige_cb_cost
+
+			ai_liege_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							capital_county = {
+								county_control < 50
+							}
+						}
+					}
+					add = 4
+				}
+			}
+			ai_subject_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:liege.culture = {
+							has_innovation = innovation_bannus
+						}
+					}
+					add = 2
+				}
+				if = {
+					limit = {
+						scope:subject = {
+							capital_county = {
+								county_control < 50
+							}
+						}
+					}
+					add = 4
+				}
+			}
+		}
+	}
+}
+
+#自封头衔
+title_creation_rights = {
+	display_mode = checkbox
+	is_shown = {
+	}
+	obligation_levels = {
+		title_creation_rights_none = {
+			default = yes
+			position = { 0 0 }
+
+			ai_liege_desire = 6
+			ai_subject_desire = 1
+		}
+		title_creation_rights_granted = {
+			is_valid = {
+				scope:subject.primary_title = {
+					is_oe_noble_family_title = no
+				}
+				scope:subject = {
+					highest_held_title_tier <= tier_duchy
+				}
+			}
+
+			parent = title_creation_rights_none
+			position = { 1 0 }
+			score = 1
+
+			subject_opinion = 10
+			fellow_subject_opinion = -20
+
+			flag = title_creation_rights_granted
+
+			ai_liege_desire = 0
+			ai_subject_desire = {
+				value = 0
+				if = {
+					limit = {
+						scope:subject = {
+							highest_held_title_tier = tier_duchy
+							is_powerful_vassal = yes
+						}
+					}
+					add = 3
+				}
+			}
+		}
+	}
+}

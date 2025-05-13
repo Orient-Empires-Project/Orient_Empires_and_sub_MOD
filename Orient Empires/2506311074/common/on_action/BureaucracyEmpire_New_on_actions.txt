@@ -387,8 +387,8 @@ BureaucracyEmpire_yearly_new_pulse = {
 							#governor_efficiency < primary_title.current_heir.governor_efficiency
 							#bureaucrat_level_value < primary_heir.bureaucrat_level_value
 							AND = {
-								bureaucrat_level_value < primary_title.bureaucrat_title_rank_value #州等
-								primary_title.bureaucrat_title_rank_value > 3
+								bureaucrat_level_value < bureaucrat_title_rank_value #州等
+								bureaucrat_title_rank_value > 3
 							}
 							NOT = { has_trait = lifestyle_bureaucrat }
 							NOT = { has_character_modifier = bureaucrat_positioned_term }
@@ -903,7 +903,6 @@ BureaucracyEmpire_succession_pulse = {
 		is_ai = no
 	}
 	effect = {
-		add_character_flag = { flag = about_to_die_but_not_dead_yet_flag } # Used in perk calc
 		#世族
 		if = {
 			limit = {
@@ -913,28 +912,14 @@ BureaucracyEmpire_succession_pulse = {
 					current_heir = player_heir
 				}
 			}
-			player_heir = { save_scope_as = heir }
-			domicile ?= { set_domicile_owner = player_heir }
-			set_player_character = player_heir
-		}
-		#非世族 有地继承人
-		else_if = {
-			limit = {
-				exists = player_heir
-				player_heir = { is_landed = yes }
-			}
-			player_heir = { save_scope_as = heir }
-			domicile ?= { set_domicile_owner = player_heir }
+			# vanilla behavior
 			set_player_character = player_heir
 		}
 		#非世族 无地继承人
 		else_if = {
 			limit = {
-				exists = player_heir
-				player_heir = { is_landed = no }
+				player_heir ?= { is_landed = no }
 			}
-			player_heir = { save_scope_as = heir }
-			domicile ?= { set_domicile_owner = scope:heir }
 			if = {
 				limit = {
 					primary_title.tier <= tier_county
@@ -945,7 +930,6 @@ BureaucracyEmpire_succession_pulse = {
 			}
 			else_if = {
 				limit = {
-					primary_title.tier > tier_county
 					NOT = {
 						any_held_title = {
 							is_oe_noble_family_title = yes
@@ -953,7 +937,7 @@ BureaucracyEmpire_succession_pulse = {
 					}
 				}
 				player_heir = {
-					create_noble_family_effect = yes
+					#create_noble_family_effect = yes
 					change_influence = major_influence_gain
 				}
 				set_player_character = player_heir
@@ -961,10 +945,8 @@ BureaucracyEmpire_succession_pulse = {
 		}
 		else_if = {
 			limit = {
-				exists = primary_heir
-				primary_heir = { is_landed = yes }
+				primary_heir ?= { is_landed = yes }
 			}
-			domicile ?= { set_domicile_owner = primary_heir }
 			set_player_character = primary_heir
 		}
 	}
