@@ -3,8 +3,7 @@
 		oe_info_effects
 		story_on_start
 		oe_extra_nomad_region
-		bureau_transfer_after_lobby #文官制
-		herder_transfer_after_lobby #牧民制
+		oe_performance_government_change_after_lobby
 	}
 }
 oe_info_effects = {
@@ -3383,29 +3382,15 @@ ulus_nomad_give_domicile_effects = {
 			}
 		}
 	}
-
 }
-
 yearly_playable_pulse = {
 	on_actions = {
-		bureau_transfer_effects #文官制
-		herder_transfer_effects #牧民制
+		oe_performance_government_change
+		oe_admin_check_pulse
 	}
 }
-
-bureau_transfer_effects = {
+oe_admin_check_pulse = {
 	effect = {
-		if = {
-			limit = {
-				has_game_rule = single_celestial_transfer_to_bureau
-				is_ai = yes
-				is_at_war = no
-				is_imprisoned = no
-				is_oe_landed_bureaucrat_trigger = yes
-				highest_held_title_tier = tier_county
-			}
-			change_government = bureau_government
-		}
 		if = {
 			limit = {
 				has_dlc_feature = roads_to_power
@@ -3428,304 +3413,126 @@ bureau_transfer_effects = {
 		}
 	}
 }
-
-herder_transfer_effects = {
+oe_performance_government_change = {
+	trigger = {
+		NAND = {
+			has_game_rule = single_celestial_transfer_to_bureau_off
+			has_game_rule = single_nomad_transfer_to_herd_off
+			has_game_rule = single_tribal_transfer_to_native_off
+		}
+		is_ai = yes
+		is_at_war = no
+		is_imprisoned = no
+		is_migrating = no
+		is_ruler = yes
+		highest_held_title_tier = tier_county
+	}
+	on_actions = {
+		oe_check_change_to_bureau
+		oe_check_change_to_herder
+		oe_check_change_to_native
+	}
+}
+oe_check_change_to_bureau = {
+	trigger = {
+		has_game_rule = single_celestial_transfer_to_bureau
+		is_oe_landed_bureaucrat_trigger = yes
+	}
 	effect = {
-		if = {
-			limit = {
-				has_game_rule = single_tribal_transfer_to_native_1
+		change_government = bureau_government
+	}
+}
+
+oe_check_change_to_herder = {
+	trigger = {
+		NOT = { has_game_rule = single_nomad_transfer_to_herd_off }
+		government_has_flag = government_is_nomadic
+		NOR = {
+			any_neighboring_top_liege_realm_owner = { is_ai = no }
+			primary_title = {
+				any_neighboring_county = {
+					holder = { is_ai = no }
+				}
+			}
+		}
+		switch = {
+			trigger = has_game_rule
+			single_nomad_transfer_to_herd_1 = {
 				any_held_title = {
 					is_landless_type_title = no
 					count = 1
 				}
-				is_ai = yes
-				is_at_war = no
-				is_imprisoned = no
-				is_migrating = no
-				is_ruler = yes
-				government_has_flag = government_is_tribal
-				highest_held_title_tier = tier_county
-				primary_title.any_neighboring_county.holder = { is_ai = no }
-				any_neighboring_top_liege_realm_owner = { is_ai = no }
 			}
-			change_government = native_government
-		}
-		if = {
-			limit = {
-				has_game_rule = single_tribal_transfer_to_native_2
+			single_nomad_transfer_to_herd_2 = {
 				any_held_title = {
 					is_landless_type_title = no
 					count <= 2
 				}
-				is_ai = yes
-				is_at_war = no
-				is_imprisoned = no
-				is_migrating = no
-				is_ruler = yes
-				government_has_flag = government_is_tribal
-				highest_held_title_tier = tier_county
-				primary_title.any_neighboring_county.holder = { is_ai = no }
-				any_neighboring_top_liege_realm_owner = { is_ai = no }
 			}
-			change_government = native_government
-		}
-		if = {
-			limit = {
-				has_game_rule = single_tribal_transfer_to_native_3
+			single_nomad_transfer_to_herd_3 = {
 				any_held_title = {
 					is_landless_type_title = no
 					count <= 3
 				}
-				is_ai = yes
-				is_at_war = no
-				is_imprisoned = no
-				is_migrating = no
-				is_ruler = yes
-				government_has_flag = government_is_tribal
-				highest_held_title_tier = tier_county
-				primary_title.any_neighboring_county.holder = { is_ai = no }
-				any_neighboring_top_liege_realm_owner = { is_ai = no }
 			}
-			change_government = native_government
 		}
-		if = {
-			limit = {
-				has_game_rule = single_nomad_transfer_to_herd_1
+	}
+	effect = {
+		change_government = herder_government
+	}
+}
+
+oe_check_change_to_native = {
+	trigger = {
+		NOT = { has_game_rule = single_tribal_transfer_to_native }
+		government_has_flag = government_is_tribal
+		NOR = {
+			any_neighboring_top_liege_realm_owner = { is_ai = no }
+			primary_title = {
+				any_neighboring_county = {
+					holder = { is_ai = no }
+				}
+			}
+		}
+		switch = {
+			trigger = has_game_rule
+			single_tribal_transfer_to_native_1 = {
 				any_held_title = {
 					is_landless_type_title = no
 					count = 1
 				}
-				is_ai = yes
-				is_at_war = no
-				is_imprisoned = no
-				is_migrating = no
-				is_ruler = yes
-				government_has_flag = government_is_nomadic
-				highest_held_title_tier = tier_county
-				primary_title.any_neighboring_county.holder = { is_ai = no }
-				any_neighboring_top_liege_realm_owner = { is_ai = no }
 			}
-			change_government = herder_government
-		}
-		if = {
-			limit = {
-				has_game_rule = single_nomad_transfer_to_herd_2
+			single_tribal_transfer_to_native_2 = {
 				any_held_title = {
 					is_landless_type_title = no
 					count <= 2
 				}
-				is_ai = yes
-				is_at_war = no
-				is_imprisoned = no
-				is_migrating = no
-				is_ruler = yes
-				government_has_flag = government_is_nomadic
-				highest_held_title_tier = tier_county
-				primary_title.any_neighboring_county.holder = { is_ai = no }
-				any_neighboring_top_liege_realm_owner = { is_ai = no }
 			}
-			change_government = herder_government
-		}
-		if = {
-			limit = {
-				has_game_rule = single_nomad_transfer_to_herd_3
+			single_tribal_transfer_to_native_3 = {
 				any_held_title = {
 					is_landless_type_title = no
 					count <= 3
 				}
-				is_ai = yes
-				is_at_war = no
-				is_imprisoned = no
-				is_migrating = no
-				is_ruler = yes
-				government_has_flag = government_is_nomadic
-				highest_held_title_tier = tier_county
-				primary_title.any_neighboring_county.holder = { is_ai = no }
-				any_neighboring_top_liege_realm_owner = { is_ai = no }
 			}
-			change_government = herder_government
 		}
+	}
+	effect = {
+		change_government = native_government
 	}
 }
 
-bureau_transfer_after_lobby = {
-	effect = {
-		if = {
-			limit = {
-				has_game_rule = single_celestial_transfer_to_bureau_on
-			}
-			every_ruler = {
-				if = {
-					limit = {
-						is_ai = yes
-						is_at_war = no
-						is_imprisoned = no
-						is_oe_landed_bureaucrat_trigger = yes
-						highest_held_title_tier = tier_county
-						#any_held_title = {
-							#is_landless_type_title = no
-							#count = 1
-						#}
-					}
-					change_government = bureau_government
-				}
-			}
+oe_performance_government_change_after_lobby = {
+	trigger = {
+		NAND = {
+			has_game_rule = single_celestial_transfer_to_bureau_off
+			has_game_rule = single_nomad_transfer_to_herd_off
+			has_game_rule = single_tribal_transfer_to_native_off
 		}
 	}
-}
-herder_transfer_after_lobby = {
 	effect = {
-		#every_ruler = {
-			#limit = {
-				#government_has_flag = government_is_tribal
-				#capital_province ?= {
-					#has_holding_type = tribal_holding
-					#OR = {
-						#geographical_region = world_asia_southeast_champa
-						#geographical_region = world_asia_ryukyu
-						#geographical_region = world_steppe_tunguse
-						#geographical_region = world_africa_sahara
-					#}
-				#}
-			#}
-			#change_government = native_government
-		#}
-		if = {
-			limit = {
-				has_game_rule = single_tribal_transfer_to_native_1
-			}
-			every_ruler = {
-				limit = {
-					is_ai = yes
-					is_at_war = no
-					is_imprisoned = no
-					is_migrating = no
-					is_ruler = yes
-					government_has_flag = government_is_tribal
-					highest_held_title_tier = tier_county
-					primary_title.any_neighboring_county.holder = { is_ai = no }
-					any_neighboring_top_liege_realm_owner = { is_ai = no }
-					any_held_title = {
-						is_landless_type_title = no
-						count = 1
-					}
-				}
-				change_government = native_government
-			}
-		}
-		if = {
-			limit = {
-				has_game_rule = single_tribal_transfer_to_native_2
-			}
-			every_ruler = {
-				limit = {
-					is_ai = yes
-					is_at_war = no
-					is_imprisoned = no
-					is_migrating = no
-					is_ruler = yes
-					government_has_flag = government_is_tribal
-					highest_held_title_tier = tier_county
-					primary_title.any_neighboring_county.holder = { is_ai = no }
-					any_neighboring_top_liege_realm_owner = { is_ai = no }
-					any_held_title = {
-						is_landless_type_title = no
-						count <= 2
-					}
-				}
-				change_government = native_government
-			}
-		}
-		if = {
-			limit = {
-				has_game_rule = single_tribal_transfer_to_native_3
-			}
-			every_ruler = {
-				limit = {
-					is_ai = yes
-					is_at_war = no
-					is_imprisoned = no
-					is_migrating = no
-					is_ruler = yes
-					government_has_flag = government_is_tribal
-					highest_held_title_tier = tier_county
-					primary_title.any_neighboring_county.holder = { is_ai = no }
-					any_neighboring_top_liege_realm_owner = { is_ai = no }
-					any_held_title = {
-						is_landless_type_title = no
-						count <= 3
-					}
-				}
-				change_government = native_government
-			}
-		}
-		if = {
-			limit = {
-				has_game_rule = single_nomad_transfer_to_herd_1
-			}
-			every_ruler = {
-				limit = {
-					is_ai = yes
-					is_at_war = no
-					is_imprisoned = no
-					is_migrating = no
-					is_ruler = yes
-					government_has_flag = government_is_nomadic
-					highest_held_title_tier = tier_county
-					primary_title.any_neighboring_county.holder = { is_ai = no }
-					any_neighboring_top_liege_realm_owner = { is_ai = no }
-					any_held_title = {
-						is_landless_type_title = no
-						count = 1
-					}
-				}
-				change_government = herder_government
-			}
-		}
-		if = {
-			limit = {
-				has_game_rule = single_nomad_transfer_to_herd_2
-			}
-			every_ruler = {
-				limit = {
-					is_ai = yes
-					is_at_war = no
-					is_imprisoned = no
-					is_migrating = no
-					is_ruler = yes
-					government_has_flag = government_is_nomadic
-					highest_held_title_tier = tier_county
-					primary_title.any_neighboring_county.holder = { is_ai = no }
-					any_neighboring_top_liege_realm_owner = { is_ai = no }
-					any_held_title = {
-						is_landless_type_title = no
-						count <= 2
-					}
-				}
-				change_government = herder_government
-			}
-		}
-		if = {
-			limit = {
-				has_game_rule = single_nomad_transfer_to_herd_3
-			}
-			every_ruler = {
-				limit = {
-					is_ai = yes
-					is_at_war = no
-					is_imprisoned = no
-					is_migrating = no
-					is_ruler = yes
-					government_has_flag = government_is_nomadic
-					highest_held_title_tier = tier_county
-					primary_title.any_neighboring_county.holder = { is_ai = no }
-					any_neighboring_top_liege_realm_owner = { is_ai = no }
-					any_held_title = {
-						is_landless_type_title = no
-						count <= 3
-					}
-				}
-				change_government = herder_government
+		every_ruler = {
+			trigger_event = {
+				on_action = oe_performance_government_change
 			}
 		}
 	}
