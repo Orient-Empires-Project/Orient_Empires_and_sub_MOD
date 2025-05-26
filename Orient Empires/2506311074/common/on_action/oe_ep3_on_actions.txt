@@ -8,7 +8,7 @@ celes_no_dlc_on_action = {
 	effect = {
 		if = {
 			limit = {
-				has_ep3_dlc_trigger = yes
+				has_dlc_feature = roads_to_power
 			}
 			every_ruler = {
 				celestial_change_to_imperial_with_laws_effect = yes
@@ -17,7 +17,7 @@ celes_no_dlc_on_action = {
 		}
 		else_if = {
 			limit = {
-				has_ep3_dlc_trigger = no
+				NOT = { has_dlc_feature = roads_to_power }
 			}
 			every_ruler = {
 				imperial_change_to_celestial_with_laws_effect = yes
@@ -108,7 +108,7 @@ oe_admin_effects = {
 				government_has_flag = government_is_celestial
 				is_independent_ruler = no
 				scope:title.tier = tier_county
-				primary_title = { is_oe_noble_family_title = yes }
+				primary_title = { is_noble_family_title = yes }
 				NOT = {
 					any_held_title = {
 						tier >= tier_duchy
@@ -155,7 +155,7 @@ oe_admin_effects = {
 #每年检查世族头衔
 yearly_playable_pulse = {
 	on_actions = {
-		oe_admin_yearly_playable_pulse
+		oe_admin_yearly_playable_pulse  #关闭家主检查  使用原版
 	}
 }
 oe_admin_yearly_playable_pulse = {
@@ -168,7 +168,7 @@ oe_admin_yearly_playable_pulse = {
 					government_has_flag = government_is_celestial
 				}			
 				any_held_title = {
-					is_oe_noble_family_title = yes
+					is_noble_family_title = yes
 				}
 				is_landed = no
 				is_house_head = yes
@@ -180,57 +180,57 @@ oe_admin_yearly_playable_pulse = {
 			}
 			every_held_title = {
 				limit = {
-					is_oe_noble_family_title = yes
+					is_noble_family_title = yes
 				}
 				save_temporary_scope_as = family_title
 				root = { destroy_title = scope:family_title }
 			}
 		}
 		# Failsafe to ensure we don't get independent admin rulers of too low a rank (i.e. below king)
-		#if = {
-			#limit = {
-				#liege = root # I.e. root is independent
-				#government_has_flag = government_use_estate
-				#highest_held_title_tier < tier_kingdom
-			#}
-			#if = { # If we are looking at an independent landless character, let's destroy their title
-				#limit = {
-					#is_landed = no
-				#}
-				#destroy_title = primary_title
-			#}
-			#else = { # Otherwise, they change government
-				#admin_change_government_effect = yes
-				#if = {
-					#limit = {
-						#any_held_title = {
-							#is_oe_noble_family_title = yes
-						#}
-					#}
-					#every_held_title = {
-						#limit = {
-							#is_oe_noble_family_title = yes
-						#}
-						#save_temporary_scope_as = family_title
-						#root = { destroy_title = scope:family_title }
-					#}
-				#}
-			#}
-		#}
+		if = {
+			limit = {
+				liege = root # I.e. root is independent
+				government_has_flag = government_is_celestial
+				highest_held_title_tier < tier_kingdom
+			}
+			if = { # If we are looking at an independent landless character, let's destroy their title
+				limit = {
+					is_landed = no
+				}
+				destroy_title = primary_title
+			}
+			else = { # Otherwise, they change government
+				admin_change_government_effect = yes
+				if = {
+					limit = {
+						any_held_title = {
+							is_noble_family_title = yes
+						}
+					}
+					every_held_title = {
+						limit = {
+							is_noble_family_title = yes
+						}
+						save_temporary_scope_as = family_title
+						root = { destroy_title = scope:family_title }
+					}
+				}
+			}
+		}
 		# Failsafe to ensure we don't have a noble family holding land without other titles - Give any held land to liege
 		if = {
 			limit = {
-				government_has_flag = government_use_estate
+				government_has_flag = government_is_celestial
 				is_landed = yes
 				exists = liege
 				NOT = { liege = root }
 				any_held_title = { # They have a noble family title
-					is_oe_noble_family_title = yes
+					is_noble_family_title = yes
 				}
 				NOT = { # And no other high tier titles
 					any_held_title = {
 						tier >= tier_duchy
-						is_oe_noble_family_title = no
+						is_noble_family_title = no
 					}
 				}
 			}
@@ -260,7 +260,7 @@ oe_admin_yearly_playable_pulse = {
 				government_has_flag = government_is_celestial
 				is_landed = no
 				any_held_title = {
-					is_oe_noble_family_title = yes
+					is_noble_family_title = yes
 				}
 				any_vassal_or_below = {
 					count > 0
