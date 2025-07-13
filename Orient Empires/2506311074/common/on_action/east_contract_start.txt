@@ -144,7 +144,7 @@ oe_on_game_start_contract = {
 						has_title = title:k_annan
 						has_title = title:k_goryeo
 						has_title = title:k_tengri
-						has_title = title:k_mongolia
+						has_title = title:k_otuken
 						has_title = title:k_dzungaria
 						has_title = title:k_zhetysu 
 						has_title = title:k_tsang
@@ -156,12 +156,8 @@ oe_on_game_start_contract = {
 					}
 				}
 				vassal_contract_set_obligation_level = {
-					type = special_imperial_contract
-					level = 1
-				}
-				vassal_contract_set_obligation_level = {
-					type = special_imperial_legion
-					level = 4
+					type = special_imperial_bureau
+					level = 6
 				} 
 			}
 		}	
@@ -171,8 +167,22 @@ oe_on_game_start_contract = {
 on_title_gain = {
 	on_actions = {
 		oe_contract_title_gain_effects
+		oe_admin_kingdom_title_gain
 	}
-}	
+}
+
+on_rank_up = {
+	on_actions = {
+		oe_admin_kingdom_title_gain
+	}
+}
+
+on_vassal_change = {
+	on_actions = {
+		oe_admin_kingdom_independence
+	}
+}
+
 oe_contract_title_gain_effects = {
 	trigger = {
 		OR = {
@@ -217,3 +227,38 @@ oe_contract_title_gain_effects = {
 		}
 	}	
 }	
+
+
+
+oe_admin_kingdom_title_gain = {
+	trigger = {
+		scope:title.tier = tier_kingdom
+		is_independent_ruler = no
+		liege ?= { is_oe_imperial_government_trigger = yes }
+		government_allows = administrative
+		government_has_flag = government_is_celestial
+	}
+	effect = {
+		primary_title = { save_scope_as = title }
+		set_administrative_kingdom_effect = yes
+	}
+}
+
+oe_admin_kingdom_independence = {
+	effect = {
+		if = {
+			limit = {
+				exists = scope:old_liege
+				scope:old_liege = {
+					is_oe_imperial_government_trigger = yes
+				}
+				liege = root # I.e. root is independent
+				highest_held_title_tier = tier_kingdom
+				government_has_flag = government_is_celestial
+				years_from_game_start >= 0.05
+			}
+			primary_title = { save_scope_as = title }
+			set_administrative_kingdom_back_effect = yes
+		}
+	}
+}

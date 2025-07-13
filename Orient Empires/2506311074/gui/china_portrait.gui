@@ -4,10 +4,12 @@
 
 types chinaPortraitTypes
 {
-	type widget_china_councillor_small_item = widget_china_councillor_item {
-		size = { 220 200 }
-		blockoverride "portrait_position" {
-			position = { 0 20 }
+	type widget_china_court_position_item_small = hbox {
+		widget_china_court_position_item = {
+			size = { 300 250 }
+			blockoverride "text_max_width" {
+				max_width = 110
+			}
 		}
 	}
 
@@ -565,7 +567,347 @@ types chinaPortraitTypes
 			}
 		}
 	}
-    type chinaportrait_shoulders_small = widget {
+
+	type widget_china_court_position_item = widget {
+		size = { 450 220 }
+
+		### Required Datacontexts
+		# GetCourtPositionType
+		# The employee
+
+		vbox = {
+			datacontext = "[CourtPosition.GetActiveTask]"
+			datacontext = "[CourtPosition.GetEmployee]"
+
+			background = {
+				texture = "gfx/interface/illustrations/new_ui_bg/bg_rice_paper.dds"
+				using = Mask_Rough_Edges
+				alpha = 0.2
+			}
+			background = {
+				texture = "gfx/interface/hud/pause_border.dds"
+			}
+
+			# header
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				ignoreinvisible = no
+				margin = { 10 5 }
+
+				background = {
+					using = Background_Area_Dark
+				}
+
+				icon = {
+					texture = "[CourtPositionType.GetIcon]"
+					size = { 32 32 }
+				}
+
+				vbox = {
+					layoutpolicy_vertical = expanding
+					layoutpolicy_horizontal = expanding
+
+					text_single = {
+						layoutpolicy_horizontal = expanding
+						# OE_GetShortUINameNoTooltip left a space, so add 1 space here.
+						raw_text = " [CourtPositionType.CalcTriggeredNameNoTooltip( GetPlayer.Self )]"
+						autoresize = no
+						fontsize_min = 13
+					}
+					text_single = {
+						layoutpolicy_horizontal = expanding
+						visible = "[Character.IsValid]"
+						text = "[Character.Custom('OE_GetShortUINameNoTooltip')]"
+						default_format = "#high"
+						align = nobaseline
+						autoresize = no
+						fontsize_min = 13
+					}
+					text_single = {
+						layoutpolicy_horizontal = expanding
+						visible = "[Not(Character.IsValid)]"
+						default_format = "#high"
+						raw_text = " "  # placeholder for aligning
+						align = nobaseline
+						autoresize = no
+						fontsize_min = 13
+					}
+
+					tooltipwidget = {
+						court_position_type_tooltip = {
+							blockoverride "title_text_inner" {
+								datacontext = "[GetPlayer]"
+								text = "[Select_CString( CourtPosition.IsValid, CourtPosition.GetNameNoTooltip, CourtPositionType.CalcTriggeredNameNoTooltip( Character.Self ) )]"
+							}
+							blockoverride "description_text_inner" {
+								datacontext = "[GetPlayer]"
+								text = "[Select_CString( CourtPosition.IsValid, CourtPosition.GetDescription, CourtPositionType.CalcTriggeredDescription( Character.Self ) )]"
+							}
+						}
+					}
+				}
+
+				expand = {}
+
+				hbox = {
+					visible = "[Character.IsValid]"
+					minimumsize = { 80 52 }
+					margin_left = 2
+					margin_right = 8
+					margin_bottom = 4
+					margin_top = 2
+
+					text_single = {
+						max_width = 100
+
+						text = "[CourtPosition.GetAptitudeText|V]"
+						align = nobaseline
+
+						tooltipwidget = {
+							court_position_aptitude_breakdown_tooltip = {
+								datacontext = "[CourtPosition.GetAptitudeTooltip]"
+
+								blockoverride "header_text" {
+									text = "COURT_POSITION_aptitude_description_position"
+								}
+
+								blockoverride "modifier_list" {
+									text = "[CourtPosition.GetEmployerBonuses]"
+								}
+							}
+						}
+					}
+
+					text_single = {
+						max_width = 100
+
+						text = "COURT_POSITIONS_WINDOW_SALARY_SHORT"
+						align = nobaseline
+						tooltip = "[CourtPosition.GetSalaryBreakdownTooltip]"
+					}
+				}
+
+				hbox = {
+					visible = "[ObjectsEqual(GetPlayer, GetPlayer.GetTopLiege)]"
+					ignoreinvisible = no
+					button_round = {
+						name = "fire_courtier"
+						visible = "[Character.IsValid]"
+						size = { 30 30 }
+
+						button_cancel = {
+							size = { 24 24 }
+							parentanchor = center
+
+							onclick = "[CourtPosition.OpenRevokeConfirmation]"
+							tooltip = "COURT_POSITION_REVOKE"
+							using = tooltip_ne
+						}
+					}
+
+					button_round = {
+						name = "replace_courtier"
+						visible = "[Character.IsValid]"
+						size = { 30 30 }
+
+						button_change = {
+							size = { 24 24 }
+							parentanchor = center
+
+							onclick = "[CourtPosition.OpenReplaceWindow]"
+							tooltip = "COURT_POSITION_REPLACE"
+							using = tooltip_ne
+						}
+					}
+
+					button_round = {
+						name = "automate_position"
+						size = { 30 30 }
+
+						button_edit_automation = {
+							size = { 24 24 }
+							parentanchor = center
+
+							enabled = "[IsValidCommand( CourtPositionType.ToggleAutomationCmd )]"
+							onclick = "[PostCommand( CourtPositionType.ToggleAutomationCmd )]"
+
+							tooltip = "COURT_POSITION_TOGGLE_AUTOMATION"
+							using = tooltip_se
+						}
+					}
+				}
+			}
+
+			hbox = {
+				layoutpolicy_horizontal = expanding
+
+				vbox = {
+					ignoreinvisible = no
+					layoutpolicy_vertical = expanding
+					expand = {}
+					coa_realm_small_crown = {
+						visible = "[Character.HasLandedTitles]"
+						name = "councillor_realm"
+					}
+					widget = {
+						visible = "[Not(ObjectsEqual(GetPlayer, GetPlayer.GetTopLiege))]"
+						size = { 44 52 }
+					}
+				}
+
+				hbox = {
+					layoutpolicy_horizontal = expanding
+					layoutpolicy_vertical = expanding
+					block "portrait_margin" {}
+
+					china_extra_councillor_portrait = {
+						name = "councillor_portrait"
+						visible = "[Character.IsValid]"
+
+						size = { 125 160 }
+						blockoverride "portrait_size" {
+							size = { 145 175 }
+						}
+
+						blockoverride "portrait_button" {
+							using = tooltip_ws
+						}
+
+						portrait_opinion = {
+							visible = "[Not(Character.IsLocalPlayer)]"
+							parentanchor = bottom|hcenter
+							position = { 0 -2 }
+
+							blockoverride "opinion_text"
+							{
+								text = "[Character.GetOpinionOf( Character.GetLiege )|=]"
+								fonttintcolor = "[Character.GetOpinionOfTint( Character.GetLiege )]"
+							}
+
+							blockoverride "ott_heading_text"
+							{
+								text = "[Character.GetOpinionHeadingText( Character.GetLiege )]"
+							}
+
+							blockoverride "ott_opinion_value_text"
+							{
+								text = "[Character.GetOpinionOf( Character.GetLiege )|=]"
+								fonttintcolor = "[Character.GetOpinionOfTint( Character.GetLiege )]"
+							}
+
+							blockoverride "ott_opinion_breakdown_text"
+							{
+								text = "[Character.GetOpinionBreakdownText( Character.GetLiege )|=]"
+							}
+						}
+					}
+
+					china_extra_councillor_portrait = {
+						name = "councillor_portrait_blank"
+						visible = "[Not(Character.IsValid)]"
+
+						size = { 125 160 }
+						blockoverride "portrait_size" {
+							size = { 145 175 }
+						}
+
+						text_label_center = {
+							visible = "[OEIsEmperor]"
+							parentanchor = bottom|hcenter
+							position = { 0 0 }
+							text = "APPOINT_COURT_POSITION_VIEW_appoint_button"
+							default_format = "#low;italic"
+							max_width = 235
+						}
+
+						blockoverride "onclick" {
+							visible = "[OEIsEmperor]"
+							onclick = "[CourtPositionType.OpenAppointWindow( GetPlayer )]"
+
+							button_icon = {
+								parentanchor = center
+								alwaystransparent = yes
+								size = { 40 40 }
+								position = { 0 70 }
+								texture = "gfx/interface/icons/flat_icons/plus.dds"
+							}
+						}
+						blockoverride "portrait_button" {
+							using = tooltip_ws
+						}
+					}
+
+					flowcontainer = {
+						visible = "[Character.IsValid]"
+						layoutpolicy_horizontal = expanding
+						layoutpolicy_vertical = expanding
+						flowcontainer = {
+							parentanchor = bottom
+							margin_bottom = 4
+
+							portrait_status_icons = {
+								background = {
+									using = Background_Area_Dark
+									margin = { 1 2 }
+								}
+							}
+						}
+					}
+				}
+
+				expand = {}
+
+				vbox = {
+					layoutpolicy_vertical = expanding
+					margin_top = 20
+					margin_right = 20
+
+					text_multi = {
+						layoutpolicy_horizontal = expanding
+						text = "[CourtPositionType.GetDescription]"
+						autoresize = yes
+						block "text_max_width" {
+							max_width = 200
+						}
+						using = Font_Size_Small
+						default_format = "#light_background"
+						using = Font_Type_Flavor
+						format_override = { high light_background }
+					}
+
+					expand = {}
+
+					hbox = {
+						visible = "[ObjectsEqual(GetPlayer, GetPlayer.GetTopLiege)]"
+						layoutpolicy_vertical = expanding
+						layoutpolicy_horizontal = expanding
+
+						fixedgridbox = {
+							name = "task_items"
+
+							addcolumn = 40
+							addrow = 40
+							setitemsizefromcell = yes
+							datamodel_wrap = 5
+							flipdirection = yes
+							layoutanchor = bottomleft
+
+							datamodel = "[CourtPositionType.GetTasks]"
+							item = {
+								widget_court_position_task_view = {
+									blockoverride "click_to_activate" {}
+								}
+							}
+						}
+
+						expand = {}
+					}
+				}
+			}
+		}
+	}
+
+	type chinaportrait_shoulders_small = widget {
         size = { 200 160 }
 
         widget = {
@@ -675,7 +1017,7 @@ types chinaPortraitTypes
 
         #portrait unknown glow
         button = {
-			name = "portrait_unknown_council_glow"
+			name = "portrait_unknown_glow"
 			visible = "[Not(Character.IsValid)]"
 			parentanchor = center
             position = { 0 -7 }
@@ -689,14 +1031,6 @@ types chinaPortraitTypes
             framesize = { 471 589 }
             upframe = 1
             overframe = 2
-
-            block "glow_visible" {
-
-                visible = "[Not(Character.IsValid)]"
-
-            }
-
-            block "glow_flip" {}
 
             block "onclick" {}
         }

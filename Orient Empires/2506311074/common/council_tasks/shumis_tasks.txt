@@ -1,9 +1,16 @@
 ﻿councillor_shumishi_1 = {
-	default_task = yes
 	position = councillor_shumishi
+	default_task = yes
 
 	task_type = task_type_general
 	task_progress = task_progress_infinite
+
+	asset = {
+		icon = "gfx/interface/icons/council_task_types/councillor_shumishi_1.dds"
+		background = "gfx/interface/buttons/button_round_bg.dds"
+		frame = "gfx/interface/buttons/button_round_frame.dds"
+		glow = "gfx/particles/halo.dds"
+	}
 
 	effect_desc = {
 		desc = task_disrupt_schemes_hostile_scheme_resistance_base
@@ -23,6 +30,12 @@
 			}
 			desc = task_disrupt_schemes_hostile_scheme_resistance_family_business_bonus
 		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			desc = task_disrupt_schemes_hostile_scheme_resistance_consulted_house_bonus
+		}
 		desc = task_disrupt_schemes_discovery_chance_base
 		triggered_desc = {
 			trigger = { scope:councillor_liege = { has_perk = court_of_shadows_perk } }
@@ -39,6 +52,12 @@
 				councillor_liege_has_family_business_bonus = yes
 			}
 			desc = task_disrupt_schemes_discovery_chance_family_business_bonus
+		}
+		triggered_desc = {
+			trigger = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			desc = task_disrupt_schemes_discovery_chance_consulted_house_bonus
 		}
 		desc = {
 			desc = council_task_possible_side_effects
@@ -68,25 +87,25 @@
 
 	council_owner_modifier = {
 		name = task_disrupt_schemes_modifier
-		hostile_scheme_resistance_add = 1.0
+		enemy_hostile_scheme_phase_duration_add = 1
 		scale = scope:councillor.spymaster_disrupt_schemes_modifier_base_scale
 	}
 
 	council_owner_modifier = {
-		name = task_disrupt_schemes_court_of_shadows_modifier
-		hostile_scheme_resistance_add = 1.0
+		name = task_disrupt_schemes_court_of_shadows_modifier #NOT USED?
+		enemy_hostile_scheme_phase_duration_add = 1
 		scale = scope:councillor.spymaster_disrupt_schemes_court_of_shadows_modifier_scale
 	}
 
 	council_owner_modifier = {
 		name = task_disrupt_schemes_erudition_legacy_5_modifier
-		hostile_scheme_resistance_add = 1.0
+		enemy_hostile_scheme_phase_duration_add = 1
 		scale = scope:councillor.spymaster_disrupt_schemes_erudition_legacy_5_modifier_scale
 	}
 
 	council_owner_modifier = {
 		name = task_disrupt_schemes_erudition_legacy_5_modifier #TO EDIT?
-		hostile_scheme_resistance_add = 1.0
+		enemy_hostile_scheme_phase_duration_add = 1
 		scale = scope:councillor.spymaster_disrupt_schemes_family_business_modifier_scale
 	}
 
@@ -146,11 +165,12 @@
 						ai_honor <= -50
 						ai_greed >= 50
 						save_temporary_scope_as = sibling
-						any_heir_title = {
-							holder = prev
-							place_in_line_of_succession = {
-								target = scope:sibling
-								value <=3
+						root = {
+							any_held_title = {
+								place_in_line_of_succession = {
+									target = scope:sibling
+									value <= 3
+								}
 							}
 						}
 					}
@@ -161,11 +181,340 @@
 	}
 }
 
+councillor_shumishi_3 = {
+	position = councillor_shumishi
+
+	task_type = task_type_county
+	county_target = realm
+	ai_county_target = domain
+	task_progress = task_progress_value
+	task_current_value = scope:councillor_liege.marshal_increase_control_current_progress
+	task_max_value = 100 # Highest possible county control
+	highlight_own_realm = yes
+	restart_on_finish = yes # If it "finishes" by removing a corruption modifier, there'll still be control to regain
+
+	asset = {
+		icon = "gfx/interface/icons/council_task_types/councillor_shumishi_3.dds"
+		background = "gfx/interface/buttons/button_round_bg.dds"
+		frame = "gfx/interface/buttons/button_round_frame.dds"
+		glow = "gfx/particles/halo.dds"
+	}
+
+	effect_desc = {
+		desc = task_increase_control_effect_desc
+		desc = {
+			desc = council_task_possible_side_effects
+			triggered_desc = {
+				trigger = {
+					scope:councillor_liege = {
+						any_active_accolade = {
+							has_accolade_parameter = accolade_increase_control_bonus
+						}
+					}
+				}
+				desc = task_increase_control_acclaimed_knight_subdues_peasantry
+			}
+			triggered_desc = {
+				trigger = {
+					martial > mediocre_skill_rating
+				}
+				desc = task_increase_control_increase_opinion
+			}
+			triggered_desc = {
+				trigger = {
+					martial > mediocre_skill_rating
+				}
+				desc = task_increase_control_baron_opinion_increase
+			}
+			triggered_desc = {
+				trigger = {
+					martial < high_skill_rating
+				}
+				desc = task_increase_control_lose_opinion
+			}
+			triggered_desc = {
+				trigger = {
+					martial < high_skill_rating
+				}
+				desc = task_increase_control_lose_control
+			}
+			triggered_desc = {
+				trigger = {
+					martial < high_skill_rating
+				}
+				desc = task_increase_control_baron_opinion_loss
+			}
+		}
+	}
+	
+	# TOTAL PROGRESS MUST MATCH THE TOTAL OF THE COUNTY MODIFIERS BELOW
+		# Add all new progress values to the script value marshal_increase_control_total
+		# Note that for Increase Control, the County Modifiers apply the actual values, while progress is for player info only
+	progress = {
+		value = 0
+		add = {
+			value = marshal_increase_control_base
+			desc = INCREASE_CONTROL_BASE
+		}
+		add = {
+			value = scope:councillor.marshal_increase_county_control_monthly_change
+			desc = SCALED_COUNCILLOR_MARTIAL_VALUE
+		}
+		# Relation Bonuses/Penalties
+		if = { # Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_friend = scope:councillor
+					NOT = { has_relation_best_friend = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.marshal_increase_control_monthly_increase_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_FRIEND
+			}
+		}
+		if = { # Best Friend
+			limit = {
+				scope:councillor_liege = {
+					has_relation_best_friend = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.marshal_increase_control_monthly_increase_best_friend_bonus
+				desc = COUNCILLOR_IS_YOUR_BEST_FRIEND
+			}
+		}
+		if = { # Rival
+			limit = {
+				scope:councillor_liege = {
+					has_relation_rival = scope:councillor
+					NOT = { has_relation_nemesis = scope:councillor }
+				}
+			}
+			add = {
+				value = scope:councillor.marshal_increase_control_monthly_increase_rival_bonus
+				desc = COUNCILLOR_IS_YOUR_RIVAL
+			}
+		}
+		if = { # Nemesis
+			limit = {
+				scope:councillor_liege = {
+					has_relation_nemesis = scope:councillor
+				}
+			}
+			add = {
+				value = scope:councillor.marshal_increase_control_monthly_increase_nemesis_bonus
+				desc = COUNCILLOR_IS_YOUR_NEMESIS
+			}
+		}
+		if = {
+			limit = {
+				scope:councillor_liege = { has_perk = strict_organization_perk }
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_perk_bonus_monthly_change
+				desc = INCREASE_CONTROL_PERK_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_erudition_legacy_5_perk = yes
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_erudition_bonus_monthly_change
+				desc = ERUDITION_DYNASTY_PERK_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_family_business_bonus = yes
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_family_business_bonus_monthly_change
+				desc = FAMILY_BUSINESS_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				councillor_liege_has_consulted_house_bonus = yes
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_consulted_house_bonus_monthly_change
+				desc = CONSULTED_HOUSE_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = {
+				scope:councillor = { has_character_modifier = event_bonus_to_county_control }
+			}
+			add = {
+				value = scope:councillor.marshal_increase_county_control_experience_bonus_monthly_change
+				desc = INCREASE_COUNTY_CONTROL_EXPERIENCE_BONUS_VALUE
+			}
+		}
+		if = {
+			limit = { exists = scope:county }
+			multiply = {
+				value = scope:county.monthly_county_control_growth_factor
+				desc = MARSHAL_COUNTY_SPEED_MODIFIERS
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:county
+				scope:county = { has_county_modifier = petition_liege_county_control_modifier }
+			}
+			add = {
+				value = scope:councillor.petition_liege_county_control_modifier_value
+				desc = MARSHAL_INCREASE_CONTROL_LOCAL_COUNTY_MODIFIERS
+			}
+		}
+		#EP3
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					employs_court_position = court_jester_court_position
+					court_position:court_jester_court_position = {
+						has_character_flag = famous_mime_control
+					}
+				}
+			}
+			add = {
+				value = scope:councillor_liege.court_position:court_jester_court_position.marshal_court_jester_contribution_value
+				desc = MARSHAL_INCREASE_CONTROL_MIME_MODIFIER
+			}
+		}
+	}
+
+	full_progress = marshal_increase_control_full_progress
+	custom_other_loc = MARSHAL_COUNTY_SPEED_OTHER
+
+	potential_county = {
+		scope:county = {
+			custom_description = {
+				text = potential_county_control_task_trigger
+				OR = {
+					has_county_corruption_trigger = yes
+					county_control < full_county_control
+				}
+			}
+			# If the growth factor is 0, no amount of trying to control helps
+			# (happens when the county is under siege/occupied most likely)
+			monthly_county_control_growth_factor > 0
+		}
+	}
+
+	county_modifier = {
+		name = marshal_increase_control_modifier
+		monthly_county_control_growth_add = 1
+		scale = marshal_increase_control_total
+	}
+
+	on_start_task_county = {
+		#spawn a task contract
+		if = {
+			limit = {
+				scope:councillor_liege = {
+					is_independent_ruler = yes					
+				}
+				any_player = {
+					is_landless_adventurer = yes
+					is_within_diplo_range = { CHARACTER = scope:councillor }
+					any_character_task_contract = {
+						has_task_contract_type = laamp_help_increase_control_contract
+						count <= council_task_contracts_limit_value
+					}
+					can_create_task_contract = {
+						type_name = laamp_help_increase_control_contract
+						employer = scope:councillor
+					}
+					save_temporary_scope_as = player_laamp
+				}
+			}
+			scope:player_laamp = {
+				create_task_contract = {
+					task_contract_type = laamp_help_increase_control_contract
+					task_contract_tier = scope:councillor.task_contract_tier_value
+					location = scope:county.title_province
+					task_contract_employer = scope:councillor
+					target = scope:councillor.liege
+					destination = scope:county.title_province
+					save_scope_as = task_contract					
+				}
+			}
+		}
+	}
+	on_finish_task_county = {
+		if = {
+			limit = {
+				scope:county = {
+					has_county_corruption_trigger = yes
+				}
+			}
+			scope:county = {
+				marshal_remove_random_county_corruption_modifier_effect = yes
+				change_county_control = -25
+			}
+		}
+	}
+
+	monthly_on_action = increase_control_monthly_on_action
+
+	on_monthly_county = {
+		random = {
+			chance = scope:councillor.marshal_remove_county_corruption_chance
+			scope:county = {
+				marshal_remove_random_county_corruption_modifier_effect = yes
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 1000 # Highest prio
+		if = { # Keep doing Organize levies if you're at war
+			limit = {
+				scope:councillor_liege = {
+					is_at_war = no
+				}
+			}
+			add = 19000
+		}
+		if = { # Keep doing Organize levies if you're at war
+			limit = {
+				is_performing_council_task = task_organize_levies
+				scope:councillor_liege = {
+					is_at_war = yes
+				}
+			}
+			add = -1000
+		}
+		if = { # Stop doing this if Organize levies could help you lose less gold during a war
+			limit = {
+				NOT = {
+					is_performing_council_task = task_organize_levies
+				}
+				scope:councillor_liege = {
+					is_at_war = yes
+					monthly_character_income < monthly_character_expenses
+				}
+			}
+			add = -1000
+		}
+	}
+}
+
 councillor_shumishi_2 = {
 	position = councillor_shumishi
 
 	task_type = task_type_general
 	task_progress = task_progress_infinite
+	
+	asset = {
+		icon = "gfx/interface/icons/council_task_types/councillor_shumishi_2.dds"
+		background = "gfx/interface/buttons/button_round_bg.dds"
+		frame = "gfx/interface/buttons/button_round_frame.dds"
+		glow = "gfx/particles/halo.dds"
+	}
 	
 	effect_desc = {
 		desc = task_manage_guards_knights_desc
@@ -407,262 +756,6 @@ councillor_shumishi_2 = {
 				is_performing_council_task = task_manage_guards
 			}
 			add = martial
-		}
-	}
-}
-
-councillor_shumishi_3 = {
-	position = councillor_shumishi
-
-	task_type = task_type_county
-	county_target = realm
-	ai_county_target = domain
-	task_progress = task_progress_value
-	task_current_value = scope:councillor_liege.marshal_increase_control_current_progress
-	task_max_value = 100 # Highest possible county control
-	highlight_own_realm = yes
-	restart_on_finish = yes # If it "finishes" by removing a corruption modifier, there'll still be control to regain
-
-	effect_desc = {
-		desc = task_increase_control_effect_desc
-		desc = {
-			desc = council_task_possible_side_effects
-			triggered_desc = {
-				trigger = {
-					scope:councillor_liege = {
-						any_active_accolade = {
-							has_accolade_parameter = accolade_increase_control_bonus
-						}
-					}
-				}
-				desc = task_increase_control_acclaimed_knight_subdues_peasantry
-			}
-			triggered_desc = {
-				trigger = {
-					martial > mediocre_skill_rating
-				}
-				desc = task_increase_control_increase_opinion
-			}
-			triggered_desc = {
-				trigger = {
-					martial > mediocre_skill_rating
-				}
-				desc = task_increase_control_baron_opinion_increase
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_increase_control_lose_opinion
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_increase_control_lose_control
-			}
-			triggered_desc = {
-				trigger = {
-					martial < high_skill_rating
-				}
-				desc = task_increase_control_baron_opinion_loss
-			}
-		}
-	}
-	
-	# TOTAL PROGRESS MUST MATCH THE TOTAL OF THE COUNTY MODIFIERS BELOW
-		# Add all new progress values to the script value marshal_increase_control_total
-		# Note that for Increase Control, the County Modifiers apply the actual values, while progress is for player info only
-	progress = {
-		value = 0
-		add = {
-			value = marshal_increase_control_base
-			desc = INCREASE_CONTROL_BASE
-		}
-		add = {
-			value = scope:councillor.marshal_increase_county_control_monthly_change
-			desc = SCALED_COUNCILLOR_MARTIAL_VALUE
-		}
-		# Relation Bonuses/Penalties
-		if = { # Friend
-			limit = {
-				scope:councillor_liege = {
-					has_relation_friend = scope:councillor
-					NOT = { has_relation_best_friend = scope:councillor }
-				}
-			}
-			add = {
-				value = scope:councillor.marshal_increase_control_monthly_increase_friend_bonus
-				desc = COUNCILLOR_IS_YOUR_FRIEND
-			}
-		}
-		if = { # Best Friend
-			limit = {
-				scope:councillor_liege = {
-					has_relation_best_friend = scope:councillor
-				}
-			}
-			add = {
-				value = scope:councillor.marshal_increase_control_monthly_increase_best_friend_bonus
-				desc = COUNCILLOR_IS_YOUR_BEST_FRIEND
-			}
-		}
-		if = { # Rival
-			limit = {
-				scope:councillor_liege = {
-					has_relation_rival = scope:councillor
-					NOT = { has_relation_nemesis = scope:councillor }
-				}
-			}
-			add = {
-				value = scope:councillor.marshal_increase_control_monthly_increase_rival_bonus
-				desc = COUNCILLOR_IS_YOUR_RIVAL
-			}
-		}
-		if = { # Nemesis
-			limit = {
-				scope:councillor_liege = {
-					has_relation_nemesis = scope:councillor
-				}
-			}
-			add = {
-				value = scope:councillor.marshal_increase_control_monthly_increase_nemesis_bonus
-				desc = COUNCILLOR_IS_YOUR_NEMESIS
-			}
-		}
-		if = {
-			limit = {
-				scope:councillor_liege = { has_perk = strict_organization_perk }
-			}
-			add = {
-				value = scope:councillor.marshal_increase_county_control_perk_bonus_monthly_change
-				desc = INCREASE_CONTROL_PERK_BONUS_VALUE
-			}
-		}
-		if = {
-			limit = {
-				councillor_liege_has_erudition_legacy_5_perk = yes
-			}
-			add = {
-				value = scope:councillor.marshal_increase_county_control_erudition_bonus_monthly_change
-				desc = ERUDITION_DYNASTY_PERK_BONUS_VALUE
-			}
-		}
-		if = {
-			limit = {
-				councillor_liege_has_family_business_bonus = yes
-			}
-			add = {
-				value = scope:councillor.marshal_increase_county_control_family_business_bonus_monthly_change
-				desc = FAMILY_BUSINESS_BONUS_VALUE
-			}
-		}
-		if = {
-			limit = {
-				councillor_liege_has_consulted_house_bonus = yes
-			}
-			add = {
-				value = scope:councillor.marshal_increase_county_control_consulted_house_bonus_monthly_change
-				desc = CONSULTED_HOUSE_BONUS_VALUE
-			}
-		}
-		if = {
-			limit = {
-				scope:councillor = { has_character_modifier = event_bonus_to_county_control }
-			}
-			add = {
-				value = scope:councillor.marshal_increase_county_control_experience_bonus_monthly_change
-				desc = INCREASE_COUNTY_CONTROL_EXPERIENCE_BONUS_VALUE
-			}
-		}
-		if = {
-			limit = { exists = scope:county }
-			multiply = {
-				value = scope:county.county_control_rate_modifier
-				desc = MARSHAL_COUNTY_SPEED_MODIFIERS
-			}
-		}
-		if = {
-			limit = {
-				exists = scope:county
-				scope:county = { has_county_modifier = petition_liege_county_control_modifier }
-			}
-			add = {
-				value = scope:councillor.petition_liege_county_control_modifier_value
-				desc = MARSHAL_INCREASE_CONTROL_LOCAL_COUNTY_MODIFIERS
-			}
-		}
-	}
-
-	full_progress = marshal_increase_control_full_progress
-	custom_other_loc = MARSHAL_COUNTY_SPEED_OTHER
-
-	potential_county = {
-		scope:county = {
-			custom_description = {
-				text = potential_county_control_task_trigger
-				OR = {
-					has_county_corruption_trigger = yes
-					county_control < full_county_control
-				}
-			}
-			county_control_rate_modifier > 0
-		}
-	}
-
-	county_modifier = {
-		name = marshal_increase_control_modifier
-		monthly_county_control_growth_add = 1
-		scale = marshal_increase_control_total
-	}
-
-	on_finish_task_county = {
-		if = {
-			limit = {
-				scope:county = {
-					has_county_corruption_trigger = yes
-				}
-			}
-			scope:county = {
-				marshal_remove_random_county_corruption_modifier_effect = yes
-				change_county_control = -25
-			}
-		}
-	}
-
-	monthly_on_action = task_increase_control_side_effects
-
-	on_monthly_county = {
-		random = {
-			chance = scope:councillor.marshal_remove_county_corruption_chance
-			scope:county = {
-				marshal_remove_random_county_corruption_modifier_effect = yes
-			}
-		}
-	}
-
-	ai_will_do = {
-		value = 1000 # Highest prio
-		if = { # Keep doing Organize levies if you're at war
-			limit = {
-				is_performing_council_task = task_organize_levies
-				scope:councillor_liege = {
-					is_at_war = yes
-				}
-			}
-			add = -1000
-		}
-		if = { # Stop doing this if Organize levies could help you lose less gold during a war
-			limit = {
-				NOT = {
-					is_performing_council_task = task_organize_levies
-				}
-				scope:councillor_liege = {
-					is_at_war = yes
-					monthly_character_income < monthly_character_expenses
-				}
-			}
-			add = -1000
 		}
 	}
 }

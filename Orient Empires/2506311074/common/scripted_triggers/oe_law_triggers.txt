@@ -1,0 +1,172 @@
+﻿
+#流官制（与帝国官僚继承法接驳）
+can_have_official_succession_law_trigger = {
+	government_allows = administrative
+	government_has_flag = government_is_celestial
+	is_independent_ruler = no
+
+	primary_title ?= {
+		tier > tier_county
+		is_oe_noble_family_title = no
+	}
+
+	NOR = {
+		vassal_contract_has_flag = heir_succession_rights_unlock
+		primary_title = { has_variable = titular_title }
+		has_title = title:d_gosho
+	}
+
+	trigger_if = {
+		limit = { top_liege ?= { has_realm_law_flag = pool_bureaucracy_succession_duchy } } #科举直派路使 
+		highest_held_title_tier > tier_duchy
+	}
+	trigger_else = {
+		highest_held_title_tier > tier_county
+	}
+}
+
+can_keep_official_succession_law_trigger = {
+	trigger_if = {
+		limit = {
+			has_realm_law = official_succession_law
+		}
+		can_have_official_succession_law_trigger = yes
+	}
+}
+
+
+can_pass_official_succession_law_trigger = {
+	can_change_title_law_trigger = yes
+	can_have_official_succession_law_trigger = yes
+}
+
+#宗法指认制
+can_have_tradition_succession_law_trigger = {
+	OR = {
+		government_has_flag = government_is_celestial
+		government_has_flag = government_is_ulus
+		government_has_flag = government_is_legion
+	}
+	OR = {
+		is_royal_government_trigger = yes
+		is_independent_ruler = yes
+		is_oe_imperial_official_trigger = yes
+		vassal_contract_has_flag = heir_succession_rights_unlock
+		has_title = title:d_gosho
+		has_title = title:d_sekke
+	}	
+}
+
+can_keep_tradition_succession_law_trigger = {
+	trigger_if = {
+		limit = { has_realm_law = tradition_succession_law }
+		can_have_tradition_succession_law_trigger = yes
+	}
+}
+
+can_pass_tradition_succession_law_trigger = {
+	can_change_succession_law_trigger = yes
+	can_have_tradition_succession_law_trigger = yes
+}
+
+#留后册命制（藩镇基础继承法）
+can_have_legion_succession_law_trigger = {
+	OR = {
+		government_has_flag = government_is_legion
+		AND = {
+			government_has_flag = government_is_celestial
+			liege = { NOT = { government_has_flag = government_is_celestial } }
+		}
+		vassal_contract_has_flag = heir_succession_rights_unlock
+	}
+}
+
+can_keep_legion_succession_law_trigger = {
+	trigger_if = {
+		limit = { has_realm_law = legion_succession_law }
+		can_have_legion_succession_law_trigger = yes 		
+	}
+}
+
+can_pass_legion_succession_law_trigger = {
+	can_change_title_law_trigger = yes
+	can_have_legion_succession_law_trigger = yes
+}
+
+#科举制
+can_have_admin_succession_law_trigger = {
+	is_landed = yes
+	primary_title ?= { is_landless_type_title = no }
+
+	trigger_if = {
+		limit = {
+			government_has_flag = government_is_celestial
+			NOT = { government_allows = administrative }
+		}
+		highest_held_title_tier <= tier_kingdom
+	}
+	trigger_if = {
+		limit = {
+			government_has_flag = government_is_celestial
+			government_allows = administrative
+		}
+		trigger_if = {
+			limit = { top_liege ?= { has_realm_law_flag = pool_bureaucracy_succession_duchy } } #科举直派路使 
+			highest_held_title_tier <= tier_duchy
+		}
+		trigger_if = {
+			limit = { top_liege ?= { NOT = { has_realm_law_flag = pool_bureaucracy_succession_duchy } } }
+			highest_held_title_tier <= tier_county
+		}
+	}
+	OR = {
+		top_liege ?= {
+			government_has_flag = government_is_celestial
+		}
+		government_has_flag = government_is_bureau
+		AND = {
+			government_has_flag = government_is_celestial
+			is_theocratic_lessee = no
+		}
+		AND = {
+			is_theocratic_lessee = yes
+			religion = religion:confucianism_religion
+		}	
+	}
+	NOR = {
+		vassal_contract_has_flag = imperial_legion_3
+		vassal_contract_has_flag = imperial_royal_1
+		vassal_contract_has_flag = heir_succession_rights_unlock
+	}
+}
+
+#玩家判定
+can_have_official_succession_law_player_trigger = {
+	is_independent_ruler = no
+	#highest_held_title_tier >= tier_county
+	liege ?= {
+		OR = {
+			government_has_flag = government_is_celestial
+			government_has_flag = government_is_bureau
+			is_legion_government_trigger = yes
+		}
+	}
+	OR = {
+		government_has_flag = government_is_celestial
+		government_has_flag = government_is_bureau
+		is_legion_government_trigger = yes
+	}
+	OR = {
+		is_ai = no
+		has_variable = player_officier
+	}
+}
+#玩家判定
+can_keep_official_succession_law_player_trigger = {
+	trigger_if = {
+		limit = {
+			has_realm_law = player_official_succession_law
+		}
+		is_ai = no
+	}
+}

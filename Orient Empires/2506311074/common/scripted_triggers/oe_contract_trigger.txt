@@ -1,10 +1,7 @@
 ﻿is_legion_government_trigger = { #什么是军镇制
 	OR = { 
 		government_has_flag = government_is_legion
-		AND = { 
-			vassal_contract_has_flag = imperial_contract_1
-			vassal_contract_has_flag = imperial_legion_2
-		}
+		vassal_contract_has_flag = imperial_legion_2
 	}
 }
 is_milita_government_trigger = { #什么是军府
@@ -32,7 +29,6 @@ is_oe_imperial_government_trigger = { #什么是中华皇帝
 		has_title = title:k_ming
 		AND = {
 			highest_held_title_tier = tier_empire
-			#culture = { has_cultural_pillar = heritage_chinese }
 			government_has_flag = government_is_celestial
 		}
 		AND = {
@@ -76,13 +72,13 @@ is_royal_government_trigger = { #什么是皇室领地
 			vassal_contract_has_flag = imperial_royal_1
 		}
 		AND = {
-			exists = top_liege
-			top_liege = { is_oe_imperial_government_trigger = yes }
+			is_independent_ruler = no
+			top_liege ?= { is_oe_imperial_government_trigger = yes }
 			has_title = title:d_gosho
 		}
 		AND = {
-			exists = top_liege
-			top_liege = { is_oe_imperial_government_trigger = yes }
+			is_independent_ruler = no
+			top_liege ?= { is_oe_imperial_government_trigger = yes }
 			has_title = title:d_confucius
 		}
 		#has_primary_title = title:d_chinese_title_1
@@ -161,6 +157,7 @@ is_oe_imperial_court_trigger = { #什么是朝廷
 	exists = this
 	is_landed = yes
 	is_independent_ruler = yes
+	government_has_flag = government_is_celestial
 	OR = {
 		is_oe_imperial_government_trigger = yes
 		AND = {
@@ -173,27 +170,19 @@ is_oe_imperial_court_trigger = { #什么是朝廷
 is_oe_imperial_official_trigger = { #不一定独立的朝廷
 	exists = this
 	is_landed = yes
-	OR = {
-		is_oe_imperial_government_trigger = yes
-		AND = {
-			government_has_flag = government_is_celestial
-			highest_held_title_tier >= tier_kingdom
-		}
-	}
+	government_has_flag = government_is_celestial
+	highest_held_title_tier >= tier_kingdom
 }
 
 
 is_oe_imperial_councillor_trigger = { #什么是京官
-	exists = top_liege
-	top_liege = { is_oe_imperial_court_trigger = yes }
+	top_liege ?= { is_oe_imperial_court_trigger = yes }
 	is_councillor_of = top_liege
 	NOT = { has_trait = peasant_leader }
 }
 
 is_oe_imperial_shangshu_trigger = { #什么是尚书
-	exists = top_liege
-	top_liege = { is_oe_imperial_court_trigger = yes }
-	is_councillor_of = top_liege
+	top_liege ?= { is_oe_imperial_court_trigger = yes }
 	OR = {
 		#has_council_position = councillor_neishijian
 		#has_council_position = councillor_zongbo
@@ -201,14 +190,14 @@ is_oe_imperial_shangshu_trigger = { #什么是尚书
 		#has_council_position = councillor_tongpingzhang
 		#has_council_position = councillor_shumishi
 		#has_council_position = councillor_canzhi
-		has_council_position = councillor_china_1
-		has_council_position = councillor_china_2
-		has_council_position = councillor_liebu
-		has_council_position = councillor_bingbu
-		has_council_position = councillor_libu
-		has_council_position = councillor_hubu
-		has_council_position = councillor_xingbu
-		has_council_position = councillor_gongbu
+		has_court_position = puye_1_court_position
+		has_court_position = puye_2_court_position
+		has_court_position = liebu_court_position
+		has_court_position = bingbu_court_position
+		has_court_position = libu_court_position
+		has_court_position = hubu_court_position
+		has_court_position = xingbu_court_position
+		has_court_position = gongbu_court_position
 	}
 }
 
@@ -231,8 +220,8 @@ is_oe_landed_bureaucrat_trigger = { #什么是在职流官
 		#highest_held_title_tier <= tier_kingdom
 		NOT = { has_trait = great_misit	}
 		NOR = {
-			vassal_contract_has_flag = imperial_legion_3
-			vassal_contract_has_flag = imperial_royal_1
+			#vassal_contract_has_flag = imperial_legion_3
+			#vassal_contract_has_flag = imperial_royal_1
 			vassal_contract_has_flag = heir_succession_rights_unlock
 			primary_title ?= { has_variable = titular_title }
 		}
@@ -253,17 +242,15 @@ is_jiedushi = { #什么是节度使  is_governor
 }
 
 oe_revocation_is_NOT_tyrannical_trigger = { #无暴政剥夺流官
-	scope:recipient = {
+	OR = {
+		is_independent_ruler = yes
+		is_oe_imperial_court_trigger = yes
+		has_strong_hook = $VASSAL$
+	}
+	$VASSAL$ = {
 		is_oe_landed_bureaucrat_trigger = yes
 		NOT = { vassal_contract_has_flag = vassal_contract_cannot_revoke_titles }
 		is_legion_government_trigger = no #藩镇不迁
-	}
-	scope:actor = {
-		OR = {
-			is_independent_ruler = yes
-			is_oe_imperial_court_trigger = yes
-			has_strong_hook = scope:recipient
-		}
 	}
 }
 
@@ -748,7 +735,22 @@ oe_autocracy_level_3 = {
 	OR = {
 		has_realm_law_flag = vassal_all_wars_banned	#官僚法三级 TODO律令细化
 		has_realm_law = crown_authority_3
-		has_realm_law = imperial_bureaucracy_2
-		has_realm_law = imperial_bureaucracy_3
+		has_realm_law = celestial_bureaucracy_2
+		has_realm_law = celestial_bureaucracy_3
+	}
+}
+
+
+#准许创建头衔
+granted_title_creation_right_trigger = {
+	trigger_if = {
+		limit = {
+			is_independent_ruler = no
+			liege ?= { government_allows = administrative }
+		}
+		custom_tooltip = {
+			text = vassal_contract_has_flag_title_creation_granted
+			vassal_contract_has_flag = title_creation_rights_granted
+		}
 	}
 }

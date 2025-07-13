@@ -29,7 +29,7 @@ celestial_change_to_imperial_with_laws_effect = {
 			has_realm_law = crown_authority_1
 		}
 		change_government = imperial_government
-		add_realm_law_skip_effects = imperial_bureaucracy_1
+		add_realm_law_skip_effects = celestial_bureaucracy_1
 	}
 	else_if = {
 		limit = {
@@ -37,7 +37,7 @@ celestial_change_to_imperial_with_laws_effect = {
 			has_realm_law = crown_authority_2
 		}
 		change_government = imperial_government
-		add_realm_law_skip_effects = imperial_bureaucracy_2
+		add_realm_law_skip_effects = celestial_bureaucracy_2
 	}
 	else_if = {
 		limit = {
@@ -45,7 +45,7 @@ celestial_change_to_imperial_with_laws_effect = {
 			has_realm_law = crown_authority_3
 		}
 		change_government = imperial_government
-		add_realm_law_skip_effects = imperial_bureaucracy_3
+		add_realm_law_skip_effects = celestial_bureaucracy_3
 	}
 	else_if = {
 		limit = {
@@ -59,7 +59,7 @@ imperial_change_to_celestial_with_laws_effect = {
 	if = {
 		limit = {
 			has_government = imperial_government
-			has_realm_law = imperial_bureaucracy_1
+			has_realm_law = celestial_bureaucracy_1
 		}
 		change_government = celestial_government
 		add_realm_law_skip_effects = crown_authority_1
@@ -67,7 +67,7 @@ imperial_change_to_celestial_with_laws_effect = {
 	else_if = {
 		limit = {
 			has_government = imperial_government
-			has_realm_law = imperial_bureaucracy_2
+			has_realm_law = celestial_bureaucracy_2
 		}
 		change_government = celestial_government
 		add_realm_law_skip_effects = crown_authority_2
@@ -75,7 +75,7 @@ imperial_change_to_celestial_with_laws_effect = {
 	else_if = {
 		limit = {
 			has_government = imperial_government
-			has_realm_law = imperial_bureaucracy_3
+			has_realm_law = celestial_bureaucracy_3
 		}
 		change_government = celestial_government
 		add_realm_law_skip_effects = crown_authority_3
@@ -88,123 +88,37 @@ imperial_change_to_celestial_with_laws_effect = {
 	}
 }
 
-
-#完整式
-oe_create_noble_family_effect = {
-	debug_log = create_noble_family_title
-	save_scope_as = new_noble_family_holder
-	hidden_effect = { # NF can only be held by house heads
-	if = {
-		limit = {
-			NOT = {
-				any_held_title = { is_noble_family_title = yes }
-			}
-		}
-		house ?= {
-			if = {
-				limit = { house_head != scope:new_noble_family_holder }
-				set_house_head = scope:new_noble_family_holder
-			}
-		}
-
-		#直接用原版贵族头衔封装效果，用于创建庄园
-		give_noble_family_title = {
-			name = noble_family_name
-			article = DEFAULT_TITLE_NAME_ARTICLE
-			save_scope_as = new_title
-		}
-
-		if = {
-			limit = {
-				government_has_flag = government_use_estate	
-				NOR = {
-					any_held_title = { is_oe_aristocrat_title = yes }
-					house = {
-						any_house_member = {
-							any_held_title = { is_oe_aristocrat_title = yes }
-						}
-					}
-				}
-			}
-			create_dynamic_title = {
-				tier = duchy
-				name = oe_noble_family_name
-			}
-			create_title_and_vassal_change = {
-				type = created
-				save_scope_as = change
-				add_claim_on_loss = no
-			}
-			scope:new_title = {
-				change_title_holder = {
-					holder = scope:new_noble_family_holder
-					change = scope:change
-				}
-				set_coa = scope:new_noble_family_holder.house
-				set_capital_county = scope:new_noble_family_holder.location.county
-				set_definitive_form = yes
-				set_landless_title = yes
-				set_no_automatic_claims = yes
-			}
-			resolve_title_and_vassal_change = scope:change
-		}
-
-		scope:new_title = {
-			set_variable = {
-				name = oe_aristocrat_title
-				value = yes
-			}
-			holder = {
-				save_scope_as = new_family
-				save_scope_as = noble_family_head
-			}
-			add_title_law = noble_family_succession_law #添加继承法
-			add_title_law = male_preference_law
-		}
-	}
-
-
-	custom_description = {
-		text = create_noble_family_tt
-	}
-
-	#Notifications
-	top_liege ?= {
-		every_vassal = {
-			limit = {
-				is_ai = no
-				NOT = { this = scope:new_noble_family_holder }
-			}
-			trigger_event = {
-				id = ep3_emperor_yearly.2410
-				days = 1
-			}
-		}
-	}
-	}
-	debug_log_scopes = yes
-}
-#become_title_holder_effect = { TITLE =  }
-
 #转移或销毁世族头衔
 transfer_noble_family_title_effect = {
 	save_scope_as = old_house_head
 	every_held_title = {
-		limit = { is_oe_noble_family_title = yes }
+		limit = { is_noble_family_title = yes }
 		save_scope_as = nf_title
 	}
 
 	if = {
 		limit = {
-			any_house_member = {
-				highest_held_title_tier > tier_county
+			house = {
+				any_house_member = {
+					any_held_title = {
+						tier > tier_county
+						is_landless_type_title = no
+						count > 0
+					}
+				}
 			}
 		}
-		random_house_member = {
-			limit = {
-				highest_held_title_tier > tier_county
+		house = {
+			random_house_member = {
+				limit = {
+					any_held_title = {
+						tier > tier_county
+						is_landless_type_title = no
+						count > 0
+					}
+				}
+				save_scope_as = new_house_head
 			}
-			save_scope_as = new_house_head
 		}
 	}
 	else_if = {

@@ -7,14 +7,19 @@
 				#has_trait = adventurer
 				has_trait = peasant_leader
 				has_trait = hero
-				has_faith = faith:taiping
-				has_faith = faith:mingism
-				has_faith = faith:maitreya
-				has_government = landless_adventurer_government
+				faith = {
+					has_doctrine = doctrine_tenet_unrelenting_faith
+				}
+				AND = {
+					government_has_flag = government_is_landless_adventurer
+					OR = {
+						has_realm_law = camp_purpose_mercenaries
+						has_realm_law = camp_purpose_brigands
+						has_realm_law = camp_purpose_legitimists
+					}
+				}
+				
 			}
-		}
-		NOT = {
-			government_has_flag = government_is_landless_adventurer
 		}
 	}
 
@@ -245,6 +250,26 @@
 		scope:attacker = {
 			add_character_flag = ai_should_not_transfer
 		}
+
+		create_title_and_vassal_change = {
+			type = conquest
+			save_scope_as = change0
+			add_claim_on_loss = yes
+		}
+		scope:defender = {
+			every_realm_county = {
+				limit = {
+					exists = var:occupied_rebellion
+					var:occupied_rebellion = scope:attacker
+				}
+				change_title_holder = {
+					holder = scope:attacker
+					change = change0
+				}
+			}
+		}
+		resolve_title_and_vassal_change = scope:change0
+
 		create_title_and_vassal_change = {
 			type = independency
 			save_scope_as = change
@@ -432,6 +457,8 @@
 		}
 	}
 
+	target_titles = all
+
 	ignore_effect = change_title_holder
 	white_peace_possible = no
 
@@ -459,7 +486,7 @@
 	max_attacker_score_from_battles = 200
 	max_defender_score_from_battles = 200
 	attacker_score_from_occupation_scale = 50 #WLTDJFIX往来天地间修正
-	defender_score_from_occupation_scale = 20 #WLTDJFIX往来天地间修正
+	defender_score_from_occupation_scale = 50 #WLTDJFIX往来天地间修正
 	attacker_score_from_battles_scale = 80
 	defender_score_from_battles_scale = 50  #微调2022.1.21
 	max_ai_diplo_distance_to_title = 500

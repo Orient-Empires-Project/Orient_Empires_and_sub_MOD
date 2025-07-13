@@ -2,61 +2,278 @@
 # Admin Government
 ##################################################
 
-#create_noble_family_effect = {
-#	debug_log = create_noble_family_title
+create_noble_family_effect = {
+	debug_log = create_noble_family_title
 
-#	save_scope_as = new_noble_family_holder
-#	hidden_effect = { # NF can only be held by house heads
-#		house ?= {
-#			if = {
-#				limit = { house_head != scope:new_noble_family_holder }
-#				set_house_head = scope:new_noble_family_holder
-#			}
-#		}
-#	}
-#	give_noble_family_title = {
-#		name = noble_family_name
-#		article = DEFAULT_TITLE_NAME_ARTICLE
-#		save_scope_as = new_title
-#	}
-#
-#	#添加头衔转换
-#	scope:new_title = {
-#		if = {
-#			limit = {
-#				NOT = { exists = holder }
-#			}
-#			scope:new_noble_family_holder = {
-#				become_title_holder_effect = { TITLE = scope:new_title }
-#			}
-#		}
-#	}
-#	#转换完毕
-#
-#	scope:new_title = {
-#		holder = {
-#			save_scope_as = noble_family_head
-#		}
-#		set_coa = scope:noble_family_head.house
-#	}
-#	custom_description = {
-#		text = create_noble_family_tt
-#	}
-#	#Notifications
-#	top_liege ?= {
-#		every_vassal = {
-#			limit = {
-#				is_ai = no
-#				NOT = { this = scope:new_noble_family_holder }
-#			}
-#			trigger_event = {
-#				id = ep3_emperor_yearly.2410
-#				days = 1
-#			}
-#		}
-#	}
-#	debug_log_scopes = yes
-#}
+	save_scope_as = new_noble_family_holder
+	hidden_effect = { # NF can only be held by house heads
+		if = { # Start by checking that we are not the house head already
+			limit = {
+				house ?= {
+					house_head != scope:new_noble_family_holder
+				}
+			}
+			if = { # If not, let's see if it would be reasonable to become house head...
+				limit = {
+					house ?= {
+						house_head ?= {
+							top_liege = scope:new_noble_family_holder.top_liege
+							OR = {
+								is_ruler = no
+								primary_title = {
+									tier <= tier_county
+								}
+							}
+							is_ai = yes #  Don't steal house head from a player
+						}
+					}
+				}
+				house = { set_house_head = scope:new_noble_family_holder }
+			}
+			else = { # ... Otherwise, we create a cadet branch
+				create_cadet_branch = yes
+			}
+		}
+	}
+
+	if = {
+		limit = {
+			is_ruler = yes
+			has_government = imperial_government
+		}
+		give_noble_family_title = {
+			name = noble_family_name
+			article = DEFAULT_TITLE_NAME_ARTICLE
+			government = imperial_government
+			save_scope_as = new_title
+		}
+		save_scope_as = noble_family_head
+		if = {
+			limit = {
+				exists = scope:new_title
+			}
+			scope:new_title = {
+				holder = {
+					save_scope_as = noble_family_head
+				}
+				set_coa = scope:noble_family_head.house
+			}
+		}
+	}
+	else = {
+		give_noble_family_title = {
+			name = noble_family_name
+			article = DEFAULT_TITLE_NAME_ARTICLE
+			save_scope_as = new_title
+		}
+		scope:new_title = {
+			holder = {
+				save_scope_as = noble_family_head
+			}
+			set_coa = scope:noble_family_head.house
+		}
+	}
+	custom_description = {
+		text = create_noble_family_tt
+	}
+
+	#Notifications
+	top_liege ?= {
+		every_vassal = {
+			limit = {
+				is_ai = no
+				NOT = { this = scope:new_noble_family_holder }
+			}
+			trigger_event = {
+				id = ep3_emperor_yearly.2410
+				days = 1
+			}
+		}
+	}
+
+	debug_log_scopes = yes
+}
+
+procure_estate_interaction_effect = {
+	if = {
+		limit = {
+			scope:piety_option = yes
+		}
+		if = {
+			limit = {
+				faith = {
+					NOT = {
+						this = scope:recipient.faith
+					}
+				}
+			}
+			set_character_faith = scope:recipient.faith
+			add_character_flag = {
+				flag = procure_estate_conversion
+				months = 1
+			}
+		}
+		scope:recipient = {
+			add_piety = {
+				value = procure_estate_interaction_cost_base_piety
+				multiply = 0.5
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:gold_option = yes
+		}
+		show_as_tooltip = {
+			pay_short_term_gold = {
+				target = scope:recipient
+				gold = procure_estate_interaction_cost_base_gold
+			}
+		}
+		hidden_effect = {
+			scope:recipient = { add_gold = procure_estate_interaction_cost_base_gold }
+		}
+	}
+	else_if = {
+		limit = {
+			scope:hook = yes
+		}
+	}
+	else = {
+		scope:recipient = {
+			add_prestige = {
+				value = procure_estate_interaction_cost_base_prestige
+				multiply = 0.25
+			}
+		}
+	}
+	scope:recipient = {
+		change_influence = medium_influence_loss
+		add_hook = {
+			target = scope:actor
+			type = favor_hook
+		}
+	}
+	#Scope:actor becomes ladmin
+	scope:actor = {
+		if = {
+			limit = {
+				scope:actor.house ?= {
+					any_house_member = {
+						any_held_title = {
+							is_noble_family_title = yes
+						}
+						top_liege = {
+							this = scope:recipient.top_liege
+						}
+					}
+				}
+			}
+			found_cadet_house_decision_effect = {
+				CHARACTER = scope:actor
+				PRESTIGE = major_prestige_gain
+			}
+		}
+		# Note our courtiers so that they don't escape.
+		every_courtier = { add_to_list = courtiers_list }
+		# Change liege
+		destroy_laamp_effect = { ADVENTURER = scope:actor }
+		hidden_effect  = {
+			scope:recipient.top_liege = {
+				add_courtier = scope:actor
+				return_to_court = yes
+			}
+		}
+		create_noble_family_effect = yes
+		hidden_effect = {
+			# Return any escaped courtiers.
+			every_in_list = {
+				list = courtiers_list
+				scope:actor = { add_courtier = prev }
+			}
+			# And boot any new autogenned arrivals.
+			every_courtier = {
+				limit = {
+					is_lowborn = yes
+					NOR = {
+						is_in_list = courtiers_list
+						is_close_or_extended_family_of = scope:actor
+						is_consort_of = scope:actor
+						has_important_relationship_trigger = { CHARACTER = scope:actor }
+					}
+				}
+				silent_disappearance_effect = yes
+			}
+		}
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			add_claim_on_loss = no
+			save_scope_as = title_change
+		}
+		change_liege = {
+			liege = scope:recipient.top_liege
+			change = scope:title_change
+		}
+		resolve_title_and_vassal_change = scope:title_change
+
+		#OE
+		if = {
+			limit = {
+				scope:recipient = { government_has_flag = government_is_celestial }
+			}
+			change_to_celes_government_effect = yes
+		}
+		else = {
+			change_government = administrative_government
+		}
+
+		hidden_effect = {
+			if = {
+				limit = {
+					NOT = {
+						domicile.domicile_location = {
+							this = scope:recipient.capital_province
+						}
+					}
+				}
+				domicile = {
+					move_domicile = scope:recipient.capital_province
+				}
+			}
+		}
+		add_character_modifier = {
+			modifier = ep3_administrative_outsider_modifier
+			years = 15
+		}
+	}
+	scope:recipient.top_liege = {
+		if = {
+			limit = {
+				is_ai = no
+			}
+			send_interface_message = {
+				type = msg_landless_adventurer_nearby
+				title = procure_estate_message_title
+				left_icon = scope:actor
+				right_icon = scope:recipient
+				custom_tooltip = procure_estate_message_tt
+			}
+		}
+		every_vassal_or_below = {
+			limit = {
+				is_ai = no
+			}
+			send_interface_message = {
+				type = msg_landless_adventurer_nearby
+				title = procure_estate_message_title
+				left_icon = scope:actor
+				right_icon = scope:recipient
+				custom_tooltip = procure_estate_message_tt
+			}
+		}
+	}
+}
+
 
 admin_change_government_effect = {
 	# Make sure you only use this effect on characters you are sure should change government! Since we don't do any extended triggers here.
@@ -111,9 +328,7 @@ admin_change_government_effect = {
 		limit = {
 			is_independent_ruler = no
 			NOT = { government_has_flag = government_is_celestial }
-			OR = {
-				liege = { government_has_flag = government_is_ulus }
-			}
+			liege = { government_has_flag = government_is_ulus }
 		}
 		change_government = ulus_government
 	}
@@ -180,12 +395,12 @@ admin_change_government_effect = {
 		limit = {
 			NOT = { government_has_flag = government_use_estate }
 			any_held_title = {
-				is_oe_noble_family_title = yes
+				is_noble_family_title = yes
 			}
 		}
 		every_held_title = {
 			limit = {
-				is_oe_noble_family_title = yes
+				is_noble_family_title = yes
 			}
 			save_temporary_scope_as = family_title
 			prev = { destroy_title = scope:family_title }
@@ -491,11 +706,11 @@ ep3_pick_random_maa_regiment_effect = {
 			}
 			1 = {
 				trigger = {
-					culture = { has_cultural_parameter = unlock_maa_mangudai }
+					culture = { has_cultural_parameter = unlock_maa_oe_mangudai }
 				}
 				save_scope_value_as = {
 					name = maa_to_create
-					value = flag:mangudai
+					value = flag:oe_mangudai
 				}
 			}
 			1 = {
@@ -615,7 +830,19 @@ ep3_pick_random_maa_regiment_effect = {
 			}
 			1 = {
 				trigger = {
-					culture = { has_cultural_parameter = unlock_maa_horse_archers }
+					culture = { has_cultural_parameter = unlock_maa_maturkan_warriors }
+				}
+				save_scope_value_as = {
+					name = maa_to_create
+					value = flag:maturkan_warriors
+				}
+			}
+			1 = {
+				trigger = {
+					OR = {
+						culture = { culture_has_archer_cavalry_maa = yes }
+						mpo_can_recruit_nomad_maa_trigger = yes
+					}
 				}
 				save_scope_value_as = {
 					name = maa_to_create
@@ -995,6 +1222,15 @@ ep3_pick_random_maa_regiment_effect = {
 			}
 			1 = {
 				trigger = {
+					mpo_can_recruit_nomad_maa_trigger = yes
+				}
+				save_scope_value_as = {
+					name = maa_to_create
+					value = flag:steppe_raiders
+				}
+			}
+			1 = {
+				trigger = {
 					culture = { has_cultural_parameter = unlock_maa_conrois }
 				}
 				save_scope_value_as = {
@@ -1281,6 +1517,12 @@ ep3_create_random_maa_regiment_effect = {
 					SIZE = $SIZE$
 				}
 			}
+			flag:maturkan_warriors = {
+				create_maa_or_upgrade_regiment_effect = {
+					TYPE = maturkan_warriors
+					SIZE = $SIZE$
+				}
+			}
 			flag:horse_archers = {	
 				create_maa_or_upgrade_regiment_effect = {
 					TYPE = horse_archers
@@ -1497,6 +1739,12 @@ ep3_create_random_maa_regiment_effect = {
 					SIZE = $SIZE$
 				}
 			}
+			flag:steppe_raiders = {
+				create_maa_or_upgrade_regiment_effect = {
+					TYPE = steppe_raiders
+					SIZE = $SIZE$
+				}
+			}
 			flag:conrois = {	
 				create_maa_or_upgrade_regiment_effect = {
 					TYPE = conrois
@@ -1558,7 +1806,7 @@ ep3_create_random_maa_regiment_effect = {
 					SIZE = $SIZE$
 				}				
 			}
-			flag:mangudai = {
+			flag:oe_mangudai = {
 				create_maa_or_upgrade_regiment_effect = {
 					TYPE = light_cavalry
 					SIZE = $SIZE$

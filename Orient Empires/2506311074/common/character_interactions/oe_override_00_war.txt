@@ -1,0 +1,426 @@
+﻿declare_war_interaction = {
+	category = interaction_category_diplomacy
+	common_interaction = yes
+	special_interaction = declare_war_interaction
+	interface = declare_war
+	interface_priority = 70
+	popup_on_receive = yes
+	pause_on_receive = no # this is handled by the interface instead
+
+	desc = declare_war_desc
+
+	is_shown = {
+		NOT = {
+			scope:recipient = scope:actor
+		}
+		scope:recipient = {
+			is_playable_character = yes
+		}
+		scope:actor = {
+			NOT = {
+				is_at_war_with = scope:recipient
+			}
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			NOT = { has_trait = incapable }
+			can_attack_in_hierarchy = scope:recipient
+			trigger_if = {
+				limit = {
+					NOT = {
+						government_has_flag = can_start_war_with_raised_troops
+					}
+				}
+				NOT = {
+					has_raised_armies = yes
+				}
+			}
+			trigger_else = {
+				custom_description = {
+					text = army_blocks_defender_army
+					NOT = {
+						any_army = {
+							location.county.holder ?= scope:recipient
+						}
+					}
+				}
+			}
+			has_any_display_cb_on = scope:recipient
+			NOT = {
+				is_allied_in_war = scope:recipient
+			}
+			custom_description = {
+				text = "is_not_bankrupt"
+				gold > 0
+			}
+			NOT = {
+				custom_description = {
+					text = "is_in_an_activity"
+					exists = involved_activity
+				}
+			}
+			trigger_if = {
+				limit = {
+					culture = { has_cultural_parameter = cannot_attack_allies }
+				}
+				NOT = {
+					is_allied_to = scope:recipient
+				}
+			}
+			trigger_if = {
+				limit = {
+					culture = { has_cultural_parameter = cannot_attack_truces }
+				}
+				NOT = {
+					has_truce = scope:recipient
+				}
+			}
+			is_imprisoned = no
+			trigger_if = {
+				limit = {
+					has_variable_list = subjugation_offer_under_consideration
+				}
+				custom_description = {
+					text = is_not_considering_offer_of_subjugation
+					NOT = {
+						is_target_in_variable_list = {
+							name = subjugation_offer_under_consideration
+							target = scope:recipient
+						}
+					}
+				}
+			}
+		}
+		scope:recipient = {
+			custom_tooltip = {
+				text = is_a_herder_recipient_tt
+				NOT = { government_has_flag = government_is_herder } # herders can't fight
+			}
+			NOT = { is_tributary_of_suzerain_or_above = scope:actor } # can't fight your tributaries or your tributaries' tributaries
+			NOT = { has_strong_hook = scope:actor }
+			trigger_if = {
+				limit = { is_imprisoned = yes }
+				NOT = {
+					imprisoner = scope:actor
+				}
+			}
+		}
+		scope:actor = {
+			trigger_if = {
+				limit = {
+					NOT = { government_allows = administrative }
+					liege ?= {
+						has_realm_law_flag = vassal_all_wars_banned_permanent
+						NOT = { this = scope:actor }
+					}
+				}
+				custom_tooltip = {
+					text = admin_all_vassal_wars_banned
+					always = no
+				}
+			}
+			trigger_if = {
+				limit = {
+					government_allows = administrative
+					top_liege = scope:recipient.top_liege
+					scope:recipient = { government_allows = administrative }
+					NOT = { top_liege = scope:recipient }
+					liege ?= {
+						has_realm_law_flag = vassal_internal_wars_banned
+					}
+				}
+				custom_tooltip = {
+					text = admin_cannot_declare_internal_wars
+					always = no
+				}
+			}
+			trigger_if = { # Admin - Laws only allow frontier and naval themes to declare war
+				limit = {
+					government_allows = administrative
+					is_independent_ruler = no
+					top_liege = {
+						this != scope:recipient.top_liege
+						has_realm_law_flag = admin_vassal_wars_restricted
+					}
+				}
+				custom_tooltip = {
+					text = admin_all_vassal_wars_banned
+					OR = {
+						vassal_contract_has_flag = admin_theme_frontier
+						vassal_contract_has_flag = admin_theme_naval
+					}
+				}
+			}
+			trigger_if = { # Admin - Laws only allow frontier and naval themes to declare war IF they have permission
+				limit = {
+					government_allows = administrative
+					OR = {
+						vassal_contract_has_flag = admin_theme_frontier
+						vassal_contract_has_flag = admin_theme_naval
+					}
+					top_liege = {
+						this != scope:recipient.top_liege
+						has_realm_law_flag = admin_vassal_wars_permission_only
+						NOT = { has_realm_law_flag = admin_vassal_wars_banned }
+					}
+				}
+				custom_tooltip = {
+					text = admin_vassal_wars_permission_only_desc
+					has_variable = admin_permission_to_declare_war
+				}
+			}
+			trigger_if = { # Admin - Laws prevent all vassals from declaring war
+				limit = {
+					government_allows = administrative
+					OR = {
+						vassal_contract_has_flag = admin_theme_frontier
+						vassal_contract_has_flag = admin_theme_naval
+					}
+					top_liege = {
+						this != scope:recipient.top_liege
+						has_realm_law_flag = admin_vassal_wars_banned
+					}
+				}
+				custom_tooltip = {
+					text = admin_all_vassal_wars_banned
+					always = no
+				}
+			}
+		}
+		scope:actor = {
+			trigger_if = {
+				limit = { is_landless_adventurer = yes }
+				custom_tooltip = {
+					text = camp_located_in_defender_realm.tt
+					domicile.domicile_location.county.holder = {
+						NOR = {
+							this = scope:recipient
+							any_liege_or_above = { this = scope:recipient }
+						}
+					}
+				}
+			}
+		}
+		trigger_if = {
+			limit = {
+				scope:actor = {
+					is_confederation_member = yes
+				}
+			}
+			NOT = {
+				scope:recipient = {
+					is_member_of_confederation = scope:actor.confederation
+				}
+			}
+		}
+	}
+
+	has_valid_target_showing_failures_only = {
+		custom_description = {
+			text = "declare_war_hook_on_liege"
+			OR = {
+				war_declarer_needs_hook_on_liege = no
+				always = scope:hook
+			}
+		}
+		scope:actor = {
+			NOR = {
+				is_at_war_with = scope:recipient
+				custom_description = { #A vassal cannot go to war against someone their Liege is already at war with
+					text = liege_is_at_war_with_recipient
+					object = scope:recipient
+					liege = {
+						is_at_war_with = scope:recipient
+					}
+				}
+			}
+		}
+	}
+
+	send_options_exclusive = no
+	send_option = {
+		is_shown = {
+			war_declarer_needs_hook_on_liege = yes
+		}
+		is_valid = {
+			scope:actor = {
+				has_usable_hook = liege
+			}
+		}
+		flag = hook
+		localization = WAR_LIEGE_HOOK
+		can_invalidate_interaction = yes
+	}
+	should_use_extra_icon = {
+		war_declarer_needs_hook_on_liege = yes
+		scope:actor = { has_usable_hook = liege }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+	
+	on_accept = {
+		scope:actor = {
+			#Feedback!
+			hidden_effect = {
+				send_interface_toast = {
+					type = event_toast_effect_neutral
+					title = declare_war_interaction_notification
+
+					left_icon = scope:actor					
+					right_icon = scope:recipient
+
+					custom_tooltip = declare_war_interaction_notification_tooltip
+
+					show_as_tooltip = {
+						if = {
+							limit = { always = scope:hook }
+							use_hook = liege
+						}
+					}
+				}
+			}
+
+			#Has the instigator promised a vassal a war (vassal.2601)?
+			if = {
+				limit = {
+					exists = var:promised_war
+					var:promised_war = {
+						is_alive = yes
+						NOT = { this = scope:recipient }
+					}
+				}
+				trigger_event = {
+					id = vassal.2610
+					days = { 7 10 }
+				}
+			}
+
+			if = {
+				limit = { always = scope:hook }
+				use_hook = liege
+			}
+
+			#Send break up event if they are your lover
+			if = {
+				limit = {
+					has_relation_lover = scope:recipient
+					NOT = { has_relation_rival = scope:recipient } #To enable really strange love stories
+					any_character_war = {
+						casus_belli = {
+							primary_attacker = scope:actor
+							primary_defender = scope:recipient
+							any_target_title = { count >= 1 }
+						}
+					}
+				}
+				scope:recipient = {
+					trigger_event = {
+						id = lover.0103
+						days = { 14 30 }
+					}
+				}
+			}
+
+			#Invalidate any wars your vassals have going against recipient atm
+			scope:recipient = {
+				if = {
+					limit = {
+						any_character_war = {
+							primary_attacker = {
+								is_vassal_or_below_of = scope:actor
+								trigger_if = { #Ai should never invalidate a player's war!
+									limit = {
+										this = { is_ai = no }
+									}
+									scope:actor = {
+										is_ai = no
+									}
+								}
+							}
+						}
+					}
+					every_character_war = {
+						limit = {
+							primary_attacker = {
+								is_vassal_or_below_of = scope:actor
+								trigger_if = { #Ai should never invalidate a player's war!
+									limit = {
+										this = { is_ai = no }
+									}
+									scope:actor = {
+										is_ai = no
+									}
+								}
+							}
+						}
+						show_as_tooltip = { end_war = invalidated } #Actually ended in the event
+						primary_attacker = { trigger_event = war_event.1001 }
+					}
+				}
+			}
+			#Notify defender's vassals if the war is targeting one or more of their titles
+			scope:recipient = {
+				if = {
+					limit = {
+						any_vassal = {
+							save_temporary_scope_as = attacked_vassal
+							any_character_war = {
+								casus_belli = {
+									primary_attacker = scope:actor
+									primary_defender = scope:recipient
+									any_target_title = {
+										holder = {
+											OR = {
+												this = scope:attacked_vassal
+												is_vassal_or_below_of = scope:attacked_vassal
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					every_vassal = {
+						save_temporary_scope_as = attacked_vassal
+						limit = {
+							any_character_war = {
+								casus_belli = {
+									primary_attacker = scope:actor
+									primary_defender = scope:recipient
+									any_target_title = {
+										holder = {
+											OR = {
+												this = scope:attacked_vassal
+												is_vassal_or_below_of = scope:attacked_vassal
+											}
+										}
+									}
+								}
+							}
+						}
+						send_interface_toast = {
+							type = msg_war_declared_on_liege
+							title = declare_war_interaction_notification
+
+							left_icon = scope:actor					
+							right_icon = scope:recipient
+
+							custom_tooltip = declare_war_interaction_notification_tooltip
+						}
+					}
+				}
+			}
+			
+			# If you are admin and had permission to start war, spend said permission
+			if = {
+				limit = {
+					has_variable = admin_permission_to_declare_war
+				}
+				remove_variable = admin_permission_to_declare_war
+			}
+		}
+	}
+	
+	auto_accept = yes
+}

@@ -1,6 +1,9 @@
 ﻿chinese_bureaucracy = {
 	default_candidates = { holder_councilor landed_vassal }
-	invested_candidates = { holder_court_position holder_house_member direct_subject unlanded_noble_house_head unlanded_noble_close_family }  
+	invested_candidates = { holder_court_position holder_house_member unlanded_noble_house_head unlanded_noble_close_family }  
+
+	# holder_house_member direct_subject 
+	# unlanded_noble_close_extended_family unlanded_noble_house_member
 
 	candidate_score = {
 		value = {
@@ -266,15 +269,15 @@
 			}
 
 			# LOWBORN? EW no
-			#if = {
-				#limit = {
-					#is_lowborn = yes
-				#}
-				#subtract = {
-					#value = 25
-					#desc = lowborn_desc_succession
-				#}
-			#}
+			if = {
+				limit = {
+					is_lowborn = yes
+				}
+				subtract = {
+					value = 25
+					desc = lowborn_desc_succession
+				}
+			}
 
 			# INFLUENCE LEVEL
 			if = {
@@ -308,25 +311,13 @@
 					desc = of_local_culture_succession_desc
 				}
 			}
-			#皇族不当官
-			if = {
-				limit = {
-					top_liege ?= { culture = { has_cultural_parameter = patriarch_society } } #宗法传统细化
-					scope:title.holder.top_liege ?= { house = root.house }
-				}
-				add = {
-					value = -150
-					multiply = scope:title.holder.governor_efficiency
-					desc = "imperial_same_house_desc"
-				}
-			}
 
 			if = {
 				limit = {
 					is_spouse_of = scope:title.holder 
 				}
 				add = {
-					value = -1000
+					value = -2000
 					desc = "CorruptionSystem_consort_value_desc"
 				}
 			}
@@ -433,6 +424,19 @@
 				}
 			}
 
+			#皇族不当官
+			if = {
+				limit = {
+					top_liege ?= { culture = { has_cultural_parameter = patriarch_society } } #宗法传统细化
+					scope:title.holder.top_liege ?= { house = root.house }
+					scope:title.holder.top_liege ?= { has_realm_law_flag = chinese_bureaucracy_royal_banned } #禁止皇族当官	
+				}
+				add = {
+					value = -150
+					multiply = scope:title.holder.governor_efficiency
+					desc = "imperial_same_house_desc"
+				}
+			}
 			#科举取士
 			if = {
 				limit = {
@@ -483,7 +487,7 @@
 							value = bureaucrat_level_value
 							subtract = scope:title.holder.bureaucrat_title_rank_value
 						}
-						multiply = 50
+						multiply = 20
 					}
 					multiply = governor_efficiency
 					desc = trait_lifestyle_bureaucrat
@@ -501,7 +505,7 @@
 							value = bureaucrat_level_value
 							subtract = scope:title.holder.bureaucrat_title_rank_value
 						}
-						multiply = 50
+						multiply = 20
 					}
 					multiply = scope:title.holder.governor_efficiency
 					desc = trait_lifestyle_bureaucrat
@@ -528,10 +532,16 @@
 						vassal_contract_has_flag = imperial_royal_1
 						vassal_contract_has_flag = heir_succession_rights_unlock
 						primary_title ?= { has_variable = titular_title }
+						AND = {
+							is_landed = yes
+							NOT = {
+								has_realm_law_flag = appointment_type_succession
+							}
+						}
 					}
 				}
 				add = {
-					subtract = 1000
+					value = -2000
 					desc = "east_contract.0004.t"
 				}
 			}
@@ -547,21 +557,70 @@
 					desc = "Bureaucrat_dynasty_prestige_level_value_desc"
 				}
 			}
-
-			# EXISTING GOVERNORSHIPS
 			if = {
-				limit = { is_governor = yes }
+				limit = {
+					is_oe_aristocrat = yes
+					scope:title.holder ?= { has_realm_law = official_law_1 } #世族优先选官
+				}
 				add = {
-					value = -2000
-					desc = already_a_governor_tt
+					value = house_power_score
+					desc = "[powerful_family_rating|E]"
 				}
 			}
 			if = {
-				limit = { is_prefect = yes liege = top_liege }
+				limit = {
+					is_oe_aristocrat = no
+					scope:title.holder.top_liege ?= { has_realm_law_flag = chinese_bureaucracy_low_family } #扩大寒门选官 
+				}
+				add = {
+					value = 10
+					multiply = 20
+					multiply = governor_efficiency
+					desc = "chinese_bureaucracy_low_family"
+				}
+			}
+			# EXISTING GOVERNORSHIPS
+			if = {
+				limit = {
+					is_governor = yes
+					NOT = { scope:title.holder ?= { has_realm_law = official_law_0 } } #流官法律
+				}
 				add = {
 					value = -1000
 					desc = already_a_governor_tt
 				}
+			}
+			if = {
+				limit = {
+					is_prefect = yes
+					liege = scope:title.holder.top_liege
+					NOT = { scope:title.holder.top_liege ?= { has_realm_law_flag = chinese_bureaucracy_landed_vassal } } #允许知州接任
+				}
+				add = {
+					value = -500
+					desc = already_a_governor_tt
+				}
+			}
+			#if = {
+				#limit = {
+					#is_vassal_of = scope:title.holder
+					#scope:title.holder = {
+						#NOT = { any_dejure_vassal_title_holder = { this = root } }
+					#}
+				#}
+				#add = {
+					#value = -1000
+					#desc = game_concept_de_jure_drifting
+				#}
+			#}
+			#指定述任
+			if = {
+				limit = {
+					scope:title.holder ?= {
+						var:oe_heir ?= root
+					} 
+				}
+				add = 1000
 			}
 
 			if = {
@@ -581,8 +640,8 @@
 					scope:title.holder ?= { has_realm_law = male_preference_law }
 					is_female = yes
 				}
-				multiply = {
-					value = 0.33
+				add = {
+					value = -3000
 					desc = male_preference_law
 				}
 			}
@@ -591,8 +650,8 @@
 					scope:title.holder ?= { has_realm_law = male_only_law }
 					is_female = yes
 				}
-				multiply = {
-					value = 0
+				add = {
+					value = -5000
 					desc = male_only_law
 				}
 			}

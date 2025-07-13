@@ -36,7 +36,13 @@ mongol_invasion.0001 = {
 mongol_invasion.0100 = {
 	hidden = yes
 	immediate = {
-		spawn_mongol_troops_effect = yes
+		#MPO gives you inheritable troops that you can strengthen through conquests
+		if = {
+			limit = {
+				has_mpo_dlc_trigger = no
+			}
+			spawn_mongol_troops_effect = yes
+		}
 	}
 }
 
@@ -54,51 +60,89 @@ mongol_invasion.1001 = {
 		first_valid = {
 			triggered_desc = {
 				trigger = {
-					target_is_liege_or_above = scope:new_khan
+					OR = {
+						target_is_liege_or_above = scope:new_khan
+						is_tributary_of_suzerain_or_above = scope:new_khan
+						is_allied_to = scope:new_khan
+					}
 					OR = {
 						religion = scope:old_khan.religion
 						culture = scope:old_khan.culture
+						reverse_opinion = {
+							target = scope:new_khan
+							value >= 40
+						}
+						dynasty ?= scope:new_khan.dynasty
 					}
 				}
 				desc = mongol_invasion.1001.sympathetic.desc # We have lost a great hero! (/we remain scared) /for allies of faith or subjects
 			}
-			triggered_desc = {
-				trigger = {
-					in_diplomatic_range = scope:new_khan
-				}
-				desc = mongol_invasion.1001.generic.desc  # Thank [god]. Maybe the next one will be more chill...
-			}
-			desc = mongol_invasion.1001.generic.oblivious.desc # Who? /vague info
+			desc = mongol_invasion.1001.generic.desc  # Thank [god]. Maybe the next one will be more chill...
 		}
 	}
 
 	theme = war
 	override_background = {
-		reference = wilderness_steppe
+		reference = throne_room_scope
 	}
 	left_portrait = {
 		character = scope:new_khan
-		animation = personality_bold
+		animation = personality_vengeful
 	}
-	right_portrait = scope:old_khan
+	lower_right_portrait = scope:old_khan
+	override_effect_2d = {
+		reference = smoke
+	}
 
 	trigger = {
 		in_diplomatic_range = scope:new_khan
 		NOT = { root = scope:new_khan }
+	}
+
+	immediate = {
+		scope:new_khan = { save_scope_as = background_throne_room_scope }
 	}
 	
 	option = {
 		name = mongol_invasion.1001.a
 		trigger = {
 			scope:old_khan.faith.religion = root.faith.religion
+			NOT = {
+				OR = {
+					target_is_liege_or_above = scope:new_khan
+					is_tributary_of_suzerain_or_above = scope:new_khan
+					is_allied_to = scope:new_khan
+				}
+				OR = {
+					religion = scope:old_khan.religion
+					culture = scope:old_khan.culture
+					reverse_opinion = {
+						target = scope:new_khan
+						value >= 40
+					}
+					dynasty ?= scope:new_khan.dynasty
+				}
+			}
 		}
-		fallback = yes
 	}
 	
 	option = {
 		name = mongol_invasion.1001.b
 		trigger = {
-			target_is_liege_or_above = scope:new_khan
+			OR = {
+				target_is_liege_or_above = scope:new_khan
+				is_tributary_of_suzerain_or_above = scope:new_khan
+				is_allied_to = scope:new_khan
+			}
+			OR = {
+				religion = scope:old_khan.religion
+				culture = scope:old_khan.culture
+				reverse_opinion = {
+					target = scope:new_khan
+					value >= 40
+				}
+				dynasty ?= scope:new_khan.dynasty
+			}
 		}
 	}
 	
@@ -121,12 +165,18 @@ mongol_invasion.1002 = {
 		first_valid = {
 			triggered_desc = {
 				trigger = {
-					any_realm_province = {
-						OR = {
-							geographical_region = special_mongol_empire_start_region
-							geographical_region = special_mongol_empire_conquest_region_prio_0
-							geographical_region = special_mongol_empire_conquest_region_prio_1
-							geographical_region = special_mongol_empire_conquest_region_prio_2
+					OR = {
+						any_realm_province = {
+							OR = {
+								# oe added
+								geographical_region = special_mongol_empire_start_region
+								geographical_region = special_mongol_empire_conquest_region_prio_0
+								geographical_region = special_mongol_empire_conquest_region_prio_1
+								geographical_region = special_mongol_empire_conquest_region_prio_2
+							}
+						}
+						NOT = {
+							government_has_flag = government_is_nomadic
 						}
 					}
 				}
@@ -143,33 +193,65 @@ mongol_invasion.1002 = {
 						}
 						desc = mongol_invasion.1002.desc.close_steppes
 					}
+					desc = mongol_invasion.1002.desc.close.mid
+					#Great Khan or Genghis?
+					first_valid = {
+						triggered_desc = {
+							trigger = {
+								exists = scope:temujin
+							}
+							desc = mongol_invasion.1002.desc.genghis
+						}
+						desc = mongol_invasion.1002.desc.gok
+					}
 					desc = mongol_invasion.1002.desc.close.end
 				}
+			}
+			desc = mongol_invasion.1002.desc.far_intro
+			first_valid = {
+				triggered_desc = {
+					trigger = {
+						exists = scope:temujin
+						root = scope:temujin
+					}
+					desc = mongol_invasion.1002.desc.genghis
+				}
+				desc = mongol_invasion.1002.desc.gok
 			}
 			desc = mongol_invasion.1002.desc.far
 		}
 	}
 	theme = war
 	override_background = {
-		reference = ep2_travel_settlement_steppe
+		reference = wilderness_mountains
 	}
 	left_portrait = {
 		character = scope:temujin
-		animation = personality_callous
+		animation = celebrate_sword
+		camera = camera_event_left_forward
 	}
 	right_portrait = {
 		character = scope:mongol_warrior
-		animation = marshal
+		animation = hunting_shortbow_aim_arrow_default
+		camera = camera_event_right_forward
 		hide_info = yes
+	}
+	override_effect_2d = {
+		reference = smoke	
 	}
 
 	immediate = {
 		#Add a warrior friend for the herd to look more menacing
-		scope:temujin = { save_scope_as = value_target }
+		scope:temujin = {
+			save_scope_as = value_target
+			add_character_flag = { flag = need_military_outfit }
+			custom_tooltip = genghis_khan_mongol_empire_tt
+			custom_tooltip = genghis_khan_mongol_troops_tt
+			custom_tooltip = mongol_invasion.1002.genghis_khan_tt
+		}
 		create_character = {
 			location = scope:temujin.location
 			template = new_commander_character
-			trait = giant
 			faith = scope:temujin.faith
 			culture = scope:temujin.culture
 			gender_female_chance = scope_value_target_soldier_female_chance
@@ -180,7 +262,7 @@ mongol_invasion.1002 = {
 		}
 	}
 	
-	option = { # Option for characters in Mongolia
+	option = { # Option for close characters
 		name = {
 			trigger = { has_trait = craven }
 			text = mongol_invasion.1002.craven
@@ -188,34 +270,10 @@ mongol_invasion.1002 = {
 		name = {
 			text = mongol_invasion.1002.a
 		}
-		exclusive = yes
 		trigger = {
-			any_realm_province = {
-				geographical_region = special_mongol_empire_start_region
-			}
+			government_has_flag = government_is_nomadic
 		}
-		custom_tooltip = mongol_invasion.1002.genghis_khan_tt
-	}
-
-	option = { # Option for close characters
-		name = {
-			trigger = { has_trait = craven }
-			text = mongol_invasion.1002.craven
-		}
-		name = {
-			text = mongol_invasion.1002.b
-		}
-		trigger = {
-			any_realm_province = {
-				OR = {
-					geographical_region = special_mongol_empire_conquest_region_prio_0
-					geographical_region = special_mongol_empire_conquest_region_prio_1
-					geographical_region = special_mongol_empire_conquest_region_prio_2
-				}
-			}
-		}
-		exclusive = yes
-		custom_tooltip = mongol_invasion.1002.genghis_khan_tt
+		custom_tooltip = mongol_invasion_submission_reminder_tt
 	}
 	
 	option = { # Options for distant characters
@@ -224,13 +282,19 @@ mongol_invasion.1002 = {
 			trigger = { has_trait = craven }
 		}
 		name = {
-			text = mongol_invasion.1002.c
+			text = mongol_invasion.1002.b
 		}
-		custom_tooltip = mongol_invasion.1002.genghis_khan_tt
+		trigger = {
+			NOT = { government_has_flag = government_is_nomadic }
+		}
+		custom_tooltip = mongol_invasion_submission_reminder_tt
 	}
-	
+
 	after = {
 		scope:mongol_warrior = { silent_disappearance_effect = yes }
+		scope:temujin = {
+			remove_character_flag = need_military_outfit
+		}
 	}
 }
 
@@ -721,7 +785,154 @@ mongol_invasion.2112 = {
 	}
 }
 
-
+#Mongol Empire breakup tributary allocation
+mongol_invasion.3000 = {
+	hidden = yes
+	immediate = {
+		#Make non-valid tributaries of e mongolia independent
+		every_in_list = {
+			list = mongol_tributaries
+			limit = {
+				is_tributary = yes
+				suzerain = scope:mongolia_ruler
+				NOR = {
+					AND = {
+						highest_held_title_tier < tier_empire
+						primary_title.empire.holder = scope:mongolia_ruler
+					}
+					any_neighboring_and_across_water_top_liege_realm_owner = {
+						this = scope:mongolia_ruler
+					}
+					any_land_neighboring_realm_with_tributaries_owner = {
+						this = scope:mongolia_ruler
+					}
+				}
+			}
+			end_tributary = yes
+		}
+		#Assign sub-emperors to de jure lieges
+		every_in_list = {
+			list = mongol_tributaries
+			limit = {
+				highest_held_title_tier < tier_empire
+				primary_title = {
+					empire = {
+						holder ?= {
+							is_in_list = selected_mongol_heirs
+							NOT = {
+								this = scope:mongolia_ruler
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = moved_tributary
+			primary_title = {
+				empire = {
+					holder = {
+						save_scope_as = new_suzerain
+						start_tributary_interaction_effect = {
+							TRIBUTARY = scope:moved_tributary
+							SUZERAIN = scope:new_suzerain
+						}
+					}
+				}
+			}
+			remove_from_list = mongol_tributaries
+		}
+		#Assign to land neighbor
+		every_in_list = {
+			list = mongol_tributaries
+			limit = {
+				any_land_neighboring_realm_with_tributaries_owner = {
+					is_in_list = selected_mongol_heirs
+					NOT = {
+						this = scope:mongolia_ruler
+					}
+				}
+			}
+			save_scope_as = moved_tributary
+			ordered_neighboring_top_liege_realm_owner = {
+				order_by = current_military_strength
+				limit = {
+					is_in_list = selected_mongol_heirs
+					NOT = {
+						this = scope:mongolia_ruler
+					}
+				}
+				save_scope_as = new_suzerain
+				start_tributary_interaction_effect = {
+					TRIBUTARY = scope:moved_tributary
+					SUZERAIN = scope:new_suzerain
+				}
+			}
+			remove_from_list = mongol_tributaries
+		}
+		#Assign to across water neighbor
+		every_in_list = {
+			list = mongol_tributaries
+			limit = {
+				any_neighboring_and_across_water_top_liege_realm_owner = {
+				 	is_in_list = selected_mongol_heirs
+					NOT = {
+						this = scope:mongolia_ruler
+					}
+				}
+			}
+			save_scope_as = moved_tributary
+			ordered_neighboring_and_across_water_top_liege_realm_owner = {
+				order_by = current_military_strength
+				limit = {
+					is_in_list = selected_mongol_heirs
+					NOT = {
+						this = scope:mongolia_ruler
+					}
+				}
+				save_scope_as = new_suzerain
+				start_tributary_interaction_effect = {
+					TRIBUTARY = scope:moved_tributary
+					SUZERAIN = scope:new_suzerain
+				}
+			}
+			remove_from_list = mongol_tributaries
+		}
+		#Any neighbor is a tributary
+		every_in_list = {
+			list = mongol_tributaries
+			limit = {
+				any_neighboring_and_across_water_top_liege_realm_owner = {
+				 	is_tributary = yes
+				 	suzerain = {
+				 		is_in_list = selected_mongol_heirs
+				 		NOT = {
+							this = scope:mongolia_ruler
+						}
+				 	}
+				}
+			}
+			save_scope_as = moved_tributary
+			random_neighboring_and_across_water_top_liege_realm_owner = {
+				limit = {
+					is_tributary = yes
+				 	suzerain = {
+				 		is_in_list = selected_mongol_heirs
+				 		NOT = {
+							this = scope:mongolia_ruler
+						}
+				 	}
+				}
+				suzerain = {
+					save_scope_as = new_suzerain
+					start_tributary_interaction_effect = {
+						TRIBUTARY = scope:moved_tributary
+						SUZERAIN = scope:new_suzerain
+					}
+				}
+			}
+			remove_from_list = mongol_tributaries
+		}
+	}
+}
 
 
 ### Destroy the Mongol Empire title if appropriate

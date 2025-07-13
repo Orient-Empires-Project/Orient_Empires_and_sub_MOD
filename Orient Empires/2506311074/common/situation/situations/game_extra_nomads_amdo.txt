@@ -1,0 +1,359 @@
+﻿game_rule_extra_nomads_amdo = {
+
+	window = the_great_steppe
+	gui_window_name = "window_the_great_steppe"
+	map_mode = sub_regions
+
+	is_unique = no
+	migration = yes
+
+	##################################################
+	# Regions
+	##################################################
+	sub_regions = {
+		amdo_nomads = {
+			map_color = { 34 255 76 }
+			geographical_regions = { amdo_nomad_area }
+		}
+		gyalrong_nomads = {
+			map_color = { 94 55 76 }
+			geographical_regions = { gyalrong_nomad_area }
+		}
+		kham_nomads = {
+			map_color = { 24 155 76 }
+			geographical_regions = { kham_nomad_area }
+		}
+	}
+
+	##################################################
+	# On Actions
+	##################################################
+	on_monthly = {
+	}
+	
+	on_yearly = {
+		trigger_event = {
+			on_action = mpo_generic_nomadic_region_yearly_pulse
+		}
+	}
+
+	##################################################
+	# Groups
+	##################################################
+	participant_groups = {
+		nomad_rulers_capital = {
+			require_capital_in_sub_region = yes
+			is_character_valid = {
+				has_government = nomad_government
+				highest_held_title_tier >= tier_county
+			}
+
+			map_color = { 255 127 80 }
+		}
+		
+		nomad_rulers_realm = {
+			require_capital_in_sub_region = no
+			require_realm_in_sub_region = yes
+			is_character_valid = {
+				has_government = nomad_government
+				highest_held_title_tier >= tier_county
+			}
+
+			map_color = { 255 127 80 }
+		}
+
+		herders = {
+			is_character_valid = {
+				has_government = herder_government
+				highest_held_title_tier >= tier_county
+			}
+			map_color = { 235 213 52 }
+		}
+		
+		settled_rulers = { # They're unaware they're part of the situation, this is just so we can apply the fertility modifiers to their counties
+			is_character_valid = {
+				NOR = {
+					has_government = herder_government
+					has_government = nomad_government
+				}
+				highest_held_title_tier >= tier_county
+			}
+			map_color = { 19 111 0 }
+		}
+	}
+
+	##################################################
+	# Phases
+	##################################################
+	start_phase = situation_steppe_abundant_grazing_season
+
+	phases = {
+		situation_steppe_abundant_grazing_season = {
+
+			icon = "gfx/interface/icons/seasons/abudant_grazing.dds"
+			illustration = "gfx/interface/illustrations/terrain_types/mpo_season_abudant_grazing.dds"
+			max_duration = { days = 3650 }
+
+			on_start = {
+				scope:situation_sub_region = {
+					save_scope_as = my_subregion
+					every_situation_sub_region_participant_group = {
+						limit = { participant_group_type = nomad_rulers_capital }
+						every_situation_group_participant = {
+							trigger_event = mpo_the_great_steppe.0002
+						}
+					}
+				}
+			}
+
+			max_duration_next_phase = random_non_takeover
+
+			future_phases = {
+				situation_steppe_severe_drought_season = {
+				}
+				situation_steppe_warm_nights_season = {
+				}
+			}
+
+			modifier_sets = {
+				situation_steppe_fertility_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_fertility.dds"
+					
+					nomad_rulers_capital = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_abundant_grazing_growth_mult_value
+						}
+					}
+					
+					nomad_rulers_realm = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_abundant_grazing_growth_mult_value
+						}
+					}
+					
+					herders = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_abundant_grazing_growth_mult_value
+						}
+					}
+					
+					settled_rulers = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_abundant_grazing_growth_mult_value
+						}
+					}
+				}
+					
+				situation_steppe_subject_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_subject.dds"
+
+					nomad_rulers_capital = {
+						character_modifier = {
+							vassal_opinion = 20
+						}
+						parameters = {
+							the_great_steppe_demand_herd_higher_rate = yes
+						}
+					}
+				}
+				
+				situation_steppe_military_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_military.dds"
+					
+					nomad_rulers_capital = {
+						character_modifier = {
+							men_at_arms_maintenance = -0.2
+						}
+					}
+				}
+				
+				situation_steppe_personal_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_character.dds"
+					
+					nomad_rulers_capital = {
+						parameters = {
+							the_great_steppe_cheaper_hunts = yes
+						}
+					}
+				}
+			}
+		}
+
+		situation_steppe_severe_drought_season = {
+			icon = "gfx/interface/icons/seasons/severe_drought.dds"
+			illustration = "gfx/interface/illustrations/terrain_types/mpo_season_severe_drought.dds"
+			max_duration = { days = 3650 }
+
+			map_province_effect = drought
+
+			on_start = {
+				scope:situation_sub_region = {
+					save_scope_as = my_subregion
+					every_situation_sub_region_participant_group = {
+						limit = { participant_group_type = nomad_rulers_capital }
+						every_situation_group_participant = {
+							trigger_event = mpo_the_great_steppe.0002
+						}
+					}
+				}
+			}
+
+			max_duration_next_phase = random_non_takeover
+
+			future_phases = {
+				situation_steppe_abundant_grazing_season = {
+				}
+				situation_steppe_warm_nights_season = {
+				}
+			}
+
+			modifier_sets = {
+				situation_steppe_fertility_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_fertility.dds"
+					
+					nomad_rulers_capital = {
+						county_modifier = {
+							county_fertility_decline_mult = cf_severe_drought_decline_mult_value
+						}
+					}
+					
+					nomad_rulers_realm = {
+						county_modifier = {
+							county_fertility_decline_mult = cf_severe_drought_decline_mult_value
+						}
+					}
+					
+					herders = {
+						county_modifier = {
+							county_fertility_decline_mult = cf_severe_drought_decline_mult_value
+							county_fertility_growth_mult = cf_severe_drought_growth_mult_value
+						}
+					}
+					
+					settled_rulers = {
+						county_modifier = {
+							county_fertility_decline_mult = cf_severe_drought_decline_mult_value
+							county_fertility_growth_mult = cf_severe_drought_growth_mult_value
+						}
+					}
+				}
+
+				situation_steppe_subject_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_subject.dds"
+				
+					nomad_rulers_capital = {
+						parameters = {
+							the_great_steppe_migration_acceptance_boost = yes
+							the_great_steppe_migration_morale_boost = yes
+							
+						}
+					}
+				}
+				
+				situation_steppe_herd_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_herd.dds"
+					
+					nomad_rulers_capital = {
+						character_modifier = {
+							herd_conversion = 0.1
+							herd_gain_mult = -0.05
+						}
+					}
+				}
+				
+				situation_steppe_military_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_military.dds"
+					
+					nomad_rulers_capital = {
+						character_modifier = {
+							raid_speed = 0.25
+						}
+					}
+				}
+			}
+		}
+
+		situation_steppe_warm_nights_season = {
+
+			icon = "gfx/interface/icons/seasons/everlasting_summer.dds"			
+			illustration = "gfx/interface/illustrations/terrain_types/mpo_season_everlasting_summer.dds"
+			max_duration = { days = 3650 }
+
+			map_province_effect = summer
+			map_province_effect_intensity = 0.1
+			
+			on_start = {
+				scope:situation_sub_region = {
+					save_scope_as = my_subregion
+					every_situation_sub_region_participant_group = {
+						limit = { participant_group_type = nomad_rulers_capital }
+						every_situation_group_participant = {
+							trigger_event = mpo_the_great_steppe.0002
+						}
+					}
+				}
+			}
+
+			max_duration_next_phase = random_non_takeover
+
+			future_phases = {
+				situation_steppe_severe_drought_season = {
+				}
+				situation_steppe_abundant_grazing_season = {
+				}
+			}
+
+			modifier_sets = {
+				situation_steppe_fertility_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_fertility.dds"
+
+					nomad_rulers_capital = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_warm_nights_growth_mult_value
+						}
+					}
+					
+					nomad_rulers_realm = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_warm_nights_growth_mult_value
+						}
+					}
+					
+					herders = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_warm_nights_growth_mult_value
+						}
+					}
+					
+					settled_rulers = {
+						county_modifier = {
+							county_fertility_growth_mult = cf_warm_nights_growth_mult_value
+						}
+					}
+				}
+				
+				situation_steppe_military_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_military.dds"
+					
+					nomad_rulers_capital = {
+						character_modifier = {
+							movement_speed = 0.1
+						}
+					}
+				}
+				
+				situation_steppe_subject_effects = {
+					icon = "gfx/interface/icons/situations/situation_modifier_subject.dds"
+					
+					nomad_rulers_capital = {
+						character_modifier = {
+							tributary_opinion = 10
+							vassal_opinion = 10
+							vassal_herd_contribution_mult = 0.2
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,5741 @@
+﻿namespace = nomad_events
+
+## Veronica Pazos
+## Ill-Advised event chain - nomad_events.0001-0099
+## Not My Flock - nomad_events.0100
+## Cornered - nomad_events.0110
+## Evening Ride - nomad_events.0120
+## A Good Deal - nomad_events.0130
+## Far From Home - nomad_events.0140
+## One More Drink - nomad_events.0150
+## A Nice Word - nomad_events.0160
+## Dreaded One - nomad_events.0170
+## The Weakest Link - nomad_events.0180
+## Back When - nomad_events.0190
+## In My Dreams - nomad_events.0200
+## Nothing but Roots - nomad_events.0210
+## Weak Is the Arm - nomad_events.0220
+## Homesick - nomad_events.0230
+## Unexpected Guests - nomad_events.0240
+## Man of God - nomad_events.0250
+
+############################
+## Ill-Advised
+## 0001-0099
+############################
+
+# nomad_events.0001 - Your Councillor is too good at their job, someone is jealous
+# nomad_events.0002 - Achmach comes back to you - why did you fire me?
+# nomad_events.0003 - Second courtier complains about Achmach
+# nomad_events.0004 - Letter event - Achmach thanks you for trusting/rehiring him
+# nomad_events.0005 - Letter event - Someone warns you about a plot at court
+# nomad_events.0006 - Interrogation event - Ask Achmach and the courtiers if they know something
+# nomad_events.0007 - You see Achmach doing something sus at night
+# nomad_events.0008 - You discover what he was doing -- He was trying to protect you!
+# nomad_events.0009 - You discover what he was doing -- He was trying to murder you!
+# nomad_events.0010 - You fail to discover what he was doing -- Someone tries to murder you!
+
+# Your Councillor is too good at their job, someone is jealous
+scripted_trigger is_valid_nomad_events_0001_councillor = {
+	is_courtier_or_knight_of_root = yes #someone that is not just going to leave your camp
+	is_ruler = no #ditto
+	kurultai_is_skilled_trigger = { EMPLOYER = root }
+	NOR = {
+		is_spouse_of = root 
+		is_child_of = root 
+	}
+	NAND = { # Not your Shaman unless they can be fired
+		has_council_position = councillor_court_chaplain
+		faith = {
+			OR = {
+				has_doctrine = doctrine_clerical_succession_temporal_fixed_appointment
+				has_doctrine = doctrine_clerical_succession_spiritual_fixed_appointment
+			}
+		}
+	}
+}
+
+scripted_trigger is_valid_nomad_events_0001_courtier = {
+	is_available_ai_adult = yes
+	is_close_family_or_spouse_of_root_trigger = no
+	NOR = {
+		has_trait = compassionate
+		has_trait = content
+		has_trait = humble
+	}
+}
+
+scripted_effect fire_achmach_effect = {
+	fire_councillor = scope:achmach_scope
+	custom_tooltip = achmach_firing_tt
+	scope:achmach_scope = {
+		block_hiring_councillor_effect = { COURT_OWNER = root }
+	}
+	if = {
+		limit = {
+			has_relation_potential_lover = scope:achmach_scope
+		}
+		remove_relation_potential_lover = scope:achmach_scope
+	}
+	if = {
+		limit = {
+			has_relation_lover = scope:achmach_scope
+		}
+		remove_relation_lover = scope:achmach_scope
+	}
+	if = {
+		limit = {
+			has_relation_soulmate = scope:achmach_scope
+		}
+		remove_relation_soulmate = scope:achmach_scope
+	}
+	if = {
+		limit = {
+			has_relation_potential_friend = scope:achmach_scope
+		}
+		remove_relation_potential_friend = scope:achmach_scope
+	}
+	if = {
+		limit = {
+			has_relation_friend = scope:achmach_scope
+		}
+		remove_relation_friend = scope:achmach_scope
+	}
+	if = {
+		limit = {
+			has_relation_best_friend = scope:achmach_scope
+		}
+		remove_relation_best_friend = scope:achmach_scope
+	}
+}
+
+nomad_events.0001 = {
+	type = character_event
+	title = nomad_events.0001.t
+	desc = nomad_events.0001.desc
+	theme = intrigue
+	override_background = { reference = mpo_campfire_steppe }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = trusting
+					has_trait = compassionate
+					has_trait = forgiving
+					has_trait = arrogant
+				}
+			}
+			animation = dismissal
+		}
+		animation = worry
+	}
+	right_portrait = {
+		character = scope:jealous_courtier
+		animation = anger
+	}
+	lower_center_portrait = scope:achmach_scope
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		exists = situation:the_great_steppe
+		any_character_situation = {
+			this = situation:the_great_steppe
+		}
+		NOT = { has_variable = had_ill_advised_event_chain_var }
+		is_available_adult = yes
+		any_councillor = {
+			is_valid_nomad_events_0001_councillor = yes
+			save_temporary_scope_as = achmach_scope_temp
+		}
+		any_courtier = {
+			is_valid_nomad_events_0001_courtier = yes
+			NOT = { this = scope:achmach_scope_temp }
+			opinion = {
+				target = scope:achmach_scope_temp
+				value <= 50
+			}
+		}
+	}
+	
+	immediate = {
+		set_variable = had_ill_advised_event_chain_var
+		random_councillor = {
+			limit = {
+				is_valid_nomad_events_0001_councillor = yes
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 2
+					intrigue >= high_skill_rating
+				}
+				modifier = {
+					add = 1
+					OR = {
+						has_trait = deceitful
+						has_trait = disloyal
+						has_trait = ambitious
+					}
+				}
+			}
+			save_scope_as = achmach_scope
+		}
+		scope:achmach_scope = {
+			switch = {
+				trigger = has_council_position
+				councillor_spymaster = {
+					scope:achmach_scope = {
+						set_variable = {
+							name = council_position_var
+							value = flag:spymaster
+						}
+					}
+				}
+				councillor_kurultai_1 = {
+					scope:achmach_scope = {
+						set_variable = {
+							name = council_position_var
+							value = flag:kurultai_1
+						}
+					}
+				}
+				councillor_kurultai_2 = {
+					scope:achmach_scope = {
+						set_variable = {
+							name = council_position_var
+							value = flag:kurultai_2
+						}
+					}
+				}
+				councillor_kurultai_3 = {
+					scope:achmach_scope = {
+						set_variable = {
+							name = council_position_var
+							value = flag:kurultai_3
+						}
+					}
+				}
+				councillor_kurultai_4 = {
+					scope:achmach_scope = {
+						set_variable = {
+							name = council_position_var
+							value = flag:kurultai_4
+						}
+					}
+				}
+			}
+		}
+		random_courtier = {
+			limit = {
+				is_valid_nomad_events_0001_courtier = yes
+				NOT = { this = scope:achmach_scope }
+				opinion = {
+					target = scope:achmach_scope
+					value <= 50
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 2
+					is_councillor_of = root
+				}
+				modifier = {
+					add = 5
+					OR = {
+						has_trait = callous
+						has_trait = wrathful
+						has_trait = ambitious
+					}
+				}
+			}
+			save_scope_as = jealous_courtier
+		}
+		# Are they going to be guilty during this event chain? Randomize for replaybility
+		random_list = {
+			60 = {
+				modifier = {
+					scope:achmach_scope = {
+						is_obedient_to = root
+					}
+					add = 15
+				}
+				modifier = {
+					scope:achmach_scope = {
+						has_any_good_relationship_with_root_trigger = yes
+					}
+					add = 15
+				}
+				modifier = {
+					scope:achmach_scope = {
+						OR = {
+							has_trait = honest
+							has_trait = loyal
+							has_trait = content
+							has_trait = humble
+						}
+					}
+					add = 10
+				}
+				scope:achmach_scope = {
+					set_variable = {
+						name = achmach_loyalty
+						value = flag:yes
+					}
+				}
+			}
+			40 = {
+				modifier = {
+					scope:achmach_scope = {
+						is_obedient_to = root
+					}
+					add = 15
+				}
+				modifier = {
+					scope:achmach_scope = {
+						has_any_bad_relationship_with_root_trigger = yes
+					}
+					add = 15
+				}
+				modifier = {
+					scope:achmach_scope = {
+						OR = {
+							has_trait = deceitful
+							has_trait = ambitious
+							has_trait = disloyal
+						}
+					}
+					add = 10
+				}
+				scope:achmach_scope = {
+					set_variable = {
+						name = achmach_loyalty
+						value = flag:no
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			scope:jealous_courtier = {
+				set_relation_grudge = {
+					target = scope:achmach_scope
+					reason = grudge_too_good
+				}
+			}
+		}
+	}
+	
+	option = { # You're right, I'm firing them
+		name = nomad_events.0001.a
+		fire_achmach_effect = yes
+		scope:jealous_courtier = {
+			if = {
+				limit = { is_councillor_of = root }
+				councillor_increase_relevant_skill_effect = yes
+			}
+			add_opinion = {
+				target = root
+				modifier = grateful_opinion
+				opinion = 15
+			}
+		}
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0002
+				days = { 25 30 } 
+			}
+		}
+		stress_impact = {
+			paranoid = medium_stress_impact_loss
+			trusting = major_stress_impact_gain
+			gregarious = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = paranoid
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = trusting
+					has_trait = gregarious
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # You're clearly just jealous
+		name = nomad_events.0001.b
+		scope:jealous_courtier = {
+			add_opinion = {
+				target = root
+				modifier = annoyed_opinion
+				opinion = -10
+			}
+		}
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0003
+				days = { 25 30 } 
+			}
+		}
+		stress_impact = {
+			paranoid = medium_stress_impact_gain
+			trusting = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = paranoid
+				factor = 0
+			}
+			modifier = {
+				has_trait = trusting
+				factor = 2
+			}
+		}
+	}
+}
+
+# Achmach comes back to you - why did you fire me?
+scripted_effect nomad_events_0002_rehire_achmach_effect = {
+	scope:achmach_scope = {
+		remove_variable ?= block_hire_councillor
+		switch = {
+			trigger = var:council_position_var
+			flag:spymaster = {
+				root = {
+					assign_councillor_type = {
+						type = councillor_spymaster
+						remove_existing_councillor = yes
+						target = scope:achmach_scope
+					}
+				}
+			}
+			flag:kurultai_1 = {
+				root = {
+					assign_councillor_type = {
+						type = councillor_kurultai_1
+						remove_existing_councillor = yes
+						target = scope:achmach_scope
+					}
+				}
+			}
+			flag:kurultai_2 = {
+				root = {
+					assign_councillor_type = {
+						type = councillor_kurultai_2
+						remove_existing_councillor = yes
+						target = scope:achmach_scope
+					}
+				}
+			}
+			flag:kurultai_3 = {
+				root = {
+					assign_councillor_type = {
+						type = councillor_kurultai_3
+						remove_existing_councillor = yes
+						target = scope:achmach_scope
+					}
+				}
+			}
+			flag:kurultai_4 = {
+				root = {
+					assign_councillor_type = {
+						type = councillor_kurultai_4
+						remove_existing_councillor = yes
+						target = scope:achmach_scope
+					}
+				}
+			}
+		}
+		add_opinion = {
+			target = root
+			modifier = grateful_opinion
+			opinion = 15
+		}
+	}
+}
+
+nomad_events.0002 = {	
+	type = character_event
+	title = nomad_events.0002.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:achmach_scope = {
+						OR = {
+							has_trait = humble
+							has_trait = calm
+							has_trait = content
+							has_trait = deceitful
+							has_trait = temperate
+						}
+					}
+				}
+				desc = nomad_events.0002.desc.calm
+			}
+			triggered_desc = {
+				trigger = {
+					scope:achmach_scope = {
+						OR = {
+							has_trait = wrathful
+							has_trait = arrogant
+							has_trait = callous
+							has_trait = vengeful
+						}
+					}
+				}
+				desc = nomad_events.0002.desc.angry
+			}
+			desc = nomad_events.0002.desc.fallback
+		}
+		desc = nomad_events.0002.desc.outro
+	}
+	theme = intrigue
+	override_background = { reference = mpo_campfire_steppe }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = trusting
+					has_trait = compassionate
+					has_trait = forgiving
+				}
+			}
+			animation = stunned
+		}
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = arrogant
+					has_trait = callous
+				}
+			}
+			animation = dismissal
+		}
+		animation = worry
+	}
+	right_portrait = {
+		character = scope:achmach_scope
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = humble
+					has_trait = content
+					has_trait = deceitful
+					has_trait = temperate
+				}
+			}
+			animation = disappointed
+		}
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = wrathful
+					has_trait = arrogant
+					has_trait = callous
+					has_trait = vengeful
+				}
+			}
+			animation = anger
+		}
+		animation = disbelief
+	}
+	lower_center_portrait = {
+		trigger = { scope:jealous_courtier = { is_courtier_or_knight_of_root = yes } }
+		character = scope:jealous_courtier
+	}
+	
+	trigger = {
+		# Achmach is still around
+		scope:achmach_scope = {
+			is_courtier_or_knight_of_root = yes
+		}
+		NOT = { has_variable = had_nomad_events_0002_var }
+	}
+	
+	immediate = {
+		set_variable = had_nomad_events_0002_var
+	}
+	
+	option = { #Rehire him
+		name = nomad_events.0002.a
+		#Rehire them to the position they had earlier
+		nomad_events_0002_rehire_achmach_effect = yes
+		if = {
+			limit = {
+				scope:jealous_courtier = { is_courtier_or_knight_of_root = yes }
+			}
+			scope:jealous_courtier = {
+				add_opinion = {
+					target = root
+					modifier = disrespect_opinion
+					opinion = -10
+				}
+			}
+		}
+		hidden_effect = {
+			random = {
+				chance = 50 
+				trigger_event = {
+					id = nomad_events.0003
+					days = { 25 30 } 
+				}
+			}
+		}
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0004
+				days = { 12 15 } 
+			}
+		}
+		set_variable = rehired_achmach_var
+		stress_impact = {
+			paranoid = medium_stress_impact_gain
+			trusting = medium_stress_impact_loss
+			forgiving = major_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = paranoid
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = trusting
+					has_trait = forgiving
+				}					
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Go away
+		name = nomad_events.0002.b
+		scope:achmach_scope = {
+			progress_towards_rival_effect = {
+				CHARACTER = root
+				OPINION = -30
+				REASON = rival_fired_from_council
+			}
+		}
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0005
+				days = { 25 30 }
+			}
+		}
+		stress_impact = {
+			forgiving = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = forgiving
+				factor = 0
+			}
+		}
+	}
+}
+
+# Another courtier accuses Achmach of the same
+scripted_trigger is_valid_nomad_events_0003_courtier = {
+	is_available_ai_adult = yes
+	NOT = {
+		this = scope:achmach_scope
+	}
+	NOT = { has_any_good_relationship_with_character_trigger = { CHARACTER = scope:achmach_scope } }
+	trigger_if = {
+		limit = {
+			scope:jealous_courtier = { is_courtier_or_knight_of_root = yes }
+		}
+		NOT = { this = scope:jealous_courtier }
+	}
+}
+
+nomad_events.0003 = {	
+	type = character_event
+	title = nomad_events.0003.t
+	desc = {
+		desc = nomad_events.0003.desc.intro
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_variable = rehired_achmach_var
+				}
+				desc = nomad_events.0003.desc.rehired
+			}
+			desc = nomad_events.0003.desc.not_rehired
+		}
+		desc = nomad_events.0003.desc.outro
+	}
+	theme = intrigue
+	override_background = { reference = mpo_campfire_steppe }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = trusting
+					has_trait = compassionate
+					has_trait = forgiving
+					has_trait = arrogant
+					has_trait = callous
+					has_trait = lustful
+					has_trait = rakish
+				}
+			}
+			animation = laugh
+		}
+		animation = stunned
+	}
+	right_portrait = {
+		character = scope:jealous_courtier_2
+		animation = anger
+	}
+	lower_center_portrait = scope:achmach_scope
+	
+	trigger = {
+		# Achmach is still around
+		scope:achmach_scope = {
+			is_courtier_or_knight_of_root = yes
+		}
+		any_courtier_or_guest = {
+			is_valid_nomad_events_0003_courtier = yes
+		}
+		NOT = { has_variable = had_nomad_events_0003_var }
+	}
+	
+	immediate = {
+		set_variable = had_nomad_events_0003_var
+		random_courtier_or_guest = {
+			limit = { is_valid_nomad_events_0003_courtier = yes }
+			weight = {
+				base = 1
+				modifier = {
+					factor = 2
+					has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:achmach_scope }
+				}
+				modifier = {
+					add = 5
+					OR = {
+						has_trait = callous
+						has_trait = wrathful
+						has_trait = ambitious
+					}
+				}
+			}
+			save_scope_as = jealous_courtier_2
+		}
+		dummy_attracted_gender_effect = { TARGET = scope:achmach_scope }
+		hidden_effect = {
+			if = {
+				limit = {
+					scope:jealous_courtier_2 = {
+						can_set_relation_grudge_trigger = { CHARACTER = scope:achmach_scope }
+					}
+				}
+				scope:jealous_courtier_2 = {
+					set_relation_grudge = {
+						target = scope:achmach_scope
+						reason = grudge_too_good
+					}
+				}
+			}
+		}
+	}
+	
+	option = { # I would also flee to their arms
+		name = nomad_events.0003.a
+		add_internal_flag = special
+		trigger = {
+			NOT = { has_relation_lover = scope:achmach_scope }
+			is_attracted_to_gender_of = scope:achmach_scope
+			scope:achmach_scope = {
+				is_attracted_to_gender_of = root
+			}
+			can_start_scheme = {
+				type = seduce
+				target_character = scope:achmach_scope
+			}
+		}
+		start_scheme = {
+			type = seduce
+			target_character = scope:achmach_scope
+		}
+		custom_tooltip = nomad_events_0003_a_tt
+		random_scheme = {
+			limit = {
+				scheme_type = seduce
+				scheme_target_character = scope:achmach_scope
+			}
+			add_scheme_progress = 5
+			add_scheme_modifier = {
+				type = extra_success_chance_modifier
+			}
+		}
+		stress_impact = {
+			lustful = massive_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				might_cheat_on_every_partner_trigger = yes
+				has_lustful_adjacent_trait_trigger = yes
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Ayo, this is getting out of hand
+		name = nomad_events.0003.b
+		custom_tooltip = nomad_events_0003_b_tt
+		add_dread = minor_dread_loss
+		add_character_modifier = {
+			modifier = mpo_assertion_modifier
+			years = 5
+		}
+		fire_achmach_effect = yes
+		scope:jealous_courtier_2 = {
+			if = {
+				limit = { is_councillor_of = root }
+				councillor_increase_relevant_skill_effect = yes
+			}
+			add_opinion = {
+				target = root
+				modifier = grateful_opinion
+				opinion = 15
+			}
+		}
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0002
+				days = { 12 20 }
+			}
+		}
+		stress_impact = {
+			trusting = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = trusting
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Nonsense, I trust this person
+		name = nomad_events.0003.c
+		add_legitimacy_effect = { LEGITIMACY = minor_legitimacy_loss }
+		scope:jealous_courtier_2 = {
+			add_opinion = {
+				target = root
+				modifier = disrespect_opinion
+				opinion = -15
+			}
+		}
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0004
+				days = { 12 20 } 
+			}
+		}
+		stress_impact = {
+			paranoid = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = paranoid
+				factor = 0
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0005
+				days = { 25 30 }
+			}
+		}
+	}
+}
+
+# Letter event - Achmach thanks you for trusting/rehiring him
+nomad_events.0004 = {	
+	type = letter_event
+	opening = {
+		desc = nomad_events.0004.opening
+	}
+	desc = nomad_events.0004.desc
+	sender = scope:achmach_scope
+	
+	trigger = {
+		# Achmach is still around
+		scope:achmach_scope = {
+			is_courtier_or_knight_of_root = yes
+		}
+		NOT = {
+			has_variable = had_nomad_events_0004_var
+		}
+	}
+	
+	immediate = {
+		set_variable = had_nomad_events_0004_var
+	}
+
+	option = { # So nice of them
+		name = nomad_events.0004.a
+		add_gold = minor_gold_value
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0005
+				days = { 25 30 } 
+			}
+		}
+	}
+}
+
+# Letter event - Someone warns you about a plot at court
+nomad_events.0005 = {
+	type = character_event
+	window = anonymous_letter_event
+	title = debug.0002.t
+	desc = nomad_events.0005.desc
+	theme = intrigue
+
+	trigger = {
+		# Achmach is still around
+		scope:achmach_scope = {
+			is_courtier_or_knight_of_root = yes
+		}
+		NOT = { has_variable = had_nomad_events_0005_var }
+	}
+	
+	immediate = {
+		set_variable = had_nomad_events_0005_var
+		scope:achmach_scope ?= { save_scope_as = achmach_scope }
+		scope:jealous_courtier ?= { save_scope_as = jealous_courtier }
+		scope:jealous_courtier_2 ?= { save_scope_as = jealous_courtier_2 }
+	}
+
+	option = { # Damn, that's bad
+		name = nomad_events.0005.a
+		if = {
+			limit = {
+				exists = scope:jealous_courtier_2 
+			}
+			custom_tooltip = nomad_events_0005_tt
+		}
+		else = {
+			custom_tooltip = nomad_events_0005_tt_only_one
+		}
+		set_variable = can_interrogate_var
+		# This triggers a Current Situation advice, and the Interrogate Scheme
+		if = {
+			limit = {
+				scope:achmach_scope = { is_alive = yes }
+			}
+			scope:achmach_scope = {
+				add_to_variable_list = {
+					name = valid_to_interrogate_var
+					target = root
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:jealous_courtier = { is_alive = yes }
+			}
+			scope:jealous_courtier = {
+				set_variable = jealous_courtier_var
+				add_to_variable_list = {
+					name = valid_to_interrogate_var
+					target = root
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:jealous_courtier_2
+				scope:jealous_courtier_2 = { is_alive = yes }
+			}
+			scope:jealous_courtier_2 = {
+				add_to_variable_list = {
+					name = valid_to_interrogate_var
+					target = root
+				}
+			}
+		}
+		stress_impact = {
+			base = minor_stress_impact_gain
+		}
+
+		ai_chance = {
+			base = 100
+		}		
+	}
+}
+
+# Interrogation event - Ask Achmach and the courtiers if they know something
+nomad_events.0006 = {	
+	type = character_event
+	title = nomad_events.0006.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { # Are they the Achmach character?
+					scope:recipient = { has_variable = achmach_loyalty }
+				}
+				desc = nomad_events.0006.desc.achmach
+			}
+			triggered_desc = {
+				trigger = {
+					scope:recipient = { has_variable = jealous_courtier_var }
+				}
+				desc = nomad_events.0006.desc.courtier
+			}
+			desc = nomad_events.0006.desc.courtier_2
+		}
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					OR = {
+						has_trait = forgiving
+						has_trait = calm
+						has_trait = craven
+					}
+				}
+				desc = nomad_events.0006.desc.calm
+			}
+			desc = nomad_events.0006.desc.fallback
+		}
+		first_valid = {
+			triggered_desc = {
+				trigger = { # Are they the Achmach character?
+					scope:recipient = { has_variable = achmach_loyalty }
+				}
+				desc = nomad_events.0006.desc.achmach_outro
+			}
+			triggered_desc = {
+				trigger = {
+					scope:recipient = { has_variable = jealous_courtier_var }
+				}
+				desc = nomad_events.0006.desc.courtier_outro
+			}
+			desc = nomad_events.0006.desc.courtier_outro_2
+		}
+	}
+	theme = intrigue
+	override_background = { reference = mpo_tent_interior_mongol }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = trusting
+					has_trait = compassionate
+					has_trait = forgiving
+				}
+			}
+			animation = interested
+		}
+		animation = disapproval
+	}
+	right_portrait = {
+		character = scope:recipient
+		triggered_animation = {
+			trigger = {
+				scope:recipient = { has_variable = achmach_loyalty }
+			}
+			animation = schadenfreude
+		}
+		animation = shock
+	}
+	
+	immediate = {
+		scope:recipient = {
+			remove_list_variable = {
+				name = valid_to_interrogate_var
+				target = root
+			}
+			assign_quirk_effect = yes
+		}
+		if = {
+			limit = {
+				scope:recipient = { has_variable = achmach_loyalty }
+			}
+			scope:recipient = { save_scope_as = achmach_scope }
+		}
+		else = {
+			random_courtier_or_guest = {
+				limit = { has_variable = achmach_loyalty }
+				save_scope_as = achmach_scope
+			}
+		}
+	}
+	
+	option = { # If you are a torturer you can use that
+		name = nomad_events.0006.a
+		trigger = {
+			has_focus_or_focus_trait_trigger = { FOCUS = intrigue_intimidation_focus }
+		}
+		add_intrigue_lifestyle_xp = minor_lifestyle_xp
+		add_dread = major_dread_gain
+		set_nickname_effect = { NICKNAME = nick_the_flayer }
+		scope:recipient = {
+			progress_towards_rival_effect = {
+				CHARACTER = root
+				OPINION = -30
+				REASON = rival_tortured_me
+			}
+		}
+		stress_impact = {
+			torturer = major_stress_impact_loss
+			compassionate = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = torturer
+				factor = 2
+			}
+			modifier = {
+				has_trait = compassionate
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # If you are a witch/mystic you can identify this as black magic
+		name = nomad_events.0006.b
+		trigger = {
+			OR = {
+				has_trait = witch
+				has_trait = lifestyle_mystic
+			}
+		}
+		add_learning_lifestyle_xp = minor_lifestyle_xp
+		
+		stress_impact = {
+			witch = medium_stress_impact_loss
+			lifestyle_mystic = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = witch
+					has_trait = lifestyle_mystic
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Find out if the courtier is nervous about something
+		name = nomad_events.0006.b
+		trigger = {
+			scope:recipient = {
+				NOT = { has_variable = achmach_loyalty }
+			}
+		}
+		duel = {
+			skills = { diplomacy intrigue }
+			target = scope:recipient
+			50 = { # If you succeed you notice why they're nervous (they actually saw Achmach, or they are just jealous)
+				desc = nomad_events.0006.c.success
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 3.5
+				}
+				scope:achmach_scope = {
+					switch = {
+						trigger =  var:achmach_loyalty
+						flag:yes = {
+							custom_tooltip = nomad_events_0006_c_success_info
+							root = {
+								hidden_effect = {
+									send_interface_toast = {
+										title = nomad_events.0006.c.success
+										right_icon = scope:recipient
+										custom_tooltip = nomad_events_0006_c_success_loyal
+									}
+								}
+							}
+						}
+						flag:no = {
+							custom_tooltip = nomad_events_0006_c_success_info
+							root = {
+								hidden_effect = {
+									send_interface_toast = {
+										title = nomad_events.0006.c.success
+										right_icon = scope:recipient
+										custom_tooltip = nomad_events_0006_c_success_disloyal
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			50 = {
+				desc = nomad_events.0006.c.failure
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -3.5
+				}
+				send_interface_toast = {
+					title = nomad_events.0006.c.failure
+					right_icon = scope:achmach_scope
+					add_stress = minor_stress_gain
+				}
+			}
+		}
+		stress_impact = {
+			paranoid = medium_stress_impact_loss
+			trusting = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = paranoid
+				factor = 2
+			}
+			modifier = {
+				has_trait = trusting
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Achmach offers to kill your enemies
+		name = nomad_events.0006.d
+		trigger = {
+			scope:recipient = { has_variable = achmach_loyalty }
+		}
+		custom_tooltip = nomad_events_0006_d_tt
+		set_variable = achmach_murder_help_var
+		scope:achmach_scope = {
+			set_variable = achmach_murder_help_councillor_var
+		}
+		stress_impact = {
+			ambitious = medium_stress_impact_loss
+			deceitful = medium_stress_impact_loss
+			compassionate = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = ambitious
+					has_trait = deceitful
+				}
+				factor = 2
+			}
+			modifier = {
+				has_trait = compassionate
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Imprison them
+		name = nomad_events.0006.e
+		add_dread = medium_dread_gain
+		rightfully_imprison_character_less_verbose_effect = { 
+			TARGET = scope:recipient
+			IMPRISONER = root
+		}
+		if = {
+			limit = {
+				scope:recipient = { has_variable = achmach_loyalty }
+			}
+			scope:achmach_scope = {
+				set_variable = imprisoned_var
+			}
+		}
+		stress_impact = {
+			vengeful = medium_stress_impact_loss
+			compassionate = medium_stress_impact_gain
+			trusting = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = trusting
+				}
+				factor = 0
+			}
+			modifier = {
+				has_trait = vengeful
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Let them be
+		name = nomad_events.0006.f
+		add_dread = minor_dread_loss
+		add_piety = minor_piety_gain
+		scope:recipient = {
+			add_opinion = {
+				target = root
+				modifier = grateful_opinion
+				opinion = 25
+			}
+		}
+		stress_impact = {
+			vengeful = medium_stress_impact_gain
+			trusting = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = trusting
+				factor = 2
+			}
+			modifier = {
+				has_trait = vengeful
+				factor = 0
+			}
+		}
+	}
+	
+	after = {
+		if = { # We send this after interrogating Achmach
+			limit = {
+				scope:recipient = { has_variable = achmach_loyalty }
+			}
+			hidden_effect = {
+				trigger_event = {
+					id = nomad_events.0007
+					days = { 25 30 } 
+				}
+			}
+		}
+	}
+}
+
+# You see Achmach do something sus at night
+scripted_effect achmach_discover_nature_ritual_effect = {
+	scope:achmach_scope = {
+		switch = {
+			trigger =  var:achmach_loyalty
+			flag:yes = {
+				custom_tooltip = nomad_events_0007_b_success_info
+				root = {
+					trigger_event = nomad_events.0008
+				}
+			}
+			flag:no = {
+				custom_tooltip = nomad_events_0007_b_success_info
+				root = {
+					trigger_event = nomad_events.0009
+				}
+			}
+		}
+	}
+}
+
+nomad_events.0007 = {	
+	type = character_event
+	title = nomad_events.0007.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:achmach_scope = {
+						has_variable = imprisoned_var
+					}
+				}
+				desc = nomad_events.0007.desc.imprisoned
+			}
+			desc = nomad_events.0007.desc.fallback
+		}
+		desc = nomad_events.0007.desc.outro
+	}
+	theme = intrigue
+	override_background = { reference = mpo_campfire_steppe }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = wrathful
+					has_trait = brave
+					has_trait = vengeful
+				}
+			}
+			animation = anger
+		}
+		animation = shock
+	}
+	right_portrait = {
+		character = scope:achmach_scope
+		camera = camera_event_center
+		override_imprisonment_visuals = yes
+		animation = throne_room_kneel_1
+	}
+	
+	trigger = {
+		# Achmach is still around
+		scope:achmach_scope = {
+			is_courtier_or_knight_of_root = yes
+		}
+	}
+	
+	immediate = {
+		play_music_cue = "mx_cue_murder"
+	}
+	
+	option = { # Everyone is scheming against me!
+		name = nomad_events.0007.aa
+		trigger = {
+			has_trait = paranoid
+		}
+		if = {
+			limit = {
+				NOT = { has_perk = prepared_for_anything_perk }
+			}
+			add_perk = prepared_for_anything_perk
+		}
+		else = {
+			add_intrigue_lifestyle_perk_points = 1
+		}
+		hidden_effect = {
+			trigger_event = {
+				id = nomad_events.0010
+				days = { 2 3 }
+			}
+		}
+		stress_impact = {
+			paranoid = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = paranoid
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Wait, I know what you're doing
+		name = nomad_events.0007.a
+		trigger = {
+			OR = {
+				has_trait = witch
+				has_trait = lifestyle_mystic
+			}
+		}
+		add_learning_lifestyle_xp = medium_lifestyle_xp
+		achmach_discover_nature_ritual_effect = yes
+		stress_impact = {
+			witch = medium_stress_impact_loss
+			lifestyle_mystic = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = witch
+					has_trait = lifestyle_mystic
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # What are you doing
+		name = nomad_events.0007.b
+		duel = {
+			skill = learning
+			target = scope:achmach_scope
+			50 = {
+				desc = nomad_events.0007.b.success
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 3.5
+				}
+				achmach_discover_nature_ritual_effect = yes
+			}
+			50 = {
+				desc = nomad_events.0007.b.failure
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -3.5
+				}
+				send_interface_toast = {
+					title = nomad_events.0007.b.failure
+					right_icon = scope:achmach_scope
+					add_stress = minor_stress_gain
+				}
+				hidden_effect = {
+					trigger_event = {
+						id = nomad_events.0010
+						days = { 2 3 }
+					}
+				}
+			}
+		}
+		stress_impact = {
+			trusting = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = trusting
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Intimidate them
+		name = nomad_events.0007.c
+		duel = {
+			skill = prowess
+			target = scope:achmach_scope
+			50 = {
+				desc = nomad_events.0007.b.success
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 3.5
+				}
+				achmach_discover_nature_ritual_effect = yes
+			}
+			50 = {
+				desc = nomad_events.0007.b.failure
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -3.5
+				}
+				send_interface_toast = {
+					title = nomad_events.0007.b.failure
+					right_icon = scope:achmach_scope
+					add_stress = minor_stress_gain
+				}
+				hidden_effect = {
+					trigger_event = {
+						id = nomad_events.0010
+						days = { 2 3 }
+					}
+				}
+			}
+		}
+		stress_impact = {
+			wrathful = medium_stress_impact_loss
+			vengeful = medium_stress_impact_loss
+			craven = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = vengeful
+				}
+				factor = 2
+			}
+			modifier = {
+				has_trait = craven
+				factor = 0
+			}
+		}
+	}
+}
+
+# Happy ending - Achmach was praying for your safety
+scripted_effect nomad_events_magic_amulet_creation_effect = {
+	hidden_effect_new_object = {
+		create_artifact = {
+			name = magic_amulet
+			description = magic_amulet_desc
+			type = miscellaneous
+			visuals = antlers
+			modifier = artifact_stress_gain_7_modifier
+			modifier = artifact_magic_amulet_modifier
+			save_scope_as = newly_created_artifact
+			wealth = 70
+			quality = 70
+			max_durability = 100
+			creator = scope:achmach_scope
+		}
+	}
+}
+
+nomad_events.0008 = {	
+	type = character_event
+	title = nomad_events.0008.t
+	desc = nomad_events.0008.desc
+	theme = intrigue
+	override_background = { reference = mpo_campfire_steppe }
+	left_portrait = {
+		character = root
+		animation = admiration
+	}
+	right_portrait = {
+		character = scope:achmach_scope
+		animation = obsequious_bow
+		override_imprisonment_visuals = yes
+	}
+	artifact = {
+		target = scope:newly_created_artifact
+		position = lower_right_portrait
+	}
+	
+	immediate = {
+		scope:achmach_scope = {
+			assign_quirk_effect = yes
+			nomad_events_magic_amulet_creation_effect = yes
+		}
+		add_stress = medium_stress_loss # No one is trying to kill you
+	}
+	
+	option = { # If you don't have the same faith, switch
+		name = nomad_events.0008.a
+		trigger = {
+			NOT = { faith = scope:achmach_scope.faith }
+		}
+		set_character_faith_with_conversion = scope:achmach_scope.faith
+		add_piety = medium_piety_gain
+		ai_chance = {
+			base = 0 #AI should never choose this
+		}
+	}
+	
+	option = { # Get the amulet
+		name = nomad_events.0008.b
+		custom_tooltip = nomad_events_0008_b_tt
+		scope:newly_created_artifact = {
+			set_owner = root
+			set_variable = magic_amulet_var
+		}
+		stress_impact = {
+			zealous = medium_stress_impact_loss
+			cynical = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = zealous
+				factor = 2
+			}
+			modifier = {
+				has_trait = cynical
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Urge them to get even better
+		name = nomad_events.0008.c
+		scope:achmach_scope = { 
+			if = {
+				limit = { is_councillor_of = root }
+				councillor_increase_relevant_skill_five_points_effect = yes
+			}
+			else = {
+				add_random_five_skill_points_effect = yes
+			}
+			add_opinion = {
+				target = root
+				modifier = grateful_opinion
+				opinion = 25
+			}
+		}
+		add_prestige = medium_prestige_gain
+		stress_impact = {
+			ambitious = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = ambitious
+				factor = 2
+			}
+		}
+	}
+}
+
+# Bittersweet ending - You discover he was being disloyal
+scripted_effect nomad_events_0009_imprison_effect = {
+	if = { #if they're not imprisoned yet, imprison them
+		limit = {
+			scope:achmach_scope = { is_imprisoned = no }
+		}
+		rightfully_imprison_character_less_verbose_effect = { 
+			TARGET = scope:achmach_scope 
+			IMPRISONER = root
+		}
+	}
+}
+
+nomad_events.0009 = {	
+	type = character_event
+	title = nomad_events.0009.t
+	desc = nomad_events.0009.desc
+	theme = intrigue
+	override_background = { reference = mpo_campfire_steppe }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = wrathful
+					has_trait = brave
+					has_trait = vengeful
+				}
+			}
+			animation = rage
+		}
+		animation = anger
+	}
+	right_portrait = {
+		character = scope:achmach_scope
+		animation = shock
+		override_imprisonment_visuals = yes
+	}
+	artifact = {
+		target = scope:newly_created_artifact
+		position = lower_right_portrait
+	}
+	
+	immediate = {
+		scope:achmach_scope = {
+			assign_quirk_effect = yes
+			nomad_events_magic_amulet_creation_effect = yes
+		}
+	}
+	
+	option = { # Kill them on the spot
+		name = nomad_events.0009.a
+		add_dread = major_dread_gain
+		unknown_murder_effect = {
+			VICTIM = scope:achmach_scope
+			MURDERER = root
+			REASON = death_murder
+		}
+		stress_impact = {
+			wrathful = major_stress_impact_loss
+			sadistic = major_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = sadistic
+				}
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Steal their amulet
+		name = {
+			trigger = {
+				scope:achmach_scope = {
+					is_imprisoned = yes
+				}
+			}
+			text = nomad_events.0009.b_imprisoned
+		}
+		name = {
+			text = nomad_events.0009.b
+		}
+		custom_tooltip = nomad_events_0008_b_tt
+		scope:newly_created_artifact = {
+			set_owner = root
+			set_variable = magic_amulet_var
+		}
+		nomad_events_0009_imprison_effect = yes
+		stress_impact = {
+			zealous = medium_stress_impact_loss
+			cynical = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = zealous
+				factor = 2
+			}
+			modifier = {
+				has_trait = cynical
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # You'll be prepared now
+		name = nomad_events.0009.c
+		add_character_modifier = mpo_eyes_everywhere_modifier # Permanent
+		stress_impact = {
+			paranoid = major_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = paranoid
+				factor = 2
+			}
+		}
+	}
+}
+
+# Complicated feelings ending - Someone tries to murder you!
+scripted_effect nomad_events_0010_imprison_effect = {
+	if = { #if they're not imprisoned yet, imprison them
+		limit = {
+			scope:dueling_enemy = { is_imprisoned = no }
+		}
+		rightfully_imprison_character_less_verbose_effect = { 
+			TARGET = scope:dueling_enemy 
+			IMPRISONER = root
+		}
+	}
+	add_dread = medium_dread_gain
+	add_character_modifier = {
+		modifier = mpo_imprisoned_assassin_modifier
+		years = 5
+	}
+}
+
+nomad_events.0010 = {	
+	type = character_event
+	title = nomad_events.0010.t
+	desc = {
+		desc = nomad_events.0010.desc.intro
+		first_valid = {
+			triggered_desc = {
+				trigger = { # Someone else was trying to murder you
+					scope:achmach_scope.var:achmach_loyalty = flag:yes
+				}
+				desc = nomad_events.0010.desc.loyal
+			}
+			desc = nomad_events.0010.desc.disloyal # It's Acmach!
+		}
+	}
+	theme = intrigue
+	override_background = { reference = mpo_tent_interior_mongol }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				has_focus_or_focus_trait_trigger = { FOCUS = intrigue_intimidation_focus }
+			}
+			animation = rage
+		}
+		animation = shock
+	}
+	right_portrait = {
+		character = scope:achmach_scope
+		triggered_animation = {
+			trigger = {
+				scope:achmach_scope.var:achmach_loyalty = flag:yes
+			}
+			animation = aggressive_dagger
+		}
+		animation = assassin
+		override_imprisonment_visuals = yes
+	}
+	lower_center_portrait = {
+		trigger = {
+			exists = scope:assassin
+		}
+		character = scope:assassin
+	}
+	
+	immediate = {
+		play_music_cue = "mx_cue_murder"
+		if = {
+			limit = {
+				scope:achmach_scope.var:achmach_loyalty = flag:yes
+			}
+			create_character = {
+				template = mercenary
+				dynasty = none
+				location = root.capital_province
+				gender_female_chance = root_soldier_female_chance
+				faith = root.location.faith
+				culture = root.location.culture
+				save_scope_as = assassin
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:assassin
+			}
+			scope:assassin = { save_scope_as = dueling_enemy }
+		}
+		else = {
+			scope:achmach_scope = { save_scope_as = dueling_enemy }
+		}
+	}
+	
+	option = { # If you are a torturer you're gonna have fun
+		name = nomad_events.0010.aaa
+		trigger = {
+			has_focus_or_focus_trait_trigger = { FOCUS = intrigue_intimidation_focus }
+		}
+		add_internal_flag = special
+		add_intrigue_lifestyle_xp = medium_lifestyle_xp
+		add_dread = major_dread_gain
+		unknown_murder_effect = {
+			VICTIM = scope:dueling_enemy
+			MURDERER = root
+			REASON = death_murder
+		}
+		stress_impact = {
+			torturer = massive_stress_impact_loss
+			wrathful = massive_stress_impact_loss
+			sadistic = major_stress_impact_loss
+			calm = major_stress_impact_gain
+			compassionate = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = torturer
+					has_trait = wrathful
+					has_trait = sadistic
+				}
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = calm
+					has_trait = compassionate
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # If you are craven you can run with all your might
+		name = nomad_events.0010.aa
+		trigger = {
+			has_trait = craven
+		}
+		custom_tooltip = nomad_events_0010_aa_tt
+		nomad_events_0010_imprison_effect = yes
+	}
+	
+	option = { # Encourage Achmach to take the hit for you
+		name = nomad_events.0010.a
+		trigger = {
+			scope:achmach_scope.var:achmach_loyalty = flag:yes
+		}
+		scope:achmach_scope = {
+			duel = {
+				skill = prowess
+				target = scope:assassin
+				50 = { # They kill the assassin
+					desc = nomad_events.0010.a.success
+					compare_modifier = {
+						value = scope:duel_value
+						multiplier = 3.5
+					}
+					send_interface_toast = {
+						title = nomad_events.0010.a.success
+						right_icon = scope:assassin
+						left_icon = scope:achmach_scope
+						unknown_murder_effect = {
+							VICTIM = scope:assassin
+							MURDERER = scope:achmach_scope
+							REASON = death_murder
+						}
+					}
+				}
+				50 = { # The assassin wounds them
+					desc = nomad_events.0010.a.failure
+					compare_modifier = {
+						value = scope:duel_value
+						multiplier = -3.5
+					}
+					send_interface_toast = {
+						title = nomad_events.0010.a.failure
+						right_icon = scope:achmach_scope
+						scope:achmach_scope = {
+							increase_wounds_effect = { REASON = attacked }
+						}
+					}
+				}
+			}
+		}
+		stress_impact = {
+			craven = major_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = craven
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # You call for guards
+		name = nomad_events.0010.b
+		duel = {
+			skill = diplomacy
+			target = scope:dueling_enemy
+			50 = { # You imprison the assassin
+				desc = nomad_events.0010.b.success
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 3.5
+				}
+				send_interface_toast = {
+					title = nomad_events.0010.b.success
+					left_icon = root
+					right_icon = scope:dueling_enemy
+					nomad_events_0010_imprison_effect = yes
+				}
+			}
+			50 = { # The assassin wounds you
+				desc = nomad_events.0010.b.failure
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -3.5
+				}
+				send_interface_toast = {
+					title = nomad_events.0010.b.failure
+					left_icon = root
+					increase_wounds_effect = { REASON = attacked }
+				}
+			}
+		}
+		stress_impact = {
+			wrathful = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = wrathful
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Try to defend yourself
+		name = {
+			trigger = {
+				scope:dueling_enemy = { is_imprisoned = yes }
+			}
+			text = nomad_events.0010.c_imprisoned
+		}
+		name = {
+			text = nomad_events.0010.c
+		}
+		duel = {
+			skill = prowess
+			target = scope:dueling_enemy
+			50 = { # You kill the assassin
+				desc = nomad_events.0010.c.success
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 3.5
+				}
+				send_interface_toast = {
+					title = nomad_events.0010.c.success
+					left_icon = root
+					right_icon = scope:dueling_enemy
+					unknown_murder_effect = {
+						VICTIM = scope:dueling_enemy
+						MURDERER = root
+						REASON = death_murder
+					}
+				}
+			}
+			50 = { # The assassin wounds you
+				desc = nomad_events.0010.c.failure
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -3.5
+				}
+				send_interface_toast = {
+					title = nomad_events.0010.c.failure
+					left_icon = root
+					increase_wounds_effect = { REASON = attacked }
+					nomad_events_0010_imprison_effect = yes
+				}
+			}
+		}
+		stress_impact = {
+			craven = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = craven
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## Not My Flock
+## 0100
+############################
+
+scripted_trigger nomad_events_0100_valid_enemies = {
+	is_available_ai_adult = yes
+	is_close_family_or_spouse_of_root_trigger = no
+	government_has_flag = government_is_nomadic
+	exists = domicile
+}
+
+scripted_effect nomad_events_0100_dislike_effect = {
+	add_opinion = {
+		target = root
+		modifier = disrespect_opinion
+		opinion = $VALUE$
+	}
+}
+
+scripted_effect nomad_events_0100_friend_effect = {
+	progress_towards_friend_effect = {
+		REASON = friend_supported_in_herd_dispute
+		CHARACTER = $CHARACTER$
+		OPINION = default_friend_opinion
+	}
+}
+
+nomad_events.0100 = {	
+	type = character_event
+	title = nomad_events.0100.t
+	desc = nomad_events.0100.desc
+	theme = nomads
+	cooldown = { years = 5 }
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = { has_trait = deceitful }
+			animation = schadenfreude
+		}
+		animation = worry
+	}
+	right_portrait = {
+		character = scope:vassal_1
+		animation = anger
+	}
+	lower_center_portrait = {
+		character = scope:vassal_2
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		is_available_adult = yes
+		any_vassal = {
+			nomad_events_0100_valid_enemies = yes
+			count >= 2
+		}
+	}
+	
+	immediate = {
+		random_vassal = {
+			limit = { nomad_events_0100_valid_enemies = yes }
+			save_scope_as = vassal_1
+		}
+		random_vassal = {
+			limit = {
+				nomad_events_0100_valid_enemies = yes
+				NOT = { this = scope:vassal_1 }
+			}
+			weight = {
+				base = 1
+				modifier = {
+					add = 10
+					has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:vassal_1 }
+				}
+				modifier = {
+					add = 5
+					number_of_opposing_personality_traits = {
+						target = scope:vassal_1
+						value >= 1
+					}
+				}
+			}
+			save_scope_as = vassal_2
+		}
+		hidden_effect = {
+			scope:vassal_1.domicile ?= {
+				if = {
+					limit = {
+						herd <= root.minor_herd_gain
+					}
+					change_herd = root.minor_herd_gain
+				}
+			}
+		}
+		scope:vassal_1 = {
+			pay_herd = {
+				target = scope:vassal_2
+				value = root.minor_herd_gain
+			}
+		}
+	}
+	
+	option = { # Don't you mean _my_ flock
+		name = nomad_events.0100.aa
+		trigger = {
+			has_trait = deceitful
+		}
+		scope:vassal_2 = {
+			pay_herd = {
+				target = scope:vassal_2
+				value = root.minor_herd_gain
+			}
+		}
+		stress_impact = {
+			craven = major_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = craven
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Support vassal_1
+		name = nomad_events.0100.a
+		nomad_events_0100_friend_effect = { CHARACTER = scope:vassal_1 }
+		scope:vassal_2 = {
+			nomad_events_0100_dislike_effect = { VALUE = -20 }
+			pay_herd = {
+				target = scope:vassal_2
+				value = root.minor_herd_gain
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_any_good_relationship_with_character_trigger = { CHARACTER = scope:vassal_1 }
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Support vassal_2
+		name = nomad_events.0100.b
+		nomad_events_0100_friend_effect = { CHARACTER = scope:vassal_2 }
+		scope:vassal_1 = {
+			nomad_events_0100_dislike_effect = { VALUE = -20 }
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_any_good_relationship_with_character_trigger = { CHARACTER = scope:vassal_1 }
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # You are both wrong
+		name = nomad_events.0100.c
+		scope:vassal_1 = {
+			nomad_events_0100_dislike_effect = { VALUE = -10 }
+		}
+		scope:vassal_2 = {
+			nomad_events_0100_dislike_effect = { VALUE = -10 }
+		}
+		add_dread = minor_dread_gain
+		stress_impact = {
+			gregarious = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = gregarious
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## Cornered
+## 0110
+############################
+
+nomad_events.0110 = {	
+	type = character_event
+	title = nomad_events.0110.t
+	desc = nomad_events.0110.desc
+	theme = nomads
+	override_background = {	reference = bp3_steppe_winter }
+	widget = {
+		gui = "event_window_widget_vfx_snow"
+		container = "foreground_shader_vfx_container"
+	}
+	cooldown = { years = 10 }
+	
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = { has_trait = craven }
+			animation = shock
+		}
+		animation = anger
+	}
+	right_portrait = {
+		character = scope:victim
+		animation = sick # They are shivering
+	}
+	artifact = {
+		trigger = {
+			exists = scope:newly_created_artifact
+		}
+		position = lower_center_portrait
+		target = scope:newly_created_artifact
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		is_available_adult = yes
+		location = {
+			OR = {
+				has_winter_trigger = yes
+				geographical_region = ghw_region_siberia
+			}
+		}
+		any_courtier = {
+			is_available_ai = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			add = 3
+			situation:the_great_steppe = {
+				OR = {
+					any_situation_sub_region = {
+					    sub_region_current_phase = situation_steppe_white_zud_season
+					    situation_sub_region_has_county = root.capital_county  
+					}
+					any_situation_sub_region = {
+					    sub_region_current_phase = situation_steppe_cold_zud_season
+					    situation_sub_region_has_county = root.capital_county  
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_courtier = {
+			weight = {
+				base = 1
+				modifier = {
+					is_child_of = root
+					is_adult = no
+					age >= 5
+					add = 10
+				}
+				modifier = {
+					is_adult = no
+					add = 5
+				}
+			}
+			save_scope_as = victim
+		}
+		if = {
+			limit = { has_trait = craven }
+			hidden_effect_new_object = {
+				create_artifact_animal_hide_effect = {
+					OWNER = root
+					HUNTER = root
+					LEGENDARY = no
+					ANIMAL = flag:wolf
+				}
+			}
+		}
+	}
+	
+	option = { # Call your men
+		name = nomad_events.0110.a
+		trigger = {
+			has_trait = craven
+		}
+		scope:newly_created_artifact = { set_owner = root }
+		stress_impact = {
+			craven = medium_stress_impact_loss
+			brave = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = craven
+				factor = 2
+			}
+			modifier = {
+				has_trait = brave
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Fight the beast
+		name = nomad_events.0110.b
+		duel = {
+			value = decent_skill_rating
+			skill = prowess
+			50 = {
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 1.5
+					min = -49
+				}
+				modifier = {
+					tier_difference = { target = root value >= 1 }
+					add = 10
+				}
+				desc = nomad_events.0110.b.success
+				send_interface_toast = {
+					title = nomad_events.0110.b.success
+					left_icon = root
+					add_dread = medium_dread_gain
+					add_prowess_skill = 1
+				}
+			}
+			50 = {
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -1.5
+					min = -49
+				}
+				modifier = {
+					tier_difference = { target = root value >= 1 }
+					add = 10
+				}
+				desc = nomad_events.0110.b.failure
+				send_interface_toast = {
+					title = nomad_events.0110.b.failure
+					left_icon = root
+					increase_wounds_no_death_effect = { REASON = wild_animal }
+				}
+			}
+		}
+		stress_impact = {
+			craven = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			
+		}
+	}
+	
+	option = { # Tell them to run away
+		name = nomad_events.0110.c
+		scope:victim = {
+			increase_wounds_no_death_effect = { REASON = wild_animal }
+			random = {
+				chance = 10
+				send_interface_toast = {
+					title = nomad_events.0110.c.success
+					left_icon = scope:victim
+					scope:victim = { add_trait = athletic }
+				}
+			}
+		}
+		stress_impact = {
+			brave = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = brave 
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## Evening Ride
+## 0120
+############################
+
+scripted_effect nomad_events_0120_improve_relationship_effect = {
+	switch = {
+		trigger = var:relationship
+		flag:child = {
+			scope:companion = {
+				add_prowess_skill = 1
+			}
+		}
+		flag:spouse = {
+			if = {
+				limit = { can_set_relation_lover_trigger = { CHARACTER = scope:companion } }
+				set_relation_lover = {
+					target = scope:companion
+					reason = lover_evening_ride
+				}
+			}
+			else = {
+				scope:companion = {
+					add_opinion = {	
+						target = root 
+						modifier = love_opinion
+						opinion = 25
+					}
+				}
+			}
+		}
+		flag:friend = {
+			progress_towards_friend_effect = {
+				REASON = friend_evening_ride
+				CHARACTER = scope:companion
+				OPINION = default_friend_opinion
+			}
+		}
+	}
+}
+
+nomad_events.0120 = {	
+	type = character_event
+	title = nomad_events.0120.t
+	desc = nomad_events.0120.desc
+	theme = nomads
+	override_background = { reference = mpo_steppe_evening }
+	cooldown = { years = 5 }
+	
+	left_portrait = {
+		character = root
+		animation = jockey_walk
+		camera = camera_event_horse_left
+	}
+	right_portrait = {
+		character = scope:companion
+		animation = horse_surveying
+		camera = camera_event_horse_left
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		any_courtier = {
+			is_available_ai = yes
+			age >= 13
+		}
+	}
+	
+	immediate = {
+		random_courtier = {
+			weight = {
+				base = 1
+				modifier = {
+					is_child_of = root
+					is_adult = no
+					add = 10
+				}
+				modifier = {
+					is_spouse_of = root
+					add = 10
+				}
+			}
+			save_scope_as = companion
+		}
+		if = {
+			limit = {
+				scope:companion = {
+					is_child_of = root
+				}
+			}
+			set_variable = {
+				name = relationship
+				value = flag:child
+			}
+		}
+		else_if = {
+			limit = {
+				scope:companion = {
+					is_spouse_of = root
+				}
+			}
+			set_variable = {
+				name = relationship
+				value = flag:spouse
+			}
+		}
+		else = {
+			set_variable = {
+				name = relationship
+				value = flag:friend
+			}
+		}
+	}
+	
+	option = { # If this is romantic you can smash
+		name = nomad_events.0120.a
+		trigger = {
+			var:relationship = flag:spouse
+		}
+		reason = spouse
+		had_sex_with_effect = {
+			CHARACTER = scope:companion
+			PREGNANCY_CHANCE = pregnancy_chance
+		}
+		stress_impact = {
+			base = medium_stress_impact_loss
+			chaste = major_stress_impact_gain
+			celibate = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = lustful
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = chaste
+					has_trait = celibate
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Talk to them
+		name = nomad_events.0120.b
+		nomad_events_0120_improve_relationship_effect = yes
+		stress_impact = {
+			ambitious = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = ambitious 
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Focus on training
+		name = nomad_events.0120.c
+		add_martial_lifestyle_xp = medium_lifestyle_xp #Enough that you care even if you're not Martial
+		if = {
+			limit = {
+				var:relationship = flag:spouse
+			}
+			stress_impact = {
+				lustful = medium_stress_impact_gain
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = lustful
+				var:relationship = flag:spouse
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## A Good Deal
+## 0130
+############################
+
+scripted_trigger nomad_events_0130_valid_merchant = {
+	is_available_ai_adult = yes
+	stewardship >= decent_skill_rating
+}
+
+nomad_events.0130 = {	
+	type = character_event
+	title = nomad_events.0130.t
+	desc = nomad_events.0130.desc
+	theme = nomads
+	cooldown = { years = 5 }
+	
+	left_portrait = {
+		character = root
+		animation = horse_archer_idle
+		camera = camera_event_horse_left
+	}
+	right_portrait = {
+		character = scope:merchant
+		animation = shepherd_with_sheep
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		domicile = { herd < max_herd } # You are not at your Herd limit
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				any_pool_character = {
+					province = root.location
+					nomad_events_0130_valid_merchant = yes
+				}
+			}
+			random_pool_character = {
+				province = root.location 
+				limit = { nomad_events_0130_valid_merchant = yes }
+				save_scope_as = merchant
+			}
+		}
+		else = {
+			create_character = {
+				location = root.location
+				template = merchant_template
+				gender_female_chance = root_faith_dominant_gender_adjusted_female_chance
+				faith = location.faith
+				culture = location.culture
+				save_scope_as = merchant
+			}
+		}
+	}
+	
+	option = { # Intimidate them
+		name = nomad_events.0130.a
+		trigger = {
+			dread >= major_dread_value
+		}
+		domicile = {
+			change_herd = medium_herd_gain
+		}
+		stress_impact = {
+			wrathful = medium_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = wrathful
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Invite them to court
+		name = nomad_events.0130.b
+		pay_short_term_gold = {
+			target = scope:merchant
+			gold = minor_gold_value
+		}
+		add_courtier = scope:merchant
+		stress_impact = {
+			wrathful = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = wrathful 
+					gold <= medium_gold_value
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Buy herd
+		name = nomad_events.0130.c
+		pay_short_term_gold = {
+			target = scope:merchant
+			gold = minor_gold_value
+		}
+		domicile = {
+			change_herd = medium_herd_gain
+		}
+		stress_impact = {
+			greedy = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = greedy 
+					gold <= medium_gold_value
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # I'm good
+		name = nomad_events.0130.d
+		ai_chance = {
+			base = 100
+		}
+	}
+}
+
+############################
+## Far From Home
+## 0140
+############################
+
+scripted_trigger nomad_events_0140_valid_merchant = {
+	is_available_ai_adult = yes
+	faith = {
+		NOR = {
+			this = root.faith
+			this = root.location.county.faith
+		}
+	}
+	NOT = { has_variable = had_nomad_events_0140_var }
+}
+
+nomad_events.0140 = {	
+	type = character_event
+	title = nomad_events.0140.t
+	desc = nomad_events.0140.desc
+	theme = nomads
+	override_background = { reference = mpo_campfire_steppe }
+	cooldown = { years = 10 }
+	
+	left_portrait = {
+		character = root
+		animation = horse_archer_idle
+		camera = camera_event_horse_left
+	}
+	right_portrait = {
+		character = scope:merchant
+		animation = shepherd_with_sheep
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+	}
+	
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			any_pool_character = {
+				province = root.location
+				nomad_events_0140_valid_merchant = yes
+			}
+			factor = 2
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				any_pool_character = {
+					province = root.location
+					nomad_events_0140_valid_merchant = yes
+				}
+			}
+			random_pool_character = {
+				province = root.location 
+				limit = { nomad_events_0140_valid_merchant = yes }
+				save_scope_as = merchant
+			}
+		}
+		else = {
+			random_list = {
+				10 = {
+					modifier = {
+						location = { geographical_region = world_steppe_west }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = merchant_template
+						gender_female_chance = root_faith_dominant_gender_adjusted_female_chance
+						faith = faith:ashari
+						culture = culture:bolghar
+						save_scope_as = merchant
+					}
+				}
+				10 = {
+					modifier = {
+						location = { geographical_region = world_steppe_east }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = merchant_template
+						gender_female_chance = root_faith_dominant_gender_adjusted_female_chance
+						faith = faith:nestorian
+						culture = culture:kerait
+						save_scope_as = merchant
+					}
+				}
+				10 = {
+					modifier = {
+						location = { geographical_region = world_steppe_east }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = merchant_template
+						gender_female_chance = root_faith_dominant_gender_adjusted_female_chance
+						faith = faith:vajrayana
+						culture = culture:uyghur
+						save_scope_as = merchant
+					}
+				}
+				10 = {
+					modifier = {
+						location = { geographical_region = world_steppe_central }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = merchant_template
+						gender_female_chance = root_faith_dominant_gender_adjusted_female_chance
+						faith = faith:maturidi
+						culture = culture:turkish
+						save_scope_as = merchant
+					}
+				}
+				1 = { # Fallback, rare
+					create_character = {
+						location = root.location
+						template = merchant_template
+						gender_female_chance = root_faith_dominant_gender_adjusted_female_chance
+						faith = faith:catholic
+						culture = culture:italian
+						save_scope_as = merchant
+					}
+				}
+			}
+		}
+		scope:merchant = {
+			set_variable = had_nomad_events_0140_var
+			faith = { save_scope_as = target_faith }
+		}
+	}
+	
+	option = { # Get Faith discount
+		name = nomad_events.0140.a
+		trigger = {
+			NOT = { faith = scope:merchant.faith }
+		}
+		custom_tooltip = nomad_events.0140.a.tt
+		set_variable = {
+			name = discounted_faith_to_convert_to_var
+			value = scope:target_faith
+		}
+		stress_impact = {
+			wrathful = medium_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = { # AI should never pick this
+			base = 0
+			modifier = {
+				has_trait = cynical
+				add = 50
+			}
+		}
+	}
+	
+	option = { # Invite them to stay
+		name = nomad_events.0140.b
+		add_piety = minor_piety_gain
+		add_courtier = scope:merchant
+		stress_impact = {
+			wrathful = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = wrathful 
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Tell them to go away
+		name = nomad_events.0140.c
+		add_dread = minor_dread_gain
+		stress_impact = {
+			greedy = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = greedy 
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## One More Drink
+## 0150
+############################
+
+scripted_trigger nomad_events_0150_valid_companion = {
+	is_available_ai_adult = yes
+	drinks_alcohol_trigger = yes
+	can_set_relation_friend_trigger = { CHARACTER = root }
+	age <= 50
+}
+
+nomad_events.0150 = {	
+	type = character_event
+	title = nomad_events.0150.t
+	desc = nomad_events.0150.desc
+	theme = nomads
+	override_background = { reference = mpo_campfire_steppe }
+	cooldown = { years = 5 }
+	
+	left_portrait = {
+		character = root
+		animation = drink
+	}
+	right_portrait = {
+		character = scope:companion
+		animation = toast
+	}
+	lower_center_portrait = {
+		trigger = { exists = scope:rival }
+		character = scope:rival
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		culture = {
+			OR = {
+				has_cultural_pillar = heritage_turkic
+				has_cultural_pillar = heritage_mongolic
+			}
+		}
+		drinks_alcohol_trigger = yes
+		any_courtier = {
+			nomad_events_0150_valid_companion = yes
+		}
+	}
+	
+	immediate = {
+		random_courtier = {
+			limit = {
+				nomad_events_0150_valid_companion = yes
+			}
+			weight = { # Someone you care about
+				base = 1
+				modifier = {
+					has_court_position = court_astrologer_court_position
+					add = 5
+				}
+				modifier = {
+					is_knight_of = root
+					add = 2
+				}
+			}
+			save_scope_as = companion
+		}
+		if = {
+			limit = {
+				num_of_relation_rival >= 1
+				NOT = { has_relation_rival = scope:companion }
+			}
+			random_relation = {
+				type = rival
+				save_scope_as = rival
+			}
+		}
+	}
+	
+	option = { # If you hate someone, shit talk them
+		name = nomad_events.0150.a
+		trigger = {
+			num_of_relation_rival >= 1
+			NOT = { has_relation_rival = scope:companion }
+		}
+		add_internal_flag = special
+		custom_tooltip = nomad_events.0150.a.tt # Not using the reason because this is not because _they_ are your rival
+		scope:companion = { # They find this funny
+			add_opinion = {
+				target = root
+				modifier = amused_opinion
+				opinion = 10
+			}
+		}
+		scope:rival = {
+			add_prestige = minor_prestige_loss
+		}
+		stress_impact = {
+			base = major_stress_impact_loss
+		}
+		ai_chance = { # AI should never pick this
+			base = 0
+		}
+	}
+	
+	option = { # I love you, man
+		name = nomad_events.0150.b
+		set_relation_friend = {
+			target = scope:companion
+			reason = friend_drank_together
+		}
+		stress_impact = {
+			wrathful = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = wrathful 
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # I love drinkiiiiiiiiiiing
+		name = nomad_events.0150.c
+		add_prestige = minor_prestige_gain
+		stress_impact = {
+			base = medium_stress_impact_loss
+			drunkard = major_stress_impact_loss
+			temperate = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = greedy 
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## A Nice Word
+## 0160
+############################
+
+scripted_trigger nomad_events_0160_valid_spouse = {
+	is_available_healthy_ai_adult = yes
+	NOR = { # To avoid narrative dissonance
+		has_variable = had_nomad_events_1070_var 
+		has_variable = had_nomad_events_0220_var
+	}
+}
+
+nomad_events.0160 = {	
+	type = character_event
+	title = nomad_events.0160.t
+	desc = {
+		desc = nomad_events.0160.desc.intro
+		first_valid = {
+			triggered_desc = {
+				trigger = { var:admiration = flag:dread }
+				desc = nomad_events.0160.desc.dread
+			}
+			triggered_desc = {
+				trigger = { var:admiration = flag:prowess }
+				desc = nomad_events.0160.desc.prowess
+			}
+			triggered_desc = {
+				trigger = { var:admiration = flag:lover }
+				desc = nomad_events.0160.desc.lover
+			}
+			triggered_desc = {
+				trigger = { var:admiration = flag:brave }
+				desc = nomad_events.0160.desc.brave
+			}
+			triggered_desc = {
+				trigger = { var:admiration = flag:generic }
+				desc = nomad_events.0160.desc.generic
+			}
+		}
+		desc = nomad_events.0160.desc.outro
+	}
+	theme = nomads
+	override_background = { reference = mpo_tent_interior_mongol }
+	cooldown = { years = 10 }
+	
+	left_portrait = {
+		character = root
+		animation = love
+		outfit_tags = { nightgown }
+	}
+	right_portrait = {
+		character = scope:spouse
+		animation = admiration
+		outfit_tags = { nightgown }
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		any_spouse = {
+			nomad_events_0160_valid_spouse = yes
+			save_temporary_scope_as = spouse_temp
+		}
+		# Have you done anything cool?
+		OR = {
+			dread >= major_dread_value
+			prowess >= high_skill_rating
+			has_relation_lover = scope:spouse_temp
+			has_trait = brave
+			AND = { # Or they just support you because they like you
+				has_any_good_relationship_with_character_trigger = { CHARACTER = scope:spouse_temp }
+				scope:spouse_temp = {
+					NOT = { has_trait = callous }
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		random_spouse = {
+			limit = {
+				nomad_events_0160_valid_spouse = yes
+			}
+			weight = {
+				base = 1
+				modifier = {
+					this = root.primary_spouse
+					add = 5
+				}
+			}
+			set_variable = had_nomad_events_1060_var # Forever -- to avoid dissonance with the next event
+			save_scope_as = spouse
+		}
+		random_list = {
+			5 = {
+				trigger = {
+					dread >= major_dread_value
+				}
+				set_variable = {
+					name = admiration
+					value = flag:dread
+				}
+			}
+			5 = {
+				trigger = {
+					prowess >= high_skill_rating
+				}
+				set_variable = {
+					name = admiration
+					value = flag:prowess
+				}
+			}
+			5 = {
+				trigger = {
+					has_relation_lover = scope:spouse
+				}
+				set_variable = {
+					name = admiration
+					value = flag:lover
+				}
+			}
+			5 = {
+				trigger = {
+					has_trait = brave
+				}
+				set_variable = {
+					name = admiration
+					value = flag:brave
+				}
+			}
+			1 = {
+				set_variable = {
+					name = admiration
+					value = flag:generic
+				}
+			}
+		}				
+	}
+	
+	option = { # Let's leave the past behind
+		name = nomad_events.0160.a
+		reason = rival
+		trigger = {
+			has_relation_rival = scope:spouse
+		}
+		remove_relation_rival = scope:spouse
+		stress_impact = {
+			base = major_stress_impact_loss
+			arrogant = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+	
+	option = { # I love you too
+		name = nomad_events.0160.b
+		trigger = {
+			NOT = { has_relation_rival = scope:spouse }
+		}
+		if = {
+			limit = {
+				can_set_relation_lover_trigger = { CHARACTER = scope:spouse }
+			}
+			set_relation_lover = {
+				target = scope:spouse
+				reason = lover_admirable_thing
+			}
+		}
+		else = {
+			scope:spouse = {
+				add_opinion = {
+					target = root
+					modifier = love_opinion
+					opinion = 25
+				}
+			}
+		}		
+		stress_impact = {
+			base = minor_stress_impact_loss
+			arrogant = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = wrathful 
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Thanks, bestie
+		name = nomad_events.0160.c
+		add_prestige = minor_prestige_gain
+		stress_impact = {
+			arrogant = major_stress_impact_loss
+			humble = major_stress_impact_gain
+			shy = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = arrogant
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = humble 
+					has_trait = shy 
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	after = {
+		remove_variable = admiration
+	}
+}
+
+############################
+## Dreaded One
+## 0170
+############################
+
+scripted_trigger is_valid_nomad_events_0170_spouse = {
+	is_available_healthy_ai_adult = yes
+	NOR = { # To avoid narrative dissonance
+		has_variable = had_nomad_events_1060_var 
+		has_variable = had_nomad_events_0220_var
+	}
+	NOR = {
+		has_trait = wrathful
+		has_trait = callous
+		has_trait = sadistic
+	}
+	NOT = { dread >= minor_dread_value } # In case they are landed
+}
+
+nomad_events.0170 = {	
+	type = character_event
+	title = nomad_events.0170.t
+	desc = nomad_events.0170.desc
+	theme = nomads
+	override_background = { reference = mpo_tent_interior_mongol }
+	cooldown = { years = 10 }
+	
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = sadistic
+				}
+			}
+			animation = dismissal
+		}
+		animation = worry
+		outfit_tags = { nightgown }
+	}
+	right_portrait = {
+		character = scope:spouse
+		animation = fear
+		outfit_tags = { nightgown }
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		dread >= major_dread_value
+		any_spouse = {
+			is_valid_nomad_events_0170_spouse = yes
+		}
+	}
+	
+	immediate = {
+		random_spouse = {
+			limit = {
+				is_valid_nomad_events_0170_spouse = yes
+			}
+			weight = {
+				base = 1
+				modifier = {
+					this = root.primary_spouse
+					add = 5
+				}
+			}
+			set_variable = had_nomad_events_1070_var
+			save_scope_as = spouse
+		}	
+	}
+	
+	option = { # Do you think me weak?
+		name = nomad_events.0170.a
+		trigger = {
+			OR = {
+				has_trait = wrathful
+				has_trait = callous
+				has_trait = sadistic
+			}
+		}
+		if = { # If you are not max out we give you some dread
+			limit = {
+				NOT = { dread = 100 }
+			}
+			add_dread = major_dread_gain
+		}
+		give_nickname = nick_the_dreadful
+		add_character_modifier = {
+			modifier = dread_spouse_modifier
+			years = 10
+		}
+		if = {
+			limit = {
+				scope:spouse = { has_any_fertility_relationship_with_root_trigger = no }
+			}
+			set_relation_wedding_very_bad_fertility = scope:spouse
+		}
+		else = {
+			scope:spouse = {
+				add_opinion = {
+					target = root
+					modifier = scared_opinion
+					opinion = -50
+				}
+			}
+		}
+		stress_impact = {
+			base = major_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # You're right
+		name = nomad_events.0170.b
+		add_dread = massive_dread_loss
+		add_piety = minor_piety_gain
+		if = {
+			limit = {
+				scope:spouse = { has_any_fertility_relationship_with_root_trigger = no }
+			}
+			set_relation_wedding_good_fertility = scope:spouse
+		}
+		else = {
+			scope:spouse = {
+				add_opinion = {
+					target = root
+					modifier = love_opinion
+					opinion = 25
+				}
+			}
+		}
+		stress_impact = {
+			compassionate = medium_stress_impact_loss
+			calm = medium_stress_impact_loss
+			wrathful = major_stress_impact_gain
+			callous = major_stress_impact_gain
+			sadistic = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Nonsense
+		name = nomad_events.0170.c
+		add_prestige = minor_prestige_gain
+		scope:spouse = {
+			add_opinion = {
+				target = root
+				modifier = scared_opinion
+				opinion = -25
+			}
+		}
+		stress_impact = {
+			callous = medium_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## The Weakest Link
+## 0180
+############################
+
+scripted_trigger is_valid_nomad_events_0180_child = {
+	OR = {
+		AND = {
+			is_adult = yes
+			prowess <= mediocre_skill_rating
+		}
+		AND = {
+			is_adult = no
+			age >= 10
+			prowess <= low_skill_rating
+		}
+	}
+}
+
+scripted_trigger is_valid_nomad_events_0180_rival = {
+	is_available_healthy_ai_adult = yes
+	is_close_family_or_spouse_of_root_trigger = no
+	NOT = { is_parent_of = $CHILD$ } # Let's double check this
+	NOT = { has_trait = compassionate }
+}
+
+nomad_events.0180 = {	
+	type = character_event
+	title = nomad_events.0180.t
+	desc = nomad_events.0180.desc
+	theme = nomads
+	override_background = { reference = mpo_campfire_steppe }
+	cooldown = { years = 10 }
+	
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = vengeful
+				}
+			}
+			animation = anger
+		}
+		animation = stress
+	}
+	right_portrait = {
+		character = scope:rival
+		animation = laugh
+		camera = camera_event_left_away_3_4_far
+	}
+	lower_left_portrait = scope:child
+	
+	trigger = {
+		is_available_adult = yes
+		any_child = {
+			is_valid_nomad_events_0180_child = yes
+			save_temporary_scope_as = child_temp
+		}
+		any_courtier = {
+			is_valid_nomad_events_0180_rival = { CHILD = scope:child_temp }
+		}
+	}
+	
+	immediate = {
+		random_child = {
+			limit = {
+				is_valid_nomad_events_0180_child = yes
+			}
+			weight = {
+				base = 1
+				modifier = {
+					add = 5
+					is_primary_heir_of = root
+				}
+			}
+			save_scope_as = child
+		}
+		random_courtier_or_guest = {
+			limit = {
+				is_valid_nomad_events_0180_rival = { CHILD = scope:child }
+			}
+			weight = {
+				base = 1
+				modifier = {
+					add = 5
+					has_any_bad_relationship_with_character_trigger = { CHARACTER = scope:child }
+				}
+				modifier = {
+					add = 3
+					has_any_bad_relationship_with_root_trigger = yes
+				}
+			}
+			save_scope_as = rival
+		}
+	}
+	
+	option = { # What did you just say
+		name = nomad_events.0180.a
+		trigger = {
+			has_personality_malicious_trigger = yes
+		}
+		add_dread = medium_dread_gain
+		rightfully_imprison_character_less_verbose_effect = { 
+			TARGET = scope:rival 
+			IMPRISONER = root
+		}
+		stress_impact = {
+			arbitrary = medium_stress_impact_loss
+			callous = major_stress_impact_loss
+			sadistic = major_stress_impact_loss
+			vengeful = major_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = vengeful
+					has_trait = callous
+					has_trait = sadistic
+					has_trait = arbitrary
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Checks out
+		name = nomad_events.0180.b
+		scope:child = {
+			add_stress = massive_stress_impact_gain
+			add_prowess_skill = 2
+		}
+		
+		stress_impact = {
+			base = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 0 # AI shouldn't send themselves into a stress break
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = ambitious
+				}
+				NOT = { has_trait = compassionate }
+				add = 50 # Unless...
+			}
+		}
+	}
+	
+	option = { # Whatever
+		name = nomad_events.0180.c
+		add_prestige = minor_prestige_loss
+		scope:child = {
+			add_opinion = {
+				target = root
+				modifier = kindness_opinion
+				opinion = 10
+			}
+		}
+		stress_impact = {
+			callous = medium_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## Back When
+## 0190
+############################
+
+scripted_trigger nomad_events_0190_valid_memory = {
+	has_memory_category = positive
+	NOT = { has_memory_category = private }
+	NOT = { has_memory_category = birth }
+	memory_age_years >= 5 # not something recent
+	any_memory_participant = {
+		is_physically_able_adult = yes
+		is_courtier_or_knight_of_root = yes
+	}
+}
+
+scripted_effect nomad_events_0190_friendship_effect = {
+	# Become Blood Brothers if possible TODO_MPO
+	if = {
+		limit = {
+			can_set_relation_friend_trigger = { CHARACTER = scope:friend }
+		}
+		set_relation_friend = {
+			reason = friend_cute_memory 
+			target = scope:friend
+		}
+	}
+	else_if = {
+		limit = {
+			can_set_relation_best_friend_trigger = { CHARACTER = scope:friend }
+		}
+		set_relation_best_friend = {
+			reason = friend_cute_memory 
+			target = scope:friend
+		}
+	}
+	else = {
+		progress_towards_friend_effect = {
+			REASON = friend_cute_memory
+			CHARACTER = scope:friend
+			OPINION = default_friend_opinion
+		}
+	}
+}
+
+nomad_events.0190 = {	
+	type = character_event
+	title = nomad_events.0190.t
+	desc = nomad_events.0190.desc
+	theme = nomads
+	override_background = { reference = mpo_steppe_evening }
+	cooldown = { years = 5 }
+	
+	left_portrait = {
+		character = root
+		animation = horse_archer_idle
+		camera = camera_event_horse_left
+	}
+	right_portrait = {
+		character = scope:friend
+		animation = horse_conversing_left
+		camera = camera_event_horse_right
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		any_memory = {
+			nomad_events_0190_valid_memory = yes
+		}
+	}
+	
+	immediate = {
+		random_memory = {
+			limit = {
+				nomad_events_0190_valid_memory = yes
+			}
+			save_scope_as = memory
+			random_memory_participant = {
+				save_scope_as = friend
+			}
+		}
+	}
+	
+	option = { # I love you, bestie
+		name = nomad_events.0190.a
+		trigger = {
+			has_trait = gregarious
+		}
+		nomad_events_0190_friendship_effect = yes
+		stress_impact = {
+			base = major_stress_impact_loss
+			callous = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = callous
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = gregarious
+					has_trait = compassionate
+					has_trait = loyal
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # This is a pivotal moment in my life
+		name = nomad_events.0190.b
+		trigger = {
+			has_trait = shy
+		}
+		nomad_events_0190_friendship_effect = yes		
+		stress_impact = {
+			base = major_stress_impact_loss
+			callous = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = callous
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = shy
+					has_trait = compassionate
+					has_trait = loyal
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # I feel happy
+		name = nomad_events.0190.c
+		add_character_modifier = {
+			modifier = mpo_good_memory_modifier
+			years = 5
+		}
+		stress_impact = {
+			base = medium_stress_impact_loss
+			arrogant = medium_stress_impact_gain
+			callous = major_stress_impact_gain
+			ambitious = major_stress_impact_gain
+			disloyal = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = ambitious
+					has_trait = disloyal
+					has_trait = arrogant
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Everyone should know how cool we are
+		name = nomad_events.0190.d
+		add_prestige = minor_prestige_gain
+		stress_impact = {
+			arrogant = medium_stress_impact_loss
+			ambitious = medium_stress_impact_loss
+			disloyal = medium_stress_impact_loss
+			callous = medium_stress_impact_loss
+			gregarious = major_stress_impact_gain
+			shy = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = arrogant
+					has_trait = ambitious
+					has_trait = callous
+					has_trait = disloyal
+				}
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = gregarious
+					has_trait = shy
+					has_trait = loyal
+				}
+				factor = 0
+			}
+		}
+	}
+}
+
+############################
+## In My Dreams
+## 0200
+############################
+
+scripted_trigger nomad_events_0200_valid_courtier = {
+	is_available_healthy_ai_adult = yes
+	is_close_family_or_spouse_of_root_trigger = no
+}
+
+scripted_effect nomad_events_0200_learning_effect = {
+	scope:courtier = {
+		add_learning_skill = 1
+	}
+	add_learning_lifestyle_xp = medium_lifestyle_xp
+}
+
+nomad_events.0200 = {	
+	type = character_event
+	title = nomad_events.0200.t
+	desc = {
+		desc = nomad_events.0200.desc.intro
+		first_valid = {
+			triggered_desc = {
+				trigger = { var:dream = flag:good }
+				desc = nomad_events.0200.desc.good
+			}
+			desc = nomad_events.0200.desc.bad
+		}
+		desc = nomad_events.0200.desc.outro
+	}
+	theme = nomads
+	override_background = { reference = mpo_campfire_steppe }
+	cooldown = { years = 10 }
+	
+	left_portrait = {
+		character = root
+		animation = drink
+	}
+	right_portrait = {
+		character = scope:courtier
+		animation = storyteller
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		any_courtier = {
+			nomad_events_0200_valid_courtier = yes
+		}
+	}
+	
+	immediate = {
+		ordered_courtier = {
+			limit = { nomad_events_0200_valid_courtier = yes }
+			order_by =  {
+				value = learning
+				if = {
+					limit = { has_court_position = court_astrologer_court_position }
+					add = 5
+				}
+				if = {
+					limit = { has_trait = lifestyle_mystic }
+					add = 2
+				}
+				if = {
+					limit = { has_trait = lunatic }
+					add = 2
+				}
+			}
+			save_scope_as = courtier
+		}
+		random_list = {
+			1 = {
+				set_variable = {
+					name = dream
+					value = flag:good
+				}
+			}
+			1 = {
+				set_variable = {
+					name = dream
+					value = flag:bad
+				}
+			}
+		}
+	}
+	
+	option = { # I don't believe in this stuff
+		name = nomad_events.0200.a
+		trigger = {
+			has_trait = cynical
+		}
+		add_character_modifier = {
+			modifier = mpo_no_omens_modifier
+			years = 10
+		}
+		stress_impact = {
+			base = major_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # That's neat
+		name = nomad_events.0200.b
+		trigger = {
+			var:dream = flag:good
+		}
+		nomad_events_0200_learning_effect = yes
+		stress_impact = {
+			base = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = ambitious
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # We must endure
+		name = nomad_events.0200.c
+		trigger = {
+			var:dream = flag:bad
+		}
+		nomad_events_0200_learning_effect = yes
+		stress_impact = {
+			base = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = wrathful
+					has_trait = callous
+					has_trait = ambitious
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Let's pray
+		name = nomad_events.0200.d
+		add_piety = minor_piety_gain
+		stress_impact = {
+			callous = medium_stress_impact_loss
+			compassionate = major_stress_impact_gain
+			calm = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	after = {
+		remove_variable = dream
+	}
+}
+
+############################
+## Nothing but Roots
+## 0210
+############################
+
+scripted_trigger nomad_events_0210_valid_child = {
+	age <= 15
+	age >= 5 # So they can speak properly
+}
+
+nomad_events.0210 = {
+	type = character_event
+	title = nomad_events.0210.t
+	desc = {
+		desc = nomad_events.0210.desc.intro
+		first_valid = {
+			triggered_desc = {
+				trigger = { var:family_var = flag:spouse }
+				desc = nomad_events.0210.desc.spouse
+			}
+			desc = nomad_events.0210.desc.child
+		}
+	}
+	theme = nomads
+	cooldown = { years = 10 }
+	override_effect_2d = {
+		reference = rain	
+	}
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				has_trait = arrogant
+			}
+			animation = dismissal
+		}
+		animation = worry
+	}
+	right_portrait = {
+		character = scope:family
+		animation = sadness
+	}
+	lower_center_portrait = scope:courtier
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		OR = {
+			domicile ?= {
+				herd <= minor_herd_value
+			}
+		}
+		situation:the_great_steppe = {
+			NOR = {
+			    any_situation_sub_region = {
+			    	sub_region_current_phase = situation_steppe_abundant_grazing_season
+			        situation_sub_region_has_county = root.capital_county  
+			    }
+			    any_situation_sub_region = {
+			    	sub_region_current_phase = situation_steppe_sky_blessing_season
+			        situation_sub_region_has_county = root.capital_county  
+			    }
+			    any_situation_sub_region = {
+			    	sub_region_current_phase = situation_steppe_warm_nights_season
+			        situation_sub_region_has_county = root.capital_county  
+			    }
+			}
+		}
+		OR = {
+			any_spouse = {
+				is_available_healthy_ai_adult = yes
+			}
+			any_child = {
+				nomad_events_0210_valid_child = yes
+			}
+		}
+	}
+	
+	immediate = {
+		random_list = {
+			1 = {
+				trigger = {
+					any_spouse = { is_available_healthy_ai_adult = yes }
+				}
+				random_spouse = {
+					limit = { is_available_healthy_ai_adult = yes }
+					weight = {
+						base = 1
+						modifier = {
+							this = root.primary_spouse
+							add = 5
+						}
+					}
+					save_scope_as = family
+				}
+				set_variable = {
+					name = family_var
+					value = flag:spouse
+				}
+			}
+			2 = { # Sadder if it's your child
+				trigger = {
+					any_child = { nomad_events_0210_valid_child = yes }
+				}
+				random_child = {
+					limit = { nomad_events_0210_valid_child = yes }
+					save_scope_as = family
+				}
+				set_variable = {
+					name = family_var
+					value = flag:child
+				}
+			}
+		}
+		hidden_effect = {
+			scope:family = {
+				change_current_weight = -50
+			}
+		}
+		if = {
+			limit = {
+				any_courtier_or_guest = {
+					is_available_healthy_ai_adult = yes
+					is_close_family_or_spouse_of_root_trigger = no
+				}
+			}
+			ordered_courtier_or_guest = {
+				limit = {
+					is_available_healthy_ai_adult = yes
+					is_close_family_or_spouse_of_root_trigger = no
+				}
+				order_by = {
+					value = current_weight
+					if = {
+						limit = { has_trait = gluttonous }
+						add = 1
+					}
+					if = {
+						limit = { has_trait = comfort_eater }
+						add = 1
+					}
+				}
+				save_scope_as = courtier
+			}
+		}
+	}
+	
+	option = { # Eat a courtier
+		name = nomad_events.0210.aa
+		trigger = {
+			is_cannibal_trigger = yes
+			exists = scope:courtier
+		}
+		scope:courtier = {
+			death = { death_reason = death_mysterious }
+		}
+		change_current_weight = 25
+		stress_impact = {
+			cannibal = massive_stress_impact_loss
+		}
+		ai_chance = {
+			base = 0
+			modifier = {
+				has_trait = cannibal
+				add = 100
+			}
+		}
+	}
+	
+	option = { # I can take care of this myself
+		name = nomad_events.0210.a
+		trigger = {
+			has_trait = arrogant
+		}
+		add_dread = medium_dread_gain
+		stress_impact = {
+			arrogant = medium_stress_impact_loss
+			calm = major_stress_impact_gain
+			compassionate = massive_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = calm
+				}
+				factor = 0
+			}
+			modifier = {
+				has_trait = arrogant
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # I hate to see you like that
+		name = {
+			trigger = {
+				var:family_var = flag:child
+			}
+			text = nomad_events.0210.b.child
+		}
+		name = {
+			trigger = {
+				var:family_var = flag:spouse
+			}
+			text = nomad_events.0210.b.spouse
+		}
+		progress_towards_friend_effect = {
+			REASON = friend_offered_roots
+			CHARACTER = scope:family
+			OPINION = default_friend_opinion
+		}
+		stress_impact = {
+			compassionate = medium_stress_impact_loss
+			callous = major_stress_impact_gain
+			sadistic = major_stress_impact_gain
+			arrogant = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+					has_trait = arrogant
+				}
+				add = -50
+			}
+		}
+	}
+	
+	option = { # Thank you
+		name = nomad_events.0210.c
+		custom_tooltip = nomad_events_0210_c_tt
+		set_variable = {
+			name = nomad_events_0210_herd_var
+			years = 5
+		}
+		stress_impact = {
+			base = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+	
+	after = {
+		remove_variable = family_var
+	}
+}
+
+############################
+## Weak Is the Arm
+## 0220
+############################
+
+scripted_trigger nomad_events_0220_valid_spouse = {
+	is_available_healthy_ai_adult = yes
+	NOR = {
+		has_trait = compassionate
+		has_trait = patient
+		has_trait = content
+		has_trait = forgiving
+	}
+	NOR = {
+		has_variable = had_nomad_events_1060_var
+		has_variable = had_nomad_events_1070_var
+	}
+}
+
+nomad_events.0220 = {	
+	type = character_event
+	title = nomad_events.0220.t
+	desc = nomad_events.0220.desc
+	theme = nomads
+	override_background = { reference = mpo_tent_interior_mongol }
+	cooldown = { years = 10 }
+	
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = craven
+					has_trait = compassionate
+				}
+			}
+			animation = sadness
+		}
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = wrathful
+					has_trait = arrogant
+					has_trait = vengeful
+					has_trait = callous
+				}
+			}
+			animation = anger
+		}
+		animation = worry
+	}
+	right_portrait = {
+		character = scope:spouse
+		animation = dismissal
+		outfit_tags = { nightgown }
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		OR = {
+			prowess <= low_skill_rating
+			AND = {
+				dread <= 10
+				prowess <= mediocre_skill_rating
+			}
+		}
+		any_spouse = {
+			nomad_events_0220_valid_spouse = yes
+		}
+	}
+	
+	immediate = {
+		random_spouse = {
+			limit = { nomad_events_0220_valid_spouse = yes }
+			weight = {
+				base = 1
+				modifier = {
+					this = root.primary_spouse
+					add = 5
+				}
+			}
+			set_variable = had_nomad_events_0220_var
+			save_scope_as = spouse
+		}
+	}
+	
+	option = { # You're right
+		name = nomad_events.0220.a
+		trigger = {
+			has_trait = craven
+		}
+		remove_trait = craven
+		random_list = {
+			1 = { add_trait = fickle }
+			1 = { add_trait = arbitrary }
+		}
+		scope:spouse = {
+			add_opinion = {
+				target = root
+				modifier = respect_opinion
+				opinion = 20
+			}
+		}
+		stress_impact = {
+			base = massive_stress_impact_gain
+		}
+		ai_chance = {
+			base = 0 # AI shouldn't give itself a stress break
+			modifier = { # Unless... (intentional that it requires two traits)
+				has_trait = ambitious
+				has_trait = arrogant
+				add = 100
+			}
+		}
+	}
+	
+	option = { # I will train as hard as I can
+		name = nomad_events.0220.b
+		add_prowess_skill = 1
+		scope:spouse = {
+			add_opinion = {
+				target = root
+				modifier = respect_opinion
+				opinion = 10
+			}
+		}
+		stress_impact = {
+			base = major_stress_impact_gain
+			arrogant = medium_stress_impact_loss
+			callous = medium_stress_impact_loss
+			ambitious = major_stress_impact_loss
+		}
+		ai_chance = {
+			base = 0 # Reduce AI sending itself on stress breaks
+			modifier = {
+				OR = {
+					has_trait = arrogant
+					has_trait = callous
+					has_trait = ambitious
+				}
+				add = 20
+			}
+		}
+	}
+	
+	option = { # This is just who I am
+		name = nomad_events.0220.c
+		bp2_lifestyle_xp_gain_per_type_effect = { VALUE = medium }
+		stress_impact = {
+			base = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+}
+
+############################
+## Homesick
+## 0230
+############################
+
+scripted_trigger nomad_events_0230_valid_spouse = {
+	is_available_healthy_ai_adult = yes
+	NOT = { has_trait = callous }
+	NAND = {
+		culture = root.culture
+		culture = location.culture
+	}
+	NOT = { has_variable = had_nomad_events_0230_var }
+}
+
+nomad_events.0230 = {	
+	type = character_event
+	title = nomad_events.0230.t
+	desc = nomad_events.0230.desc
+	theme = nomads
+	override_background = { reference = mpo_tent_interior_mongol }
+	cooldown = { years = 25 }
+	
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+				}
+			}
+			animation = dismissal
+		}
+		animation = worry
+		outfit_tags = { nightgown }
+	}
+	right_portrait = {
+		character = scope:spouse
+		animation = sadness
+		outfit_tags = { nightgown }
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		any_spouse = {
+			nomad_events_0230_valid_spouse = yes
+		}
+	}
+	
+	immediate = {
+		random_spouse = {
+			limit = { nomad_events_0230_valid_spouse = yes }
+			weight = {
+				base = 1
+				# Someone that you can romance
+				modifier = {
+					NOT = {	has_relation_lover = root }
+					can_set_relation_lover_trigger = { CHARACTER = root }
+					add = 5
+				}
+				modifier = {
+					this = root.primary_spouse
+					add = 2
+				}
+			}
+			set_variable = had_nomad_events_0230_var
+			save_scope_as = spouse
+		}
+	}
+	
+	option = { # I miss my culture too
+		name = nomad_events.0230.a
+		reason = culture
+		trigger = {
+			NOT = { culture = root.location.culture }
+		}
+		set_relation_lover = {
+			target = scope:spouse
+			reason = lover_homesick_comfort
+		}
+		had_sex_with_effect = {
+			CHARACTER = scope:spouse
+			PREGNANCY_CHANCE = pregnancy_chance
+		}
+		stress_impact = {
+			compassionate = major_stress_impact_loss
+			callous = major_stress_impact_gain
+			sadistic = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Comfort them
+		name = nomad_events.0230.b
+		progress_towards_lover_effect = {
+			REASON = lover_homesick_comfort
+			CHARACTER = scope:spouse
+			OPINION = 25
+		}
+		stress_impact = {
+			compassionate = medium_stress_impact_loss
+			callous = medium_stress_impact_gain
+			sadistic = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Grow up
+		name = nomad_events.0230.c
+		scope:spouse = {
+			add_character_modifier = {
+				modifier = mpo_hardened_modifier # Forever
+			}
+		}
+		stress_impact = {
+			callous = medium_stress_impact_loss
+			sadistic = medium_stress_impact_loss
+			compassionate = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 2
+			}
+		}
+	}
+}
+
+############################
+## Unexpected Guests
+## 0240
+############################
+
+scripted_trigger nomad_events_0240_valid_courtier = {
+	is_available_healthy_ai_adult = yes
+	is_close_family_or_spouse_of_root_trigger = no
+}
+
+nomad_events.0240 = {	
+	type = character_event
+	title = nomad_events.0240.t
+	desc = nomad_events.0240.desc
+	theme = nomads
+	cooldown = { years = 5 }
+	
+	left_portrait = {
+		character = root
+		animation = thinking
+	}
+	right_portrait = {
+		character = scope:courtier
+		animation = shepherd_with_sheep # TODO_MPO standing next to horse
+	}
+	lower_center_portrait = scope:ruler
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		any_neighboring_top_liege_realm_owner = {
+			government_has_flag = government_is_nomadic
+		}
+		any_courtier_or_guest = {
+			nomad_events_0240_valid_courtier = yes
+		}
+	}
+	
+	immediate = {
+		random_neighboring_top_liege_realm_owner = {
+			limit = { government_has_flag = government_is_nomadic }
+			weight = { # Let's make it interesting
+				base = 1
+				modifier = {
+					has_relation_rival = root
+					add = 5
+				}
+			}
+			save_scope_as = ruler
+		}
+		random_courtier = {
+			limit = { nomad_events_0240_valid_courtier = yes }
+			save_scope_as = courtier
+		}
+	}
+	
+	option = { # Secret option if you are rivals
+		name = nomad_events.0240.a
+		reason = rival
+		trigger = {
+			has_relation_rival = scope:ruler
+		}
+		add_dread = medium_dread_gain
+		domicile = {
+			change_herd = {
+				value = medium_herd_gain
+				subtract = 1 # Funny
+			}
+		}
+		scope:ruler = {
+			house_feud_start_effect = {
+				# Feuding House Head
+				ACTOR = scope:ruler
+				# Target House Head
+				TARGET = root
+				# Feud Reason
+				REASON = stolen_herd
+				# House Member attacker if relevant 
+				ATTACKER = root
+				# House Member victim if relevant
+				VICTIM = scope:ruler
+			}
+		}
+		stress_impact = {
+			compassionate = major_stress_impact_loss
+			callous = major_stress_impact_gain
+			sadistic = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Return it
+		name = nomad_events.0240.b
+		if = {
+			limit = {
+				has_relation_rival = scope:ruler
+			}
+			remove_relation_rival = scope:ruler
+		}
+		add_character_modifier = {
+			modifier = mpo_honorable_ruler
+			years = 10
+		}
+		progress_towards_friend_effect = {
+			REASON = friend_returned_herd
+			CHARACTER = scope:ruler
+			OPINION = default_friend_opinion
+		}
+		stress_impact = {
+			compassionate = medium_stress_impact_loss
+			callous = medium_stress_impact_gain
+			sadistic = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 2
+			}
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Let's keep it
+		name = nomad_events.0240.c
+		domicile = {
+			change_herd = medium_herd_gain
+		}
+		stress_impact = {
+			callous = medium_stress_impact_loss
+			sadistic = medium_stress_impact_loss
+			compassionate = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = callous
+					has_trait = sadistic
+				}
+				factor = 2
+			}
+		}
+	}
+}
+
+############################
+## Man of God
+## 0250
+############################
+
+scripted_trigger nomad_events_0250_valid_priest = {
+	is_available_ai_adult = yes
+	faith = {
+		NOR = {
+			this = root.faith
+			this = root.location.county.faith
+			has_doctrine_parameter = unreformed
+			this = faith:rabbinism
+		}
+	}
+	trigger_if = {
+		limit = {
+			faith = { has_doctrine_parameter = clergy_must_be_male }
+		}
+		is_male = yes
+	}
+	trigger_else = {
+		is_male = no
+	}
+	NOT = { has_variable = had_nomad_events_0250_var }
+	NOT = { has_trait = cynical }
+	learning >= 8
+}
+
+nomad_events.0250 = {
+	type = character_event
+	title = nomad_events.0250.t
+	desc = nomad_events.0250.desc
+	theme = nomads
+	override_background = { reference = mpo_campfire_steppe }
+	cooldown = { years = 25 }
+	
+	left_portrait = {
+		character = root
+		animation = drink
+	}
+	right_portrait = {
+		character = scope:priest
+		animation = holding_staff
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+	}
+	
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			any_pool_character = {
+				province = root.location
+				nomad_events_0250_valid_priest = yes
+			}
+			factor = 2
+		}
+		modifier = {
+			faith = { has_doctrine_parameter = unreformed }
+			current_year > 1065
+			factor = 2
+		}
+		modifier = {
+			faith = { has_doctrine_parameter = unreformed }
+			current_year > 1150
+			factor = 2
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				any_pool_character = {
+					province = root.location
+					nomad_events_0250_valid_priest = yes
+				}
+			}
+			random_pool_character = {
+				province = root.location 
+				limit = {
+					nomad_events_0250_valid_priest = yes
+				}
+				weight = {
+					base = 1
+					modifier = {
+						has_trait = zealous
+						add = 5
+					}
+				}
+				save_scope_as = priest
+			}
+		}
+		else_if = {
+			limit = {
+				any_neighboring_top_liege_realm_owner = {
+					NOR = {
+						faith = root.faith
+						faith = { has_doctrine_parameter = unreformed }
+					}
+				}
+			}
+			random_neighboring_top_liege_realm_owner = {
+				limit = {
+					NOR = {
+						faith = root.faith
+						faith = { has_doctrine_parameter = unreformed }
+					}
+				}
+				save_scope_as = neighboring_ruler
+			}
+			create_character = {
+				location = root.location
+				template = priest_character_template
+				gender_female_chance = root_faith_clergy_gender_female_chance
+				faith = scope:neighboring_ruler.faith
+				culture = scope:neighboring_ruler.culture
+				save_scope_as = priest
+			}
+			scope:priest = {
+				save_scope_as = created_priest
+			}
+		}	
+		else = {
+			random_list = {
+				10 = {
+					trigger = {
+						NOT = { faith = faith:ashari }
+						NOT = { any_character_situation = { this = situation:game_rule_extra_nomads_sami } }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_west }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:ashari
+						culture = culture:bolghar
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						NOT = { faith = faith:kabarism }
+						any_character_situation = { this = situation:the_great_steppe }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_west }
+						add = 5
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:kabarism
+						culture = culture:khazar
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						NOT = { faith = faith:nestorian }
+						any_character_situation = { this = situation:the_great_steppe }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_east }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:nestorian
+						culture = culture:kerait
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						NOT = { faith = faith:vajrayana }
+						any_character_situation = { this = situation:the_great_steppe }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_east }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:vajrayana
+						culture = culture:uyghur
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						NOT = { faith = faith:manichean }
+						any_character_situation = { this = situation:the_great_steppe }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_east }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:manichean
+						culture = culture:uyghur
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						location = { geographical_region = world_steppe_east }
+						NOT = { faith = faith:zhengyi }
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:zhengyi
+						culture = culture:uyghur
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						NOT = { faith = faith:maturidi }
+						NOT = { any_character_situation = { this = situation:game_rule_extra_nomads_sami } }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_central }
+						add = 25
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:maturidi
+						culture = culture:turkish
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						NOT = { faith = faith:alevi }
+						any_character_situation = { this = situation:the_great_steppe }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_central }
+						add = 15
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:alevi
+						culture = culture:turkish
+						save_scope_as = priest
+					}
+				}
+				10 = {
+					trigger = {
+						NOT = { faith = faith:ismaili }
+						NOT = { any_character_situation = { this = situation:game_rule_extra_nomads_sami } }
+					}
+					modifier = {
+						location = { geographical_region = world_steppe_central }
+						add = 5
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:ismaili
+						culture = culture:persian
+						save_scope_as = priest
+					}
+				}
+				1 = { # Fallback, rare
+					trigger = {
+						NOT = { faith = faith:catholic }
+					}
+					modifier = {
+						any_character_situation = { this = situation:game_rule_extra_nomads_sami }
+						add = 5000
+					}
+					create_character = {
+						location = root.location
+						template = priest_character_template
+						gender_female_chance = root_faith_clergy_gender_female_chance
+						faith = faith:catholic
+						culture = culture:italian
+						save_scope_as = priest
+					}
+				}
+			}
+			scope:priest = {
+				save_scope_as = created_priest
+			}
+		}
+		scope:priest = {
+			set_variable = had_nomad_events_0250_var
+		}
+	}
+	
+	option = { # Convert
+		name = nomad_events.0250.a
+		set_character_faith = scope:priest.faith
+		domicile = { set_domicile_faith = scope:priest.faith }
+		add_character_modifier = chosen_by_the_heavens_modifier
+		every_held_title = {
+			limit = {
+				tier = tier_county
+				is_landless_type_title = no
+			}
+			set_county_faith = scope:priest.faith
+		}
+		add_piety_level = 1
+		stress_impact = {
+			zealous = massive_stress_impact_gain
+			cynical = minor_stress_impact_loss
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				any_character_situation = { this = situation:the_great_steppe }
+				OR = {
+					scope:priest.faith = faith:orthodox
+					scope:priest.religion = religion:hinduism_religion
+				}
+				add = -30
+			}
+			modifier = {
+				highest_held_title_tier >= tier_kingdom
+				faith = {
+					has_doctrine_parameter = unreformed
+				}
+				factor = 4
+			}
+			modifier = {
+				current_year > 1065
+				factor = 2
+			}
+			modifier = {
+				current_year > 1150
+				factor = 2
+			}
+			modifier = {
+				scope:priest.faith = { has_doctrine_parameter = unreformed }
+				factor = 0
+			}
+			modifier = { # Non-steppe regions are stickier and convert less freely
+				faith = {
+					NOT = { has_doctrine_parameter = unreformed }
+				}
+				any_character_situation = {
+					OR = {
+						this = situation:game_rule_extra_nomads_arabs
+						this = situation:game_rule_extra_nomads_sahel
+						this = situation:game_rule_extra_nomads_horn
+						this = situation:game_rule_extra_nomads_sami
+						this = situation:game_rule_extra_nomads_tibet
+					}
+			  	}
+				factor = 0
+			}
+			modifier = {
+				has_trait = zealous
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # Invite them to stay
+		name = nomad_events.0250.b
+		add_courtier = scope:priest
+		add_hook = {
+			type = obligation_hook
+			target = scope:priest
+		}
+		custom_tooltip = obligation_hook_tt
+		stress_impact = {
+			compassionate = medium_stress_impact_loss
+			gregarious = medium_stress_impact_loss
+			shy = medium_stress_impact_gain
+			paranoid = medium_stress_impact_gain
+			callous = medium_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = shy
+					has_trait = paranoid
+					has_trait = callous
+				}
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = gregarious
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Tell them to go away
+		name = nomad_events.0250.c
+		add_piety = minor_piety_gain
+		stress_impact = {
+			compassionate = medium_stress_impact_gain
+			gregarious = medium_stress_impact_gain
+			shy = medium_stress_impact_loss
+			paranoid = medium_stress_impact_loss
+			callous = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = gregarious
+				}
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = shy
+					has_trait = callous
+					has_trait = paranoid
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	after = {
+		if = {
+			limit = {
+				scope:priest = {
+					NOT = {
+						is_courtier_of = root
+					}
+				}
+			}
+			hidden_effect = {
+				if = {
+					limit = {
+						is_ai = no
+						exists = scope:created_priest
+					}
+					scope:priest = { move_to_pool = yes }
+				}
+				else = {
+					scope:priest = {
+						death = { death_reason = death_mysterious }
+					}
+				}
+			}
+		}
+	}
+}
+
+############################
+## Religious Matters
+## 0260
+############################
+
+scripted_trigger nomad_events_0260_ruler_trigger = {
+	is_ai = yes
+	is_ruler = yes
+	is_landed = yes
+	NOR = {
+		government_has_flag = government_is_nomadic
+		government_has_flag = government_is_herder
+		culture = root.culture
+		culture = root.capital_county.culture
+		faith = root.faith
+		faith = root.capital_county.faith
+		faith = {
+			has_doctrine_parameter = unreformed
+		}
+	}
+	highest_held_title_tier >= tier_kingdom
+	capital_province = {
+		squared_distance = {
+			target = root.capital_province
+			value <= squared_distance_massive
+		}
+	}
+}
+
+nomad_events.0260 = {
+	type = character_event
+	title = nomad_events.0260.t
+	desc = nomad_events.0260.desc
+	theme = nomads
+	override_background = { reference = throne_room }
+	cooldown = { years = 25 }
+	
+	left_portrait = {
+		character = root
+		triggered_animation = {
+			trigger = { has_trait = zealous }
+			animation = anger
+		}
+		triggered_animation = {
+			trigger = {
+				OR = {
+					has_trait = sadistic
+					has_trait = torturer
+					has_trait = cynical
+				}
+			}
+			animation = dismissal
+		}
+		animation = interested
+	}
+	right_portrait = {
+		character = scope:priest
+		animation = obsequious_bow
+	}
+	
+	trigger = {
+		has_mpo_dlc_trigger = yes
+		government_has_flag = government_is_nomadic
+		is_available_adult = yes
+		is_landed = yes
+		any_ruler = { nomad_events_0260_ruler_trigger = yes }
+	}
+	
+	weight_multiplier = {
+		base = 1
+		modifier = { # Tier instead of Dominance because people outside of the Steppe don't care for that
+			faith = { has_doctrine_parameter = unreformed }
+			highest_held_title_tier >= tier_kingdom
+			factor = 3
+		}
+		modifier = {
+			faith = { has_doctrine_parameter = unreformed }
+			current_year > 1065
+			factor = 2
+		}
+		modifier = {
+			faith = { has_doctrine_parameter = unreformed }
+			current_year > 1150
+			factor = 2
+		}
+		modifier = {
+			is_ai = yes
+			NOT = {
+				faith = {
+					has_doctrine_parameter = unreformed
+				}
+			}
+			factor = 0.1
+		}
+	}
+	
+	immediate = {
+		random_ruler = {
+			limit = { nomad_events_0260_ruler_trigger = yes }
+			weight = {
+				base = 1
+				modifier = { # Catholics already end up in the Steppe
+					faith = faith:catholic
+					add = -250
+				}
+				modifier = { # Hindus shouldn't end up in the Steppe
+					religion = religion:hinduism_religion
+					add = -100
+				}
+			}
+			save_scope_as = other_ruler
+			primary_title = { save_scope_as = distant_realm }
+		}
+		create_character = {
+			location = root.location
+			template = priest_character_template
+			gender_female_chance = root_faith_clergy_gender_female_chance
+			faith = scope:other_ruler.faith
+			culture = scope:other_ruler.culture
+			save_scope_as = priest
+		}
+		hidden_effect = {
+			scope:other_ruler = { add_courtier = scope:priest }
+		}
+	}
+	
+	option = { # Imprison them
+		name = nomad_events.0260.a
+		trigger = {
+			OR = {
+				has_trait = sadistic
+				has_trait = callous
+				has_focus_or_focus_trait_trigger = { FOCUS = intrigue_intimidation_focus }
+			}
+		}
+		add_dread = medium_dread_gain
+		rightfully_imprison_character_less_verbose_effect = { 
+			TARGET = scope:priest 
+			IMPRISONER = root
+		}
+		stress_impact = {
+			sadistic = major_stress_impact_loss
+			callous = major_stress_impact_loss
+			torturer = major_stress_impact_loss
+			compassionate = major_stress_impact_gain
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = compassionate
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = sadistic
+					has_trait = callous
+					has_focus_or_focus_trait_trigger = { FOCUS = intrigue_intimidation_focus }
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Convert
+		name = nomad_events.0260.b
+		set_character_faith = scope:priest.faith
+		domicile = { set_domicile_faith = scope:priest.faith }
+		add_character_modifier = chosen_by_the_heavens_modifier
+		every_held_title = {
+			limit = {
+				tier = tier_county
+				is_landless_type_title = no
+			}
+			set_county_faith = scope:priest.faith
+		}
+		add_courtier = scope:priest
+		add_piety_level = 1
+		stress_impact = {
+			zealous = massive_stress_impact_gain
+			cynical = minor_stress_impact_loss
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				any_character_situation = { this = situation:the_great_steppe }
+				OR = {
+					scope:priest.faith = faith:orthodox
+					scope:priest.religion = religion:hinduism_religion
+				}
+				add = -30
+			}
+			modifier = {
+				highest_held_title_tier >= tier_kingdom
+				faith = {
+					has_doctrine_parameter = unreformed
+				}
+				factor = 4
+			}
+			modifier = {
+				current_year > 1065
+				factor = 2
+			}
+			modifier = {
+				current_year > 1150
+				factor = 2
+			}
+			modifier = {
+				has_trait = zealous 
+				factor = 0
+			}
+			modifier = {
+				scope:priest.faith = faith:catholic
+				any_character_situation = {
+					OR = {
+						this = situation:the_great_steppe
+						this = situation:game_rule_extra_nomads_sahel
+						this = situation:game_rule_extra_nomads_horn
+						this = situation:game_rule_extra_nomads_arabs
+					}
+				}
+				factor = 0
+			}
+			modifier = { # Non-steppe regions are stickier and convert less freely
+				faith = {
+					NOT = { has_doctrine_parameter = unreformed }
+				}
+				any_character_situation = {
+					OR = {
+						this = situation:game_rule_extra_nomads_arabs
+						this = situation:game_rule_extra_nomads_sahel
+						this = situation:game_rule_extra_nomads_horn
+						this = situation:game_rule_extra_nomads_sami
+						this = situation:game_rule_extra_nomads_tibet
+					}
+			  	}
+				factor = 0
+			}
+		}
+	}
+	
+	option = { # It's time to de-bate!
+		name = nomad_events.0260.c
+		duel = {
+			skill = learning
+			target = scope:priest
+			10 = { # They are mega convinced
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 3.5
+					min = -49
+				}
+				min = 5
+				desc = nomad_events.0260.c.tt.crit_success
+				send_interface_toast = {
+					title = nomad_events.0260.c.tt.crit_success
+					left_icon = scope:priest
+					add_learning_skill = 1
+					add_learning_lifestyle_xp = major_lifestyle_xp
+				}
+			}
+			40 = { # They are convinced
+				desc = nomad_events.0260.c.tt.success
+				send_interface_toast = {
+					title = nomad_events.0260.c.tt.success
+					left_icon = scope:priest
+					add_learning_lifestyle_xp = medium_lifestyle_xp
+				}
+			}
+			40 = { # _You_ are convinced
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -3.5
+					min = -49
+				}
+				min = 5
+				desc = nomad_events.0260.c.tt.failure
+				send_interface_toast = {
+					title = nomad_events.0260.c.tt.failure
+					left_icon = scope:priest
+					add_learning_lifestyle_xp = medium_lifestyle_xp
+					add_prestige = minor_piety_loss # Everyone saw you suck
+				}
+			}
+		}
+		stress_impact = {
+			cynical = medium_stress_impact_gain
+			stubborn = medium_stress_impact_loss
+			zealous = major_stress_impact_loss
+			theologian = major_stress_impact_loss
+			scholar = major_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				has_trait = cynical 
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = stubborn
+					has_trait = zealous
+					has_trait = theologian
+					has_trait = scholar
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	option = { # Just go away
+		name = nomad_events.0260.d
+		add_dread = minor_dread_gain
+		stress_impact = {
+			compassionate = major_stress_impact_gain
+			gregarious = major_stress_impact_gain
+			shy = medium_stress_impact_loss
+			callous = medium_stress_impact_loss
+			paranoid = medium_stress_impact_loss
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				OR = {
+					has_trait = compassionate
+					has_trait = gregarious
+				}
+				factor = 0
+			}
+			modifier = {
+				OR = {
+					has_trait = shy
+					has_trait = callous
+					has_trait = paranoid
+				}
+				factor = 2
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			if = {
+				limit = {
+					is_ai = yes
+					NOT = {
+						scope:priest = {
+							is_courtier_of = root
+						}
+					}
+				}
+				scope:priest = {
+					death = { death_reason = death_mysterious }
+				}
+			}
+		}
+	}
+}

@@ -1,5 +1,5 @@
 ﻿hm_replace_the_bureaucratic_interaction = {  #替换官员
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -30,10 +30,6 @@
 		NOT = { scope:recipient = scope:actor }
 	}
 	is_valid = {
-		scope:actor = {
-			#culture = { has_innovation = innovation_centralization_of_authority }
-			#oe_autocracy_level_3 = yes	#官僚法三级 TODO律令细化
-		}
 	}
 
 	has_valid_target_showing_failures_only = {
@@ -42,6 +38,15 @@
 			is_at_war = no
 			is_available_at_peace = yes
 			is_oe_landed_bureaucrat_trigger = yes
+		}
+		scope:actor = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_replace_the_bureaucrat"
+					has_realm_law_flag = can_replace_the_bureaucrat
+				}
+			}
 		}
 	}
 	populate_recipient_list = {
@@ -342,7 +347,7 @@
 	}
 	ai_accept = {
 		base = 0 # Try to make it 0 for most interactions
-		CorruptionSystem_corruption_retract_vassal_modifier = yes
+		#CorruptionSystem_corruption_retract_vassal_modifier = yes
 
 		modifier = {
 			scope:hook = yes
@@ -613,9 +618,9 @@
 }
 
 hm_exchange_two_bannermen_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
-
+	icon = vassal_claim_liege_title_interaction	
 	send_name = SEND_PROPOSAL
 
 	ai_maybe = no
@@ -629,7 +634,6 @@ hm_exchange_two_bannermen_interaction = {
 	desc = hm_exchange_two_bannermen_interaction_desc
 	
 	is_shown = {
-		scope:actor = scope:recipient
 		scope:actor = {
 			OR = {
 				government_has_flag = government_is_celestial
@@ -639,7 +643,21 @@ hm_exchange_two_bannermen_interaction = {
 			highest_held_title_tier >= tier_duchy
 		}
 		scope:recipient = {
+			is_vassal_of = scope:actor
 			is_milita_government_trigger = yes
+		}
+	}
+
+	redirect = {
+		if = {
+			limit = {
+				scope:recipient = {
+					is_vassal_of = scope:actor
+				}
+			}
+			scope:recipient = {
+				save_scope_as = secondary_recipient
+			}
 		}
 	}
 	
@@ -658,6 +676,9 @@ hm_exchange_two_bannermen_interaction = {
 
 	populate_recipient_list = {
 		scope:recipient = {
+			add_to_list = characters
+		}
+		scope:recipient = {
 			every_vassal = {
 				limit = {
 					highest_held_title_tier >= tier_county
@@ -670,8 +691,13 @@ hm_exchange_two_bannermen_interaction = {
 	}
 	is_valid_showing_failures_only = {
 		scope:actor = {
-			oe_autocracy_level_3 = yes	#官僚法三级 TODO律令细化
-			#culture = { has_innovation = innovation_centralization_of_authority }
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_exchange_two_bannermen"
+					has_realm_law_flag = can_exchange_two_bannermen
+				}
+			}
 		}
 		trigger_if = {
 			limit = {
@@ -870,7 +896,7 @@ hm_exchange_two_bannermen_interaction = {
 	
 	ai_accept = {
 		base = 0 # Try to make it 0 for most interactions
-		CorruptionSystem_corruption_revoke_title_modifier = yes
+		#CorruptionSystem_corruption_revoke_title_modifier = yes
 
 		modifier = {
 			scope:hook = yes
@@ -1139,7 +1165,7 @@ hm_exchange_two_bannermen_interaction = {
 #####宰相人事权#####
 
 oe_chancellor_replace_the_bureaucratic_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -1162,14 +1188,8 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 			is_ai = no
 			OR = {
 				has_trait = great_misit
-				AND = {
-					is_councillor = yes
-					has_character_flag = in_imperial_council
-					OR = {
-						has_council_position = councillor_tongpingzhang
-						has_council_position = councillor_shumishi
-					}
-				}
+				has_council_position = councillor_tongpingzhang
+				has_council_position = councillor_shumishi
 				AND = {
 					exists = top_liege
 					is_diarch_of_target = top_liege
@@ -1219,12 +1239,14 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 				}
 			}
 		}
-		scope:actor = {
-			custom_description = {
-				text = "has_law_allowing_title_revocation_crown"
-				has_realm_law_flag = title_revocation_allowed
+		scope:actor.liege = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "liege_can_replace_the_bureaucrat"
+					has_realm_law_flag = can_replace_the_bureaucrat
+				}
 			}
-			culture = { has_innovation = innovation_centralization_of_authority }	
 		}
 		NOT = {
 			scope:recipient = {
@@ -1430,7 +1452,7 @@ oe_chancellor_replace_the_bureaucratic_interaction = {
 	}
 	ai_accept = {
 		base = 0 # Try to make it 0 for most interactions
-		CorruptionSystem_corruption_revoke_title_modifier = yes
+		#CorruptionSystem_corruption_revoke_title_modifier = yes
 
 		modifier = {
 			scope:hook = yes

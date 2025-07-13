@@ -1,5 +1,5 @@
 ﻿oe_demand_admin_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	icon = demand_admin_interaction
 
 	ai_maybe = yes
@@ -9,7 +9,7 @@
 	ai_accept_negotiation = yes
 	popup_on_receive = yes
 	common_interaction = yes
-
+	interface_priority = 90
 	ai_targets = {
 		ai_recipients = vassals
 	}
@@ -21,7 +21,9 @@
 	desc = demand_admin_interaction_desc
 
 	is_shown = {
-		scope:actor = { government_has_flag = government_is_celestial }
+		scope:actor = {
+			government_has_flag = government_is_celestial
+		}
 		scope:recipient = {
 			target_is_liege_or_above = scope:actor
 			is_ai = yes
@@ -43,7 +45,7 @@
 		}
 	}
 
-	cooldown_against_recipient = { years = 10 }
+	cooldown_against_recipient = { years = 5 }
 
 	is_valid_showing_failures_only = {
 		scope:recipient = { is_busy_in_events_localised = yes }
@@ -54,13 +56,25 @@
 			text = cannot_take_overt_hostile_actions_against_diarch.tt
 			NOT = { scope:recipient ?= scope:actor.diarch }
 		}
-		NOT = {
-			scope:recipient = { government_has_flag = government_is_tribal }
+		custom_tooltip = {
+			text = demand_admin_tribal
+			NOT = {
+				scope:recipient = { government_has_flag = government_is_tribal }
+			}
 		}
 		custom_tooltip = {
 			text = head_of_faith_unable_to_change_government_desc
 			NOT = {
 				scope:recipient = { faith.religious_head ?= this }
+			}
+		}
+		scope:actor = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_demand_celestial_government"
+					has_realm_law_flag = can_demand_celestial_government
+				}
 			}
 		}
 	}
@@ -127,6 +141,13 @@
 	on_accept = {
 		show_as_tooltip = {
 			change_to_celestial_interaction_effect = yes
+		}
+		scope:recipient = {
+			if = {
+				limit = { primary_title.tier = tier_kingdom }
+				primary_title = { save_scope_as = title }
+				set_administrative_kingdom_effect = yes
+			}
 		}
 	}
 
@@ -353,8 +374,365 @@
 	}
 }
 
+ulus_demand_admin_interaction = {
+	category = interaction_category_vassal
+	icon = demand_admin_interaction
+
+	#ai_maybe = yes
+	ai_min_reply_days = 4
+	ai_max_reply_days = 9
+	can_send_despite_rejection = yes
+	ai_accept_negotiation = yes
+	popup_on_receive = yes
+	common_interaction = yes
+	interface_priority = 60
+	ai_targets = {
+		ai_recipients = vassals
+	}
+	ai_target_quick_trigger = {
+		adult = yes
+	}
+	ai_frequency = 12
+
+	desc = ulus_demand_admin_interaction_desc
+
+	is_shown = {
+		scope:actor = {
+			government_has_flag = government_is_ulus
+		}
+		scope:recipient = {
+			target_is_liege_or_above = scope:actor
+			is_ai = yes
+			is_ruler = yes
+			NOR = {
+				government_has_flag = government_is_celestial
+				government_has_flag = government_is_ulus
+			}
+		}
+	}
+
+	cooldown_against_recipient = { years = 5 }
+
+	is_valid_showing_failures_only = {
+		scope:recipient = { is_busy_in_events_localised = yes }
+		scope:recipient = { NOT = { has_strong_hook = scope:actor } }
+		scope:recipient = { is_at_war = no }
+		scope:actor = { is_at_war = no }
+		custom_tooltip = {
+			text = cannot_take_overt_hostile_actions_against_diarch.tt
+			NOT = { scope:recipient ?= scope:actor.diarch }
+		}
+		custom_tooltip = {
+			text = demand_admin_tribal
+			NOT = {
+				scope:recipient = { government_has_flag = government_is_tribal }
+			}
+		}
+		custom_tooltip = {
+			text = head_of_faith_unable_to_change_government_desc
+			NOT = {
+				scope:recipient = { faith.religious_head ?= this }
+			}
+		}
+		scope:actor = {
+			trigger_if = {
+				limit = { realm_law_use_tribal_authority = yes }
+				OR = {
+					has_realm_law = tribal_authority_1
+					has_realm_law = tribal_authority_2
+					has_realm_law = tribal_authority_3
+				}
+			}
+			trigger_else = {
+				OR = {
+					has_realm_law = crown_authority_1
+					has_realm_law = crown_authority_2
+					has_realm_law = crown_authority_3
+				}
+			}
+		}
+	}
+
+	#Use hook
+	send_option = {
+		is_valid = {
+			scope:actor = { has_usable_hook = scope:recipient }
+		}
+		flag = hook
+		localization = SCHEME_HOOK
+	}
+	should_use_extra_icon = {
+		scope:actor = { has_usable_hook = scope:recipient }
+	}
+	extra_icon = "gfx/interface/icons/character_interactions/hook_icon.dds"
+
+	send_options_exclusive = no
+
+	auto_accept = {
+		custom_description = {
+			text = "spending_hook"
+			subject = scope:actor
+			object = scope:recipient
+			scope:hook = yes
+		}
+	}
+
+	on_send = {
+		scope:recipient = {
+			primary_title = { save_scope_as = demanded_administration }
+		}
+	}
+
+	on_accept = {
+		scope:recipient = {
+			if = {
+				limit = {
+					government_has_flag = government_is_nomadic
+				}
+				change_government = ulus_government
+			}
+			else_if = {
+				limit = {
+					government_has_flag = government_is_tribal
+				}
+				change_government = feudal_government
+			}
+			else_if = {
+				limit = {
+					NOR = {
+						government_has_flag = government_is_celestial
+					}
+				}
+				change_government_legion_government_effect = yes
+			}
+		}
+	}
+
+	on_decline = {
+		scope:recipient = { custom_tooltip = demand_admin_interaction_vassal_refuses }
+	}
+
+	ai_potential = {
+		government_has_flag = government_is_ulus
+		is_adult = yes
+	}
+
+	ai_will_do = {
+		base = 100
+		modifier = {
+			factor = 0
+			scope:recipient = { highest_held_title_tier >= tier_county }
+			gold >= 300
+		}
+		modifier = {
+			factor = 0
+			scope:recipient = { highest_held_title_tier >= tier_duchy }
+			gold >= 600
+		}
+		modifier = {
+			factor = 0
+			scope:recipient = { highest_held_title_tier >= tier_kingdom }
+			gold >= 2000
+		}
+	}
+
+	ai_accept = {
+		base = 0
+		opinion_modifier = {
+			trigger = {
+				scope:recipient = {
+					opinion = {
+						target = scope:actor
+						value < 0
+					}
+				}
+			}
+			opinion_target = scope:actor
+			who = scope:recipient
+			multiplier = 1
+			desc = AI_OPINION_REASON
+		}
+
+		modifier = {
+			scope:hook = yes
+			add = 40
+			desc = SCHEME_WEAK_HOOK_USED
+		}
+
+		opinion_modifier = { # Opinion Factor
+			who = scope:recipient
+			opinion_target = scope:actor
+			multiplier = 0.8
+			desc = AI_OPINION_REASON
+		}
+		
+		modifier = {
+			add = 20
+			scope:actor = {
+				has_realm_law_flag = vassal_refusal_is_treason
+			}
+			desc = AI_REFUSAL_IS_TREASON
+		}
+		modifier = {
+			exists = scope:actor.primary_title.title_capital_county
+			OR = {
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county
+				scope:recipient.primary_title = scope:actor.primary_title.title_capital_county.de_jure_liege
+			}
+			add = 50
+			desc = AI_TITLE_IS_REALM_CAPITAL
+		}
+		modifier = {
+			add = 30
+			scope:actor = {
+				has_claim_on = scope:recipient.primary_title
+			}
+			desc = AI_LIEGE_HAS_CLAIM_ON_TITLE
+		}
+
+		ai_value_modifier = {
+			who = scope:recipient
+			ai_greed = {
+				if = {
+					limit = {
+						scope:recipient = { NOT = { ai_greed = 0 } }
+					}
+					value = -0.75
+				}
+			}
+			ai_honor  = {
+				if = {
+					limit = {
+						scope:recipient = { #If AI is honorable and the law compels to obey the liege, AI will be more likely to obey.
+							ai_honor > 0
+						}
+						scope:actor = {
+							has_realm_law_flag = vassal_refusal_is_treason
+						}
+					}
+					value = 0.5
+				}
+			}
+		}
+		modifier = { #I am a King!
+			desc = offer_vassalization_interaction_aibehavior_amkingtier_tt
+			trigger = {
+				scope:recipient = { highest_held_title_tier = tier_kingdom }
+			}
+			add = -40
+		}
+		modifier = {
+			add = intimidated_halved_reason_value
+			scope:recipient = {
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 1
+				}
+			}
+			desc = INTIMIDATED_REASON
+		}
+		modifier = {
+			add = cowed_halved_reason_value
+			scope:recipient = {
+				has_dread_level_towards = {
+					target = scope:actor
+					level = 2
+				}
+			}
+			desc = COWED_REASON
+		}
+		modifier = { #Comparative military strength.
+			desc = offer_vassalization_interaction_aibehavior_power_tt
+				add = {
+				value = 1
+					subtract = {
+					value = scope:recipient.current_military_strength
+					divide = { value = scope:actor.current_military_strength min = 1 }
+					}
+				multiply = 50
+				max = 20
+			  }
+		}
+
+		modifier = {
+			add = 50
+			desc = VASSAL_FAITHFUL
+		}
+		modifier = {
+			add = -40
+			trigger_if = {
+				limit = {
+					scope:recipient = { is_a_faction_member = yes }
+				}
+				scope:recipient = {
+					joined_faction = { faction_target = scope:actor }
+				}
+			}
+			desc = HAS_FACTIONS_TARGETING_ME
+		}
+		modifier = {
+			add = scope:actor.learning
+			desc = LIEGE_LEARING
+		}
+		modifier = {
+			add = scope:actor.stewardship
+			desc = LIEGE_STEWARDSHIP
+		}
+		modifier = {
+			add = -30
+			scope:recipient = {
+				prowess >= 50
+			}
+			desc = VASSAL_PROWESS
+		}
+		modifier = {
+			add = -20
+			trigger_if = {
+				limit = {
+					scope:recipient.dynasty ?= {
+						any_dynasty_member = {
+							count >= 10
+							is_alive = yes
+						}
+					}
+				}
+			}
+			desc = TEN_ALIVE_DYNASTY_MEMBER
+		}
+		modifier = {
+			add = -40
+			scope:recipient = {
+				is_powerful_vassal = yes
+			}
+			desc = VASSAL_IS_POWERFUL
+		}
+		# Government modifiers
+		modifier = {
+			add = -20
+			scope:actor = {
+				government_has_flag = government_is_celestial
+			}
+			desc = LIEGE_IS_IMPERIAL_REASON
+		}
+		modifier = {
+			add = -50
+			scope:recipient = {
+				government_has_flag = government_is_feudal
+			}
+			desc = VASSAL_IS_FEUDAL_REASON
+		}
+		modifier = {
+			add = -50
+			scope:recipient = {
+				government_has_flag = government_is_nomadic
+			}
+			desc = VASSAL_IS_FEUDAL_REASON
+		}
+	}
+}
+
 oe_imperor_designate_heir_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	desc = oe_imperor_designate_heir_interaction_desc
@@ -364,7 +742,9 @@ oe_imperor_designate_heir_interaction = {
 	is_shown = {
 		#always = no
 		NOT = { scope:recipient = scope:actor }
-		scope:actor = { is_oe_imperial_government_trigger = yes }
+		scope:actor = {
+			is_oe_imperial_government_trigger = yes
+		}
 		scope:recipient = { #被替换官员
 			is_vassal_or_below_of = scope:actor
 			highest_held_title_tier >= tier_county
@@ -381,9 +761,17 @@ oe_imperor_designate_heir_interaction = {
 		#}
 	}
 	is_valid_showing_failures_only = {
-		#scope:actor = { prestige >= 1000 }
+		scope:actor = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_designate_bureaucracy_successor"
+					has_realm_law_flag = can_designate_bureaucracy_successor
+				}
+			}
+		}
 	}
-	populate_actor_list = {
+	populate_recipient_list = {
 		scope:actor = {
 			#every_vassal_or_below = { #皇帝的其他文官
 				#limit = {
@@ -425,15 +813,148 @@ oe_imperor_designate_heir_interaction = {
 				title = designate_heir_interaction_notification
 
 				left_icon = scope:recipient					
-				right_icon = scope:secondary_actor
+				right_icon = scope:secondary_recipient
 
-				set_designated_heir_unsafe = scope:secondary_actor
+				set_designated_heir_unsafe = scope:secondary_recipient
 			}
 			set_variable = {
 				name = oe_heir
-				value = scope:secondary_actor
+				value = scope:secondary_recipient
 			}
 		}
+
+			scope:recipient = {
+				primary_title = {
+					save_scope_as = target
+				}
+			}
+			# Save the score value
+			save_scope_value_as = {
+				name = support_candidate_score
+				value = {
+					value = 0
+					if = {
+						limit = { exists = scope:target }
+						add = {
+							value = "scope:target.current_heir.appointment_candidate_score(scope:target)"
+							multiply = 1.1
+						}
+						subtract = "scope:secondary_recipient.appointment_candidate_score(scope:target)"
+					}
+					min = 4 # We do this to prevent cases when the default score of the candidate is already much higher than that the heir
+					multiply = scope:actor.appointment_score_interaction_multiplier_modifiers_value
+				}
+			}
+			if = {
+				limit = {
+					scope:support_candidate_score >= 100
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 25
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 80
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 20
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 60
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 15
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 40
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 10
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 20
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 5
+				}
+			}
+			else_if = {
+				limit = {
+					scope:support_candidate_score >= 10
+				}
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 3
+				}
+			}
+			else = {
+				save_scope_value_as = {
+					name = opinion_change_value
+					value = 1
+				}
+			}
+
+			# Update the score for the corresponding title
+			scope:target = {
+				change_appointment_investment = {
+					target = scope:secondary_recipient
+					investor = scope:actor
+					value = scope:support_candidate_score
+				}
+				if = {
+					limit = { appointment_interactions_recipient_is_suitable_co_emperor_trigger = yes }
+					diarch_promoted_as_administrative_candidate_get_best_tooltip_effect = yes
+				}
+			}
+
+			# Notify the supported character (unless they are the actor)
+			scope:secondary_recipient ?= {
+				if = {
+					limit = {
+						NOT = { this = scope:actor }
+					}
+					hidden_effect = {
+						send_interface_message = {
+							type = msg_candidacy_improved
+							title = supported_candidacy_toast
+							left_icon = scope:actor
+							right_icon = scope:target
+							show_as_tooltip = {
+								scope:target = {
+									change_appointment_investment = {
+										target = scope:secondary_recipient
+										investor = scope:actor
+										value = scope:support_candidate_score
+									}
+								}
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						NOT = { house ?= scope:actor.house }
+					}
+					add_opinion = {
+						modifier = supported_candidacy_opinion
+						target = scope:actor
+						opinion = scope:opinion_change_value
+					}
+					custom_tooltip = support_candidacy_success_reward_tt
+				}
+			}
 	}
 	
 	ai_will_do = {
@@ -444,7 +965,7 @@ oe_imperor_designate_heir_interaction = {
 
 
 oe_chancellor_designate_heir_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	desc = oe_imperor_designate_heir_interaction_desc
@@ -458,14 +979,8 @@ oe_chancellor_designate_heir_interaction = {
 			is_ai = no
 			OR = {
 				has_trait = great_misit
-				AND = {
-					is_councillor = yes
-					has_character_flag = in_imperial_council
-					OR = {
-						has_council_position = councillor_tongpingzhang
-						has_council_position = councillor_shumishi
-					}
-				}
+				has_council_position = councillor_tongpingzhang
+				has_council_position = councillor_shumishi
 				AND = {
 					exists = top_liege
 					is_diarch_of_target = scope:actor.top_liege
@@ -553,7 +1068,15 @@ oe_chancellor_designate_heir_interaction = {
 		}
 	}
 	is_valid_showing_failures_only = {
-		#scope:actor = { prestige >= 1000 }
+		scope:actor.liege = {
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "liege_can_designate_bureaucracy_successor"
+					has_realm_law_flag = can_designate_bureaucracy_successor
+				}
+			}
+		}
 	}
 	cost = {
 		influence = {
@@ -584,7 +1107,7 @@ oe_chancellor_designate_heir_interaction = {
 }
 
 set_bureaucratic_term_interaction = {  #
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	common_interaction = no
 	greeting = positive
 	icon = vassal_claim_liege_title_interaction	
@@ -602,6 +1125,7 @@ set_bureaucratic_term_interaction = {  #
 	is_shown = {	
 		scope:actor = {
 			is_oe_imperial_court_trigger = yes
+			
 			is_ai = no
 			is_available_adult = yes
 		}
@@ -620,12 +1144,15 @@ set_bureaucratic_term_interaction = {  #
 		scope:actor = {
 			is_capable_adult = yes
 			is_imprisoned = no
-			OR = {
-				has_realm_law = imperial_bureaucracy_2
-				has_realm_law = imperial_bureaucracy_3
+
+			trigger_if = {
+				limit = { is_oe_imperial_court_trigger = yes }
+				custom_description = {
+					text = "can_set_bureaucratic_term"
+					has_realm_law_flag = can_set_bureaucratic_term
+				}
 			}
 		}
-		#scope:actor = { prestige >= 1000 }
 	}
 	#Use hook
 	send_option = {
@@ -719,7 +1246,7 @@ set_bureaucratic_term_interaction = {  #
 	}
 	ai_accept = {
 		base = 0 # Try to make it 0 for most interactions
-		CorruptionSystem_corruption_retract_vassal_modifier = yes
+		#CorruptionSystem_corruption_retract_vassal_modifier = yes
 		modifier = {
 			scope:hook = yes
 			add = 60
@@ -1024,7 +1551,7 @@ sent_to_bureaucracy_pool_interaction = {
 
 #送去对方府衙历练
 sent_to_bureaucracy_courtier_interaction = {
-	category = interaction_category_admin
+	category = interaction_category_vassal
 	icon = demand_admin_interaction
 	target_type = title
 	target_filter = recipient_de_jure_titles
@@ -1052,7 +1579,7 @@ sent_to_bureaucracy_courtier_interaction = {
 				every_courtier_or_guest = {
 					limit = {
 						is_independent_ruler = no
-						allows_imperial_bureaucracy = yes
+						government_allows = administrative
 						top_liege = scope:actor.top_liege
 						any_valid_title_to_grant_trigger = {
 							CANDIDATE = this
@@ -1080,7 +1607,7 @@ sent_to_bureaucracy_courtier_interaction = {
 		scope:target = {
 			tier >= tier_county
 			exists = holder
-			is_oe_noble_family_title = no
+			is_noble_family_title = no
 			holder = scope:recipient
 		}
 	}
@@ -1089,13 +1616,14 @@ sent_to_bureaucracy_courtier_interaction = {
 		NOT = { scope:actor = scope:recipient }
 		scope:actor = {
 			is_ai = no
-			allows_imperial_bureaucracy = yes		
+			government_has_flag = government_is_celestial
+			government_allows = administrative		
 		}
 		OR = {
 			scope:recipient = {
 				is_governor = yes
 				is_independent_ruler = no
-				allows_imperial_bureaucracy = yes
+				government_allows = administrative
 				top_liege = scope:actor.top_liege
 			}
 			scope:recipient = { is_councillor_of = scope:actor.top_liege }

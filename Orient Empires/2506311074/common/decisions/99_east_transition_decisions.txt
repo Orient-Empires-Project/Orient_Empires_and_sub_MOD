@@ -44,10 +44,19 @@ convert_to_legion_government_decision = {
 	}
 	
 	is_valid = {
-		prestige_level >= high_prestige_level
-		capital_province.county = {
-			development_level >= convert_to_feudalism_development_requirement
-		}		
+		#prestige_level >= high_prestige_level
+		#capital_province.county = {
+			#development_level >= convert_to_feudalism_development_requirement
+		#}		
+	}
+
+	is_valid_showing_failures_only = {
+		NOR = {
+			current_military_strength < liege.current_military_strength
+			liege = {
+				has_realm_law_flag = vassal_all_wars_banned
+			}
+		}
 	}
 	
 	cost = {
@@ -73,6 +82,10 @@ convert_to_legion_government_decision = {
 			add = -50
 			liege = { government_has_flag = government_is_tribal } 
 		}
+		modifier = { #Go for the more lenient decision if this is the case
+		add = -50
+		liege = { government_has_flag = government_is_nomadic } 
+	}
 		modifier = { #Go for the more lenient decision if this is the case
 			add = -100
 			liege = { government_has_flag = government_is_celestial } 
@@ -175,7 +188,7 @@ convert_whole_realm_to_legion_decision = {
 	}
 
 	ai_potential = {
-		NOT = { has_title = title:e_mongol_empire } #Stop the Mongols from slowing their conquest.
+		mpo_has_gok_mongol_empire_trigger = no #Stop the Mongols from slowing their conquest.
 	}
 
 	ai_will_do = {
@@ -232,8 +245,8 @@ convert_to_milita_contract_decision = {
 				}
 			}
 			OR = {
-				top_liege = { has_realm_law = imperial_bureaucracy_0 }
-				top_liege = { has_realm_law = imperial_bureaucracy_1 }
+				top_liege = { has_realm_law = celestial_bureaucracy_0 }
+				top_liege = { has_realm_law = celestial_bureaucracy_1 }
 			}
 		}
 	}
@@ -338,8 +351,8 @@ transfer_to_legion_contract_decision = {
 			}
 		}
 		OR = {
-			top_liege = { has_realm_law = imperial_bureaucracy_0 }
-			top_liege = { has_realm_law = imperial_bureaucracy_1 }
+			top_liege = { has_realm_law = celestial_bureaucracy_0 }
+			top_liege = { has_realm_law = celestial_bureaucracy_1 }
 		}
 	}
 
@@ -420,7 +433,13 @@ adopt_celestial_government_decision = {
 
 	is_valid = {
 			highest_held_title_tier >= tier_duchy
-			has_realm_law = crown_authority_3
+			OR = {
+				has_realm_law = crown_authority_3
+				has_realm_law = tribal_authority_3
+				has_realm_law = imperial_bureaucracy_3
+				has_realm_law = celestial_bureaucracy_3
+			}
+			
 			NOT = { government_has_flag = government_is_landless_adventurer }
 			capital_province.county = {
 				development_level >= convert_to_feudalism_development_requirement
@@ -475,7 +494,7 @@ adopt_celestial_government_decision = {
 	}
 	
 	ai_potential = {
-		NOT = { has_title = title:e_mongol_empire } #Stop the Mongols from slowing their conquest.
+		mpo_has_gok_mongol_empire_trigger = no #Stop the Mongols from slowing their conquest.
 	}
 
 	ai_will_do = {
@@ -498,14 +517,12 @@ convert_whole_realm_to_ulus_decision = {
 		highest_held_title_tier >= tier_kingdom
 		OR = {
 			government_has_flag = government_is_tribal
+			government_has_flag = government_is_nomadic
 			government_has_flag = government_is_legion
 			government_has_flag = government_is_clan
 		}
 		is_independent_ruler = yes
-		OR = {
-			capital_province ?= { geographical_region = world_steppe_cathay }
-			capital_province ?= { geographical_region = world_steppe }
-		}
+		capital_province ?= { geographical_region = world_steppe }
 	}
 
 	is_valid = {
@@ -514,9 +531,16 @@ convert_whole_realm_to_ulus_decision = {
 			has_realm_law = tribal_authority_3
 		}
 		trigger_else_if = {
+			limit = { government_has_flag = government_is_nomadic }
+			capital_province = {
+				has_holding_type = castle_holding
+			}
+		}
+		trigger_else_if = {
 			limit = { NOT = { government_has_flag = government_is_tribal } }
 			has_realm_law = crown_authority_3
 		}
+
 		
 		prestige_level >= 3
 		capital_province.county = {
@@ -598,7 +622,7 @@ celestial_change_to_imperial_decision = {
 			is_independent_ruler = yes
 			is_ai = no
 		}
-		NOT = { has_character_flag = used_celestial_change_decision }
+		NOT = { has_global_variable = used_celestial_change_to_imperial }
 	}
 
 	is_valid = {
@@ -606,7 +630,7 @@ celestial_change_to_imperial_decision = {
 			text = not_used_celestial_change_decision_tt
 			trigger_if = {
 				limit = { is_ai = no }
-				NOT = { has_character_flag = used_celestial_change_decision }
+				NOT = { has_global_variable = used_celestial_change_to_imperial }
 			}		
 		}
 	}
@@ -625,11 +649,11 @@ celestial_change_to_imperial_decision = {
 		custom_tooltip = government_has_powerful_families
 
 		hidden_effect = {
-			add_character_flag = used_celestial_change_decision
+			set_global_variable = used_celestial_change_to_imperial
 			if = {
 				limit = {
 					any_vassal_or_below = {
-						exists = yes
+						exists = this
 					}
 				}
 				every_vassal_or_below = {
@@ -666,14 +690,14 @@ imperial_change_to_celestial_decision = {
 		has_ep3_dlc_trigger = yes
 		has_government = imperial_government
 		is_ai = no
-		NOT = { has_character_flag = used_celestial_change_decision }
+		NOT = { has_global_variable = used_celestial_change_decision }
 	}
 	is_valid = {
 		custom_description = {
 			text = not_used_celestial_change_decision_tt
 			trigger_if = {
 				limit = { is_ai = no }
-				NOT = { has_character_flag = used_celestial_change_decision }
+				NOT = { has_global_variable = used_celestial_change_decision }
 			}		
 		}
 	}
@@ -691,11 +715,11 @@ imperial_change_to_celestial_decision = {
 		custom_tooltip = no_more_government_has_powerful_families
 
 		hidden_effect = {
-			add_character_flag = used_celestial_change_decision
+			set_global_variable = used_celestial_change_decision
 			if = {
 				limit = {
 					any_vassal_or_below = {
-						exists = yes
+						exists = this
 						has_government = imperial_government
 					}
 				}

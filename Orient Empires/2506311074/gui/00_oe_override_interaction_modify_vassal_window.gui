@@ -2,58 +2,146 @@ types ModifyVassalContractsShared
 {
 	type vbox_obligation_negotiation = vbox
 	{
-		vbox_feudal_negotiation = {
-			name = "feudal_vassal_paper_contract"
-			visible = "[Character.GetGovernment.IsType('feudal_government')]"
+		vbox_default_negotiation = {
+		 	name = "default_subject_paper_contract"
+		 	visible = "[SubjectContract.HasModifyContractLayout('default')]"
 
-			layoutpolicy_horizontal = expanding
-			layoutpolicy_vertical = expanding
-			margin = { 20 20 }
-			spacing = 5
-
-			using = Background_Letter
+		 	layoutpolicy_horizontal = expanding
+		 	layoutpolicy_vertical = expanding
+		 	margin = { 20 20 }
+		 	spacing = 5
 		}
-
-		# oe added
+		# HMI Plus Added
+		gangqu_negotiation = {}
+		# oe
 		vbox_oe_negotiation = {}
+		# ee added
+		vbox_ee_negotiation = {}
 
 		vbox_clan_negotiation = {
 			name = "clan_vassal_paper_contract"
-			visible = "[Character.GetGovernment.IsType('clan_government')]"
+			visible = "[SubjectContract.HasModifyContractLayout('clan')]"
 			layoutpolicy_horizontal = expanding
 			layoutpolicy_vertical = expanding
 			margin = { 20 20 }
 			spacing = 5
-
-			using = Background_Letter
 		}
 
 		vbox_administrative_negotiation = {
-			datacontext = "[CharacterInteractionConfirmationWindow.GetRecipient]"
 			name = "administrative_vassal_paper_contract"
-			visible = "[Character.GetGovernment.IsType('administrative_government')]"
+			visible = "[SubjectContract.HasModifyContractLayout('admin')]"
 			layoutpolicy_horizontal = expanding
 			layoutpolicy_vertical = expanding
 			margin = { 20 5 }
 		}
 
+		hbox = {
+			layoutpolicy_horizontal = expanding
+			margin_bottom = 5
+
+			divider = {
+				layoutpolicy_horizontal = expanding
+
+				modify_texture = {
+					texture = "gfx/interface/component_masks/mask_fade_horizontal_middle_thick.dds"
+					blend_mode = alphamultiply
+				}
+			}
+		}
+
 		button_standard = {
 			name = "reset_button"
-			onclick = "[ModifyVassalContractInteractionWindow.ResetToCurrent]"
-			enabled = "[Not( ModifyVassalContractInteractionWindow.IsPreviewSameAsCurrent )]"
+			onclick = "[ModifySubjectContractInteractionWindow.ResetToCurrent]"
+			enabled = "[Not( ModifySubjectContractInteractionWindow.IsPreviewSameAsCurrent )]"
 			text = "RESET_CONTRACT_CHANGES"
 			using = tooltip_above
+
+			background = {
+				using = Background_Area_Light
+				alpha = 0.8
+			}
 		}
 	}
-	type vbox_oe_negotiation = vbox_feudal_negotiation {
+	type vbox_oe_negotiation = vbox_administrative_negotiation {
 		name = "oe_vassal_paper_contract"
-		visible = "[Or(Character.GetGovernment.IsType('ulus_government'), Or(Character.GetGovernment.IsType('tribal_government'), Or(IsCelestialRuler(Character), Or(Character.GetGovernment.IsType('legion_government'), Character.GetGovernment.IsType('bureau_government')))))]"
+		visible = "[SubjectContract.HasModifyContractLayout('celestial')]"
 
 		layoutpolicy_horizontal = expanding
 		layoutpolicy_vertical = expanding
 		margin = { 20 20 }
 		spacing = 5
+	}
+	# EE's one will NOT used if OE exists.
+	type vbox_ee_negotiation = container {
+		visible = no
+	}
+	type oe_admin_minor_list_levels_checkboxes = dynamicgridbox {
+		name = "minor_list_levels_checkboxes"
+		datamodel = "[ModifySubjectContractInteractionWindow.AccessObligationLevelCheckboxes]"
 
-		using = Background_Letter
+		flipdirection = yes
+		datamodel_wrap = 4
+		
+		item = {
+			widget_oe_minor_obligation_checkbox_item = {
+				size = { 150 65 }
+			}
+		}
+	}
+	# imported from HMI, last check before 2025.3.12
+	type widget_oe_minor_obligation_checkbox_item = widget
+	{
+		datacontext = "[ObligationLevelCheckbox.GetContainerData]"
+		visible = "[ObligationContainerData.ShouldShow( ModifySubjectContractInteractionWindow.GetContractPreview )]"
+	
+		background = {
+			using = Background_Area_With_Header
+			alpha = 0.75
+		}
+	
+		vbox = {
+			margin_left = 10
+			spacing = 2
+	
+			text_single = {
+				layoutpolicy_horizontal = expanding
+				minimumsize = { 0 33 }
+				text = "[ObligationContainerData.GetName]"
+				using = Font_Size_Medium
+				default_format = "#high"
+			}
+	
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				alwaystransparent = no
+				spacing = 5
+	
+				datacontext = "[ObligationLevelCheckbox.GetLevel( '(int32)1' )]" # First one is always no effect/disabled option
+	
+				button_checkbox_label = {
+					# Order dependent, first select the unselected level then set it as the new selected one
+					onclick = "[ModifySubjectContractInteractionWindow.SelectObligationLevel( ObligationLevelCheckbox.GetLevel( ObligationLevelCheckbox.GetUnselectedLevelIndex ) )]"
+					onclick = "[ObligationLevelCheckbox.ToggleSelection]"
+	
+					blockoverride "checkbox"
+					{
+						checked = "[ModifySubjectContractInteractionWindow.IsObligationLevelSelected( ModifySubjectContractInteractionWindowObligationLevelOption.Self )]"
+						enabled = "[ModifySubjectContractInteractionWindow.IsObligationLevelEnabled( ModifySubjectContractInteractionWindowObligationLevelOption.Self )]"
+					}
+	
+					blockoverride "text"
+					{
+						text = "[ModifySubjectContractInteractionWindowObligationLevelOption.GetName]"
+						default_format = "#high"
+					}
+				}
+	
+				expand = {}
+	
+				tooltip = "[ModifySubjectContractInteractionWindow.GetObligationLevelTooltipFor( ModifySubjectContractInteractionWindowObligationLevelOption.Self )]"
+			}
+	
+			expand = {}
+		}
 	}
 }

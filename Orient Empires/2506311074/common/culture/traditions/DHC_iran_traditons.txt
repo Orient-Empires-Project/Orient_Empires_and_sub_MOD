@@ -1,0 +1,233 @@
+﻿# 萨珊遗产:
+tradition_legacy_of_sasanid = {
+	category = regional
+
+	layers = {
+		0 = martial
+		1 = mena
+		4 = crown.dds
+	}
+
+	is_shown = {
+		OR = {
+			has_cultural_pillar = heritage_iranian
+			has_cultural_pillar = heritage_caucasian
+		}
+	}
+	can_pick = {
+		OR = {
+			has_cultural_pillar = heritage_iranian
+			has_cultural_pillar = heritage_caucasian
+		}
+		NOT = { has_cultural_tradition = tradition_horse_breeder }
+		NOT = { has_cultural_tradition = tradition_horse_lords }
+		NOT = { has_innovation = innovation_elephantry }
+	}
+	
+	parameters = {
+		unlock_maa_asawira = yes
+		unlock_maa_cataphract = yes
+		can_castrate_prisoners = yes
+		eunuch_trait_bonuses = yes
+		can_appoint_chief_eunuch = yes
+	}
+	character_modifier = {
+		ai_boldness = 25
+		heavy_cavalry_max_size_add = 2
+		heavy_cavalry_toughness_mult = 0.1
+		heavy_cavalry_damage_mult = 0.1
+		heavy_cavalry_maintenance_mult = 0.1
+		archer_cavalry_max_size_add = 2
+		archer_cavalry_toughness_mult = 0.2
+		archer_cavalry_damage_mult = 0.1
+		archer_cavalry_maintenance_mult = 0.1
+	}
+
+	cost = {
+		prestige = {
+			add = {
+				value = tradition_base_cost
+				desc = BASE
+				format = "BASE_VALUE_FORMAT"
+			}
+			if = {
+				limit = {
+					NOR = {
+						culture_pillar:ethos_bureaucratic = { is_in_list = traits }
+						culture_pillar:ethos_bellicose = { is_in_list = traits }
+					}
+				}
+				add = {
+					value = tradition_incompatible_ethos_penalty
+					desc = not_bellicose_or_bureaucratic_desc
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						scope:character = {
+							any_held_title = {
+								tier = tier_county
+								count >= 8
+								any_county_province = {
+									has_building_or_higher = stables_01
+								}
+							}
+						}
+					}
+				}
+				add = {
+					value = tradition_unfulfilled_criteria_penalty
+					desc = domain_counties_with_stables_desc
+				}
+			}
+			
+			if = {
+				limit = {
+					culture_tradition_reduction_trigger = { TRADITION = tradition_legacy_of_sasanid }
+				}
+				multiply = {
+					value = 0.5
+					desc = inspired_by_culture_desc
+				}
+			}
+
+			multiply = tradition_replacement_cost_if_relevant
+		}
+	}
+	
+	ai_will_do = {
+		value = 200
+		if = {
+			limit = { # Reduce chance slightly if the culture has access to other "cavalry" types
+				OR = {
+					has_innovation = innovation_war_camels
+					has_innovation = innovation_war_elephants
+				}
+			}
+			multiply = 0.8
+		}
+	}
+}
+
+#巴库石脑油
+tradition_baku_naphtha = {
+	category = regional
+
+	layers = {
+		0 = steward
+		1 = mena
+		4 = mountain.dds
+	}
+	
+	#For Georgians this replaces the Mountaineers tradition
+	is_shown = {
+		NOR = {
+			has_cultural_tradition = tradition_mountaineers
+			has_cultural_tradition = tradition_horn_mountain_skirmishing
+		}
+	}
+	can_pick = {
+		custom_description = {
+			text = culture_in_mountains_desc
+			any_culture_county = {
+				any_county_province = {
+					OR = {
+						terrain = mountains
+						terrain = desert_mountains
+					}
+				}
+			}
+		}
+	}
+	
+	parameters = {
+		rough_terrain_expert_trait_more_common = yes
+		mountain_trait_bonuses = yes
+		can_recruit_mountain_specialist = yes
+	}
+	character_modifier = {
+		siege_weapon_recruitment_cost_mult = -0.3
+		siege_weapon_maintenance_mult = -0.3
+	}
+	province_modifier = {
+		stationed_siege_weapon_siege_value_mult = very_high_maa_siege_value_tier_2
+		stationed_siege_weapon_siege_value_add = 0.1
+	}
+	
+	cost = {
+		prestige = {
+			add = {
+				value = tradition_base_cost
+				desc = BASE
+				format = "BASE_VALUE_FORMAT"
+			}
+			if = {
+				limit = {
+					NOR = {
+						culture_pillar:ethos_bellicose = { is_in_list = traits }
+						culture_pillar:ethos_stoic = { is_in_list = traits }
+						culture_pillar:ethos_communal = { is_in_list = traits }
+					}
+				}
+				add = {
+					value = tradition_incompatible_ethos_penalty
+					desc = not_bellicose_stoic_or_communal_desc
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_culture_county = {
+							percent >= 0.3
+							any_county_province = {
+								OR = {
+									terrain = mountains
+									terrain = desert_mountains
+								}
+							}
+						}
+					}
+				}
+				add = {
+					value = tradition_unfulfilled_criteria_penalty
+					desc = mountain_percentage_desc
+				}
+			}
+			
+			if = {
+				limit = {
+					culture_tradition_reduction_trigger = { TRADITION = tradition_baku_naphtha }
+				}
+				multiply = {
+					value = 0.5
+					desc = inspired_by_culture_desc
+				}
+			}
+
+			multiply = tradition_replacement_cost_if_relevant
+		}
+	}
+
+	ai_will_do = {
+		value = 1000 
+		if = {
+			limit = {
+				NOT = {
+					scope:character = {
+						any_sub_realm_county = {
+							culture = scope:character.culture
+							any_county_province = {
+								OR = {
+									terrain = mountains
+									terrain = desert_mountains
+								}
+							}
+						}
+					}
+				}
+			}
+			multiply = 0
+		}
+	}
+}

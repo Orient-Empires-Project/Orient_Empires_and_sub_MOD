@@ -383,6 +383,385 @@ mandate_war = {
 	white_peace_possible = no
 }
 
+kingmaker_war = {
+	group = subjugation
+	icon = struggle
+
+	combine_into_one = yes
+	should_show_war_goal_subview = yes
+	mutually_exclusive_titles = { always = yes }
+	interface_priority = 112
+
+	allowed_for_character = {
+		# Attacker must be Involved in Struggle during correct phase
+		any_held_title = {
+			is_noble_family_title = no is_nomad_title = no
+			target_is_de_jure_liege_or_above = title:e_celestia
+		}
+		NOT = {
+			government_has_flag = government_is_landless_adventurer
+		}
+	}
+
+	allowed_against_character = {
+		# 中原皇子
+		exists = title:e_celestia.holder 
+		scope:defender = {
+			is_close_or_extended_family_of = title:e_celestia.holder
+		}
+		title:e_celestia.holder = {
+			OR = {
+				AND = {
+					is_at_war = yes
+					NOT = { location = capital_province }
+					any_heir = {
+						is_landed = yes
+					}
+				}
+				any_character_war = {
+					OR = {
+						using_cb = revolt_independence_war
+						using_cb = unite_war
+					}
+				}
+			}
+		}
+	}
+
+	target_titles = all
+	target_title_tier = kingdom
+	target_de_jure_regions_above = yes
+	ignore_effect = change_title_holder
+
+	ai_score_mult = { value = oe_expel_interloper_ai_targeting_value }
+
+	#	valid_to_start = {
+	#		scope:target = {
+	#			any_de_jure_county = {
+	#				any_county_struggle = { this = struggle:tartaria_struggle }
+	#			}
+	#		}
+	#	}
+
+	should_invalidate = {
+		scope:defender = {
+			is_oe_imperial_government_trigger = yes
+		}
+	}
+
+	on_invalidated_desc = msg_county_conquest_war_invalidated_message
+	
+	on_invalidated = {}
+
+	cost = {
+		piety = {
+			value = 0
+			if = {
+				limit = {
+					scope:defender.faith = scope:attacker.faith
+				}
+				add = {
+					value = minor_piety_value
+					desc = CB_SAME_FAITH_COST
+				}
+			}
+
+			multiply = common_cb_piety_cost_multiplier
+		}
+		prestige = {
+			value = minor_prestige_value
+			if = {
+				limit = {
+					NOT = { scope:defender.faith = scope:attacker.faith }
+				}
+				add = {
+					value = minor_prestige_value
+					desc = CB_COST_DIFFERENT_FAITH
+				}
+			}
+			add = {
+				value = 0
+				scope:defender = {
+					every_realm_county = {
+						limit = {
+							any_county_struggle = { this = struggle:tartaria_struggle }
+						}
+						add = fp2_expel_interloper_county_cost_value
+					}
+				}
+				desc = CELESTIA_GREAT_HOLY_WAR_WAR_NAME # cost per-reclaimed county
+			}
+			multiply = common_cb_prestige_cost_multiplier
+		}
+	}
+
+	on_declaration = {
+		on_declared_war = yes
+
+	}
+
+	on_victory_desc = {
+		triggered_desc = {
+			trigger = {
+				scope:attacker = {
+					culture = { has_cultural_pillar = heritage_chinese }
+				}
+			}
+			desc = kingmaker_victoty
+		}
+		triggered_desc = {
+			trigger = {
+				scope:attacker = {
+					NOT = { culture = { has_cultural_pillar = heritage_chinese } }
+				}
+			}
+			desc = kingmaker_victoty
+		}
+	}
+
+	on_victory = {
+		scope:attacker = { show_pow_release_message_effect = yes }
+
+		# Legitimacy
+		add_legitimacy_attacker_victory_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
+
+		create_title_and_vassal_change = {
+			type = independency
+			save_scope_as = indpendence_change0
+			add_claim_on_loss = no
+		}
+		scope:defender = {
+			becomes_independent = {
+				change = scope:indpendence_change0
+			}
+		}
+		scope:attacker = {
+			becomes_independent = {
+				change = scope:indpendence_change0
+			}
+		}
+		resolve_title_and_vassal_change = scope:indpendence_change0
+
+		scope:attacker = {
+			trigger_event = mandate.0012
+		}
+		
+		#claim_fake_chinese_emperor_effect = yes
+
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		
+		scope:defender = {
+			every_held_title = {
+				limit = {
+					tier <= tier_kingdom
+				}
+				change_title_holder = {
+					holder = scope:attacker
+					change = scope:change
+				}
+			}
+			every_vassal = {
+				limit = {
+					NOT = { this = scope:attacker }
+					primary_title.tier < tier_kingdom
+					NOT = {
+						primary_title.tier = tier_barony
+					}
+				}
+				change_liege = {
+					liege = scope:attacker
+					change = scope:change
+				}
+			}
+		}
+		
+		resolve_title_and_vassal_change = scope:change
+
+		
+		
+		# Prestige level progress for the attacker
+		scope:attacker = {
+			add_prestige_experience = {
+				value = major_prestige_value
+			}
+		}
+
+		# Prestige loss for the defender
+		scope:defender = {
+			add_prestige = {
+				value = major_prestige_value
+				multiply = -1.0
+			}
+		}
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:attacker
+			FAME_BASE = minor_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		# Break alliances now out of diplo range
+		scope:attacker = {
+			if = {
+				limit = {
+					any_ally = {
+						NOT = { in_diplomatic_range = scope:attacker }
+					}
+				}
+				every_ally = {
+					limit = {
+						NOT = { in_diplomatic_range = scope:attacker }
+					}
+					break_alliance = scope:attacker
+				}
+			}
+		}
+
+		# Truce
+		add_truce_attacker_victory_effect = yes
+	}
+
+	on_white_peace_desc = {
+		triggered_desc = {
+			trigger = {
+				scope:defender = { oe_struggle_tartaria_reclamation_should_vassalize_trigger = yes }
+			}
+			desc = MANDATE_WAR_NAME_white_peace_desc_vassalize
+		}
+		triggered_desc = {
+			trigger = {
+				scope:defender = { oe_struggle_tartaria_reclamation_should_vassalize_trigger = no }
+			}
+			desc = MANDATE_WAR_NAME_white_peace_desc_conquer
+		}
+	}
+
+	on_white_peace = {
+		# Prestige loss for the attacker
+		scope:attacker = {
+			add_prestige = {
+				value = minor_prestige_value
+				multiply = -1.0
+			}
+			stress_impact = {
+				ambitious = medium_stress_impact_gain
+				arrogant = medium_stress_impact_gain
+			}
+		}
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:attacker # not important as scale values are identical
+			FAME_BASE = minor_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		scope:defender = {
+			stress_impact = {
+				arrogant = medium_stress_impact_gain
+			}
+		}
+
+		add_truce_white_peace_effect = yes
+	}
+
+	on_defeat_desc = {
+		triggered_desc = {
+			trigger = {
+				scope:attacker = {
+					culture = { has_cultural_pillar = heritage_chinese }
+				}
+			}
+			desc = kingmaker_defeat
+		}
+		triggered_desc = {
+			trigger = {
+				scope:attacker = {
+					NOT = { culture = { has_cultural_pillar = heritage_chinese } }
+				}
+			}
+			desc = kingmaker_defeat
+		}
+	}
+
+	on_defeat = {
+        scope:attacker = { show_pow_release_message_effect = yes }
+		
+		# Legitimacy
+		add_legitimacy_attacker_defeat_effect = yes
+
+		#EP2 accolade glory gain for winning against higher ranked enemy
+		scope:defender = { accolade_defender_war_end_glory_gain_high_effect = yes }
+
+		# Prestige loss for the attacker
+		scope:attacker = {
+			pay_short_term_gold_reparations_effect = {
+				GOLD_VALUE = 3
+			}
+			add_prestige = {
+				value = major_prestige_value
+				multiply = -1.0
+			}
+		}
+
+		# Prestige for Defender
+		scope:defender = {
+			add_prestige_war_defender_effect = {
+				PRESTIGE_VALUE = major_prestige_value
+			}
+		}
+
+		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
+		modify_allies_of_participants_fame_values = {
+			WINNER = scope:defender
+			FAME_BASE = minor_prestige_value
+			IS_RELIGIOUS_WAR = no
+			WINNER_ALLY_FAME_SCALE = 1
+			LOSER_ALLY_FAME_SCALE = 1
+		}
+
+		add_truce_attacker_defeat_effect = yes
+
+		scope:attacker = {
+			save_temporary_scope_as = loser
+		}
+
+		on_lost_aggression_war_discontent_loss = yes
+	}
+
+	transfer_behavior = transfer
+
+	on_primary_attacker_death = invalidate
+	on_primary_defender_death = inherit
+
+	attacker_allies_inherit = yes
+	defender_allies_inherit = yes
+
+	war_name = kingmaker_war
+	war_name_base = kingmaker_war
+	cb_name = kingmaker_war_cb
+
+	interface_priority = 80
+
+	use_de_jure_wargoal_only = yes
+
+	attacker_wargoal_percentage = 0.8
+
+	white_peace_possible = no
+}
+
 oe_expel_interloper = {
 	group = conquest
 	icon = struggle

@@ -1,0 +1,2254 @@
+﻿puye_1_court_position = { #尚书左仆射
+	sort_order = 300
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_sadaijin
+	}
+
+	minimum_rank = empire
+	skill = diplomacy
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = diplomacy
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_diplomacy
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = puye_1_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = puye_1_court_position
+					any_court_position_holder = {
+				        type = puye_1_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = puye_1 } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = puye_1
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = puye_1 }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = puye_1 }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = puye_1 } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = puye_1 }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = puye_1 }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		diplomacy = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_diplomacy_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = puye_1_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}
+puye_2_court_position = { #尚书右仆射
+	sort_order = 299
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_udaijin
+	}
+
+	minimum_rank = empire
+	skill = diplomacy
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = diplomacy
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_diplomacy
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = puye_2_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = puye_2_court_position
+					any_court_position_holder = {
+				        type = puye_2_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = puye_2 } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = puye_2
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = puye_2 }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = puye_2 }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = puye_2 } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = puye_2 }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = puye_2 }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		diplomacy = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_diplomacy_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = puye_2_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}
+
+liebu_court_position = { #吏部
+	sort_order = 298
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_shikibukyo
+	}
+
+	minimum_rank = empire
+	skill = diplomacy
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = diplomacy
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_diplomacy
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = liebu_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = liebu_court_position
+					any_court_position_holder = {
+				        type = liebu_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = liebu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = liebu
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = liebu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = liebu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = liebu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = liebu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = liebu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		stewardship_per_stress_level = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_diplomacy_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = liebu_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}
+
+bingbu_court_position = { #兵部
+	sort_order = 297
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_hyobukyo
+	}
+
+	minimum_rank = empire
+	skill = martial
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = martial
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_martial
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = bingbu_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = bingbu_court_position
+					any_court_position_holder = {
+				        type = bingbu_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = bingbu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = bingbu
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = bingbu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = bingbu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = bingbu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = bingbu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = bingbu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		martial_per_stress_level = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_martial_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = bingbu_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}
+
+libu_court_position = { #礼部
+	sort_order = 296
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_jibukyo
+	}
+
+	minimum_rank = empire
+	skill = learning
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = learning
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_learning
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = libu_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = libu_court_position
+					any_court_position_holder = {
+				        type = libu_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = libu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = libu
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = libu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = libu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = libu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = libu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = libu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		learning_per_stress_level = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_learning_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = libu_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}
+
+hubu_court_position = { #户部
+	sort_order = 295
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_ookurakyo
+	}
+
+	minimum_rank = empire
+	skill = stewardship
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = stewardship
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_stewardship
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = hubu_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = hubu_court_position
+					any_court_position_holder = {
+				        type = hubu_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = hubu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = hubu
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = hubu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = hubu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = hubu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = hubu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = hubu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		stewardship_per_stress_level = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_stewardship_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = hubu_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}
+
+xingbu_court_position = { #刑部
+	sort_order = 294
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_gyoubukyo
+	}
+
+	minimum_rank = empire
+	skill = intrigue
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = intrigue
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_intrigue
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = xingbu_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = xingbu_court_position
+					any_court_position_holder = {
+				        type = xingbu_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = xingbu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = xingbu
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = xingbu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = xingbu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = xingbu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = xingbu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = xingbu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		intrigue_per_stress_level = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_intrigue_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = xingbu_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}
+
+gongbu_court_position = { #工部
+	sort_order = 293
+	max_available_positions = 1
+	court_position_asset = {
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+	}
+	court_position_asset = {
+        trigger = {
+            root.culture = { has_cultural_pillar = heritage_yamato }
+        }
+		animation = throne_room_two_handed_passive_1
+		background = "gfx/interface/illustrations/event_scenes/courtyard.dds"
+		localization_key = councillor_kunaikyo
+	}
+
+	minimum_rank = empire
+	skill = stewardship
+
+	opinion = {
+		value = regular_court_position_opinion
+	}
+	
+	# How high the aptitude has to be to reach the 5 different modifier levels
+	aptitude_level_breakpoints = { 20 40 60 80 }
+	
+	# How good is this character in this position? root scope is the holder of the court position
+	aptitude = {
+		value = 1
+		add = {
+			value = stewardship
+			multiply = 2.5
+			max = 50
+			desc = court_position_skill_stewardship
+		}
+		if = {
+			limit = {
+				has_trait = just
+			}
+			add = {
+				value = 15
+				desc = court_position_just_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = gregarious
+			}
+			add = {
+				value = 15
+				desc = court_position_gregarious_trait
+			}
+		}
+		if = {
+			limit = {
+				has_trait = shrewd
+			}
+			add = { 
+				value = 20
+				desc = court_position_shrewd_trait
+			}
+		}
+		add = court_position_aptitude_eunuch_tradition_value
+		add = court_position_aptitude_family_business_value
+		add = court_position_aptitude_low_penalty_value
+
+		# Seneschal
+		if = {
+			limit = {
+				liege.court_position:seneschal_court_position ?= {
+					has_variable = performing_improve_court
+				}
+			}
+			add = {
+				value = liege.court_position:seneschal_court_position.seneschal_improve_court_value
+				desc = seneschal_improve_court_aptitude_desc
+			}
+		}
+	}
+
+	# Is this an available position for this court? (root is court owner)
+	is_shown = {
+		is_oe_imperial_court_trigger = yes
+	}
+
+	valid_position = {
+	}
+
+	is_shown_character = {
+		scope:employee = {
+			is_imprisoned = no
+		}
+	}
+
+	valid_character = {
+		scope:employee = {
+		    can_be_shangshu_trigger = { COURT_OWNER = scope:liege }
+			custom_tooltip = {
+				text = none_does_not_have_a_full_time_job
+				trigger_if = {
+					limit = { NOT = { has_court_position = gongbu_court_position } }
+					oe_court_position_does_not_already_have_a_job_trigger = yes # This positions is considered a job, and cannot be held at the same time as another similar position
+				}
+			}
+		}
+	}
+
+	revoke_cost = {
+		prestige =  {
+			value = major_court_position_prestige_revoke_cost
+
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = {
+					exists = dynasty
+					dynasty = { has_dynasty_perk = fp2_coterie_legacy_1 }
+
+					employs_court_position = gongbu_court_position
+					any_court_position_holder = {
+				        type = gongbu_court_position
+						exists = dynasty
+						house = prev.house
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+	
+	salary = {
+		round = no
+		gold = {
+			value = minor_court_position_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = gongbu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = gongbu
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = gongbu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = gongbu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+		prestige = {
+			value = medium_court_position_prestige_salary # Update X_salary_tooltip if script_value is changed
+			# Set to 0 with Dynasty Perk Inner Circle
+			if = {
+				limit = { court_position_inner_circle_salary_trigger = { POS = gongbu } }
+				multiply = {
+					value = 0
+					desc = inner_circle_salary_mod
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved via obligation hook
+			else_if = {
+				limit = {
+					court_position_obligation_hook_salary_trigger = {
+						POS = chief_eunuch
+						LIEGE = scope:liege
+					}
+				}
+				multiply = {
+					value = 0.5
+					desc = obligation_hook_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Halved salary
+			if = {
+				limit = {
+					court_position_halved_salary_trigger = { POS = gongbu }
+				}
+				multiply = {
+					value = 0.5
+					desc = court_position_halved_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+			# Increased salary
+			if = {
+				limit = {
+					court_position_increased_salary_trigger = { POS = gongbu }
+				}
+				multiply = {
+					value = 1.5
+					desc = court_position_increased_salary
+					format = "BASE_VALUE_FORMAT_DECIMALS_MINUS_POSITIVE"
+				}
+			}
+		}
+	}
+
+	# These modifiers are employed based on what level the aptitude reaches (levels are defined as breakpoints) 
+	scaling_employer_modifiers = {
+		terrible = {
+		    opinion_of_vassal = 1
+		}
+		poor = {
+		    opinion_of_vassal = 2
+		}
+		average = {
+		    opinion_of_vassal = 3
+		}
+		good = {
+		    opinion_of_vassal = 4
+		}
+		excellent = {
+		    opinion_of_vassal = 5
+		}
+	}
+	base_employer_modifier = {
+		stewardship_per_stress_level = 1
+	}
+	modifier = {
+		fellow_vassal_opinion = 5
+		opinion_of_liege = 5
+		tax_mult = 0.05
+		monthly_stewardship_lifestyle_xp_gain_mult = 0.05
+		monthly_influence = 1
+	}
+
+	on_court_position_received = {
+		basic_gained_court_position_effect = yes
+	}
+	on_court_position_revoked = {
+		basic_revoked_court_position_effect = yes
+	}
+	on_court_position_invalidated = {
+		basic_invalidated_court_position_effect = yes
+	}
+	on_court_position_vacated = {
+		court_position_vacated_event_effect = {
+			COURT_POSITION_TYPE = gongbu_court_position
+		}
+	}
+	# Scripted value to determine whether an AI will hire/fire a position or not. Hires over 0, fires under -50. Look in _court_positions.info for more extensive documentation!
+	candidate_score = {
+		value = 50
+		add = scope:base_value
+		add = court_position_candidate_score_base_value
+		add = court_position_candidate_aptitude_value
+		add = court_position_debt_considerations_value
+	}
+}

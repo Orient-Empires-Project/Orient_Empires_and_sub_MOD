@@ -2,7 +2,8 @@
 	on_actions = {
 		oe_info_effects
 		story_on_start
-		#destroy_void_title
+		oe_extra_nomad_region
+		oe_performance_government_change_after_lobby
 	}
 }
 oe_info_effects = {
@@ -15,36 +16,6 @@ oe_info_effects = {
 		}
 	}
 }
-
-destroy_void_title = {
-	effect = {
-		if = { #公国头衔
-			limit = {
-				exists = title:e_celestia.holder
-			}
-			title:e_celestia.holder = {
-				every_held_title = {
-					limit = {
-						tier = tier_duchy
-						is_landless_type_title = no
-						is_oe_noble_family_title = no
-						title_capital_county = {
-							OR = {
-								NOT = { holder = root }
-								NOT = { holder.top_liege = root }
-							}
-						}
-					}
-					holder = {
-						destroy_title = prev
-					}
-				}			
-			}
-		}
-	}
-}
-
-
 
 
 # root = character gaining vassal
@@ -737,7 +708,57 @@ guohao_effects = {
 					title:e_celestia = { set_coa = title:e_tang }
 					title:e_celestia = { set_color_from_title = title:e_tang }
 				}
-				if = {
+				else_if = {
+					limit = {
+						OR = {
+							#has_title = title:d_dianqian
+							dynasty = dynasty:zhuojun_zhao_dyn
+							root = character:217721
+							#root = character:1401294
+							#root = character:1401292
+							AND = {
+								has_title = title:d_biansong
+								root.capital_province.county ?= title:c_songzhou_song
+							}							
+							AND = {
+								root.capital_province.duchy ?= title:d_biansong
+								current_year > 800
+							}			
+							AND = {
+								NOT = { exists = capital_province }
+								root.location.duchy = title:d_biansong
+								current_year > 800
+							}
+						}
+					}
+					house = {
+						add_house_modifier = new_e_song #宋皇族
+					}
+					title:e_celestia = { set_title_name = e_song }
+					title:e_celestia = { set_coa = title:d_biansong }
+					title:e_celestia = { set_color_from_title = title:d_biansong }
+				}
+				else_if = {
+					limit = {
+						NOT = { 
+							has_title = title:k_liang
+						}
+						OR = {
+							root.capital_province.county = title:c_songzhou_song
+							AND = {
+								NOT = { exists = capital_province }
+								root.location.county = title:c_songzhou_song
+							}
+						}
+					}
+					house = {
+						add_house_modifier = new_e_song #宋皇族
+					}
+					title:e_celestia = { set_title_name = e_song }
+					title:e_celestia = { set_coa = title:d_biansong }
+					title:e_celestia = { set_color_from_title = title:d_biansong }
+				}
+				else_if = {
 					limit = {
 						OR = { 
 							has_title = title:k_han
@@ -823,48 +844,6 @@ guohao_effects = {
 					title:e_celestia = { set_title_name = e_chen }
 					title:e_celestia = { set_coa = title:d_chenxu }
 					title:e_celestia = { set_color_from_title = title:d_chenxu }
-				}
-				if = {
-					limit = {
-						OR = {
-							#has_title = title:d_dianqian
-							dynasty = dynasty:zhuojun_zhao_dyn
-							root = character:217721
-							#root = character:1401294
-							#root = character:1401292
-							root.capital_province.duchy = title:d_biansong
-							AND = {
-								NOT = { exists = capital_province }
-								root.location.duchy = title:d_biansong
-							}
-						}
-					}
-					house = {
-						add_house_modifier = new_e_song #宋皇族
-					}
-					title:e_celestia = { set_title_name = e_song }
-					title:e_celestia = { set_coa = title:d_biansong }
-					title:e_celestia = { set_color_from_title = title:d_biansong }
-				}
-				else_if = {
-					limit = {
-						NOT = { 
-							has_title = title:k_liang
-						}
-						OR = {
-							root.capital_province.county = title:c_songzhou_song
-							AND = {
-								NOT = { exists = capital_province }
-								root.location.county = title:c_songzhou_song
-							}
-						}
-					}
-					house = {
-						add_house_modifier = new_e_song #宋皇族
-					}
-					title:e_celestia = { set_title_name = e_song }
-					title:e_celestia = { set_coa = title:d_biansong }
-					title:e_celestia = { set_color_from_title = title:d_biansong }
 				}
 				else_if = {
 					limit = {
@@ -996,7 +975,6 @@ guohao_effects = {
 								NOT = { exists = capital_province }
 								root.location.kingdom = title:k_zhao
 							}
-							has_title = title:k_zhao
 						}
 					}
 					house = {
@@ -1033,6 +1011,11 @@ guohao_effects = {
 								NOT = { exists = capital_province }
 								root.location.duchy = title:d_weibo
 							}
+							AND = {
+								has_title = title:k_liang
+								root.location.kingdom = title:k_liang
+								current_year <= 800
+							}
 						}
 					}
 					house = {
@@ -1067,7 +1050,6 @@ guohao_effects = {
 								NOT = { exists = capital_province }
 								root.location.kingdom = title:k_jin
 							}
-							has_title = title:k_jin
 						}
 						NOR = {
 							dynasty = dynasty:1000049851
@@ -1152,7 +1134,6 @@ guohao_effects = {
 								root.location.kingdom = title:k_zhou
 							}
 						}
-						#has_title = title:k_zhou
 					}
 					house = {
 						add_house_modifier = new_k_zhou #周皇族
@@ -1833,6 +1814,7 @@ kingdom_guohao_effects = {
 		if = {
 			limit = {
 				OR = {
+					government_has_flag = government_is_nomadic
 					government_has_flag = government_is_ulus
 					government_has_flag = government_is_tribal
 				}
@@ -1929,6 +1911,7 @@ zunhao_effects = {
 		is_ai = no
 		OR = {
 			government_has_flag = government_is_tribal
+			government_has_flag = government_is_nomadic
 			government_has_flag = government_is_ulus
 		}
 	}
@@ -2066,6 +2049,86 @@ story_on_death = {
 			limit = { has_title = title:d_incho } #销毁院厅
 			destroy_title = title:d_incho
 		}
+		if = {
+			limit = {
+				game_start_date = 617.8.1 #长歌行
+				#title:e_celestia.holder ?= character:247726
+				root = character:247726
+			}
+			if = {
+				limit = {
+					exists = scope:killer
+					scope:killer = title:d_dianqian.holder
+				}
+				if = {
+					limit = {
+						character:247755 = { is_alive = yes }
+					}
+					create_title_and_vassal_change = {
+						type = usurped
+						save_scope_as = change
+						add_claim_on_loss = no
+					}
+					title:e_celestia = {
+						change_title_holder = {
+							holder = character:247755
+							change = scope:change
+						}
+					}
+					resolve_title_and_vassal_change = scope:change
+				}
+				else_if = {
+					limit = {
+						character:247761 = { is_alive = yes }
+					}
+					create_title_and_vassal_change = {
+						type = usurped
+						save_scope_as = change
+						add_claim_on_loss = no
+					}
+					title:e_celestia = {
+						change_title_holder = {
+							holder = character:247761
+							change = scope:change
+						}
+					}
+					resolve_title_and_vassal_change = scope:change
+				}
+				else = {
+					title:d_dianqian.holder = {
+						claim_fake_chinese_emperor_effect = yes
+						primary_title = {
+							set_title_name = root.capital_province.kingdom
+						}
+					}
+				}
+			}
+			every_house_member = {
+				limit = {
+					NOT = { location = root.location }
+					highest_held_title_tier >= tier_kingdom
+				}
+				claim_fake_chinese_emperor_effect = yes
+				primary_title = {
+					set_title_name = e_sui
+				}
+			}
+
+			title:e_celestia.holder = {
+				trigger_event = {
+					on_action = chinese_revolt_events_on_action
+				}
+				every_powerful_vassal = {
+					add_opinion = {
+						target = prev
+						modifier = executed_close_relation_opinion
+					}
+					trigger_event = {
+						on_action = chinese_revolt_events_on_action
+					}	
+				}		
+			}
+		}
 	}
 }
 
@@ -2077,7 +2140,7 @@ story_on_start = {
 			limit = { game_start_date = 975.1.7 } 
 			character:194330 = {
 				designate_diarch = character:1413617
-				start_diarchy = regency
+				try_start_diarchy = regency
 				set_diarchy_swing = 80
 				add_hook = {
 					type = predecessor_loyalty_hook
@@ -2090,10 +2153,15 @@ story_on_start = {
 		if = {
 			limit = { game_start_date = 1032.10.26 } 
 			character:217724 = {
-				add_courtier = character:huayang_liu_006
+				if = {
+					limit = {
+						NOT = { character:huayang_liu_006 = { is_courtier_of = prev } }
+					}
+					add_courtier = character:huayang_liu_006
+				}
 				designate_diarch = character:huayang_liu_006
-				start_diarchy = regency
-				set_diarchy_swing = 60
+				try_start_diarchy = regency
+				set_diarchy_swing = 80
 				add_hook = {
 					type = predecessor_loyalty_hook
 					target = character:huayang_liu_006
@@ -2102,8 +2170,30 @@ story_on_start = {
 			}
 			character:3096 = {
 				designate_diarch = character:additional_fatimids_1
-				start_diarchy = regency
+				try_start_diarchy = regency
 			}	
+		}
+		#洞仙歌
+		if = {
+			limit = { game_start_date = 1089.7.1 } 
+			character:217727 = {
+				if = {
+					limit = {
+						NOT = { character:mengcheng_gao_033 = { is_courtier_of = prev } }
+					}
+					add_courtier = character:mengcheng_gao_033
+				}
+				designate_diarch = character:mengcheng_gao_033
+				try_start_diarchy = regency
+				set_diarchy_swing = 80
+			}
+			character:mengcheng_gao_033 = {
+				add_hook = {
+					type = predecessor_loyalty_hook
+					target = character:217727
+					years = historic_regent_loyal_after_death_hook_duration_years_char_214_value
+				}
+			}
 		}
 		#如梦令
 		if = {
@@ -2113,11 +2203,11 @@ story_on_start = {
 			}
 			character:1407169 = {
 				designate_diarch = character:qushan_xu_003
-				start_diarchy = regency
+				try_start_diarchy = regency
 				set_diarchy_swing = 80
 			}
 			character:1412318 = {
-				add_realm_law_skip_effects = imperial_bureaucracy_2
+				add_realm_law_skip_effects = celestial_bureaucracy_2
 				remove_trait = diligent
 				remove_trait = ambitious
 				add_trait = lazy
@@ -2135,7 +2225,7 @@ story_on_start = {
 
 
 				designate_diarch = character:1400807
-				start_diarchy = regency
+				try_start_diarchy = regency
 				set_diarchy_swing = 40
 				add_character_modifier = {
 					modifier = investing_in_music_modifier
@@ -2225,7 +2315,7 @@ story_on_start = {
 			limit = { game_start_date = 936.9.15 } 			
 			character:1407169 = {
 				designate_diarch = character:1406215
-				start_diarchy = DaSiMa
+				try_start_diarchy = DaSiMa
 				set_diarchy_swing = 80
 			}
 		}
@@ -2268,12 +2358,12 @@ story_on_start = {
 			}
 			character:206657 = {
 				designate_diarch = character:1404804
-				start_diarchy = regency
+				try_start_diarchy = regency
 				set_diarchy_swing = 80
 			}
 			character:nha_ly_033 = {
 				designate_diarch = character:viet_to_0001
-				start_diarchy = regency
+				try_start_diarchy = regency
 				set_diarchy_swing = 80
 			}
 		}
@@ -2290,7 +2380,7 @@ story_on_start = {
 			}
 			character:nha_ly_041 = {
 				designate_diarch = character:viet_to_0001
-				start_diarchy = regency
+				try_start_diarchy = regency
 				set_diarchy_swing = 80
 			}
 			character:shanyin_lu_045 = {
@@ -2302,6 +2392,67 @@ story_on_start = {
 				}
 			}
 		}
+		#长歌行
+		if = {
+			limit = {
+				game_start_date >= 617.8.1
+				game_start_date <= 617.8.10
+			}
+			title:e_celestia = {
+				every_dejure_vassal_title_holder = {
+					if = {
+						limit = { is_independent_ruler = yes }
+						add_pressed_claim = title:e_celestia
+					}
+				}
+			}
+			if = {
+				limit = {
+					title:d_hedong.holder ?= { is_ai = yes }
+				}
+				title:d_hedong.holder ?= {
+					trigger_event = {
+						id = mandate.0011
+						days = { 7 14 }
+					}
+				}
+			}
+			character:puyang_yuwen_015 ?= {
+				add_opinion = {
+					modifier = set_me_aside_opinion
+					target = character:247726
+				}
+				start_scheme = {
+					type = murder
+					target = character:247726
+				}
+			}
+			title:e_persia.holder ?= {
+				set_realm_capital = title:c_baghdad
+			}
+			title:k_liao.holder ?= {
+				set_realm_capital = title:c_pyongyang
+			}
+			character:145071 ?= {
+				set_father = character:Herakleios_01
+			}
+			if = {
+				limit = { has_dlc_feature = roads_to_power }
+				title:e_byzantium.holder ?= {
+					every_vassal = {
+						limit = {
+							government = feudal_government
+							capital_province = {
+								has_holding_type = castle_holding
+							}
+						}
+						change_government = administrative_government
+					}
+				}
+			}
+		}
+
+
 		#大和五摄家
 		every_ruler = {
 			limit = {
@@ -2330,15 +2481,23 @@ story_on_start = {
 }
 
 story_title_gain_effects = {
-	trigger = {
-		game_start_date >= 925.1.1
-		game_start_date < 947.12.12 #如梦令
-	}
 	effect = {		
+		#长歌行
+		if = {
+			limit = { 
+				exists = global_var:sui_era
+				scope:title = { is_oe_imperial_title_trigger = yes }
+				NOT = {
+					dynasty = dynasty:hongnong_yang_dyn
+				}
+			}
+			remove_global_variable = sui_era
+		}
+		#如梦令
 		if = {
 			limit = { 
 				game_start_date >= 925.1.1
-				game_start_date < 947.12.12 #如梦令
+				game_start_date < 947.12.12 
 			}
 			if = {
 				limit = {
@@ -2432,6 +2591,293 @@ story_title_gain_effects = {
 					}
 				}
 				resolve_title_and_vassal_change = scope:change
+			}
+		}
+	}
+}
+
+
+oe_extra_nomad_region = {
+	effect = {
+		# Extra Nomad Regions
+		#tunguse
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = tunguse_nomad_region_on
+			}
+			start_situation = {
+				type = game_rule_extra_nomads_tunguse
+				start_phase = situation_steppe_abundant_grazing_season
+				save_scope_as = my_situation
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+							OR = {
+								culture = { has_cultural_pillar = heritage_tunguse }
+								culture = { has_cultural_pillar = heritage_sahelian }
+								culture = { has_cultural_pillar = heritage_okhotsk }
+								culture = { has_cultural_pillar = heritage_yeniseian }
+								culture = { has_cultural_pillar = heritage_hunnic }
+								culture = { has_cultural_pillar = heritage_mongolic }
+								culture = { has_cultural_pillar = heritage_turkic }
+							}
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
+			}
+		}
+		#nanzhong
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = nanzhong_nomad_region_on
+			}
+		    start_situation = { 
+				type = game_rule_extra_nomads_nanzhong
+				start_phase = situation_steppe_abundant_grazing_season
+				save_scope_as = my_situation
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+							OR = {
+								culture = { has_cultural_pillar = heritage_tibetan }
+								culture = { has_cultural_pillar = heritage_qiangic }
+								culture = { has_cultural_pillar = heritage_yues }
+								culture = { has_cultural_pillar = heritage_burman }
+
+								culture = culture:tai
+								culture = culture:pyu
+								culture = culture:laos
+								culture = culture:ava
+								culture = culture:lisu
+							}
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
+			}
+		}
+	}
+}
+
+#低功耗政体规则
+yearly_playable_pulse = {
+	on_actions = {
+		oe_performance_government_change
+		oe_admin_check_pulse
+	}
+}
+oe_admin_check_pulse = {
+	effect = {
+		if = {
+			limit = {
+				has_dlc_feature = roads_to_power
+				NOT = { has_global_variable = used_celestial_change_decision }
+				has_government = celestial_government
+			}
+			change_government = imperial_government	
+		}
+		if = {
+			limit = {
+				is_landed = yes
+				primary_title = {
+					is_noble_family_title = yes
+				}
+				any_held_title = {
+					tier = tier_county
+					is_landless_type_title = no
+					count > 0
+				}
+				exists = liege
+				liege = {
+					save_scope_as = liege
+				}
+			}
+			governor_resignation_title_transfer_effect = yes
+			#oe_governor_resignation_title_transfer_effect = yes
+		}
+	}
+}
+oe_performance_government_change = {
+	trigger = {
+		NAND = {
+			has_game_rule = single_celestial_transfer_to_bureau_off
+			has_game_rule = single_nomad_transfer_to_herd_off
+			has_game_rule = single_tribal_transfer_to_native_off
+		}
+		is_ai = yes
+		is_at_war = no
+		is_imprisoned = no
+		is_migrating = no
+		is_ruler = yes
+		highest_held_title_tier = tier_county
+	}
+	on_actions = {
+		oe_check_change_to_bureau
+		oe_check_change_to_herder
+		oe_check_change_to_native
+	}
+}
+oe_check_change_to_bureau = {
+	trigger = {
+		has_game_rule = single_celestial_transfer_to_bureau
+		is_oe_landed_bureaucrat_trigger = yes
+	}
+	effect = {
+		change_government = bureau_government
+	}
+}
+
+oe_check_change_to_herder = {
+	trigger = {
+		NOT = { has_game_rule = single_nomad_transfer_to_herd_off }
+		government_has_flag = government_is_nomadic
+		is_independent_ruler = yes
+		has_dlc_feature = khans_of_the_steppe
+		NOR = {
+			any_neighboring_top_liege_realm_owner = { is_ai = no }
+			primary_title = {
+				any_neighboring_county = {
+					holder = { is_ai = no }
+				}
+			}
+		}
+		switch = {
+			trigger = has_game_rule
+			single_nomad_transfer_to_herd_1 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count = 1
+				}
+			}
+			single_nomad_transfer_to_herd_2 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 2
+				}
+			}
+			single_nomad_transfer_to_herd_3 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 3
+				}
+			}
+		}
+	}
+	effect = {
+		change_government = herder_government
+		every_held_title = {
+			if = {
+				limit = {
+					title_province = {
+						has_holding_type = nomad_holding
+					}
+				}
+				title_province = {
+					set_holding_type = herder_holding
+				}
+			}
+		}
+	}
+}
+
+oe_check_change_to_native = {
+	trigger = {
+		NOT = { has_game_rule = single_tribal_transfer_to_native }
+		government_has_flag = government_is_tribal
+		is_independent_ruler = yes
+		has_dlc_feature = khans_of_the_steppe
+		NOR = {
+			any_neighboring_top_liege_realm_owner = { is_ai = no }
+			primary_title = {
+				any_neighboring_county = {
+					holder = { is_ai = no }
+				}
+			}
+		}
+		switch = {
+			trigger = has_game_rule
+			single_tribal_transfer_to_native_1 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count = 1
+				}
+			}
+			single_tribal_transfer_to_native_2 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 2
+				}
+			}
+			single_tribal_transfer_to_native_3 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 3
+				}
+			}
+		}
+	}
+	effect = {
+		change_government = native_government
+	}
+}
+
+oe_performance_government_change_after_lobby = {
+	trigger = {
+		NAND = {
+			has_game_rule = single_celestial_transfer_to_bureau_off
+			has_game_rule = single_nomad_transfer_to_herd_off
+			has_game_rule = single_tribal_transfer_to_native_off
+		}
+	}
+	effect = {
+		every_ruler = {
+			trigger_event = {
+				on_action = oe_performance_government_change
 			}
 		}
 	}
