@@ -184,7 +184,6 @@ on_title_gain = {
 		yamato_on_title_gain_effects
 		zunhao_effects
 		story_title_gain_effects
-		ulus_nomad_domicile_effects
 	}
 }
 
@@ -709,7 +708,57 @@ guohao_effects = {
 					title:e_celestia = { set_coa = title:e_tang }
 					title:e_celestia = { set_color_from_title = title:e_tang }
 				}
-				if = {
+				else_if = {
+					limit = {
+						OR = {
+							#has_title = title:d_dianqian
+							dynasty = dynasty:zhuojun_zhao_dyn
+							root = character:217721
+							#root = character:1401294
+							#root = character:1401292
+							AND = {
+								has_title = title:d_biansong
+								root.capital_province.county ?= title:c_songzhou_song
+							}							
+							AND = {
+								root.capital_province.duchy ?= title:d_biansong
+								current_year > 800
+							}			
+							AND = {
+								NOT = { exists = capital_province }
+								root.location.duchy = title:d_biansong
+								current_year > 800
+							}
+						}
+					}
+					house = {
+						add_house_modifier = new_e_song #宋皇族
+					}
+					title:e_celestia = { set_title_name = e_song }
+					title:e_celestia = { set_coa = title:d_biansong }
+					title:e_celestia = { set_color_from_title = title:d_biansong }
+				}
+				else_if = {
+					limit = {
+						NOT = { 
+							has_title = title:k_liang
+						}
+						OR = {
+							root.capital_province.county = title:c_songzhou_song
+							AND = {
+								NOT = { exists = capital_province }
+								root.location.county = title:c_songzhou_song
+							}
+						}
+					}
+					house = {
+						add_house_modifier = new_e_song #宋皇族
+					}
+					title:e_celestia = { set_title_name = e_song }
+					title:e_celestia = { set_coa = title:d_biansong }
+					title:e_celestia = { set_color_from_title = title:d_biansong }
+				}
+				else_if = {
 					limit = {
 						OR = { 
 							has_title = title:k_han
@@ -795,48 +844,6 @@ guohao_effects = {
 					title:e_celestia = { set_title_name = e_chen }
 					title:e_celestia = { set_coa = title:d_chenxu }
 					title:e_celestia = { set_color_from_title = title:d_chenxu }
-				}
-				if = {
-					limit = {
-						OR = {
-							#has_title = title:d_dianqian
-							dynasty = dynasty:zhuojun_zhao_dyn
-							root = character:217721
-							#root = character:1401294
-							#root = character:1401292
-							root.capital_province.duchy = title:d_biansong
-							AND = {
-								NOT = { exists = capital_province }
-								root.location.duchy = title:d_biansong
-							}
-						}
-					}
-					house = {
-						add_house_modifier = new_e_song #宋皇族
-					}
-					title:e_celestia = { set_title_name = e_song }
-					title:e_celestia = { set_coa = title:d_biansong }
-					title:e_celestia = { set_color_from_title = title:d_biansong }
-				}
-				else_if = {
-					limit = {
-						NOT = { 
-							has_title = title:k_liang
-						}
-						OR = {
-							root.capital_province.county = title:c_songzhou_song
-							AND = {
-								NOT = { exists = capital_province }
-								root.location.county = title:c_songzhou_song
-							}
-						}
-					}
-					house = {
-						add_house_modifier = new_e_song #宋皇族
-					}
-					title:e_celestia = { set_title_name = e_song }
-					title:e_celestia = { set_coa = title:d_biansong }
-					title:e_celestia = { set_color_from_title = title:d_biansong }
 				}
 				else_if = {
 					limit = {
@@ -968,7 +975,6 @@ guohao_effects = {
 								NOT = { exists = capital_province }
 								root.location.kingdom = title:k_zhao
 							}
-							has_title = title:k_zhao
 						}
 					}
 					house = {
@@ -1005,6 +1011,11 @@ guohao_effects = {
 								NOT = { exists = capital_province }
 								root.location.duchy = title:d_weibo
 							}
+							AND = {
+								has_title = title:k_liang
+								root.location.kingdom = title:k_liang
+								current_year <= 800
+							}
 						}
 					}
 					house = {
@@ -1039,7 +1050,6 @@ guohao_effects = {
 								NOT = { exists = capital_province }
 								root.location.kingdom = title:k_jin
 							}
-							has_title = title:k_jin
 						}
 						NOR = {
 							dynasty = dynasty:1000049851
@@ -1124,7 +1134,6 @@ guohao_effects = {
 								root.location.kingdom = title:k_zhou
 							}
 						}
-						#has_title = title:k_zhou
 					}
 					house = {
 						add_house_modifier = new_k_zhou #周皇族
@@ -2386,7 +2395,8 @@ story_on_start = {
 		#长歌行
 		if = {
 			limit = {
-				game_start_date = 617.8.1
+				game_start_date >= 617.8.1
+				game_start_date <= 617.8.10
 			}
 			title:e_celestia = {
 				every_dejure_vassal_title_holder = {
@@ -2398,16 +2408,16 @@ story_on_start = {
 			}
 			if = {
 				limit = {
-					title:d_hedong.holder = { is_ai = yes }
+					title:d_hedong.holder ?= { is_ai = yes }
 				}
-				title:d_hedong.holder = {
+				title:d_hedong.holder ?= {
 					trigger_event = {
 						id = mandate.0011
 						days = { 7 14 }
 					}
 				}
 			}
-			character:puyang_yuwen_015 = {
+			character:puyang_yuwen_015 ?= {
 				add_opinion = {
 					modifier = set_me_aside_opinion
 					target = character:247726
@@ -2417,18 +2427,18 @@ story_on_start = {
 					target = character:247726
 				}
 			}
-			title:e_persia.holder = {
+			title:e_persia.holder ?= {
 				set_realm_capital = title:c_baghdad
 			}
-			title:k_liao.holder = {
+			title:k_liao.holder ?= {
 				set_realm_capital = title:c_pyongyang
 			}
-			character:145071 = {
+			character:145071 ?= {
 				set_father = character:Herakleios_01
 			}
 			if = {
 				limit = { has_dlc_feature = roads_to_power }
-				title:e_byzantium.holder = {
+				title:e_byzantium.holder ?= {
 					every_vassal = {
 						limit = {
 							government = feudal_government
@@ -2639,126 +2649,6 @@ oe_extra_nomad_region = {
 				}
 			}
 		}
-		#amdo
-		if = {
-		    limit = {
-				has_mpo_dlc_trigger = yes
-				has_game_rule = amdo_nomad_region_on
-			}
-			start_situation = {
-				type = game_rule_extra_nomads_amdo
-				start_phase = situation_steppe_abundant_grazing_season
-				save_scope_as = my_situation
-				sub_region = {
-					key = amdo_nomads
-					start_phase = situation_steppe_abundant_grazing_season
-					map_color = { 34 255 76 }
-					geographical_regions = { amdo_nomad_area }
-				}
-				sub_region = {
-					key = gyalrong_nomads
-					start_phase = situation_steppe_abundant_grazing_season
-					map_color = { 34 255 76 }
-					geographical_regions = { gyalrong_nomad_area }
-				}
-				sub_region = {
-					key = kham_nomads
-					start_phase = situation_steppe_severe_drought_season
-					map_color = { 24 155 76 }
-					geographical_regions = { kham_nomad_area }
-				}
-			}
-			scope:my_situation = {
-				every_situation_county = {
-					limit = {
-						holder = {
-							government_has_flag = government_is_tribal
-						}
-					}
-					holder = {
-						set_variable = {
-							name = steppe_game_start_var
-							years = 1
-						}
-						every_held_title = {
-							if = {
-								limit = {
-									title_province = {
-										has_holding_type = tribal_holding
-									}
-								}
-								title_province = {
-									set_holding_type = nomad_holding
-								}
-							}
-						}
-						change_government = nomad_government
-					}
-				}
-			}
-		}
-		#tibet
-		if = {
-		    limit = {
-				has_mpo_dlc_trigger = yes
-				has_game_rule = tibet_nomad_region_on
-			}
-		    start_situation = { 
-				type = game_rule_extra_nomads_tibet
-				start_phase = situation_steppe_severe_drought_season
-				save_scope_as = my_situation
-				sub_region = {
-					key = tibet_nomads
-					start_phase = situation_steppe_abundant_grazing_season
-					map_color = { 155 62 0 }
-					geographical_regions = { tibet_nomad_area }
-				}
-				sub_region = {
-					key = ngari_nomads
-					start_phase = situation_steppe_severe_drought_season
-					map_color = { 255 232 100 }
-					geographical_regions = { ngari_nomad_area }
-				}
-				sub_region = {
-					key = lhomon_nomads
-					start_phase = situation_steppe_abundant_grazing_season
-					map_color = { 100 46 92 }
-					geographical_regions = { lhomon_nomad_area }
-				}
-			}
-			scope:my_situation = {
-				every_situation_county = {
-					limit = {
-						holder = {
-							government_has_flag = government_is_tribal
-							OR = {
-								culture = { has_cultural_pillar = heritage_tibetan }
-								culture = { has_cultural_pillar = heritage_qiangic }
-							}
-						}
-					}
-					holder = {
-						set_variable = {
-							name = steppe_game_start_var
-							years = 1
-						}
-						every_held_title = {
-							if = {
-								limit = {
-									title_province = {
-										has_holding_type = tribal_holding
-									}
-								}
-								title_province = {
-									set_holding_type = nomad_holding
-								}
-							}
-						}
-						change_government = nomad_government
-					}
-				}
-			}
-		}	
 		#nanzhong
 		if = {
 		    limit = {
@@ -2811,578 +2701,10 @@ oe_extra_nomad_region = {
 				}
 			}
 		}
-
-		#胡里只 游牧转部落
-		### Every nomad in the Steppe Region gets their yurt domicile goodies ###
-		if = {
-			limit = {
-				has_mpo_dlc_trigger = yes
-			}
-			every_ruler = {
-				limit = {
-					is_landed = yes
-					government_has_flag = government_is_ulus
-				}
-				save_scope_as = holder
-				if = {
-					limit = {
-						NOT = {
-							any_held_title = {
-								is_nomad_title = yes
-							}
-						}
-					}
-					create_nomad_title = {
-						name = nomad_title_name
-						holder = scope:holder
-						government = ulus_government
-						save_scope_as = new_nomad_title
-					}
-				}
-				### 添加
-				every_sub_realm_county = {
-					limit = {
-						holder = {
-							OR = {
-								culture = culture:khitan
-								culture = culture:qay
-								culture = culture:sogdian
-							}
-						}
-						title_province = {
-							OR = {
-								has_holding_type = nomad_holding
-								has_holding_type = herder_holding
-							}
-						}
-					}
-					title_province = {
-						set_holding_type = tribal_holding
-					}
-					#add_to_list = holding_conversion
-				}
-				change_government = ulus_government
-				capital_province = {
-					set_holding_type = castle_holding
-				}
-				if = {
-					limit = {
-						NOR = {
-							has_realm_law = imperial_bureaucracy_1
-							has_realm_law = imperial_bureaucracy_2
-							has_realm_law = imperial_bureaucracy_3
-						}
-					}
-					add_realm_law_skip_effects = imperial_bureaucracy_1
-				}
-				every_vassal_or_below = {
-					limit = {
-						has_government = nomad_government
-						capital_province = {
-							has_holding_type = tribal_holding
-						}
-					}
-					#Nuke tribal authorities.
-					#if = {
-						#limit = {
-							#has_realm_law = nomadic_authority_1
-						#}
-						#remove_realm_law = nomadic_authority_1
-					#}
-					#if = {
-						#limit = {
-							#has_realm_law = nomadic_authority_2
-						#}
-						#remove_realm_law = nomadic_authority_2
-					#}
-					#if = {
-						#limit = {
-							#has_realm_law = nomadic_authority_3
-						#}
-						#remove_realm_law = nomadic_authority_3
-					#}
-					#if = {
-						#limit = {
-							#has_realm_law = nomadic_authority_4
-						#}
-						#remove_realm_law = nomadic_authority_4
-					#}
-					#if = {
-						#limit = {
-							#has_realm_law = nomadic_authority_5
-						#}
-						#remove_realm_law = nomadic_authority_5
-					#}
-					change_government = ulus_government
-					capital_province = {
-						set_holding_type = castle_holding
-					}
-					if = {
-						limit = {
-							NOT = {
-								has_realm_law = tribal_authority_1
-							}
-						}
-						add_realm_law_skip_effects = tribal_authority_1
-					}
-				}
-
-				####
-
-
-				if = {
-					limit = {
-						exists = situation:the_great_steppe
-						any_character_situation = {
-							this = situation:the_great_steppe
-						}
-					}
-					add_trait = nomadic_philosophy
-					dynasty ?= {
-						every_dynasty_member = {
-							limit = {
-								top_liege ?= {
-									government_has_flag = government_is_ulus
-								}
-							}
-							add_trait = nomadic_philosophy
-						}
-					}
-				}
-				every_pool_guest = {
-					death = {
-						death_reason = death_vanished
-					}
-				}
-				save_scope_as = nickname_override
-				switch = {
-					trigger = primary_title.tier
-					tier_county = {
-						add_gold = {
-							value = {
-								value = 0
-								add = { 25 40 }
-								multiply = gold_value_scale_by_era
-							}
-						}
-						random_list = {
-							10 = {
-								recruit_three_nomadic_capital_characters_effect = {
-									NOMAD_TEMPLATE_CHARACTER = nomadic_hunter_template
-								}
-							}
-							10 = {
-								recruit_three_nomadic_capital_characters_effect = {
-									NOMAD_TEMPLATE_CHARACTER = nomadic_knight_template
-								}
-							}
-						}
-					}
-					tier_duchy = {
-						add_gold = {
-							value = {
-								value = 0
-								add = { 50 80 }
-								multiply = gold_value_scale_by_era
-							}
-						}
-						add_realm_law_skip_effects = tribal_authority_2
-						add_realm_law_skip_effects = nomadic_authority_2
-						domicile ?= {
-							add_domicile_building = yurt_main_02
-							add_random_yurt_external_building_effect = yes
-							add_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-						}
-						recruit_three_nomadic_capital_characters_effect = {
-							NOMAD_TEMPLATE_CHARACTER = nomadic_bride_template
-						}
-						random_list = {
-							10 = {
-								recruit_three_nomadic_capital_characters_effect = {
-									NOMAD_TEMPLATE_CHARACTER = nomadic_hunter_template
-								}
-							}
-							10 = {
-								recruit_three_nomadic_capital_characters_effect = {
-									NOMAD_TEMPLATE_CHARACTER = nomadic_knight_template
-								}
-							}
-						}
-					}
-					tier_kingdom = {
-						add_gold = {
-							value = {
-								value = 0
-								add = { 100 125 }
-								multiply = gold_value_scale_by_era
-							}
-						}
-						add_realm_law_skip_effects = tribal_authority_3
-						add_realm_law_skip_effects = nomadic_authority_3
-						domicile ?= {
-							add_domicile_building = yurt_main_02
-							add_domicile_building = yurt_main_03
-							add_random_yurt_external_building_effect = yes
-							add_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-						}
-						recruit_three_nomadic_capital_characters_effect = {
-							NOMAD_TEMPLATE_CHARACTER = nomadic_bride_template
-						}
-						recruit_three_nomadic_capital_characters_effect = {
-							NOMAD_TEMPLATE_CHARACTER = nomadic_hunter_template
-						}
-						recruit_three_nomadic_capital_characters_effect = {
-							NOMAD_TEMPLATE_CHARACTER = nomadic_knight_template
-						}
-					}
-					tier_empire = {
-						add_gold = {
-							value = {
-								value = 0
-								add = { 150 200 }
-								multiply = gold_value_scale_by_era
-							}
-						}
-						add_realm_law_skip_effects = tribal_authority_3
-						add_realm_law_skip_effects = nomadic_authority_4
-						domicile ?= {
-							add_domicile_building = yurt_main_02
-							add_domicile_building = yurt_main_03
-							add_domicile_building = yurt_main_04
-							add_random_yurt_external_building_effect = yes
-							add_random_yurt_external_building_effect = yes
-							add_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-							upgrade_random_yurt_external_building_effect = yes
-						}
-						recruit_three_nomadic_capital_characters_effect = {
-							NOMAD_TEMPLATE_CHARACTER = nomadic_bride_template
-						}
-						recruit_three_nomadic_capital_characters_effect = {
-							NOMAD_TEMPLATE_CHARACTER = nomadic_hunter_template
-						}
-						recruit_three_nomadic_capital_characters_effect = {
-							NOMAD_TEMPLATE_CHARACTER = nomadic_knight_template
-						}
-					}
-				}
-				if = {
-					limit = {
-						has_royal_court = yes
-						NOT = { has_court_type = court_nomadic }
-					}
-					set_court_type = court_nomadic
-				}
-			}
-		}
 	}
 }
 
-
-ulus_nomad_domicile_effects = {
-	effect = {
-		if = {
-			limit = {
-				scope:transfer_type = flag:granted
-				scope:transfer_type = flag:inheritance
-				scope:transfer_type = flag:appointment
-				scope:transfer_type = flag:appointment_succession
-
-				has_government = ulus_government
-				NOT = {
-					any_held_title = {
-						is_nomad_title = yes
-					}
-				}
-				NOT = { exists = domicile }
-			}
-			create_nomad_title = {
-				name = nomad_title_name
-				holder = root
-				government = ulus_government
-				save_scope_as = new_nomad_title
-			}
-			if = {
-				limit = {
-					current_year >= 1300
-				}
-				domicile ?= {
-					add_domicile_building = yurt_main_02
-					add_domicile_building = yurt_main_03
-					add_domicile_building = yurt_main_04
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-				}
-			}
-			else_if = {
-				limit = {
-					current_year >= 1200
-				}
-				domicile ?= {
-					add_domicile_building = yurt_main_02
-					add_domicile_building = yurt_main_03
-					add_domicile_building = yurt_main_04
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-				}
-			}
-			else_if = {
-				limit = {
-					current_year >= 1100
-				}
-				domicile ?= {
-					add_domicile_building = yurt_main_02
-					if = {
-						limit = {
-							has_domicile_building = yurt_main_02
-							owner ?= {
-								OR = {
-									has_realm_law = tribal_authority_2
-									has_realm_law = tribal_authority_3
-								}
-							}
-						}
-						add_domicile_building = yurt_main_03
-					}
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-				}
-			}
-			else_if = {
-				limit = {
-					current_year >= 900
-				}
-				domicile ?= {
-					add_domicile_building = yurt_main_02
-					add_random_yurt_external_building_effect = yes
-					add_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-					upgrade_random_yurt_external_building_effect = yes
-				}
-			}
-		}
-	}
-}
-
-
-
-three_year_playable_pulse = {
-	on_actions = {
-		ulus_nomad_give_domicile_effects #胡里只大帐
-	}
-}
-
-ulus_nomad_give_domicile_effects = {
-	effect = {
-		if = {
-			limit = {
-				government_has_flag = government_is_ulus
-				is_ruler = yes
-			}
-			
-			save_scope_as = scoped_ruler
-			
-			######################
-			# If you end up losing your Nomadic Capital, get a new one
-			######################
-			
-			if = {
-				limit = {
-					NOT = {
-						exists = domicile
-					}
-					NOT = {
-						any_held_title = {
-							is_nomad_title = yes
-						}
-					}
-				}
-				create_nomad_title = {
-					name = nomad_title_name
-					holder = scope:scoped_ruler
-					government = ulus_government
-					save_scope_as = new_nomad_title
-				}
-				if = {
-					limit = {
-						current_year >= 1300
-					}
-					domicile ?= {
-						add_domicile_building = yurt_main_02
-						add_domicile_building = yurt_main_03
-						add_domicile_building = yurt_main_04
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-					}
-				}
-				else_if = {
-					limit = {
-						current_year >= 1200
-					}
-					domicile ?= {
-						add_domicile_building = yurt_main_02
-						add_domicile_building = yurt_main_03
-						add_domicile_building = yurt_main_04
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-					}
-				}
-				else_if = {
-					limit = {
-						current_year >= 1100
-					}
-					domicile ?= {
-						add_domicile_building = yurt_main_02
-						if = {
-							limit = {
-								has_domicile_building = yurt_main_02
-								owner ?= {
-									OR = {
-										has_realm_law = tribal_authority_2
-										has_realm_law = tribal_authority_3
-									}
-								}
-							}
-							add_domicile_building = yurt_main_03
-						}
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-					}
-				}
-				else_if = {
-					limit = {
-						current_year >= 900
-					}
-					domicile ?= {
-						add_domicile_building = yurt_main_02
-						add_random_yurt_external_building_effect = yes
-						add_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-						upgrade_random_yurt_external_building_effect = yes
-					}
-				}
-			}
-			
-			######################
-			# If your nomadic capital domicile somehow gets lost, move it to your capital province
-			######################
-			
-			if = {
-				limit = {
-					is_at_war = no
-					exists = domicile
-					domicile.domicile_location != capital_province
-				}
-				domicile = { move_domicile = scope:scoped_ruler.capital_province }
-			}
-		}
-	}
-}
+#低功耗政体规则
 yearly_playable_pulse = {
 	on_actions = {
 		oe_performance_government_change
@@ -3394,22 +2716,29 @@ oe_admin_check_pulse = {
 		if = {
 			limit = {
 				has_dlc_feature = roads_to_power
+				NOT = { has_global_variable = used_celestial_change_decision }
 				has_government = celestial_government
 			}
 			change_government = imperial_government	
 		}
 		if = {
 			limit = {
+				is_landed = yes
 				primary_title = {
 					is_noble_family_title = yes
 				}
 				any_held_title = {
-					tier > tier_county
+					tier = tier_county
 					is_landless_type_title = no
-					count = 0
+					count > 0
+				}
+				exists = liege
+				liege = {
+					save_scope_as = liege
 				}
 			}
-			transfer_noble_family_title_effect = yes
+			governor_resignation_title_transfer_effect = yes
+			#oe_governor_resignation_title_transfer_effect = yes
 		}
 	}
 }
@@ -3447,6 +2776,8 @@ oe_check_change_to_herder = {
 	trigger = {
 		NOT = { has_game_rule = single_nomad_transfer_to_herd_off }
 		government_has_flag = government_is_nomadic
+		is_independent_ruler = yes
+		has_dlc_feature = khans_of_the_steppe
 		NOR = {
 			any_neighboring_top_liege_realm_owner = { is_ai = no }
 			primary_title = {
@@ -3479,6 +2810,18 @@ oe_check_change_to_herder = {
 	}
 	effect = {
 		change_government = herder_government
+		every_held_title = {
+			if = {
+				limit = {
+					title_province = {
+						has_holding_type = nomad_holding
+					}
+				}
+				title_province = {
+					set_holding_type = herder_holding
+				}
+			}
+		}
 	}
 }
 
@@ -3486,6 +2829,8 @@ oe_check_change_to_native = {
 	trigger = {
 		NOT = { has_game_rule = single_tribal_transfer_to_native }
 		government_has_flag = government_is_tribal
+		is_independent_ruler = yes
+		has_dlc_feature = khans_of_the_steppe
 		NOR = {
 			any_neighboring_top_liege_realm_owner = { is_ai = no }
 			primary_title = {

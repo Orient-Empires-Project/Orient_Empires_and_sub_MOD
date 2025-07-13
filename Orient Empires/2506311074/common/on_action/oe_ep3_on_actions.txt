@@ -5,25 +5,53 @@ on_game_start = {
 }
 
 celes_no_dlc_on_action = {
-	effect = {
+    effect = {
+        if = {
+            limit = {
+                has_dlc_feature = roads_to_power
+            }
+            every_ruler = {
+                celestial_change_to_imperial_with_laws_effect = yes
+                if = {
+                    limit = {
+                        has_title = title:e_byzantium
+                        NOT = { government_has_flag = government_is_administrative }
+                    }
+                    change_government = administrative_government
+                    add_realm_law_skip_effects = single_heir_succession_law
+                }
+            }
+        }
+        else = {
+            every_ruler = {
+                imperial_change_to_celestial_with_laws_effect = yes
+                if = {
+                    limit = {
+                        has_title = title:e_byzantium
+                    }
+                    change_government = feudal_government
+                    add_realm_law_skip_effects = single_heir_succession_law
+                }
+            }
+        }
+		#胡里只转换补充
 		if = {
 			limit = {
-				has_dlc_feature = roads_to_power
+				has_mpo_dlc_trigger = no
 			}
 			every_ruler = {
-				celestial_change_to_imperial_with_laws_effect = yes
+				limit = {
+					capital_province ?= {
+						has_holding_type = tribal_holding
+						geographical_region = world_steppe_east
+					}
+					highest_held_title_tier = tier_empire
+				}
+				change_government = ulus_government
+				add_realm_law_skip_effects = tribal_authority_3
 			}
-
 		}
-		else_if = {
-			limit = {
-				NOT = { has_dlc_feature = roads_to_power }
-			}
-			every_ruler = {
-				imperial_change_to_celestial_with_laws_effect = yes
-			}
-		}
-	}
+    }
 }
 
 on_game_start_after_lobby = {
@@ -65,6 +93,7 @@ oe_dynasty_on_action = {
 			# Note: anything that should be run after creation can go in on_noble_family_title_created
 			if = {
 				limit = {
+					has_dlc_feature = roads_to_power
 					is_landed = yes
 					exists = house
 					house.house_power_score > 50
@@ -102,10 +131,11 @@ on_title_gain = {
 
 oe_admin_effects = {
 	effect = {
-		# 世族获得头衔
+		# 世族获得伯爵头衔
 		if = {
 			limit = {
 				government_has_flag = government_is_celestial
+				government_allows = administrative
 				is_independent_ruler = no
 				scope:title.tier = tier_county
 				primary_title = { is_noble_family_title = yes }
