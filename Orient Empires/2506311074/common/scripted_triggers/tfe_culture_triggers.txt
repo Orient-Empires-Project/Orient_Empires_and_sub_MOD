@@ -1,0 +1,309 @@
+﻿# Culture scope
+is_roman = {
+	OR = {
+		culture = culture:roman
+		AND = {
+			culture = {
+				any_parent_culture_or_above = {
+					custom_tooltip = {
+						text = parent_roman
+						this = culture:roman
+					}
+				}
+			}
+			OR = {
+				culture = { has_cultural_pillar = heritage_latin }
+				culture = { has_cultural_tradition = tradition_roman_architecture }
+				culture = { has_cultural_tradition = tradition_roman_hubris }
+				culture = { has_cultural_tradition = tradition_bread_and_circuses }
+			}
+			NOR = {
+				culture = culture:sardinian
+				culture = {
+					any_parent_culture_or_above = {
+						custom_tooltip = {
+							text = parent_sardinian
+							this = culture:sardinian
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+is_greek_or_roman = {
+	OR = {
+		is_roman = yes
+		culture = { has_cultural_pillar = heritage_hellenistic }
+	}
+}
+
+is_germanic_foederati_culture = {
+	OR = {
+		culture = { has_cultural_pillar = heritage_west_germanic }
+		culture = { has_cultural_pillar = heritage_central_germanic }
+		culture = { has_cultural_pillar = heritage_east_germanic }
+	}
+}
+
+no_other_script_trigger = {
+	NOR = {
+		has_cultural_tradition = tradition_script_arabic
+		has_cultural_tradition = tradition_script_aramaic
+		has_cultural_tradition = tradition_script_armenian
+		has_cultural_tradition = tradition_script_brahmi
+		has_cultural_tradition = tradition_script_coptic
+		has_cultural_tradition = tradition_script_cuneiform
+		has_cultural_tradition = tradition_script_cyrillic
+		has_cultural_tradition = tradition_script_devanagari
+		has_cultural_tradition = tradition_script_etruscan
+		has_cultural_tradition = tradition_script_geez
+		has_cultural_tradition = tradition_script_georgian
+		has_cultural_tradition = tradition_script_glagolitic
+		has_cultural_tradition = tradition_script_gothic
+		has_cultural_tradition = tradition_script_greek
+		has_cultural_tradition = tradition_script_gupta
+		has_cultural_tradition = tradition_script_han
+		has_cultural_tradition = tradition_script_hebrew
+		has_cultural_tradition = tradition_script_hieroglyphic
+		has_cultural_tradition = tradition_script_hungarian
+		has_cultural_tradition = tradition_script_latin
+		has_cultural_tradition = tradition_script_manichean
+		has_cultural_tradition = tradition_script_meroitic
+		has_cultural_tradition = tradition_script_mon
+		has_cultural_tradition = tradition_script_nabatean
+		has_cultural_tradition = tradition_script_ogham
+		has_cultural_tradition = tradition_script_pahlavi
+		has_cultural_tradition = tradition_script_phoenician
+		has_cultural_tradition = tradition_script_runic
+		has_cultural_tradition = tradition_script_sinhala
+		has_cultural_tradition = tradition_script_sogdian
+		has_cultural_tradition = tradition_script_south_arabian
+		has_cultural_tradition = tradition_script_syriac
+		has_cultural_tradition = tradition_script_tamil
+		has_cultural_tradition = tradition_script_tibetan
+		has_cultural_tradition = tradition_script_tifinagh
+		has_cultural_tradition = tradition_script_turkic
+	}
+}
+
+is_literate = {
+	custom_description = {
+		text = character_is_literate
+		culture = {
+			NOT = {
+				no_other_script_trigger = yes
+			}
+		}
+	}
+}
+
+roman_bathhouse_recently_built_trigger = {
+	OR = {
+		has_county_modifier = TFE_recently_built_baths_roman_province_small
+		has_county_modifier = TFE_recently_built_baths_non_roman_province_small
+		has_county_modifier = TFE_recently_built_baths_roman_province_medium
+		has_county_modifier = TFE_recently_built_baths_non_roman_province_medium
+		has_county_modifier = TFE_recently_built_baths_roman_province_large
+		has_county_modifier = TFE_recently_built_baths_non_roman_province_large
+	}
+}
+
+###
+TFE_is_briton = {
+	OR = {
+		culture = { has_cultural_pillar = heritage_brythonic }
+	}
+}
+TFE_viking_age_has_started = {
+	culture = { 
+		has_cultural_pillar = heritage_north_germanic 
+		has_cultural_era_or_later = culture_era_early_medieval
+	}
+}
+negotiate_the_danelaw_british_side_trigger = {
+	OR = {
+		culture = { has_cultural_pillar = heritage_west_germanic }
+		culture = { has_cultural_pillar = heritage_brythonic }
+	}
+}
+negotiate_the_danelaw_norse_side_trigger = {
+	OR = {
+		culture = { has_cultural_pillar = heritage_north_germanic }
+		culture = culture:norman
+	}
+}
+negotiate_the_danelaw_additional_filter_trigger = {
+	# Independent only, please.
+	is_independent_ruler = yes
+	# Kings & Emperors are too high a rank to make concessions.
+	highest_held_title_tier <= tier_duchy
+	# Plus, a capital inside title:k_england. Not strictly necessary, but removes *so* many edge-cases.
+	capital_county.title_province = { geographical_region = custom_england }
+}
+negotiate_the_danelaw_valid_danelaw_opponent_trigger = {
+	# Standard filter checks.
+	negotiate_the_danelaw_standard_filter_trigger = yes
+	# Ensure they match the opposing side.
+	trigger_if = {
+		limit = {
+			root = { negotiate_the_danelaw_british_side_trigger = yes }
+		}
+		negotiate_the_danelaw_norse_side_trigger = yes
+	}
+	trigger_if = {
+		limit = {
+			root = { negotiate_the_danelaw_norse_side_trigger = yes }
+		}
+		negotiate_the_danelaw_british_side_trigger = yes
+	}
+	# Holds a certain amount of de jure counties within k_england.
+	save_temporary_scope_as = valid_opponent
+	any_county = {
+		limit = {
+			title_province = {
+				geographical_region = custom_england
+			}
+		}
+		count >= 6
+		holder = {
+			OR = {
+				this = scope:valid_opponent
+				any_liege_or_above = { this = scope:valid_opponent }
+			}
+		}
+	}
+}
+
+fp2_struggle_ending_hold_de_jure_kingdom_trigger = {
+	any_held_title = {
+		tier = tier_kingdom
+		de_jure_liege = title:e_britannia
+		save_temporary_scope_as = british_kingdom
+	}
+	trigger_if = {
+		limit = { exists = scope:british_kingdom }
+		completely_controls = scope:british_kingdom
+	}
+	trigger_else = { always = no }
+}
+
+fp2_struggle_ending_percent_iberia_trigger = {
+	any_county_in_region = {
+		region = world_europe_west_britannia
+		percent <= 60
+		holder.top_liege = root
+	}
+}
+
+donatist_culture_trigger = {
+	OR = {
+		dynasty = dynasty:nuvelan
+		culture = culture:afro_roman
+		culture = { has_cultural_pillar = heritage_berber }
+	}
+}
+
+# Checks if you could Hybridise with the culture without checking for acceptance
+is_valid_for_hybridising_trigger = {
+	$CHARACTER$ = {
+		trigger_if = {
+			limit = {
+				NOT = {
+					any_realm_county = {
+						has_county_modifier = tfe_hybridised_barbarians_and_romans
+					}
+				}
+			}
+			culture = {
+				NOT = { has_same_culture_heritage = $CULTURE$ }
+				culture_age >= culture_hybrid_cooldown
+			}
+		}
+		custom_description = {
+			text = culture_present_in_realm_for_hybridization
+			any_sub_realm_county = {
+				culture = $CULTURE$
+			}
+		}
+		custom_description = {
+			text = culture_is_not_parent_culture
+			culture = {
+				NOT = {
+					any_parent_culture = {
+						this = $CULTURE$
+					}
+				}
+			}
+		}
+		custom_description = {
+			text = culture_is_not_child_culture
+			$CULTURE$ = {
+				NOT = {
+					any_parent_culture = {
+						this = $CHARACTER$.culture
+					}
+				}
+			}
+		}
+	}
+}
+
+launch_hun_migration_ducal_processing_trigger = {
+	#We're currently processing dukes.
+	highest_held_title_tier = tier_duchy
+	#Doesn't hold a valid duchy-tier title in Crimea.
+	NOT = {
+		any_held_title = {
+			title_capital_county.title_province = { geographical_region = ghw_region_crimea }
+			tier = tier_duchy
+		}
+	}
+}
+
+launch_hun_migration_count_processing_trigger = {
+	#Doesn't hold a valid county-tier title in Crimea.
+	NOT = {
+		any_held_title = {
+			tier = tier_county
+			title_province = { geographical_region = ghw_region_crimea }
+		}
+	}
+}
+
+launch_hun_migration_sub_vassal_liege_pairing_trigger = {
+	tier = tier_county
+	#Liege should be a suitable duke within Crimea.
+	holder = scope:receiving_vassal.liege
+	#Double-check that the duke can afford to give a title away.
+	scope:receiving_vassal.liege = {
+		any_held_title = {
+			count >= 2
+			tier = tier_county
+			title_province = { geographical_region = ghw_region_crimea }
+		}
+	}
+}
+
+launch_hun_migration_direct_vassal_requirements_trigger = {
+	tier = tier_county
+	holder = $INVADER$
+}
+
+launch_hun_migration_county_is_within_custom_crimea_trigger = {
+	tier = tier_county
+	title_province = { geographical_region = ghw_region_crimea }
+}
+
+launch_hun_migration_misplaced_count_suitable_liege_trigger = {
+	launch_hun_migration_county_is_within_custom_crimea_trigger = yes
+	duchy = {
+		exists = holder
+		holder = {
+			NOT = { this = $INVADER$ }
+			liege = $INVADER$
+		}
+	}
+}
