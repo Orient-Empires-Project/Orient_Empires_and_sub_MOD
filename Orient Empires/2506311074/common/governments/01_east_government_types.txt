@@ -9,14 +9,11 @@ celestial_government = {
 		legitimacy = yes
 	}
 
-	domicile_type = estate
-
 	fallback = 2
 
 	primary_holding = castle_holding
 	primary_heritages = { heritage_chinese heritage_goryeo heritage_yamato }
 	preferred_religions = { confucianism_religion }	
-
 	valid_holdings = { city_holding church_holding }
 	required_county_holdings = { castle_holding }
 
@@ -46,6 +43,7 @@ celestial_government = {
 
 	flag = government_is_celestial #皇权大一统
 	flag = government_use_bureaucracy	#流官制度
+	flag = government_use_estate #东方庄园
 	flag = government_is_settled
 
 	color = { 250 250 00 }
@@ -63,12 +61,10 @@ legion_government = {
 		legitimacy = yes
 	}
 
-	domicile_type = estate
-
 	fallback = 3
 
 	can_get_government = {
-		highest_held_title_tier <= tier_kingdom
+		#highest_held_title_tier <= tier_kingdom
 	}
 
 	#primary_heritages = { heritage_yamato }	
@@ -169,8 +165,6 @@ bureau_government = {
 		deny_powerful_vassal = yes
 	}
 
-	domicile_type = estate
-
 	court_generate_commanders = no
 
 	fallback = 5
@@ -183,10 +177,17 @@ bureau_government = {
 	preferred_religions = { confucianism_religion }
 
 	can_get_government = {
-		is_independent_ruler = no
-		top_liege ?= {
-			government_has_flag = government_use_bureaucracy
+		OR = {
+			primary_title.tier <= tier_county
+			AND = {
+				is_landed = no
+				any_held_title = {
+					tier = tier_duchy
+					is_noble_family_title = yes
+				}
+			}
 		}
+		
 	}
 	
 	character_modifier = { #民州
@@ -217,25 +218,42 @@ bureau_government = {
 
 	flag = adult_rulers_only
 
+	flag = government_use_estate #东方庄园
+
 	# These flags only exist for loc and in-game descriptions
 	flag = government_has_influence
 	flag = government_is_settled
 }
 
-#经典胡里只
 ulus_government = {
 	government_rules = {
-		create_cadet_branches = yes
+		create_cadet_branches = no
 		rulers_should_have_dynasty = yes
-		regiments_prestige_as_gold = yes
 		royal_court = yes
 		legitimacy = yes
+
+		regiments_prestige_as_gold = yes
+		administrative = yes
+
+		use_as_base_on_rank_up = yes
+		use_as_base_on_landed = yes
+		conditional_maa_refill = yes
+		uses_county_fertility = yes
+		#uses_culture_and_house_head_named_realms = yes
+		sticky_government = yes
+		obedience = yes
+		subject_men_at_arms = yes
+		no_capital_movement_cooldown = yes
 	}
 
-	supply_limit_mult_for_others = -0.5
-	primary_holding = tribal_holding
-	valid_holdings = { castle_holding city_holding nomad_holding } #
-	
+	domicile_type = yurt
+
+	primary_holding = castle_holding
+	valid_holdings = { nomad_holding city_holding tribal_holding } #
+	#required_county_holdings = { nomad_holding }
+
+	generated_character_template = nomadic_chieftain_character
+
 	affected_by_development = no
 	max_dread = 150
 
@@ -270,6 +288,12 @@ ulus_government = {
 		movement_speed = 0.1
 		movement_speed_land_raiding = 0.1
 		the_great_steppe_supply_limit_add = 10000
+		game_rule_extra_nomads_arabs_supply_limit_add = 10000
+		game_rule_extra_nomads_horn_supply_limit_add = 10000
+		game_rule_extra_nomads_sahel_supply_limit_add = 10000
+		game_rule_extra_nomads_sami_supply_limit_add = 10000
+		game_rule_extra_nomads_tibet_supply_limit_add = 10000
+		
 
 		ai_war_cooldown = -0.5
 		ai_war_chance = 2
@@ -282,24 +306,36 @@ ulus_government = {
 		belligerent_opinion = 20
 		glory_hound_opinion = 10
 		max_migration_distance_mult = 1
+		domain_limit = 6
+		domain_limit_min = 6
+		domain_limit_max = 12
+		vassal_limit_min = 10
+		vassal_limit_max = 30
 	}
-
+	
 	flag = government_is_ulus
 	flag = government_can_raid_rule
-	flag = may_elevate_co_monarch
-
 	flag = government_can_use_tributary_men_at_arms
 	flag = can_start_war_with_raised_troops
 	flag = ignores_faith_marriage_penalties
+	flag = no_hostile_attrition_in_steppe # Done in code, here for loc
 	flag = movement_speed_from_government
 	flag = land_raiding_movement_speed_from_government
 	flag = can_raze_holdings
 	flag = government_has_influence
 
-	flag = government_is_settled
+	flag = uses_nomadic_authority
+	flag = imprisonment_toggle_enable
+	flag = imprisonment_toggle_on
+	flag = unlock_maa_nomad_lancers
+	flag = migration_to_kingdoms
+	flag = access_to_nomadic_county_conquest
+	flag = access_to_nomadic_duchy_conquest
+	flag = migration_to_empires
 
 	color = hsv{ 0.32 0.25 0.36 }
 }
+
 
 
 #无奈的律令制
@@ -333,7 +369,7 @@ imperial_government = {
 	required_county_holdings = { castle_holding }
 
 	can_get_government = {
-		#highest_held_title_tier >= tier_county
+		highest_held_title_tier >= tier_county
 	}
 
 	ai = {
@@ -374,36 +410,43 @@ imperial_government = {
 mandala_government = {
 	government_rules = {
 		create_cadet_branches = yes
-		rulers_should_have_dynasty = yes
+		#rulers_should_have_dynasty = yes
 		royal_court = yes
 		#landless_playable = yes
 		#allow_out_of_realm_inheritance = yes
 		uses_culture_and_house_head_named_realms = yes
 		legitimacy = yes
+		#subject_men_at_arms = yes
 	}
 
-	fallback = 5
+	fallback = 2
 
 	primary_holding = castle_holding
-	valid_holdings = { city_holding church_holding }
+	valid_holdings = { city_holding church_holding tribal_holding }
 	required_county_holdings = { church_holding }
-
+	primary_heritages = { heritage_dravidian heritage_java heritage_chamic heritage_mon }
 	can_get_government = {
-
 	}
 	
 	character_modifier = {
-		domain_limit = -10
-		monthly_piety = 10
+		domain_limit = -6
+		monthly_piety_gain_mult = 1
+		monthly_piety_gain_per_happy_powerful_vassal_mult = 0.2
+		monthly_piety_gain_per_knight_add = 0.1
+		stewardship_per_piety_level = 3
+		diplomacy_per_piety_level = 1
 		liege_opinion = 10
 		suzerain_opinion = 20
+		subject_opinion = 20
 	}
 
 	vassal_contract_group = mandala_vassal
 
 	color = { 124 222 127 }
 	flag = government_is_mandala
+	flag = government_can_use_tributary_men_at_arms
 
+	flag = adult_rulers_only
 	flag = government_is_settled
 }
 
