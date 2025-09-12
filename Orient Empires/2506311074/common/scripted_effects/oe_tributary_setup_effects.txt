@@ -1,0 +1,469 @@
+# This file contains the setup effects for the tributaries in the game.
+# The setup_tributaries_effect is invoked by on_game_start and should make calls to subsequent scripted effects.
+# Sections are organized by top-suzerain title.
+# Note that existing vassals (as established in title history) must be released and recreated into tributaries before
+# they can have their own tributaries.
+
+# $TRIBUTARY$ = the new tributary
+# $SUZERAIN$ = their suzerain
+# $WAR$ = determines if this was caused by war or agreement, yes or no
+#break_subject_contract_and_establish_tributary_effect = {
+	#if = {
+		#limit = { liege != this }
+		#create_title_and_vassal_change = {
+			#type = independency
+			#save_scope_as = change
+			#add_claim_on_loss = no
+		#}
+		#becomes_independent = {
+			#change = scope:change
+		#}
+		#resolve_title_and_vassal_change = scope:change
+	#}
+	#start_tributary_interaction_effect = {
+		#SUZERAIN = $SUZERAIN$
+		#TRIBUTARY = $TRIBUTARY$
+	#}
+#}
+
+oe_setup_tributaries_effect = {
+	if = {
+		limit = { has_mpo_dlc_trigger = yes	}
+		every_ruler = {
+			if = {
+				limit = {
+					is_landed = yes
+					NOT = { government_has_flag = government_is_ulus }
+					OR = {
+						capital_province ?= { has_holding_type = nomad_holding }
+						capital_province ?= { has_holding_type = herder_holding }
+					}
+					is_independent_ruler = no
+					liege ?= { 
+						OR = {
+							government_has_flag = government_is_settled
+							government_has_flag = government_is_ulus
+						}
+					}
+					trigger_if = {
+						limit = { liege ?= { culture = culture:khitan } }
+						NOR = {
+							culture = culture:khitan
+							culture = culture:qay
+						}
+					}
+					trigger_else = {
+						NOT = {
+							culture = { has_same_culture_heritage = liege.culture }
+						}
+					}
+				}
+				liege = { save_scope_as = suzerain }
+
+				create_title_and_vassal_change = {
+					type = independency
+					save_scope_as = change
+					add_claim_on_loss = no
+				}
+				becomes_independent = {
+					change = scope:change
+				}
+				resolve_title_and_vassal_change = scope:change
+
+				start_tributary = {
+					contract_group = tributary_permanent
+					suzerain = scope:suzerain
+				}
+			}
+		}
+    }
+}
+
+
+
+#胡里只转游牧
+ulus_change_nomad_effect = {
+	### Every nomad in the Steppe Region gets their yurt domicile goodies ###
+	if = {
+		limit = {
+			government_has_flag = government_is_nomadic
+			is_landed = yes
+		}
+		save_scope_as = holder
+
+		if = {
+			limit = {
+				NOT = {
+					any_held_title = {
+						is_nomad_title = yes
+					}
+				}
+			}
+			create_nomad_title = {
+				name = nomad_title_name
+				holder = scope:holder
+				government = nomad_government
+				save_scope_as = new_nomad_title
+			}
+		}
+		if = {
+			limit = {
+				exists = situation:the_great_steppe
+				any_character_situation = {
+					this = situation:the_great_steppe
+				}
+			}
+			add_trait = nomadic_philosophy
+			dynasty ?= {
+				every_dynasty_member = {
+					limit = {
+						top_liege ?= {
+							government_has_flag = government_is_nomadic
+						}
+					}
+					add_trait = nomadic_philosophy
+				}
+			}
+		}
+		switch = {
+			trigger = primary_title.tier
+			tier_county = {
+				add_gold = {
+					value = {
+						value = 0
+						add = { 25 40 }
+						multiply = gold_value_scale_by_era
+					}
+				}
+			}
+			tier_duchy = {
+				add_gold = {
+					value = {
+						value = 0
+						add = { 50 80 }
+						multiply = gold_value_scale_by_era
+					}
+				}
+				add_realm_law_skip_effects = nomadic_authority_2
+				domicile ?= {
+					add_domicile_building = yurt_main_02
+					add_random_yurt_external_building_effect = yes
+					add_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+				}
+			}
+			tier_kingdom = {
+				add_gold = {
+					value = {
+						value = 0
+						add = { 100 125 }
+						multiply = gold_value_scale_by_era
+					}
+				}
+				add_realm_law_skip_effects = nomadic_authority_3
+				domicile ?= {
+					add_domicile_building = yurt_main_02
+					add_domicile_building = yurt_main_03
+					add_random_yurt_external_building_effect = yes
+					add_random_yurt_external_building_effect = yes
+					add_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+
+					# Mongol
+					if = {
+						limit = {
+							free_external_domicile_building_slots >= 1
+							NOT = {
+								has_domicile_building_or_higher = mass_warfare_yurt_01
+							}
+						}
+						add_domicile_building = mass_warfare_yurt_01
+						add_domicile_building = mass_warfare_yurt_02
+						add_domicile_building = mass_warfare_yurt_03
+	
+						
+					}
+
+					change_herd = monumental_herd_value
+					# Mongol
+				}
+			}
+			tier_empire = {
+				add_gold = {
+					value = {
+						value = 0
+						add = { 300 800 }
+						multiply = gold_value_scale_by_era
+					}
+				}
+				add_realm_law_skip_effects = nomadic_authority_4
+
+				domicile ?= {
+					add_domicile_building = yurt_main_02
+					add_domicile_building = yurt_main_03
+					add_domicile_building = yurt_main_04
+					add_random_yurt_external_building_effect = yes
+					add_random_yurt_external_building_effect = yes
+					add_random_yurt_external_building_effect = yes
+					add_random_yurt_external_building_effect = yes
+					add_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+					upgrade_random_yurt_external_building_effect = yes
+
+					# Mongol
+					if = {
+						limit = {
+							free_external_domicile_building_slots >= 1
+							NOT = {
+								has_domicile_building_or_higher = mass_warfare_yurt_01
+							}
+						}
+						add_domicile_building = mass_warfare_yurt_01
+						add_domicile_building = mass_warfare_yurt_02
+						add_domicile_building = mass_warfare_yurt_03
+					}
+
+					change_herd = monumental_herd_value
+					# Mongol
+				}
+				add_prestige = 2000
+			}
+		}
+
+		switch = {
+			trigger = primary_title
+			k_khitan = {
+				add_prestige = 1000
+				change_herd = monumental_herd_value
+			}
+			e_cathay = {
+				change_herd = monumental_herd_value
+			}
+		}
+		
+		if = {
+			limit = {
+				has_royal_court = yes
+				NOT = { has_court_type = court_nomadic }
+			}
+			set_court_type = court_nomadic
+		}
+		every_councillor = {
+			limit = {
+				NOR = {
+					has_council_position = councillor_spymaster
+					has_council_position = councillor_court_chaplain
+					has_council_position = councillor_spouse
+				}
+			}
+			prev = { fire_councillor_skip_effects = prev }
+			remove_opinion = {
+				modifier = fired_from_council_opinion
+				target = prev
+			}
+		}
+		random_courtier = {
+			limit = {
+				is_adult = yes
+			}
+			save_scope_as = astrologer_character
+			prev = {
+				appoint_court_position = {
+					recipient = scope:astrologer_character
+					court_position = court_astrologer_court_position
+				}
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					NOT = { exists = cp:councillor_kurultai_1 }
+					NOT = { exists = cp:councillor_kurultai_2 }
+					NOT = { exists = cp:councillor_kurultai_3 }
+					NOT = { exists = cp:councillor_kurultai_4 }
+				}
+			}
+			ordered_vassal = {
+				order_by = current_military_strength
+				limit = {
+					is_councillor = no
+				}
+				make_councillor_start_up_effect = yes
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					NOT = { exists = cp:councillor_kurultai_1 }
+					NOT = { exists = cp:councillor_kurultai_2 }
+					NOT = { exists = cp:councillor_kurultai_3 }
+					NOT = { exists = cp:councillor_kurultai_4 }
+				}
+			}
+			every_knight = {
+				limit = {
+					is_councillor = no
+				}
+				make_councillor_start_up_effect = yes
+			}
+		}
+		ordered_councillor = {
+			order_by = stewardship
+			position = 0
+			limit = {
+				NOR = {
+					has_council_position = councillor_spymaster
+					has_council_position = councillor_court_chaplain
+					has_council_position = councillor_spouse
+				}
+			}
+			switch = {
+				trigger = this
+				liege_or_court_owner.cp:councillor_kurultai_1 = {
+					set_council_task = {
+						task_type = task_kurultai_fertility_1
+						target = liege_or_court_owner.capital_province
+					}
+				}
+				liege_or_court_owner.cp:councillor_kurultai_2 = {
+					set_council_task = {
+						task_type = task_kurultai_fertility_2
+						target = liege_or_court_owner.capital_province
+					}
+				}
+				liege_or_court_owner.cp:councillor_kurultai_3 = {
+					set_council_task = {
+						task_type = task_kurultai_fertility_3
+						target = liege_or_court_owner.capital_province
+					}
+				}
+				liege_or_court_owner.cp:councillor_kurultai_4 = {
+					set_council_task = {
+						task_type = task_kurultai_fertility_4
+						target = liege_or_court_owner.capital_province
+					}
+				}
+			}
+		}
+		ordered_councillor = {
+			order_by = learning
+			position = 0
+			limit = {
+				NOR = {
+					has_council_position = councillor_spymaster
+					has_council_position = councillor_court_chaplain
+					has_council_position = councillor_spouse
+					is_performing_council_task = task_kurultai_fertility_1
+					is_performing_council_task = task_kurultai_fertility_2
+					is_performing_council_task = task_kurultai_fertility_3
+					is_performing_council_task = task_kurultai_fertility_4
+				}
+			}
+			switch = {
+				trigger = this
+				liege_or_court_owner.cp:councillor_kurultai_1 = {
+					set_council_task = {
+						task_type = task_kurultai_court_astrologer_1
+						target = liege_or_court_owner.capital_province
+					}
+				}
+				liege_or_court_owner.cp:councillor_kurultai_2 = {
+					set_council_task = {
+						task_type = task_kurultai_court_astrologer_2
+						target = liege_or_court_owner.capital_province
+					}
+				}
+				liege_or_court_owner.cp:councillor_kurultai_3 = {
+					set_council_task = {
+						task_type = task_kurultai_court_astrologer_3
+						target = liege_or_court_owner.capital_province
+					}
+				}
+				liege_or_court_owner.cp:councillor_kurultai_4 = {
+					set_council_task = {
+						task_type = task_kurultai_court_astrologer_4
+						target = liege_or_court_owner.capital_province
+					}
+				}
+			}
+		}
+		#Nomadic Philosophy lobby added realms
+		if = {
+			limit = {
+				exists = situation:the_great_steppe
+				any_character_situation = {
+					this = situation:the_great_steppe
+				}
+				NOT = {
+					has_trait = nomadic_philosophy
+				}
+			}
+			add_trait = nomadic_philosophy
+			dynasty ?= {
+				every_dynasty_member = {
+					limit = {
+						top_liege ?= {
+							government_has_flag = government_is_nomadic
+						}
+					}
+					add_trait = nomadic_philosophy
+				}
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			government_has_flag = government_is_herder
+		}
+		if = {
+			limit = { gold >= 30 }
+			remove_short_term_gold = 27
+		}
+		else_if = {
+			limit = { gold >= 25 }
+			remove_short_term_gold = 22
+		}
+		else_if = {
+			limit = { gold >= 20 }
+			remove_short_term_gold = 18
+		}
+		else_if = {
+			limit = { gold >= 15 }
+			remove_short_term_gold = 11
+		}
+		else_if = {
+			limit = { gold >= 10 }
+			remove_short_term_gold = 5
+		}
+		# We're fine with them having 10 gold max
+		
+		if = {
+			limit = {
+				is_ai = no
+			}
+			every_held_title = {
+				limit = {
+					tier = tier_county
+					title_province = {
+						has_holding_type = herder_holding
+					}
+				}
+				title_province = {
+					set_holding_type = nomad_holding
+				}
+			}
+			change_government = nomad_government
+		}
+	}
+}
+

@@ -2,21 +2,21 @@
 # $TRIBUTARY$ = the new tributary
 # $SUZERAIN$ = their suzerain
 # $WAR$ = required war scope
-start_tributary_from_war_effect = {
-	$WAR$ ?= { save_scope_as = tributary_war }
-	if = {
-		limit = { NOT = { exists = $WAR$ } }
-		error_log = "Tried to call start_tributary_from_war_effect without a valid war scope!"
-	}
-	save_scope_value_as = {
-		name = high_obligations
-		value = yes
-	}
-	start_tributary_interaction_effect = {
-		TRIBUTARY = $TRIBUTARY$
-		SUZERAIN = $SUZERAIN$
-	}
-}
+#start_tributary_from_war_effect = {
+	#$WAR$ ?= { save_scope_as = tributary_war }
+	#if = {
+		#limit = { NOT = { exists = $WAR$ } }
+		#error_log = "Tried to call start_tributary_from_war_effect without a valid war scope!"
+	#}
+	#save_scope_value_as = {
+		#name = high_obligations
+		#value = yes
+	#}
+	#start_tributary_interaction_effect = {
+		#TRIBUTARY = $TRIBUTARY$
+		#suzerain = $SUZERAIN$
+	#}
+#}
 
 @tributary_truce_negotiated = 5
 @tributary_truce_war = 15
@@ -28,7 +28,9 @@ start_tributary_interaction_effect = {
 
 	# Nomadic Tributaries
 	if = {
-		limit = { $SUZERAIN$ = { has_government = nomad_government } }
+		limit = {
+			$SUZERAIN$ = { has_government = nomad_government }
+		}
 		$TRIBUTARY$ = {
 			if = {
 				limit = {
@@ -155,6 +157,70 @@ start_tributary_interaction_effect = {
 			}
 		}
 	}
+	#OE  游牧朝贡定居
+	else_if = {
+		limit = {
+			$SUZERAIN$ = { has_government = ulus_government }
+			$TRIBUTARY$ = {
+				OR = {
+					has_government = nomad_government
+					has_government = herder_government
+					has_government = ulus_government
+				}
+			}
+		}
+		$TRIBUTARY$ = {
+			start_tributary = {
+				contract_group = tributary_permanent
+				suzerain = $SUZERAIN$
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			$SUZERAIN$ = {
+				OR = {
+					government_has_flag = government_is_celestial
+					government_has_flag = government_is_bureau
+				}
+			}
+		}
+		$TRIBUTARY$ = {
+			start_tributary = {
+				contract_group = tributary_civilized
+				suzerain = $SUZERAIN$
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			$SUZERAIN$ = {
+				OR = {
+					government_has_flag = government_is_mandala
+					government_has_flag = government_is_theocracy
+				}
+			}
+		}
+		$TRIBUTARY$ = {
+			start_tributary = {
+				contract_group = tributary_patronage
+				suzerain = $SUZERAIN$
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			$SUZERAIN$ = { government_has_flag = government_is_republic }
+		}
+		$TRIBUTARY$ = {
+			start_tributary = {
+				contract_group = tributary_league
+				suzerain = $SUZERAIN$
+			}
+		}
+	}
+	
+
 	else = { # subjugated tributary
 		$TRIBUTARY$ = {
 			start_tributary = {

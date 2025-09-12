@@ -34,31 +34,125 @@ celes_no_dlc_on_action = {
                 }
             }
         }
-        if = {
+		if = {
+			limit = {
+				has_dlc_feature = khans_of_the_steppe
+			}
+			every_ruler = {
+				limit = { government_has_flag = government_is_ulus }
+				if = {
+					limit = {
+						capital_province ?= {
+							OR = {
+								has_holding_type = nomad_holding
+								has_holding_type = tribal_holding
+							}
+						}
+					}
+					capital_province = {
+						set_holding_type = nomad_holding
+					}
+					change_government = nomad_government
+					if = {
+						limit = { is_independent_ruler = no }
+						vassal_contract_set_obligation_level = { type = liege_war_participation_obligation level = 1 }
+					}
+					
+
+					#ulus_change_nomad_effect = yes
+
+					every_vassal_or_below = {
+						limit = {
+							is_landed = yes
+							capital_province ?= {
+								has_holding_type = castle_holding
+							}
+							OR = {
+								has_government = imperial_government
+								has_government = feudal_governemnt
+								has_government = ulus_governemnt
+							}
+						}
+						change_government = celestial_government
+					}
+
+					trigger_event = {
+						on_action = ulus_change_nomad
+						days = 2
+					}
+				}
+				else = {
+					change_government = feudal_government
+				}
+			}
+		}
+
+		#oe_setup_tributaries_effect = yes
+
+		if = {
             limit = {
-                NAND = {
-                    has_dlc_feature = roads_to_power
-                    has_dlc_feature = khans_of_the_steppe
-                }
+                NOT = { has_dlc_feature = khans_of_the_steppe }
             }
-            if = {
-                limit = {
-                    has_dlc_feature = khans_of_the_steppe
-                }
-                everu_ruler = {
-                    limit = { government_has_flag = government_is_ulus }
-                    change_government = nomad_government
-                }
-            }
-            else = {
-                every_ruler = {
-                    limit = { government_has_flag = government_is_ulus }
-                    change_government = tribal_government
-                }
-            }
+			every_county_province = {
+				limit = {
+					OR = {
+						has_holding_type = nomad_holding
+						has_holding_type = herder_holding
+					}
+				}
+				set_holding_type = tribal_holding
+				county.holder = {
+					change_government = tribal_government
+					if = {
+						limit = {
+							highest_held_title_tier = tier_empire
+						}
+						add_realm_law_skip_effects = tribal_authority_3
+					}
+					else_if = {
+						limit = {
+							highest_held_title_tier = tier_kingdom
+						}
+						add_realm_law_skip_effects = tribal_authority_2
+					}
+					else = {
+						add_realm_law_skip_effects = tribal_authority_1
+					}
+				}
+			}
         }
+        #if = {
+            #limit = {
+                #NAND = {
+                    #has_dlc_feature = roads_to_power
+                    #has_dlc_feature = khans_of_the_steppe
+                #}
+            #}
+            ##else = {
+                ##every_ruler = {
+                    ##limit = {
+						##is_landed = yes
+						##OR = {
+							##government_has_flag = government_is_nomadic
+							##government_has_flag = government_is_herder
+						##}
+					##}
+                    ##change_government = tribal_government
+					##capital_province ?= {
+						##set_holding_type = tribal_holding
+					##}
+                ##}
+            ##}
+        #}
     }
 }
+
+ulus_change_nomad = {
+	effect = {
+		ulus_change_nomad_effect = yes
+	}
+}
+					
 
 on_game_start_after_lobby = {
 	on_actions = {
