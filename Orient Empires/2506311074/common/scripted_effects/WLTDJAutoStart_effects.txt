@@ -2,8 +2,8 @@
 # by 往来天地间 WangLaiTianDiJian
 # WLTDJAutoStart
 
-#WLTDJ20220730
-
+# WLTDJ20220730
+# Saltfish edited 20250911
 WLTDJAutoStart_fill_duchy_ruler_function_effect = {
 	if = {
 		limit = {
@@ -33,7 +33,6 @@ WLTDJAutoStart_fill_duchy_ruler_function_effect = {
 			}
 			resolve_title_and_vassal_change = scope:change_1
 
-
 			every_in_de_jure_hierarchy = {
 				limit = {
 					NOT = { holder = scope:temp_ruler }
@@ -43,46 +42,23 @@ WLTDJAutoStart_fill_duchy_ruler_function_effect = {
 						primary_title.tier = tier_county
 					}
 				}
-
 				create_title_and_vassal_change = {
 					type = swear_fealty
 					save_scope_as = change_2
 					add_claim_on_loss = no
 				}
-
-				if = {
-					limit = {
-						holder = { is_ai = no }
-						NOT = { holder = scope:temp_ruler }
-					}
-					holder = {
-						change_liege = {
-							liege = scope:temp_ruler
-							change = scope:change_2
-						}
-						resolve_title_and_vassal_change = scope:change_2
-					}
+				change_title_holder = {
+					holder = scope:temp_ruler
+					change = scope:change_2
 				}
-
-				else = {
-					change_title_holder = {
-						holder = scope:temp_ruler
-						change = scope:change_2
-					}
-					resolve_title_and_vassal_change = scope:change_2
-				}
-
+				resolve_title_and_vassal_change = scope:change_2
 			}
-
 		}
-
 	}
-
 }
 
-
 WLTDJAutoStart_fill_kingdom_ruler_function_effect = {
-	#若该王国头衔的法理帝国存在持有者，则此调整不生效（不论该帝国是否持有该王国的所有法理公爵领）
+	# 若该王国头衔的法理帝国存在持有者，则此调整不生效（不论该帝国是否持有该王国的所有法理公爵领）
 	if = {
 		limit = {
 			current_date >= $START_DATE$
@@ -104,7 +80,6 @@ WLTDJAutoStart_fill_kingdom_ruler_function_effect = {
 }
 
 WLTDJAutoStart_fill_empire_ruler_function_effect = {
-	#若该王国头衔的法理帝国存在持有者，则此调整不生效（不论该帝国是否持有该王国的所有法理公爵领）
 	if = {
 		limit = {
 			current_date >= $START_DATE$
@@ -133,7 +108,7 @@ WLTDJAutoStart_fill_kingdom_or_empire_ruler_function_effect = {
 	}
 
 	create_title_and_vassal_change = {
-		type = swear_fealty
+		type = created
 		save_scope_as = change_1
 		add_claim_on_loss = no
 	}
@@ -170,182 +145,222 @@ WLTDJAutoStart_fill_kingdom_or_empire_ruler_function_effect = {
 				}
 				resolve_title_and_vassal_change = scope:change_2
 			}
-
 		}
-
 	}
 }
 
 ###################################################################
-
-WLTDJAutoStart_create_ruler_function_effect = {#某些报错是因为某些实地公国和荣誉公国共同把一个伯爵领作为首都，而历史文件中该实地公国尚未成立，而该荣誉公国已有。例如御所公国/京都公国
+# @params
+# $START_DATE$ $END_DATE$ date string e.g. 1.1.1
+# $TARGET_TITLE$ title scope, handle all titles under this title
+# $LIEGE_TITLE$ title scope, only handle titles within this realm
+# $follow_liege$ bool, if created ruler follow holder of $LIEGE_TITLE$'s culture & faith, if set to no, they use capital culture & faith
+# $independent$ bool, if created ruler become independent
+# $de_jure$ bool, if yes, only handle de jure titles under $TARGET_TITLE$, otherwise de facto.
+# $tier$ num, tier value.
+WLTDJAutoStart_create_rulers_effect = {
+	debug_log = "____"
+	debug_log_scopes = yes
 	if = {
 		limit = {
 			current_date >= $START_DATE$
 			current_date < $END_DATE$
-			title:$LIEGE_TITLE$ = { exists = holder }
+			$LIEGE_TITLE$ = { exists = holder }
 		}
 		if = {
-			limit = { $manipulated_title_tier$ = tier_county }
-			every_county = {
-				limit = {
-					WLTDJAutoStart_create_ruler_function_loop_title_A_trigger = { LIEGE_TITLE = $LIEGE_TITLE$ higher_level_title = $higher_level_title$ }
-					WLTDJAutoStart_create_ruler_function_loop_title_B_trigger = { LIEGE_TITLE = $LIEGE_TITLE$ }
-				}
-				WLTDJAutoStart_create_ruler_B_function_effect = { LIEGE_TITLE = $LIEGE_TITLE$ generated_independent_rulers = $generated_independent_rulers$ }
+			limit = { $follow_liege$ = yes }
+			$TARGET_TITLE$.holder = {
+				save_scope_as = follow_liege
 			}
 		}
-		if = {
-			limit = { $manipulated_title_tier$ >= tier_duchy }
-			every_duchy = {
+		$TARGET_TITLE$ = {
+			every_in_de_facto_hierarchy = {
+				continue = { tier >= $tier$ }
 				limit = {
-					WLTDJAutoStart_create_ruler_function_loop_title_A_trigger = { LIEGE_TITLE = $LIEGE_TITLE$ higher_level_title = $higher_level_title$ }
-					WLTDJAutoStart_create_ruler_function_loop_title_B_trigger = { LIEGE_TITLE = $LIEGE_TITLE$ }
+					trigger_if = {
+						limit = { $de_jure$ = yes }
+						target_is_de_jure_liege_or_above = $LIEGE_TITLE$
+					}
+					tier = $tier$
+					is_titular = no
+					trigger_if = {
+						limit = {
+							tier = tier_county
+						}
+						# 保留原统治者的首都公国
+						de_jure_liege != $LIEGE_TITLE$.title_capital_county.de_jure_liege
+						de_jure_liege != $LIEGE_TITLE$.holder.capital_county.de_jure_liege
+						this != $LIEGE_TITLE$.title_capital_county
+						this != $LIEGE_TITLE$.holder.capital_county
+					}
+					trigger_else = {
+						title_capital_county != $LIEGE_TITLE$.title_capital_county
+						title_capital_county != $LIEGE_TITLE$.holder.capital_county
+					}
+					NOT = { holder ?= { highest_held_title_tier = tier_duchy } } # 避免影响历史头衔
+					trigger_if = {
+						limit = { NOT = { exists = holder } }
+						title_capital_county.holder ?= { highest_held_title_tier = tier_county }
+					}
 				}
-				WLTDJAutoStart_create_ruler_B_function_effect = { LIEGE_TITLE = $LIEGE_TITLE$ generated_independent_rulers = $generated_independent_rulers$ }
-			}
-			every_duchy = {
-				limit = {
-					WLTDJAutoStart_create_ruler_function_loop_title_A_trigger = { LIEGE_TITLE = $LIEGE_TITLE$ higher_level_title = $higher_level_title$ }
-					NOT = { WLTDJAutoStart_create_ruler_function_loop_title_B_trigger = { LIEGE_TITLE = $LIEGE_TITLE$ } }
+				save_temporary_scope_as = temp_title
+				# 公国+ 位于境内或不存在的头衔，不存在则创建，打包封给一个人
+				if = {
+					limit = {
+						tier > tier_county
+						OR = {
+							NOT = { exists = holder }
+							holder = $LIEGE_TITLE$.holder
+							holder = { any_liege_or_above = { this = $LIEGE_TITLE$.holder } }
+						}
+						title_capital_county = {
+							OR = {
+								holder = $LIEGE_TITLE$.holder
+								holder = { any_liege_or_above = { this = $LIEGE_TITLE$.holder } }
+							}
+						}
+					}
+					if = {
+						# 最高领主控制 ~~ 缺失历史，刷个火星人来代表封臣
+						limit = { scope:temp_title.title_capital_county.holder = $LIEGE_TITLE$.holder }
+						if = {
+							limit = {
+								OR = {
+									NOT = { exists = holder }
+									holder = $LIEGE_TITLE$.holder
+								}
+							}
+							scope:temp_title.title_capital_county = {
+								save_scope_as = temp_county
+								WLTDJAutoStart_create_dummy_ruler_effect = yes
+							}
+							debug_log_scopes = yes
+						}
+						else_if = {
+							limit = {
+								holder != $LIEGE_TITLE$.holder
+								holder = { any_liege_or_above = { this = $LIEGE_TITLE$.holder } }
+							}
+							holder = { save_temporary_scope_as = temp_ruler }
+							create_title_and_vassal_change = {
+								type = swear_fealty
+								save_scope_as = change_1
+								add_claim_on_loss = no
+							}
+							scope:temp_title.title_capital_county = {
+								change_title_holder = {
+									holder = scope:temp_ruler
+									change = scope:change_1
+								}
+							}
+							resolve_title_and_vassal_change = scope:change_1
+						}
+					}
+
+					else_if = {
+						# 首府有历史角色，使用其代表整个下级法理封臣
+						limit = { scope:temp_title.title_capital_county.holder = { any_liege_or_above = { this = $LIEGE_TITLE$.holder } } }
+						scope:temp_title.title_capital_county.holder = { save_temporary_scope_as = temp_ruler }
+					}
+
+					if = {
+						limit = {
+							exists = scope:temp_ruler
+						}
+						if = {
+							limit = { scope:temp_title.tier > tier_county }
+							every_in_de_jure_hierarchy = {
+								limit = {
+									tier = tier_county
+									holder = $LIEGE_TITLE$.holder
+								}
+								create_title_and_vassal_change = {
+									type = granted
+									save_scope_as = change_2
+									add_claim_on_loss = no
+								}
+								change_title_holder = {
+									holder = scope:temp_ruler
+									change = scope:change_2
+								}
+								resolve_title_and_vassal_change = scope:change_2
+							}
+
+							scope:temp_title = {
+								create_title_and_vassal_change = {
+									type = granted
+									save_scope_as = change_3
+									add_claim_on_loss = no
+								}
+								change_title_holder = {
+									holder = scope:temp_ruler
+									change = scope:change_3
+								}
+								resolve_title_and_vassal_change = scope:change_3
+							}
+						}
+
+						WLTDJAutoStart_handle_independence_effect = { LIEGE_TITLE = $LIEGE_TITLE$ independent = $independent$ }
+					}
 				}
-				WLTDJAutoStart_create_ruler_C_function_effect = { LIEGE_TITLE = $LIEGE_TITLE$ generated_independent_rulers = $generated_independent_rulers$ }
+				else_if = {
+					limit = {
+						holder = $LIEGE_TITLE$.holder
+					}
+					save_temporary_scope_as = temp_county
+					WLTDJAutoStart_create_dummy_ruler_effect = yes
+					WLTDJAutoStart_handle_independence_effect = { LIEGE_TITLE = $LIEGE_TITLE$ independent = $independent$ }
+				}
 			}
 		}
+		clear_saved_scope = follow_liege
 	}
 }
 
-
-WLTDJAutoStart_create_ruler_B_function_effect = {#B会转移公爵头衔本身，伯爵成为公爵封臣；C则不会处理公爵头衔，而是相关公国内每个要处理的伯爵领生成人物
-	save_temporary_scope_as = temp_title
+WLTDJAutoStart_create_dummy_ruler_effect = {
 	if = {
-		limit = { scope:temp_title.title_capital_county.holder = title:$LIEGE_TITLE$.holder }
-		if = {
-			limit = {
-				OR = {
-					NOT = { exists = holder }
-					holder = title:$LIEGE_TITLE$.holder
-				}
-			}
-			create_character = {
-				location = scope:temp_title.title_capital_county.title_province #注意
-				template = WLTDJAutoStart_ruler_template
-				faith = scope:temp_title.title_capital_county.faith
-				culture = scope:temp_title.title_capital_county.culture
-				gender_female_chance = 0 #root_faith_dominant_gender_adjusted_female_chance
-				save_temporary_scope_as = temp_ruler
-			}
-
-		}
-		else_if = {
-			limit = {
-				exists = holder
-				NOT = { holder = title:$LIEGE_TITLE$.holder }
-				holder = { any_liege_or_above = { this = title:$LIEGE_TITLE$.holder } }
-			}
-			holder = { save_temporary_scope_as = temp_ruler }
-		}
-		scope:temp_title.title_capital_county = {
-			create_title_and_vassal_change = {
-				type = swear_fealty
-				save_scope_as = change_1
-				add_claim_on_loss = no
-			}
-			change_title_holder = {
-				holder = scope:temp_ruler
-				change = scope:change_1
-			}
-			resolve_title_and_vassal_change = scope:change_1
+		limit = { exists = scope:follow_liege }
+		create_character = {
+			location = scope:follow_liege.location
+			template = WLTDJAutoStart_ruler_template
+			faith = scope:follow_liege.faith
+			culture = scope:follow_liege.culture
+			gender_female_chance = scope:follow_liege.this_faith_dominant_gender_adjusted_female_chance
+			save_temporary_scope_as = temp_ruler
 		}
 	}
-
-	else_if = {
-		limit = { scope:temp_title.title_capital_county.holder = { any_liege_or_above = { this = title:$LIEGE_TITLE$.holder } } }
-		scope:temp_title.title_capital_county.holder = { save_temporary_scope_as = temp_ruler }
-	}
-
-	if = {
-		limit = {
-			exists = scope:temp_ruler
-			scope:temp_ruler = { is_landed = yes }
-		}
-		if = {
-			limit = { scope:temp_title.tier > tier_county }
-			every_in_de_jure_hierarchy = {
-				limit = {
-					tier = tier_county
-					holder = title:$LIEGE_TITLE$.holder
-				}
-				#save_temporary_scope_as = temp_title_2
-				create_title_and_vassal_change = {
-					type = swear_fealty
-					save_scope_as = change_2
-					add_claim_on_loss = no
-				}
-				change_title_holder = {
-					holder = scope:temp_ruler
-					change = scope:change_2
-				}
-				resolve_title_and_vassal_change = scope:change_2
-				#title:$LIEGE_TITLE$.holder = { remove_claim = scope:temp_title_2 }
-			}
-
-			scope:temp_title = {
-				create_title_and_vassal_change = {
-					type = swear_fealty
-					save_scope_as = change_3
-					add_claim_on_loss = no
-				}
-				change_title_holder = {
-					holder = scope:temp_ruler
-					change = scope:change_3
-				}
-				resolve_title_and_vassal_change = scope:change_3
-			}
-		}
-
-
-		WLTDJAutoStart_create_ruler_H_function_effect = { LIEGE_TITLE = $LIEGE_TITLE$ generated_independent_rulers = $generated_independent_rulers$ }
-
-	}
-}
-
-WLTDJAutoStart_create_ruler_C_function_effect = {
-	save_temporary_scope_as = temp_title
-	every_in_de_jure_hierarchy = {
-		limit = {
-			tier = tier_county
-			holder = title:$LIEGE_TITLE$.holder
-		}
-		save_temporary_scope_as = temp_county
+	else = {
 		create_character = {
 			location = scope:temp_county.title_province
 			template = WLTDJAutoStart_ruler_template
 			faith = scope:temp_county.faith
 			culture = scope:temp_county.culture
-			gender_female_chance = 0 #root_faith_dominant_gender_adjusted_female_chance
+			gender_female_chance = scope:temp_county.this_faith_dominant_gender_adjusted_female_chance
 			save_temporary_scope_as = temp_ruler
 		}
-		create_title_and_vassal_change = {
-			type = swear_fealty
-			save_scope_as = change_1
-			add_claim_on_loss = no
-		}
-		change_title_holder = {
-			holder = scope:temp_ruler
-			change = scope:change_1
-		}
-		resolve_title_and_vassal_change = scope:change_1
-		#title:$LIEGE_TITLE$.holder = { remove_claim = scope:temp_title_1 }
+	}
+	create_title_and_vassal_change = {
+		type = granted
+		save_scope_as = change_1
+		add_claim_on_loss = no
+	}
+	change_title_holder = {
+		holder = scope:temp_ruler
+		change = scope:change_1
+	}
+	resolve_title_and_vassal_change = scope:change_1
+	if = {
+		limit = {
+			scope:temp_ruler = {
 
-		WLTDJAutoStart_create_ruler_H_function_effect = { LIEGE_TITLE = $LIEGE_TITLE$ generated_independent_rulers = $generated_independent_rulers$ }
+			}
+		}
 	}
 }
 
-
-WLTDJAutoStart_create_ruler_H_function_effect = {
+WLTDJAutoStart_handle_independence_effect = {
 	if = {
-		limit = { $generated_independent_rulers$ = no }
+		limit = { $independent$ = no }
 		create_title_and_vassal_change = {
 			type = swear_fealty
 			save_scope_as = change_4
@@ -353,7 +368,7 @@ WLTDJAutoStart_create_ruler_H_function_effect = {
 		}
 		scope:temp_ruler = {
 			change_liege = {
-				liege = title:$LIEGE_TITLE$.holder
+				liege = $LIEGE_TITLE$.holder
 				change = scope:change_4
 			}
 			resolve_title_and_vassal_change = scope:change_4
@@ -364,9 +379,7 @@ WLTDJAutoStart_create_ruler_H_function_effect = {
 			WLTDJAutoStart_copy_government_function_effect = { EMULATED_RULER = emulated_ruler }
 		}
 	}
-
-	else_if = {
-		limit = { $generated_independent_rulers$ = yes }
+	else = {
 		scope:temp_ruler = {
 			create_title_and_vassal_change = {
 				type = independency
@@ -375,7 +388,7 @@ WLTDJAutoStart_create_ruler_H_function_effect = {
 			}
 			becomes_independent = { change = scope:change_5 }
 			resolve_title_and_vassal_change = scope:change_5
-			title:$LIEGE_TITLE$.holder = { remove_claim = scope:temp_title }
+			$LIEGE_TITLE$.holder = { remove_claim = scope:temp_title }
 		}
 	}
 }
