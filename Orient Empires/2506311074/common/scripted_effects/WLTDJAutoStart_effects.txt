@@ -175,6 +175,7 @@ WLTDJAutoStart_create_rulers_effect = {
 			limit = {
 				$TARGET_TITLE$ = $LIEGE_TITLE$
 				$de_jure$ = no
+				$LIEGE_TITLE$.holder.primary_title = $TARGET_TITLE$
 			}
 			$TARGET_TITLE$ = {
 				$LIEGE_TITLE$.title_capital_county.duchy = {
@@ -183,40 +184,39 @@ WLTDJAutoStart_create_rulers_effect = {
 				$LIEGE_TITLE$.holder.capital_county.duchy = {
 					save_scope_as = ruler_capital_duchy
 				}
-				every_in_de_facto_hierarchy = {
-					continue = {
-						tier >= $tier$
-					}
-					limit = {
-						tier = $tier$
-						is_titular = no
-						trigger_if = {
-							limit = {
-								tier = tier_county
+				$LIEGE_TITLE$.holder = {
+					every_held_title = {
+						limit = {
+							tier = $tier$
+							is_titular = no
+							trigger_if = {
+								limit = {
+									tier = tier_county
+								}
+								# 保留原统治者的首都公国
+								NOR = {
+									duchy = scope:capital_duchy
+									duchy = scope:ruler_capital_duchy
+								}
 							}
-							# 保留原统治者的首都公国
-							NOR = {
-								duchy = scope:capital_duchy
-								duchy = scope:ruler_capital_duchy
+							trigger_else = {
+								title_capital_county != $LIEGE_TITLE$.title_capital_county
+								title_capital_county != $LIEGE_TITLE$.holder.capital_county
+							}
+							NOT = { holder ?= { highest_held_title_tier = tier_duchy } } # 避免影响历史头衔
+							trigger_if = {
+								limit = { NOT = { exists = holder } }
+								title_capital_county.holder ?= { highest_held_title_tier = tier_county }
 							}
 						}
-						trigger_else = {
-							title_capital_county != $LIEGE_TITLE$.title_capital_county
-							title_capital_county != $LIEGE_TITLE$.holder.capital_county
-						}
-						NOT = { holder ?= { highest_held_title_tier = tier_duchy } } # 避免影响历史头衔
-						trigger_if = {
-							limit = { NOT = { exists = holder } }
-							title_capital_county.holder ?= { highest_held_title_tier = tier_county }
-						}
+						WLTDJAutoStart_assign_title_effect = { LIEGE_TITLE = $LIEGE_TITLE$ independent = $independent$ }
 					}
-					WLTDJAutoStart_assign_title_effect = { LIEGE_TITLE = $LIEGE_TITLE$ independent = $independent$ }
 				}
 			}
 		}
 		else = {
 			$TARGET_TITLE$ = {
-				$LIEGE_TITLE$.title_capital_county.duchy = {
+				$TARGET_TITLE$.title_capital_county.duchy = {
 					save_scope_as = capital_duchy
 				}
 				$LIEGE_TITLE$.holder.capital_county.duchy = {
