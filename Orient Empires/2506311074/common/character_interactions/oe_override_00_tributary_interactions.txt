@@ -2,30 +2,39 @@
 ### Release as Tributary - unilateral
 # actor = suzerain
 # recipient = tributary
+
 release_as_tributary_interaction = {
 	category = interaction_category_vassal
 	common_interaction = no
 	icon = release_as_tributary
 	interface_priority = 4
+
 	desc = release_as_tributary_interaction_desc
+
 	is_shown = {
 		scope:actor = {
 			OR = {
 				government_has_flag = government_is_nomadic
+				government_has_flag = government_is_mandala
+				government_has_flag = government_is_wanua
+
+				# cfv
 				government_has_flag = government_is_ulus
 				government_has_flag = government_is_celestial
-				government_has_flag = government_is_mandala
 			}
 		}
 		scope:recipient = {
 			is_vassal_of = scope:actor
+			highest_held_title_tier >= tier_county
 		}
 	}
+
 	is_valid_showing_failures_only = {
 		scope:actor = {
 			is_independent_ruler = yes
 			is_at_war = no
 		}
+		# cfv
 		trigger_if = {
 			limit = {
 				scope:actor = {
@@ -40,7 +49,9 @@ release_as_tributary_interaction = {
 			}
 		}
 	}
+
 	auto_accept = yes
+
 	on_accept = {
 		scope:actor = {
 			hidden_effect = {
@@ -49,6 +60,7 @@ release_as_tributary_interaction = {
 					title = release_as_tributary_interaction_toast
 					left_icon = scope:actor
 					right_icon = scope:recipient
+
 					custom_tooltip = release_as_tributary_interaction_toast_desc
 				}
 			}
@@ -67,6 +79,7 @@ release_as_tributary_interaction = {
 			becomes_independent = {
 				change = scope:change
 			}
+
 			resolve_title_and_vassal_change = scope:change
 		}
 		start_tributary_interaction_effect = {
@@ -74,61 +87,53 @@ release_as_tributary_interaction = {
 			TRIBUTARY = scope:recipient
 		}
 	}
+
 	ai_potential = {
 		OR = {
-			AND = {
-				government_has_flag = government_is_nomadic
-				this = top_liege
-				vassal_count > vassal_limit
-			}
-			AND = {
-				government_has_flag = government_is_ulus
-				this = top_liege
-				vassal_count > vassal_limit
-				#any_vassal = {
-					#OR = {
-						#government_has_flag = government_is_nomadic
-						#government_has_flag = government_is_herder
-					#}
-				#}
-			}
+			government_has_flag = government_is_nomadic
+			government_has_flag = government_is_mandala
+			government_has_flag = government_is_wanua
+			# cfv
+			government_has_flag = government_is_ulus
 		}
+		this = top_liege
+		vassal_count > vassal_limit
 	}
+
 	ai_targets = {
 		ai_recipients = vassals
 	}
-	ai_frequency = 12
+
+	ai_frequency_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 36
+		kingdom = 4
+		empire = 4
+		hegemony = 4
+	}
+
 	ai_will_do = {
 		base = 0
 		modifier = {
-			scope:recipient = {
-				# Only on your borders
+			scope:recipient = { # Only on your borders
+				any_held_title = {
+					tier = tier_county
+					is_coastal_county = yes
+				}
+			}
+			add = 10
+		}
+		modifier = {
+			scope:recipient = { # Only on your borders
 				any_held_title = {
 					tier = tier_county
 					any_neighboring_county = {
-						OR = {
-							is_coastal_county = yes
-							holder.top_liege != scope:recipient.top_liege
-						}
+						holder.top_liege != scope:recipient.top_liege
 					}
 				}
 			}
 			add = 100
-		}
-		modifier = {
-			scope:actor = {
-				NOT = {
-					government_has_flag = government_is_nomadic
-				}
-			}
-			scope:recipient = {
-				# Only on your borders
-				OR = {
-					government_has_flag = government_is_nomadic
-					government_has_flag = government_is_herder
-				}
-			}
-			add = 50
 		}
 	}
 }

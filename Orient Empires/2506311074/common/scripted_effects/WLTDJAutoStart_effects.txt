@@ -14,7 +14,7 @@ WLTDJAutoStart_fill_duchy_ruler_function_effect = {
 			limit = {
 				NOT = { exists = holder }
 				is_titular = no
-				title_capital_county.holder = { is_independent_ruler = yes }
+				title_capital_county.holder = { top_liege = this }
 				$WLTDJAutoStart_fill_duchy_region_and_title_trigger$ = yes
 			}
 			save_temporary_scope_as = temp_title
@@ -38,7 +38,7 @@ WLTDJAutoStart_fill_duchy_ruler_function_effect = {
 					NOT = { holder = scope:temp_ruler }
 					tier = tier_county
 					holder = {
-						is_independent_ruler = yes
+						top_liege = this
 						primary_title.tier = tier_county
 					}
 				}
@@ -123,7 +123,7 @@ WLTDJAutoStart_fill_kingdom_or_empire_ruler_function_effect = {
 			exists = holder
 			NOT = { holder = scope:temp_ruler }
 			tier = tier_duchy
-			holder = { is_independent_ruler = yes }
+			holder = { top_liege = this }
 		}
 		create_title_and_vassal_change = {
 			type = swear_fealty
@@ -133,7 +133,7 @@ WLTDJAutoStart_fill_kingdom_or_empire_ruler_function_effect = {
 		holder = {
 			if = {
 				limit = {
-					is_independent_ruler = yes
+					top_liege = this
 					tier_difference = {
 						target = scope:temp_ruler
 						value < 0
@@ -178,7 +178,7 @@ WLTDJAutoStart_create_rulers_effect = {
 				$LIEGE_TITLE$.holder.primary_title = $TARGET_TITLE$
 			}
 			$TARGET_TITLE$ = {
-				$TARGET_TITLE$.title_capital_county.duchy = {
+				$LIEGE_TITLE$.title_capital_county.duchy = {
 					save_scope_as = capital_duchy
 				}
 				$LIEGE_TITLE$.holder.capital_county.duchy = {
@@ -216,7 +216,7 @@ WLTDJAutoStart_create_rulers_effect = {
 		}
 		else = {
 			$TARGET_TITLE$ = {
-				$LIEGE_TITLE$.title_capital_county.duchy = {
+				$TARGET_TITLE$.title_capital_county.duchy = {
 					save_scope_as = capital_duchy
 				}
 				$LIEGE_TITLE$.holder.capital_county.duchy = {
@@ -247,12 +247,7 @@ WLTDJAutoStart_create_rulers_effect = {
 						NOT = { holder ?= { highest_held_title_tier = tier_duchy } } # 避免影响历史头衔
 						trigger_if = {
 							limit = { NOT = { exists = holder } }
-							title_capital_county.holder ?= {
-								OR = {
-									highest_held_title_tier = tier_county
-									this = $LIEGE_TITLE$.holder
-								}
-							}
+							title_capital_county.holder ?= { highest_held_title_tier = tier_county }
 						}
 					}
 					WLTDJAutoStart_assign_title_effect = { LIEGE_TITLE = $LIEGE_TITLE$ independent = $independent$ }
@@ -451,7 +446,7 @@ WLTDJAutoStart_copy_government_function_effect = {
 	if = {
 		limit = {
 			scope:$EMULATED_RULER$ = {
-				has_title = title:k_yamato
+				has_title = title:e_japan
 			}
 			has_court_rank_trigger = no
 		}
@@ -476,12 +471,12 @@ WLTDJAutoStart_copy_government_function_effect = {
 		}
 	}
 	else_if = {
-		limit = { scope:$EMULATED_RULER$ = { government_has_flag = government_is_celestial NOT = { has_title = title:k_yamato } } }
+		limit = { scope:$EMULATED_RULER$ = { government_has_flag = government_is_celestial NOT = { has_title = title:e_japan } } }
 		change_to_celes_government_effect = yes
-		if = { 
-			limit = { NOT = { has_realm_law = official_succession_law } }
-			add_realm_law_skip_effects = official_succession_law
-		}
+		#if = { 
+			#limit = { NOT = { has_realm_law = official_succession_law } }
+			#add_realm_law_skip_effects = official_succession_law
+		#}
 	}
 
 	else_if = {

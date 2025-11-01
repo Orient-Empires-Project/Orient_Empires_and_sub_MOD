@@ -31,12 +31,12 @@
 								widget_gold_breakdown_tooltip = {
 									blockoverride "income"
 									{
-										datacontext = "[InGameTopbar.GetIncomeBalanceBreakdown]"
+										datacontext = "[InGameTopbar.GetGoldIncomeBreakdown]"
 									}
 
 									blockoverride "expenses"
 									{
-										datacontext = "[InGameTopbar.GetExpensesBalanceBreakdown]"
+										datacontext = "[InGameTopbar.GetGoldExpensesBreakdown]"
 									}
 								}
 							}
@@ -90,16 +90,16 @@
 										container = {
 											text_single = {
 												name = "balance_positive"
-												visible = "[GreaterThanOrEqualTo_CFixedPoint(GetPlayerBalance, '(CFixedPoint)0')]"
-												text = "CURRENT_BALANCE"
+												visible = "[GreaterThanOrEqualTo_CFixedPoint(InGameTopbar.GetGoldBalance, '(CFixedPoint)0')]"
+												text = "[InGameTopbar.GetGoldBalance|=1]"
 												max_width = 50
 												default_format = "#low"
 											}
 
 											text_single = {
 												name = "balance_negative"
-												visible = "[LessThan_CFixedPoint(GetPlayerBalance, '(CFixedPoint)0')]"
-												text = "CURRENT_BALANCE"
+												visible = "[LessThan_CFixedPoint(InGameTopbar.GetGoldBalance, '(CFixedPoint)0')]"
+												text = "[InGameTopbar.GetGoldBalance|=1]"
 												max_width = 50
 												default_format = "#N"
 											}
@@ -119,8 +119,267 @@
 					}
 
 					widget = {
+						name = "treasury"
+						visible = "[GetPlayer.HasTreasury]"
+						size = { 112 70 }
+						allow_outside = yes
+
+						state = {
+							name = _mouse_enter
+							on_start = "[InGameTopbar.ResetLastUpdateFrame]"
+						}
+
+						button = {
+							size = { 112 45 }
+
+							onclick = "[ToggleGameViewData( 'treasury_budget_change', GetPlayer.GetTopLiege.Self )]"
+							enabled = "[GetPlayer.IsIndependentRuler]"
+
+							tooltipwidget = {
+								widget_gold_breakdown_tooltip = {
+									blockoverride "my_gold"
+									{
+										text_single = {
+											layoutpolicy_horizontal = expanding
+
+											text = "[treasury_i] [GetPlayer.GetPrimaryTitle.GetNameNoTierNoTooltip] [treasury|E]"
+											default_format = "#T"
+										}
+									}
+
+									blockoverride "income"
+									{
+										datacontext = "[InGameTopbar.GetTreasuryIncomeBreakdown]"
+									}
+
+									blockoverride "expenses"
+									{
+										datacontext = "[InGameTopbar.GetTreasuryExpensesBreakdown]"
+									}
+
+									blockoverride "extra_info"
+									{
+										text_single = {
+											visible = "[And( GetPlayer.IsIndependentRuler, IsAdministrativeRuler( GetPlayer ) )]"
+											layoutpolicy_horizontal = expanding
+											text = "CLICK_TO_OPEN_TREASURY_BUDGETING"
+											default_format = "#I"
+										}
+									}
+								}
+							}
+							using = tooltip_ne
+						}
+
+						background = {
+							texture = "gfx/interface/skinned/resource_panel_piece.dds"
+						}
+
+						vbox = {
+							margin_top = -2
+							allow_outside = yes
+
+							hbox = {
+								layoutpolicy_horizontal = expanding
+								allow_outside = yes
+
+								widget = {
+									size = { 20 20 }
+									allow_outside = yes
+
+									button_round = {
+										size = { 20 20 }
+										parentanchor = center
+										position = { -10 0 }
+
+										name = "transfer_gold_to_treasury_button_tutorial_uses_this"
+										datacontext = "[GetPlayer]"
+										enabled = "[Character.CanSendPlayerInteraction('transfer_small_gold_amount_to_treasury_interaction')]"
+										onclick = "[Character.SendPlayerInteraction('transfer_small_gold_amount_to_treasury_interaction')]"
+										onrightclick = "[Character.SendPlayerInteraction('transfer_large_gold_amount_to_treasury_interaction')]"
+										button_ignore = none
+										tooltip = "TRANSFER_GOLD_TO_TREASURY_INTERACTION_TOOLTIP"
+										using = tooltip_se
+
+										button_icon = {
+											size = { 100% 100% }
+											alwaystransparent = yes
+											texture = "gfx/interface/icons/flat_icons/gamespeed_3.dds"
+										}
+
+										tooltip_offset = { 0 20 }
+									}
+								}
+
+								expand = {}
+
+								hbox = {
+									spacing = 7
+
+									name = "treasury_tutorial_uses_this"
+
+									icon = {
+										name = "treasury_icon"
+										size = { 30 30 }
+										texture = "gfx/interface/icons/icon_imperial_treasury.dds"
+									}
+
+									flowcontainer = {
+										margin_bottom = 7
+										spacing = -6
+										direction = vertical
+										ignoreinvisible = yes
+
+										text_single = {
+											name = "treasury_value_positive"
+											visible = "[GreaterThanOrEqualTo_CFixedPoint(GetPlayer.GetTreasury, '(CFixedPoint)0')]"
+											text = "[GetPlayer.GetTreasury|0]"
+											max_width = 50
+											default_format = "#high"
+											using = Font_Size_Medium
+										}
+
+										text_single = {
+											name = "treasury_value_negative"
+											visible = "[LessThan_CFixedPoint(GetPlayer.GetTreasury, '(CFixedPoint)0')]"
+											text = "[GetPlayer.GetTreasury|0]"
+											max_width = 50
+											default_format = "#N"
+											using = Font_Size_Medium
+										}
+
+										container = {
+											text_single = {
+												name = "treasury_balance_positive"
+												visible = "[GreaterThanOrEqualTo_CFixedPoint(InGameTopbar.GetTreasuryBalance, '(CFixedPoint)0')]"
+												text = "[InGameTopbar.GetTreasuryBalance|=1]"
+												max_width = 50
+												default_format = "#low"
+											}
+
+											text_single = {
+												name = "treasury_balance_negative"
+												visible = "[LessThan_CFixedPoint(InGameTopbar.GetTreasuryBalance, '(CFixedPoint)0')]"
+												text = "[InGameTopbar.GetTreasuryBalance|=1]"
+												max_width = 50
+												default_format = "#N"
+											}
+										}
+									}
+								}
+
+								spacer = {
+									size = { 10 1}
+								}
+
+								divider_light = {
+									layoutpolicy_vertical = expanding
+									alpha = 0.8
+								}
+							}
+							expand = {}
+						}
+					}
+
+					widget = {
+						name = "barter_goods"
+						datacontext = "[GetPlayer]"
+						visible = "[GetPlayer.HasBarterGoods]"
+						size = { 112 70 }
+
+						state = {
+							name = _mouse_enter
+							on_start = "[InGameTopbar.ResetLastUpdateFrame]"
+						}
+
+						widget = {
+							size = { 112 45 }
+							using = tooltip_ne
+
+							tooltipwidget = {
+								widget_gold_breakdown_tooltip = {
+									blockoverride "income"
+									{
+										datacontext = "[InGameTopbar.GetBarterGoodsIncomeBreakdown]"
+									}
+
+									blockoverride "expenses"
+									{
+										datacontext = "[InGameTopbar.GetBarterGoodsExpensesBreakdown]"
+									}
+								}
+							}
+						}
+
+						background = {
+							texture = "gfx/interface/skinned/resource_panel_piece.dds"
+						}
+
+						vbox = {
+							margin_top = -2
+
+							hbox = {
+								layoutpolicy_horizontal = expanding
+								expand = {}
+
+								hbox = {
+									spacing = 7
+
+									icon = {
+										name = "barter_goods_icon"
+										size = { 30 30 }
+										texture = "gfx/interface/icons/icon_barter.dds"
+									}
+
+									flowcontainer = {
+										margin_bottom = 7
+										spacing = -6
+										direction = vertical
+										ignoreinvisible = yes
+
+										text_single = {
+											name = "barter_goods_value_positive"
+
+											text = "[GetPlayer.GetCurrency('barter_goods')|0]"
+											max_width = 50
+											default_format = "#high"
+											using = Font_Size_Medium
+										}
+
+										container = {
+											text_single = {
+												name = "barter_goods_balance_positive"
+												visible = "[GreaterThanOrEqualTo_CFixedPoint(InGameTopbar.GetBarterGoodsBalance, '(CFixedPoint)0')]"
+												text = "[InGameTopbar.GetBarterGoodsBalance|=1]"
+												max_width = 50
+												default_format = "#low"
+											}
+
+											text_single = {
+												name = "barter_goods_balance_negative"
+												visible = "[LessThan_CFixedPoint(InGameTopbar.GetBarterGoodsBalance, '(CFixedPoint)0')]"
+												text = "[InGameTopbar.GetBarterGoodsBalance|=1]"
+												max_width = 50
+												default_format = "#N"
+											}
+										}
+									}
+								}
+								expand = {}
+
+								divider_light = {
+									layoutpolicy_vertical = expanding
+									alpha = 0.8
+								}
+							}
+							expand = {}
+						}
+					}
+
+					widget = {
 						name = "prestige"
 						datacontext = "[InGameTopbar.GetPrestigeItem]"
+						size = { 112 70 }
 
 						widget = {
 							size = { 112 45 }
@@ -134,7 +393,6 @@
 						background = {
 							texture = "gfx/interface/skinned/resource_panel_piece.dds"
 						}
-						size = { 112 70 }
 
 						vbox = {
 							margin_top = -2
@@ -185,6 +443,8 @@
 					widget = {
 						name = "piety"
 						datacontext = "[InGameTopbar.GetPietyItem]"
+						size = { 112 70 }
+
 						button = {
 							size = { 112 45 }
 							onclick = "[OpenGameViewData( 'faith', GetPlayer.GetFaith.GetID )]"
@@ -198,7 +458,6 @@
 						background = {
 							texture = "gfx/interface/skinned/resource_panel_piece.dds"
 						}
-						size = { 112 70 }
 
 						vbox = {
 							margin_top = -2
@@ -357,7 +616,10 @@
 						name = "influence"
 						datacontext = "[InGameTopbar.GetInfluenceItem]"
 
+						# cfv
 						visible = "[GetPlayer.GetGovernment.HasGovernmentFlag( 'government_has_influence' )]"
+
+						size = { 112 70 }
 
 						widget = {
 							size = { 112 45 }
@@ -371,7 +633,6 @@
 						background = {
 							texture = "gfx/interface/skinned/resource_panel_piece.dds"
 						}
-						size = { 112 70 }
 
 						vbox = {
 							margin_top = -2
@@ -420,6 +681,7 @@
 					widget = {
 						name = "renown"
 						datacontext = "[InGameTopbar.GetDynastyPrestigeItem]"
+						size = { 112 70 }
 						layoutpolicy_vertical = expanding
 
 						button = {
@@ -435,7 +697,6 @@
 						background = {
 							texture = "gfx/interface/skinned/resource_panel_piece.dds"
 						}
-						size = { 112 70 }
 
 						vbox = {
 							margin_top = -2
@@ -515,6 +776,11 @@
 						visible = "[IsNomad( GetPlayer )]"
 						size = { 112 70 }
 
+						state = {
+							name = _mouse_enter
+							on_start = "[InGameTopbar.ResetLastUpdateFrame]"
+						}
+
 						widget = {
 							size = { 112 45 }
 							using = tooltip_ne
@@ -574,7 +840,7 @@
 										container = {
 											text_single = {
 												name = "army_from_herd"
-												text = "[InGameTopbar.AccessHerdChangeBreakdown.GetValue|=1]"
+												text = "[InGameTopbar.GetHerdChangeValue|=1]"
 												max_width = 50
 												default_format = "#low"
 											}
@@ -582,6 +848,7 @@
 									}
 								}
 								expand = {}
+
 								divider_light = {
 									layoutpolicy_vertical = expanding
 									alpha = 0.8
@@ -609,6 +876,23 @@
 
 						background = {
 							texture = "gfx/interface/skinned/resource_panel_piece_light.dds"
+						}
+
+						### Stiches for the Nomadic UI skin placed as a separate texture to be able to place it perfectly aligned with texture change and tiling.
+						### Placed on top of the divider that is there normally.
+						widget = {
+							name = "nomadic_stiches_divider"
+							visible = "[IsNomad( GetPlayer )]"
+							parentanchor = vcenter
+							size = { 10 42 }
+							position = { -6 -17 }
+
+							icon = {
+								parentanchor = center
+								position = { 0 0 }
+								size = { 10 42 }
+								texture = "gfx/interface/hud/nomadic_resource_panel_stiches.dds"
+							}
 						}
 
 						vbox = {
@@ -670,7 +954,7 @@
 
 						button = {
 							size = { 112 45 }
-							onclick = "[ToggleGameView('my_realm')]"
+							onclick = "[ToggleGameViewData( 'my_realm', 'bookmark_domain' )]"
 
 							tooltip = "[Character.GetDomainLimitTooltip]"
 							using = tooltip_ne

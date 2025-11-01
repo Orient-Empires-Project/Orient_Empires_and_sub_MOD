@@ -62,19 +62,11 @@ has_partition_succession_realm_law_trigger = {
 }
 
 realm_law_use_crown_authority = {
-	# We separate this out into a different trigger for moddability purposes, per community request: this allows more diverse authority laws to be easily modded in without needing to override 00_realm_laws.txt, and thus for greater inter-mod compatibility.
-	realm_law_use_tribal_authority = no
-	realm_law_use_camp_purpose = no
-	realm_law_use_imperial_bureaucracy = no
-	realm_law_use_nomadic_authority = no
-	realm_law_use_celestial_bureaucracy = no
+	government_has_flag = government_uses_crown_authority
 }
 
 realm_law_use_tribal_authority = {
-	OR = {
-		government_has_flag = government_is_tribal
-		government_has_flag = government_is_ulus
-	}
+	government_has_flag = government_is_tribal
 }
 
 realm_law_use_camp_purpose = {
@@ -83,17 +75,47 @@ realm_law_use_camp_purpose = {
 
 realm_law_use_imperial_bureaucracy = {
 	government_allows = administrative
-	NOT = { government_has_flag = government_is_celestial }
+	NOR = {
+		government_has_flag = government_is_celestial
+		government_has_flag = government_is_meritocratic
+		government_has_flag = government_is_steppe_admin
+		government_has_flag = government_is_japan_administrative
+	}
 }
 
 realm_law_use_nomadic_authority = {
 	government_has_flag = government_is_nomadic
 }
 
+realm_law_use_celestial_bureaucracy = {
+	government_has_flag = government_is_celestial
+}
+
+realm_law_is_mandala = {
+	government_has_flag = government_is_mandala
+}
+
+realm_law_use_meritocratic_bureaucracy = {
+	OR = {
+		government_has_flag = government_is_meritocratic
+		government_has_flag = government_is_steppe_admin
+	}
+}
+
+realm_uses_treasury_laws_trigger = {
+	government_allows = treasury
+}
+
+realm_law_use_japanese_bureaucracy = {
+	government_is_japanese_trigger = yes
+}
+
 can_have_confederate_partition_succession_law_trigger = {
 	OR = {
 		government_has_flag = government_is_feudal
 		government_has_flag = government_is_tribal
+		# TGP
+		government_has_flag = government_is_japan_feudal
 	}
 }
 
@@ -111,11 +133,14 @@ can_keep_partition_succession_law_trigger = {
 			has_title = title:e_ilkhanate
 			has_title = title:e_golden_horde
 			has_title = title:e_chagatai
-			has_title = title:e_black_horde
+			has_title = title:e_red_horde
 			has_title = title:e_white_horde
 			has_title = title:e_aarlud_khanate
 			has_title = title:e_togskol_khanate
 			has_title = title:e_baruun_khanate
+			has_title = title:e_great_yuan
+			has_title = title:e_blue_horde
+			has_title = title:e_omnod_dalai_khanate
 		}
 	}
 	NOT = { government_has_flag = government_is_clan }
@@ -129,6 +154,8 @@ can_have_partition_succession_law_trigger = {
 		text = succession_laws_must_have_organised_government_tooltip
 		OR = {
 			government_has_flag = government_is_feudal
+			government_has_flag = government_is_clan
+			government_has_flag = government_is_japan_feudal
 		}
 	}
 }
@@ -147,15 +174,14 @@ can_keep_high_partition_succession_law_trigger = {
 			has_title = title:e_ilkhanate
 			has_title = title:e_golden_horde
 			has_title = title:e_chagatai
-			has_title = title:e_black_horde
+			has_title = title:e_red_horde
 			has_title = title:e_white_horde
 			has_title = title:e_aarlud_khanate
 			has_title = title:e_togskol_khanate
 			has_title = title:e_baruun_khanate
-			has_title = title:e_cathay
-			has_title = title:k_khitan
-
-			is_royal_government_trigger = yes
+			has_title = title:e_great_yuan
+			has_title = title:e_blue_horde
+			has_title = title:e_omnod_dalai_khanate
 		}
 	}
 	NOT = { government_has_flag = government_is_clan}
@@ -174,8 +200,9 @@ can_have_high_partition_succession_law_trigger = {
 		text = succession_laws_must_have_organised_government_tooltip
 		OR = {
 			government_has_flag = government_is_feudal
+			government_has_flag = government_is_clan
+			government_has_flag = government_is_japan_feudal
 			government_has_flag = government_is_legion
-			is_royal_government_trigger = yes
 		}
 	}
 }
@@ -188,7 +215,7 @@ can_keep_single_heir_succession_law_trigger = {
 		}
 		OR = {
 			can_have_single_heir_succession_law_trigger = yes
-			# Byzantine Empire
+			# Byzantine Empire / Ceremonial Liege
 			historical_succession_access_single_heir_succession_law_trigger = yes
 			has_variable = purge_oath_previous_law # ACH Purge Pretenders Oath
 		}
@@ -196,54 +223,69 @@ can_keep_single_heir_succession_law_trigger = {
 }
 
 can_have_single_heir_succession_law_trigger = {
-	OR = {
+	trigger_if = { # Celestial/Meritocratic/Soryo
+		limit = {
+			OR = {
+				government_allows = merit
+				government_has_flag = government_is_japan_feudal
+				government_has_flag = government_use_bureaucracy
+				government_has_flag = government_is_ulus
+			}
+		}
+		custom_tooltip = { # You are independent, have the innovation or are Ceremonial Monarch
+			text = can_have_single_heir_succession_law_trigger_merit_or_japan_tt
+			OR = {
+				is_independent_ruler = yes
+				culture = {
+					has_innovation = innovation_primogeniture
+				}
+				tgp_has_ceremonial_liege_title_trigger = yes
+				has_title = title:d_tianshi
+			}
+		}
+	}
+	trigger_else_if = {
+		limit = { tgp_has_ceremonial_liege_title_trigger = yes }
+		always = yes
+	}
+	trigger_else = {
 		culture = {
 			has_innovation = innovation_primogeniture
 		}
-		# Non-tribals only
-		trigger_if = { # We split the tooltip into two, to make sure we don't show admin unless you actually have it
-			limit = {
-				has_ep3_dlc_trigger = yes
-			}
-			custom_tooltip = {
-				text = must_be_feudal_clan_or_admin
-				OR = {
-					government_has_flag = government_is_feudal
-					government_has_flag = government_is_clan
-					government_allows = administrative
-					government_has_flag = government_is_ulus
-				}
-			}
+	}
+	# Non-tribals only
+	trigger_if = { # We split the tooltip into two, to make sure we don't show admin unless you actually have it
+		limit = {
+			has_ep3_dlc_trigger = yes
 		}
-		trigger_else = {
-			custom_description = {
-				text = succession_laws_must_have_organised_government_tooltip
-				OR = {
-					government_has_flag = government_is_feudal
-					government_has_flag = government_is_clan
-					AND = {
-						government_has_flag = government_is_celestial
-						is_independent_ruler = yes
-					}
-					government_has_flag = government_is_ulus
-				}
+		custom_tooltip = {
+			text = must_be_feudal_clan_or_admin
+			OR = {
+				government_has_flag = government_is_feudal
+				government_has_flag = government_is_clan
+				government_allows = administrative
+				government_has_flag = government_is_japan_feudal
 			}
 		}
-		AND = {
-			culture = { has_cultural_parameter = patriarch_society }  #宗法制 改为革新
-			is_independent_ruler = yes
+	}
+	trigger_else = {
+		custom_description = {
+			text = succession_laws_must_have_organised_government_tooltip
+			OR = {
+				government_has_flag = government_is_feudal
+				government_has_flag = government_is_clan
+				government_has_flag = government_is_japan_feudal
+			}
 		}
-		culture = {
-			has_innovation = innovation_world_cathay
-		}
-		has_title = title:d_tianshi
-		has_title = title:d_gosho
 	}
 	trigger_if = {
 		limit = {
 			government_allows = administrative
 		}
-		always = no
+		OR = {
+			is_independent_ruler = yes
+			exists = primary_title.var:ceremonial_title
+		}
 	}
 }
 
@@ -275,6 +317,7 @@ can_have_single_heir_youngest_succession_law_trigger = {
 				government_has_flag = government_is_feudal
 				government_has_flag = government_is_clan
 				government_allows = administrative
+				government_has_flag = government_is_japan_feudal
 			}
 		}
 	}
@@ -284,6 +327,7 @@ can_have_single_heir_youngest_succession_law_trigger = {
 			OR = {
 				government_has_flag = government_is_feudal
 				government_has_flag = government_is_clan
+				government_has_flag = government_is_japan_feudal
 				government_has_flag = government_is_ulus
 			}
 		}
@@ -315,7 +359,14 @@ can_have_single_heir_dynasty_house_trigger = {
 		limit = {
 			culture = {
 				OR = {
-					has_cultural_pillar = heritage_west_slavic
+					this = culture:czech
+					this = culture:slovien
+					any_parent_culture_or_above = {
+						this = culture:czech
+					}
+					any_parent_culture_or_above = {
+						this = culture:slovien
+					}
 					NOT = {	has_innovation = innovation_heraldry }
 				}
 			}
@@ -328,7 +379,7 @@ can_have_single_heir_dynasty_house_trigger = {
 		limit = {
 			culture = {
 				OR = {
-					has_cultural_pillar = heritage_tunguse
+					has_cultural_pillar = heritage_tungusic
 					has_cultural_pillar = heritage_mongolic
 				}
 			}
@@ -347,6 +398,7 @@ can_have_single_heir_dynasty_house_trigger = {
 		OR = {
 			government_has_flag = government_is_feudal
 			government_has_flag = government_is_clan
+			government_has_flag = government_is_japan_feudal
 			government_has_flag = government_is_tribal
 		}
 	}
@@ -365,7 +417,7 @@ is_temporal_head_of_faith_trigger = {
 		NOR = {
 			government_has_flag = government_is_celestial
 			faith = { religion_tag = confucianism_religion }
-			faith = { religion_tag = shinto_religion }
+			faith = { religion_tag = shintoism_religion }
 			faith = { religion_tag = taoism_religion }
 		}
 	}
@@ -431,9 +483,14 @@ can_pass_law_ca3_trigger = {
 
 can_have_acclamation_succession_law_trigger = {
 	has_ep3_dlc_trigger = yes
+	top_liege = this
 	government_allows = administrative
-	is_independent_ruler = yes
-	NOT = { government_has_flag = government_is_celestial }
+	NOR = {
+		government_has_flag = government_is_celestial
+		government_has_flag = government_is_japan_administrative
+		government_has_flag = government_is_meritocratic
+		government_has_flag = government_is_steppe_admin
+	}
 }
 
 can_keep_acclamation_succession_law_trigger = {
@@ -457,6 +514,11 @@ can_have_appointment_succession_law_trigger = {
 	has_ep3_dlc_trigger = yes
 	NOT = { government_has_flag = government_use_bureaucracy }
 	government_allows = administrative
+	NOR = {
+		government_has_flag = government_is_celestial
+		government_has_flag = government_is_japan_administrative
+		government_has_flag = government_is_meritocratic
+	}
 	is_independent_ruler = no
 }
 
@@ -468,12 +530,8 @@ can_keep_appointment_succession_law_trigger = {
 		}
 		can_have_appointment_succession_law_trigger = yes
 	}
-	government_allows = administrative
-	NOR = { government_has_flag = government_is_celestial government_has_flag = government_is_legion }
 }
 
 can_change_appointment_succession_law_trigger = {
 	has_ep3_dlc_trigger = yes
-	government_allows = administrative
-	is_independent_ruler = yes
 }

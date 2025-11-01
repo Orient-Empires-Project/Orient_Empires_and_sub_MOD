@@ -1,7 +1,7 @@
-version="1.17"
+version="1.18"
 tags={
-	"Utilities"
+	"Total Converntion"
 }
-name="Oriental Empires"
-supported_version="1.17.*"
+name="Oriental Empires (All under Heaven)"
+supported_version="1.18.*"
 remote_file_id="2506311074"

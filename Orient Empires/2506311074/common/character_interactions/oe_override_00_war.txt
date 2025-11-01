@@ -10,9 +10,7 @@
 	desc = declare_war_desc
 
 	is_shown = {
-		NOT = {
-			scope:recipient = scope:actor
-		}
+		scope:recipient != scope:actor
 		scope:recipient = {
 			is_playable_character = yes
 		}
@@ -25,6 +23,10 @@
 
 	is_valid_showing_failures_only = {
 		scope:actor = {
+			custom_tooltip = {
+				text = sworn_peace_tt
+				NOT = { has_character_flag = sworn_peace }
+			}
 			NOT = { has_trait = incapable }
 			can_attack_in_hierarchy = scope:recipient
 			trigger_if = {
@@ -53,7 +55,7 @@
 			}
 			custom_description = {
 				text = "is_not_bankrupt"
-				gold > 0
+				is_in_debt = no
 			}
 			NOT = {
 				custom_description = {
@@ -102,9 +104,7 @@
 			NOT = { has_strong_hook = scope:actor }
 			trigger_if = {
 				limit = { is_imprisoned = yes }
-				NOT = {
-					imprisoner = scope:actor
-				}
+				imprisoner != scope:actor
 			}
 		}
 		scope:actor = {
@@ -113,7 +113,7 @@
 					NOT = { government_allows = administrative }
 					liege ?= {
 						has_realm_law_flag = vassal_all_wars_banned_permanent
-						NOT = { this = scope:actor }
+						this != scope:actor
 					}
 				}
 				custom_tooltip = {
@@ -126,7 +126,13 @@
 					government_allows = administrative
 					top_liege = scope:recipient.top_liege
 					scope:recipient = { government_allows = administrative }
-					NOT = { top_liege = scope:recipient }
+					top_liege != scope:recipient
+					NOT = {
+						top_participant_group:dynastic_cycle ?= {
+							has_participant_group_parameter = dynastic_cycle_vassal_internal_wars_allowed
+						}
+					}
+					# oe cfv
 					liege ?= {
 						has_realm_law_flag = vassal_internal_wars_banned
 					}
@@ -139,7 +145,7 @@
 			trigger_if = { # Admin - Laws only allow frontier and naval themes to declare war
 				limit = {
 					government_allows = administrative
-					is_independent_ruler = no
+					top_liege != this
 					top_liege = {
 						this != scope:recipient.top_liege
 						has_realm_law_flag = admin_vassal_wars_restricted
@@ -188,10 +194,23 @@
 					always = no
 				}
 			}
+			trigger_if = {
+				limit = {
+					scope:recipient = {
+						has_subject_contract_group = tributary_celestial
+					}
+					is_independent_ruler = no # to avoid duplicating tooltips already applying to the top_liege
+				}
+				NOT = {
+					scope:recipient = {
+						is_tributary_of = scope:actor.top_liege
+					}
+				}
+			}
 		}
 		scope:actor = {
 			trigger_if = {
-				limit = { is_landless_adventurer = yes }
+				limit = { has_government = landless_adventurer_government }
 				custom_tooltip = {
 					text = camp_located_in_defender_realm.tt
 					domicile.domicile_location.county.holder = {
@@ -287,7 +306,7 @@
 					exists = var:promised_war
 					var:promised_war = {
 						is_alive = yes
-						NOT = { this = scope:recipient }
+						this != scope:recipient
 					}
 				}
 				trigger_event = {
@@ -310,7 +329,7 @@
 						casus_belli = {
 							primary_attacker = scope:actor
 							primary_defender = scope:recipient
-							any_target_title = { count >= 1 }
+							any_target_title = { }
 						}
 					}
 				}

@@ -1,20 +1,27 @@
 on_game_start = {
 	on_actions = {
 		celes_no_dlc_on_action
+		ulus_no_dlc_on_action
 	}
 }
 
 celes_no_dlc_on_action = {
     effect = {
+		if = {
+			limit = {
+				NOT = { has_dlc_feature = all_under_heaven }
+			}
+			every_ruler = {
+				celestial_change_to_imperial_with_laws_effect = yes
+			}
+		}
         if = {
             limit = {
                 has_dlc_feature = roads_to_power
             }
-            every_ruler = {
-                celestial_change_to_imperial_with_laws_effect = yes
+			title:e_byzantium.holder = {
                 if = {
                     limit = {
-                        has_title = title:e_byzantium
                         NOT = { government_has_flag = government_is_administrative }
                     }
                     change_government = administrative_government
@@ -22,24 +29,50 @@ celes_no_dlc_on_action = {
                 }
             }
         }
-        else = {
-            every_ruler = {
-                imperial_change_to_celestial_with_laws_effect = yes
-                if = {
-                    limit = {
-                        has_title = title:e_byzantium
-                    }
-                    change_government = feudal_government
-                    add_realm_law_skip_effects = single_heir_succession_law
-                }
-            }
-        }
+		else = {
+			title:e_byzantium.holder = {
+				change_government = feudal_government
+				add_realm_law_skip_effects = single_heir_succession_law
+			}
+		}
+	}
+}
+
+ulus_no_dlc_on_action = {
+	effect = {
 		if = {
+			limit = {
+				has_dlc_feature = all_under_heaven
+			}
+			every_ruler = {
+				limit = { government_has_flag = government_is_ulus }
+				if = {
+					limit = {
+						capital_province ?= {
+							OR = {
+								has_holding_type = nomad_holding
+								has_holding_type = tribal_holding
+							}
+						}
+					}
+					capital_province = {
+						set_holding_type = castle_holding
+					}
+					change_government = steppe_admin_government
+				}
+			}
+		}
+		else_if = {
 			limit = {
 				has_dlc_feature = khans_of_the_steppe
 			}
 			every_ruler = {
-				limit = { government_has_flag = government_is_ulus }
+				limit = {
+					OR = {
+						government_has_flag = government_is_ulus
+						government_has_flag = government_is_steppe_admin
+					}
+				}
 				if = {
 					limit = {
 						capital_province ?= {
@@ -54,7 +87,7 @@ celes_no_dlc_on_action = {
 					}
 					change_government = nomad_government
 					if = {
-						limit = { is_independent_ruler = no }
+						limit = { top_liege != this }
 						vassal_contract_set_obligation_level = { type = liege_war_participation_obligation level = 1 }
 					}
 					
@@ -68,12 +101,12 @@ celes_no_dlc_on_action = {
 								has_holding_type = castle_holding
 							}
 							OR = {
-								has_government = imperial_government
-								has_government = feudal_governemnt
-								has_government = ulus_governemnt
+								has_government = celestial_government
+								has_government = feudal_government
+								has_government = ulus_government
 							}
 						}
-						change_government = celestial_government
+						change_government = imperial_government
 					}
 
 					trigger_event = {
@@ -93,6 +126,12 @@ celes_no_dlc_on_action = {
             limit = {
                 NOT = { has_dlc_feature = khans_of_the_steppe }
             }
+			every_ruler = {
+				limit = {
+					government_has_flag = government_is_steppe_admin
+				}
+				change_government = ulus_government
+			}
 			every_county_province = {
 				limit = {
 					OR = {
@@ -105,7 +144,7 @@ celes_no_dlc_on_action = {
 					change_government = tribal_government
 					if = {
 						limit = {
-							highest_held_title_tier = tier_empire
+							highest_held_title_tier >= tier_empire
 						}
 						add_realm_law_skip_effects = tribal_authority_3
 					}
@@ -121,29 +160,6 @@ celes_no_dlc_on_action = {
 				}
 			}
         }
-        #if = {
-            #limit = {
-                #NAND = {
-                    #has_dlc_feature = roads_to_power
-                    #has_dlc_feature = khans_of_the_steppe
-                #}
-            #}
-            ##else = {
-                ##every_ruler = {
-                    ##limit = {
-						##is_landed = yes
-						##OR = {
-							##government_has_flag = government_is_nomadic
-							##government_has_flag = government_is_herder
-						##}
-					##}
-                    ##change_government = tribal_government
-					##capital_province ?= {
-						##set_holding_type = tribal_holding
-					##}
-                ##}
-            ##}
-        #}
     }
 }
 
@@ -156,7 +172,7 @@ ulus_change_nomad = {
 
 on_game_start_after_lobby = {
 	on_actions = {
-		oe_dynasty_on_action
+		#oe_dynasty_on_action
 	}
 }
 
@@ -169,7 +185,8 @@ oe_dynasty_on_action = {
 					is_house_head = yes
 					is_landed = yes
 					top_liege ?= {
-						has_government = imperial_government
+						government_has_flag = government_is_celestial
+						#has_government = imperial_government
 					}
 				}
 				if = {
@@ -201,7 +218,7 @@ oe_dynasty_on_action = {
 					government_has_flag = government_use_estate #
 					is_house_head = yes
 					top_liege ?= {
-						is_independent_ruler = yes
+						top_liege = this
 						government_has_flag = government_use_estate #
 					}
 					NOR = {
@@ -214,7 +231,7 @@ oe_dynasty_on_action = {
 					}
 				}
 				save_scope_as = owner
-				create_noble_family_effect = yes
+				create_noble_family_effect = { GOVERNMENT_GIVER = scope:owner }
 				change_influence = major_influence_gain
 				domicile ?= { set_up_domicile_estate_effect = yes }
 				domicile ?= { move_domicile = scope:owner.capital_province }
@@ -225,29 +242,29 @@ oe_dynasty_on_action = {
 
 on_title_gain = {
 	on_actions = {
-		oe_admin_effects
+		#oe_admin_effects
 	}
 }
 
 oe_admin_effects = {
 	effect = {
 		# 世族获得头衔
-		if = {
-			limit = {
-				government_has_flag = government_is_celestial
-				government_allows = administrative
-				is_independent_ruler = no
-				scope:title.tier = tier_county
-				primary_title = { is_noble_family_title = yes }
-				NOT = {
-					any_held_title = {
-						tier >= tier_duchy
-						is_landless_type_title = no
-					}
-				}
-			}
-			transfer_noble_family_title_effect = yes
-		}
+		#if = {
+			#limit = {
+				#government_has_flag = government_is_celestial
+				#government_allows = administrative
+				#top_liege != this
+				#scope:title.tier = tier_county
+				#primary_title = { is_noble_family_title = yes }
+				#NOT = {
+					#any_held_title = {
+						#tier >= tier_duchy
+						#is_landless_type_title = no
+					#}
+				#}
+			#}
+			#transfer_noble_family_title_effect = yes
+		#}
 
 		# EP3 ADVENTURERS BECOMING LANDED
 		if = {
@@ -285,7 +302,7 @@ oe_admin_effects = {
 #每年检查世族头衔
 yearly_playable_pulse = {
 	on_actions = {
-		oe_admin_yearly_playable_pulse  #关闭家主检查  使用原版
+		#oe_admin_yearly_playable_pulse  #关闭家主检查  使用原版
 	}
 }
 oe_admin_yearly_playable_pulse = {

@@ -39,10 +39,10 @@ incite_revolts_interaction = {
 	}
 
 	is_shown = {
-		NOT = { scope:recipient = scope:actor }
+		scope:recipient != scope:actor
 		OR = {
 			scope:actor = {
-				is_landless_adventurer = yes
+				government_has_flag = government_is_landless_adventurer
 				OR = {
 					any_claim = {
 						holder = scope:recipient
@@ -50,20 +50,16 @@ incite_revolts_interaction = {
 					has_relation_rival = scope:recipient
 				}					
 			}
-			AND = {
-				has_dlc_feature = the_fate_of_iberia
-				# Only available during Opportunity, Hostility and Tension phases
-				scope:actor = {
-					any_character_struggle = {
-						involvement = involved
-						has_struggle_phase_parameter = unlocks_incite_revolts_interaction
-						# Can only target involved
-						is_secondary_character_involvement_involved_trigger = { CHAR = scope:recipient }
-					}
+			# Only available during Opportunity, Hostility and Tension phases
+			scope:actor = {
+				any_character_struggle = {
+					involvement = involved
+					has_struggle_phase_parameter = unlocks_incite_revolts_interaction
+					# Can only target involved
+					is_secondary_character_involvement_involved_trigger = { CHAR = scope:recipient }
 				}
 			}
 			AND = {
-				has_fp3_dlc_trigger = yes
 				scope:actor = {
 					has_trait = fp3_struggle_detractor
 					any_character_struggle = {
@@ -78,11 +74,13 @@ incite_revolts_interaction = {
 					}
 				}
 			}
+			scope:actor.domicile ?= {
+				has_domicile_parameter = can_use_incite_revolts
+			}
 		}
 	}
 
 	is_valid_showing_failures_only = {
-
 		custom_description = {
 			text = at_least_one_county_with_neutral_negative_opinion
 			scope:recipient = {
@@ -374,13 +372,22 @@ incite_revolts_interaction = {
 		}
 	}
 
-	ai_frequency = 60
+	ai_frequency_by_tier = {
+		barony = 0
+		county = 120
+		duchy = 60
+		kingdom = 60
+		empire = 60
+		hegemony = 60
+	}
 
 	ai_potential = {
+		short_term_gold >= medium_gold_value
 		OR = {
 			any_character_struggle = {
 				has_struggle_phase_parameter = unlocks_incite_revolts_interaction
 				involvement = involved
+				# oe cfv
 				#OR = {
 					#is_struggle_phase = struggle_iberia_phase_opportunity
 					#is_struggle_phase = struggle_iberia_phase_hostility
@@ -390,8 +397,10 @@ incite_revolts_interaction = {
 				is_struggle_type = persian_struggle
 				involvement = involved
 			}
+			domicile ?= {
+				has_domicile_parameter = can_use_incite_revolts
+			}
 		}
-		short_term_gold >= medium_gold_value
 	}
 
 	ai_targets = {
@@ -436,7 +445,7 @@ incite_revolts_interaction = {
 		# diff faith
 		modifier = {
 			add = 25
-			NOT = { faith = scope:recipient.faith }
+			faith != scope:recipient.faith
 		}
 
 		# diff culture

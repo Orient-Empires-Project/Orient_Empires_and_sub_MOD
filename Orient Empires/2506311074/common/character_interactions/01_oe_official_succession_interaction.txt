@@ -16,20 +16,27 @@
 	ai_target_quick_trigger = {
 		adult = yes
 	}
-	ai_frequency = 12
+	ai_frequency_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 24
+		kingdom = 6
+		empire = 6
+		hegemony = 6
+	}
 
 	desc = demand_admin_interaction_desc
 
 	is_shown = {
 		scope:actor = {
-			government_has_flag = government_is_celestial
+			government_has_flag = government_use_bureaucracy
 		}
 		scope:recipient = {
 			target_is_liege_or_above = scope:actor
 			is_ai = yes
 			is_ruler = yes
 			NOR = {
-				government_has_flag = government_is_celestial
+				government_has_flag = government_use_bureaucracy
 				#government_has_flag = government_is_republic
 			}
 		}
@@ -48,7 +55,6 @@
 	cooldown_against_recipient = { years = 5 }
 
 	is_valid_showing_failures_only = {
-		scope:recipient = { is_busy_in_events_localised = yes }
 		scope:recipient = { NOT = { has_strong_hook = scope:actor } }
 		scope:recipient = { is_at_war = no }
 		scope:actor = { is_at_war = no }
@@ -146,7 +152,7 @@
 			if = {
 				limit = { primary_title.tier = tier_kingdom }
 				primary_title = { save_scope_as = title }
-				set_administrative_kingdom_effect = yes
+				set_tang_administrative_kingdom_effect = yes
 			}
 		}
 	}
@@ -156,7 +162,7 @@
 	}
 
 	ai_potential = {
-		government_has_flag = government_is_celestial
+		government_has_flag = government_use_bureaucracy
 		is_adult = yes
 	}
 
@@ -353,7 +359,7 @@
 		modifier = {
 			add = -20
 			scope:actor = {
-				government_has_flag = government_is_celestial
+				government_has_flag = government_use_bureaucracy
 			}
 			desc = LIEGE_IS_IMPERIAL_REASON
 		}
@@ -566,7 +572,7 @@ oe_imperor_designate_heir_interaction = {
 			scope:secondary_recipient ?= {
 				if = {
 					limit = {
-						NOT = { this = scope:actor }
+						this != scope:actor
 					}
 					hidden_effect = {
 						send_interface_message = {
@@ -633,7 +639,7 @@ oe_chancellor_designate_heir_interaction = {
 		scope:recipient = { 
 			is_vassal_or_below_of = scope:actor.liege
 			highest_held_title_tier >= tier_county
-			government_has_flag = government_is_celestial
+			government_has_flag = government_use_bureaucracy
 			is_oe_landed_bureaucrat_trigger = yes
 			is_landed = yes
 			is_available_for_activity_trigger = yes
@@ -671,7 +677,7 @@ oe_chancellor_designate_heir_interaction = {
 			#every_vassal_or_below = {
 				#limit = {
 					#highest_held_title_tier < scope:recipient.primary_title.tier
-					#liege = { government_has_flag = government_is_celestial }
+					#liege = { government_has_flag = government_use_bureaucracy }
 					#is_oe_landed_bureaucrat_trigger = yes
 				#}
 				#add_to_list = characters
@@ -756,7 +762,7 @@ set_bureaucratic_term_interaction = {  #
 	icon = vassal_claim_liege_title_interaction	
 	desc = set_bureaucratic_term_interaction_desc
 	needs_recipient_to_open = yes
-	ai_frequency = 900
+	ai_frequency = 0
 	ai_maybe = no
 	can_send_despite_rejection = yes
 	popup_on_receive = yes
@@ -919,7 +925,7 @@ set_bureaucratic_term_interaction = {  #
 		modifier = {
 			add = 60
 			scope:actor = {
-				has_title = title:e_celestia
+				has_title = title:h_china
 			}
 			desc = AI_IMPERIAL_GOVEMENT_CAN_REVOKE_TITLE
 		}
@@ -1006,7 +1012,7 @@ sent_to_bureaucracy_pool_interaction = {
 				subject = scope:recipient
 				NOT = {
 					any_traveling_family_member = {
-						NOT = { this = scope:recipient }
+						this != scope:recipient
 						oe_kick_from_court_validity_trigger = no
 					}
 				}
@@ -1206,7 +1212,7 @@ sent_to_bureaucracy_courtier_interaction = {
 			house ?= {
 				every_house_member = {
 					limit = {
-						is_independent_ruler = no
+						top_liege != this
 						is_landed = no
 						NOT = { government_has_flag = government_is_landless_adventurer }
 						any_valid_title_to_grant_trigger = {
@@ -1221,7 +1227,7 @@ sent_to_bureaucracy_courtier_interaction = {
 				limit = { primary_title.tier >= tier_duchy }
 				every_courtier_or_guest = {
 					limit = {
-						is_independent_ruler = no
+						top_liege != this
 						government_allows = administrative
 						top_liege = scope:actor.top_liege
 						any_valid_title_to_grant_trigger = {
@@ -1259,13 +1265,13 @@ sent_to_bureaucracy_courtier_interaction = {
 		NOT = { scope:actor = scope:recipient }
 		scope:actor = {
 			is_ai = no
-			government_has_flag = government_is_celestial
+			government_has_flag = government_use_bureaucracy
 			government_allows = administrative		
 		}
 		OR = {
 			scope:recipient = {
 				is_governor = yes
-				is_independent_ruler = no
+				top_liege != this
 				government_allows = administrative
 				top_liege = scope:actor.top_liege
 			}
@@ -1709,7 +1715,7 @@ sent_to_bureaucracy_courtier_interaction = {
 			scope:secondary_recipient ?= {
 				if = {
 					limit = {
-						NOT = { this = scope:actor }
+						this != scope:actor
 					}
 					hidden_effect = {
 						send_interface_message = {

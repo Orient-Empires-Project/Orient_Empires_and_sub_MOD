@@ -7,6 +7,7 @@
 				SUB_REGION = west
 				REGION = ghw_region_anatolia
 			}
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = occident }
 		}
 		scope:custom_eastern_balkans = {
 			expanding_steppe_add_region_effect = {
@@ -49,6 +50,8 @@
 				SUB_REGION = west
 				REGION = dlc_mpo_steppe_caucasus_expansion
 			}
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = transcaspia }
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = occident }
 		}
 		# Central
 		scope:world_transoxiana = {
@@ -56,18 +59,24 @@
 				SUB_REGION = central
 				REGION = world_transoxiana
 			}
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = transcaspia }
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = central_asia }
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = occident }
 		}
 		scope:world_khorasan = {
 			expanding_steppe_add_region_effect = {
 				SUB_REGION = central
 				REGION = world_khorasan
 			}
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = central_asia }
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = occident }
 		}
 		scope:dlc_mpo_steppe_persia_expansion = {
 			expanding_steppe_add_region_effect = {
 				SUB_REGION = central
 				REGION = dlc_mpo_steppe_persia_expansion
 			}
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = occident }
 		}
 		scope:dlc_mpo_steppe_siberia_further_expansion = {
 			expanding_steppe_add_region_effect = {
@@ -78,13 +87,15 @@
 		# East
 		scope:world_steppe_tarim = {
 			expanding_steppe_add_region_effect = {
-				SUB_REGION = central
+				SUB_REGION = east
 				REGION = world_steppe_tarim
 			}
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = central_asia }
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = transcaspia }
+			tgp_silk_road_expand_steppe_effect = { SUB_REGION = occident }
 		}
 
 		# OE
-
 		scope:world_tibet = {
 			explanding_steppe_add_region_effect = {
 				SUB_REGION = central
@@ -139,5 +150,440 @@
 				REGION = world_asia_japan
 			}
 		}
+	}
+}
+
+expanding_steppe_add_region_effect = {
+	situation:the_great_steppe = {
+        situation_sub_region:steppe_$SUB_REGION$ = {
+        	add_geographical_region = $REGION$
+        }
+    }
+}
+
+nomadic_heir_cleanup_realm_effect = {
+	if = {
+		limit = {
+			is_landed = yes
+		}
+		create_title_and_vassal_change = {
+			type = granted
+			save_scope_as = change
+		}
+		if = {
+			limit = {
+				exists = liege
+			}
+			liege = {
+				save_scope_as = old_liege
+			}
+		}
+		create_character = {
+			location = $CLEANUP_SCOPE_CHAR$.location
+			template = nomadic_chieftain_character
+			save_scope_as = inheritor_char
+		}
+		every_held_title = {
+			limit = {
+				is_landless_type_title = no
+			}
+			change_title_holder = {
+				holder = scope:inheritor_char
+				change = scope:change
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
+		if = {
+			limit = {
+				exists = scope:old_liege
+			}
+			scope:inheritor_char = {
+				create_title_and_vassal_change = {
+					type = swear_fealty
+					save_scope_as = change
+				}
+				scope:recipient = {
+					change_liege = {
+						liege = scope:old_liege
+						change = scope:change
+					}
+				}
+				resolve_title_and_vassal_change = scope:change
+			}
+		}
+	}
+	if = {
+		limit = {
+			top_liege != $CLEANUP_SCOPE_CHAR$
+		}
+		create_title_and_vassal_change = {
+			type = independency
+			save_scope_as = going_independent
+			add_claim_on_loss = no
+		}
+		becomes_independent = {
+			change = scope:going_independent
+		}
+		resolve_title_and_vassal_change = scope:going_independent
+	}
+}
+
+nomadic_realm_split_effect = {
+	$ORIGINAL_REALM_HOLDER$ = {
+		save_scope_as = root_scope
+	}
+	$NEW_RULER$ = {
+		save_scope_as = new_ruler_scope
+	}
+	primary_title = {
+		every_in_de_jure_hierarchy = {
+			limit = {
+				tier = tier_county
+				holder.top_liege = scope:root_scope
+			}
+			add_to_list = de_jure_realm_counties_of_primary
+			add_to_list = combined_counties_of_primary
+		}
+		every_in_de_jure_hierarchy = {
+			limit = {
+				tier = tier_county
+				holder.top_liege != scope:root_scope
+			}
+			add_to_list = de_jure_realm_counties_of_primary_outside_realm
+		}
+		every_in_de_jure_hierarchy = {
+			limit = {
+				tier = tier_county
+			}
+			add_to_list = de_jure_realm_counties_of_primary_combined
+		}
+		every_in_de_facto_hierarchy = {
+			limit = {
+				tier = tier_county
+				holder.top_liege ?= scope:root_scope
+				NOT = { is_in_list = de_jure_realm_counties_of_primary }
+			}
+			add_to_list = de_facto_realm_counties_of_primary
+			add_to_list = combined_counties_of_primary
+		}
+	}
+	# Pick a suitable capital County, as far away from your capital as possible
+	ordered_in_list = {
+		list = de_jure_realm_counties_of_primary
+		limit = {
+			NOT = {
+				this = scope:root_scope.capital_county
+			}
+		}
+		order_by = {
+			value = "title_province.squared_distance(scope:root_scope.capital_province)"
+		}
+		save_scope_as = new_capital
+	}
+	
+	# Mark the capital duchy
+	scope:new_ruler_scope = { 
+		scope:new_capital = {
+			add_to_list = counties_given_to_sibling
+		}
+		scope:new_capital.duchy = {
+			save_scope_as = capital_duchy
+			add_to_list = duchies_given_to_sibling
+			add_to_list = duchies_to_de_jure_shift
+			if = {
+				limit = {
+					holder.top_liege = scope:root_scope
+					holder.primary_title.tier < tier_kingdom
+				}
+				holder = {
+					add_to_list = rulers_transferred
+				}
+			}
+			every_in_de_jure_hierarchy = {
+				limit = {
+					is_in_list = combined_counties_of_primary
+				}
+				add_to_list = capital_duchy_counties
+				if = {
+					limit = {
+						NOT = {
+							is_in_list = counties_given_to_sibling
+						}
+					}
+					add_to_list = counties_given_to_sibling
+				}
+				if = {
+					limit = {
+						holder.top_liege = scope:root_scope
+						holder.primary_title.tier < tier_kingdom
+					}
+					holder = {
+						add_to_list = rulers_transferred
+					}
+				}
+			}
+		}
+		# Expand in a 'ring' first
+		scope:new_capital.duchy = {
+			every_title_to_title_neighboring_duchy = {
+				limit = {
+					any_in_de_jure_hierarchy = {
+						OR = {
+							is_in_list = de_jure_realm_counties_of_primary
+							is_in_list = de_jure_realm_counties_of_primary_outside_realm
+						}
+					}
+				}
+				add_to_list = duchies_to_de_jure_shift
+				if = {
+					limit = {
+						any_in_de_jure_hierarchy = {
+							is_in_list = de_jure_realm_counties_of_primary
+						}
+					}
+					add_to_list = duchies_given_to_sibling
+					if = {
+						limit = {
+							holder = {
+								top_liege = scope:root_scope
+								primary_title.tier < tier_kingdom
+								NOT = { is_in_list = rulers_transferred }
+							}
+						}
+						holder = {
+							add_to_list = rulers_transferred
+						}
+					}
+					every_in_de_jure_hierarchy = {
+						limit = {
+							is_in_list = de_jure_realm_counties_of_primary
+						}
+						add_to_list = counties_given_to_sibling
+						if = {
+							limit = {
+								holder = {
+									top_liege = scope:root_scope
+									primary_title.tier < tier_kingdom
+									NOT = { is_in_list = rulers_transferred }
+								}
+							}
+							holder = {
+								add_to_list = rulers_transferred
+							}
+						}
+					}
+					every_in_de_jure_hierarchy = {
+						limit = {
+							NOT = { is_in_list = de_jure_realm_counties_of_primary }
+						}
+						add_to_list = counties_de_jure_shifted_to_sibling
+					}
+				}
+			}
+		}
+		while = {
+			count = 50
+			limit = {
+				"list_size(counties_given_to_sibling)" < {
+					value = "list_size(de_jure_realm_counties_of_primary)"
+					multiply = $SPLIT_VALUE$
+				}
+			}
+			ordered_in_list = {
+				list = de_jure_realm_counties_of_primary_combined
+				limit = {
+					NOR = {
+						duchy = scope:root_scope.capital_county.duchy
+						duchy = { is_in_list = duchies_to_de_jure_shift }
+						is_in_list = counties_given_to_sibling
+					}
+					any_neighboring_county = {
+						OR = {
+							is_in_list = counties_given_to_sibling
+							duchy = { is_in_list = duchies_to_de_jure_shift }
+						}
+					}
+				}
+				order_by = {
+					value = "title_province.squared_distance(scope:root_scope.capital_province)"
+				}
+				duchy = {
+					add_to_list = duchies_to_de_jure_shift
+					if = {
+						limit = {
+							any_in_de_jure_hierarchy = {
+								is_in_list = de_jure_realm_counties_of_primary
+							}
+						}
+						add_to_list = duchies_given_to_sibling
+						if = {
+							limit = {
+								holder = {
+									top_liege = scope:root_scope
+									primary_title.tier < tier_kingdom
+									NOT = { is_in_list = rulers_transferred }
+								}
+							}
+							holder = {
+								add_to_list = rulers_transferred
+							}
+						}
+						every_in_de_jure_hierarchy = {
+							limit = {
+								is_in_list = de_jure_realm_counties_of_primary
+							}
+							add_to_list = counties_given_to_sibling
+							if = {
+								limit = {
+									holder = {
+										top_liege = scope:root_scope
+										primary_title.tier < tier_kingdom
+										NOT = { is_in_list = rulers_transferred }
+									}
+								}
+								holder = {
+									add_to_list = rulers_transferred
+								}
+							}
+						}
+						every_in_de_jure_hierarchy = {
+							limit = {
+								NOT = { is_in_list = de_jure_realm_counties_of_primary }
+							}
+							add_to_list = counties_de_jure_shifted_to_sibling
+						}
+					}
+				}
+			}
+		}
+		
+		# Hand out the titles properly
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			add_claim_on_loss = yes
+			save_scope_as = change
+		}
+		
+		# Give capital + capital duchy
+		scope:capital_duchy = {
+			change_title_holder = {
+				holder = scope:new_ruler_scope
+				change = scope:change
+			}
+		}
+		every_in_list = {
+			list = capital_duchy_counties
+			change_title_holder = {
+				holder = scope:new_ruler_scope
+				change = scope:change
+			}
+		}
+		
+		# Form a new kingdom
+		save_scope_as = founder
+		scope:capital_duchy = {
+			save_scope_as = old_title
+		}
+		create_dynamic_title = {
+			tier = kingdom
+			name = NEW_CREATED_TITLE_NAME
+		}
+		scope:new_title = {
+			save_scope_as = new_kingdom_title
+			change_title_holder = {
+				holder = scope:new_ruler_scope
+				change = scope:change
+			}
+			generate_coa = yes
+			set_de_jure_liege_title = scope:root_scope.primary_title.empire
+		}
+		
+		# Do everything else
+		every_in_list = {
+			list = counties_given_to_sibling
+			if = {
+				limit = {
+					holder = {
+						NOT = {
+							this = scope:new_ruler_scope
+						}
+						OR = {
+							this = scope:root_scope
+							primary_title.tier >= tier_kingdom
+						}
+					}
+				}
+				change_title_holder = {
+					holder = scope:new_ruler_scope
+					change = scope:change
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						this = scope:new_ruler_scope
+					}
+					holder = {
+						liege = scope:root_scope
+						primary_title.tier < tier_kingdom
+					}
+				}
+				holder = {
+					change_liege = {
+						liege = scope:new_ruler_scope
+						change = scope:change
+					}
+				}
+			}
+		}
+		
+		resolve_title_and_vassal_change = scope:change
+			
+		every_in_list = {
+			list = duchies_to_de_jure_shift
+			set_de_jure_liege_title = scope:new_kingdom_title
+		}
+	}
+}
+
+mpo_abuse_authority_county_effect = {
+	location.duchy = {
+	    every_de_jure_county = {
+	        limit = {
+	            county_ready_for_abuse_trigger = yes
+	        }
+	        change_county_fertility = -100
+	        change_county_control = -40
+	        add_county_modifier = {
+		    	modifier = mpo_paiza_abused_county_modifier
+		    	years = 4
+		    }
+			add_to_temporary_list = counties_to_abuse
+	    }
+		every_de_jure_county = {
+			limit = {
+	            county_ready_for_abuse_trigger = yes
+	        }
+			holder = {
+	            add_opinion = {
+	                modifier = angry_opinion
+	                target = root
+	                opinion = -30
+	            }
+	        }
+		}
+		every_de_jure_county = {
+			limit = {
+	            county_ready_for_abuse_trigger = yes
+	        }
+			custom = custom.mpo_resources_gained_abuse
+			root.domicile ?= {
+	            change_herd = medium_herd_value
+	        }
+	        root = {
+	            add_gold = medium_gold_value
+	            add_prestige = medium_prestige_value         
+	        }
+		}           
 	}
 }

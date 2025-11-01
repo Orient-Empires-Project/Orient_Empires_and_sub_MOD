@@ -1,6 +1,6 @@
 ﻿#称帝改元 
 change_guohao_effect = {
-	title:e_celestia = { set_title_name = $TITLENAME$ }
+	title:h_china = { set_title_name = $TITLENAME$ }
 }
 
 found_new_chinese_empire_effect = {
@@ -18,10 +18,10 @@ found_new_chinese_empire_effect = {
 		save_scope_as = old_title
 	}
 	hidden_effect = {
-		title:e_celestia = {
+		title:h_china = {
 			#every_in_de_jure_hierarchy = {
 				#limit = { tier >= tier_duchy }
-				#set_de_jure_liege_title = title:e_celestia
+				#set_de_jure_liege_title = title:h_china
 			#}
 			set_color_from_title = scope:old_title 
 			#set_capital_county = title:c_luoyang
@@ -30,14 +30,14 @@ found_new_chinese_empire_effect = {
 	save_scope_as = founder
 	if = {
 		limit = {
-			NOT = { exists = title:e_celestia.holder }
+			NOT = { exists = title:h_china.holder }
 		}
 		create_title_and_vassal_change = {
 			type = created
 			save_scope_as = title_change
 			add_claim_on_loss = yes
 		}
-		title:e_celestia = {
+		title:h_china = {
 			change_title_holder = {
 				holder = scope:founder
 				change = scope:title_change
@@ -47,9 +47,9 @@ found_new_chinese_empire_effect = {
 	}
 	else_if = {
 		limit = {
-			NOT = { title:e_celestia.holder = scope:founder }
+			NOT = { title:h_china.holder = scope:founder }
 		}
-		title:e_celestia.holder = {
+		title:h_china.holder = {
 			save_scope_as = previous_holder
 			hidden_effect = {
 				primary_title = {
@@ -82,7 +82,7 @@ found_new_chinese_empire_effect = {
 			save_scope_as = title_change
 			add_claim_on_loss = yes
 		}
-		title:e_celestia = {
+		title:h_china = {
 			change_title_holder = {
 				holder = scope:founder
 				change = scope:title_change
@@ -90,9 +90,9 @@ found_new_chinese_empire_effect = {
 		}
 		resolve_title_and_vassal_change = scope:title_change
 	}
-	title:e_celestia = {
+	title:h_china = {
 		#set_title_name = scope:old_title
-		set_coa = title:e_celestia
+		set_coa = title:h_china
 	}
 	scope:founder = {
 		add_trait = founding_monarch
@@ -108,7 +108,7 @@ found_new_chinese_empire_effect = {
 			quality = illustrious
 			chronicle = new_title
 			properties = {
-				title = title:e_celestia
+				title = title:h_china
 				founder = root
 			}
 		}
@@ -118,7 +118,7 @@ found_new_chinese_empire_effect = {
 		if = {
 			limit = {
 				top_liege = scope:founder
-				NOT = { this = root }
+				this != root
 			}
 			trigger_event = major_decisions.1104
 		}
@@ -126,7 +126,7 @@ found_new_chinese_empire_effect = {
 			#Notify any players who lose de jure territory
 			limit = {
 				exists = scope:send_notifications
-				NOT = { this = root }
+				this != root
 				NOT = { top_liege = scope:founder }
 				any_held_title = {
 					any_in_de_jure_hierarchy = {
@@ -165,9 +165,9 @@ found_new_chinese_empire_effect = {
 				exists = capital_province
 				capital_province = { geographical_region = world_asia_china }
 				primary_title.tier > tier_county
-				NOT = { this = scope:founder }
+				this != scope:founder
 				#NOT = { top_liege = scope:founder }
-				is_independent_ruler = yes
+				top_liege = this
 				highest_held_title_tier < tier_empire
 			}
 			save_scope_as = china_vassal
@@ -228,7 +228,7 @@ new_chinese_dynasty_took_all_effect = {
 				save_scope_as = change
 				add_claim_on_loss = yes
 			}
-			title:e_celestia = {
+			title:h_china = {
 				every_in_de_jure_hierarchy = {					
 					limit = {
 						tier > tier_barony
@@ -279,7 +279,7 @@ new_chinese_dynasty_took_all_effect = {
 							OR = {
 								is_landed = no
 								AND = {
-									is_independent_ruler = no
+									top_liege != this
 									top_liege = scope:new_ruler
 								}
 							}
@@ -330,9 +330,9 @@ found_steppe_chinese_empire_effect = {
 				NOT =  { exists = title:e_cathay.holder }
 				scope:founder = {
 					OR = {
-						culture = culture:khitan
-						culture = culture:shatuo
-						culture = culture:jurchen
+						culture ?= culture:khitan
+						culture ?= culture:shatuo
+						culture ?= culture:jurchen
 					}
 				}
 			}
@@ -381,7 +381,7 @@ found_steppe_chinese_empire_effect = {
 					empire = {
 						exists = holder
 						holder = {
-							NOT = { this = root }
+							this != root
 							is_ai = no
 						}
 					}
@@ -440,7 +440,7 @@ found_steppe_chinese_empire_effect = {
 			if = {
 				limit = {
 					top_liege = scope:founder
-					NOT = { this = root }
+					this != root
 				}
 				trigger_event = major_decisions.1104
 			}
@@ -448,7 +448,7 @@ found_steppe_chinese_empire_effect = {
 				#Notify any players who lose de jure territory
 				limit = {
 					exists = scope:send_notifications
-					NOT = { this = root }
+					this != root
 					NOT = { top_liege = scope:founder }
 					any_held_title = {
 						any_in_de_jure_hierarchy = {
@@ -486,7 +486,7 @@ found_steppe_chinese_empire_effect = {
 	}	
 
 	root = {
-		add_pressed_claim = title:e_celestia
+		add_pressed_claim = title:h_china
 		add_trait = founding_monarch
 		spawn_army = {
 			uses_supply = no
@@ -590,8 +590,7 @@ create_tang_empire_scripted_effect = {
 					tier >= tier_duchy
 				}
 				limit = {
-					exists = holder
-					holder = {
+					holder ?= {
 						NOR = {
 							this = root
 							target_is_liege_or_above = root
@@ -618,7 +617,7 @@ create_tang_empire_scripted_effect = {
 		}
 	}
 	root = {
-		add_pressed_claim = title:e_celestia
+		add_pressed_claim = title:h_china
 	}
 	if = {
 		limit = {
@@ -660,7 +659,7 @@ build_han_empire_effect = {
 	resolve_title_and_vassal_change = scope:title_change
 
 	root = {
-		add_pressed_claim = title:e_celestia
+		add_pressed_claim = title:h_china
 		add_trait = founding_monarch
 		house = { add_house_modifier = e_han }
 		change_to_celes_government_effect = yes
@@ -810,7 +809,7 @@ found_min_kingdom_effect = {
 							kingdom = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -820,7 +819,7 @@ found_min_kingdom_effect = {
 							empire = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -881,14 +880,14 @@ found_min_kingdom_effect = {
 			if = {
 				limit = {
 					top_liege = scope:founder
-					NOT = { this = root }
+					this != root
 				}
 				trigger_event = major_decisions.1102
 			}
 			else_if = {
 				limit = {
 					exists = scope:send_notifications
-					NOT = { this = root }
+					this != root
 					NOT = { top_liege = scope:founder }
 					any_held_title = {
 						any_in_de_jure_hierarchy = {
@@ -1028,7 +1027,7 @@ found_wuyue_kingdom_effect = {
 							kingdom = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -1038,7 +1037,7 @@ found_wuyue_kingdom_effect = {
 							empire = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -1097,14 +1096,14 @@ found_wuyue_kingdom_effect = {
 			if = {
 				limit = {
 					top_liege = scope:founder
-					NOT = { this = root }
+					this != root
 				}
 				trigger_event = major_decisions.1102
 			}
 			else_if = {
 				limit = {
 					exists = scope:send_notifications
-					NOT = { this = root }
+					this != root
 					NOT = { top_liege = scope:founder }
 					any_held_title = {
 						any_in_de_jure_hierarchy = {
@@ -1146,14 +1145,14 @@ found_wuyue_kingdom_effect = {
 
 replace_celestia_empire_effect = {
 
-	#destroy_title = title:e_celestia
+	#destroy_title = title:h_china
 
 	create_title_and_vassal_change = {
 			type = usurped
 			save_scope_as = change
 			add_claim_on_loss = yes
 		}
-		title:e_celestia = {
+		title:h_china = {
 			change_title_holder = {
 				holder = root
 				change = scope:change
@@ -1272,7 +1271,7 @@ found_wei_kingdom_effect = {
 							kingdom = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -1282,7 +1281,7 @@ found_wei_kingdom_effect = {
 							empire = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -1341,14 +1340,14 @@ found_wei_kingdom_effect = {
 			if = {
 				limit = {
 					top_liege = scope:founder
-					NOT = { this = root }
+					this != root
 				}
 				trigger_event = major_decisions.1102
 			}
 			else_if = {
 				limit = {
 					exists = scope:send_notifications
-					NOT = { this = root }
+					this != root
 					NOT = { top_liege = scope:founder }
 					any_held_title = {
 						any_in_de_jure_hierarchy = {
@@ -1486,7 +1485,7 @@ found_han_kingdom_effect = {
 							kingdom = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -1496,7 +1495,7 @@ found_han_kingdom_effect = {
 							empire = {
 								exists = holder
 								holder = {
-									NOT = { this = root }
+									this != root
 									is_ai = no
 								}
 							}
@@ -1556,14 +1555,14 @@ found_han_kingdom_effect = {
 			if = {
 				limit = {
 					top_liege = scope:founder
-					NOT = { this = root }
+					this != root
 				}
 				trigger_event = major_decisions.1102
 			}
 			else_if = {
 				limit = {
 					exists = scope:send_notifications
-					NOT = { this = root }
+					this != root
 					NOT = { top_liege = scope:founder }
 					any_held_title = {
 						any_in_de_jure_hierarchy = {
@@ -1610,27 +1609,27 @@ found_western_protectorate_effect = {
 
 	every_held_title = { #Should shift all dejure of all Empires owned at the time.
 		limit = {
-			tier = tier_empire
+			tier >= tier_empire
 		}
 		every_in_de_jure_hierarchy = {
 			limit = {
 				tier = tier_kingdom
-				NOT = { target_is_de_jure_liege_or_above = title:e_celestia }
+				NOT = { target_is_de_jure_liege_or_above = title:h_china }
 			}
-			set_de_jure_liege_title = title:e_celestia				
+			set_de_jure_liege_title = title:h_china				
 		}
 	}
 	every_held_title = { #Completely Controlled Kingdoms as well.
 		limit = {
 			tier = tier_kingdom
 			root = { completely_controls = prev }
-			NOT = { target_is_de_jure_liege_or_above = title:e_celestia }
+			NOT = { target_is_de_jure_liege_or_above = title:h_china }
 		}
-		set_de_jure_liege_title = title:e_celestia
+		set_de_jure_liege_title = title:h_china
 	}
 	if = {
 		limit = {
-			NOT = { has_title = title:e_celestia }
+			NOT = { has_title = title:h_china }
 		}
 		add_trait = longyou
 		
@@ -1665,7 +1664,7 @@ found_western_protectorate_effect = {
 taichang_banner_effect = {
 	custom_description = {
 		text = taichang_banner_effect_desc
-		title:e_celestia = { set_coa = THIS }
+		title:h_china = { set_coa = THIS }
 	}
 }
 
@@ -1931,7 +1930,7 @@ found_puppet_empire_effect = {
 				highest_held_title_tier <= tier_duchy
 				highest_held_title_tier >= tier_county
 				culture = { has_cultural_pillar = heritage_chinese }
-				capital_province.empire = title:e_celestia
+				capital_province.empire = title:h_china
 			}
 			change_liege = {
 				liege = scope:puppet
@@ -2059,7 +2058,7 @@ claim_fake_chinese_emperor_effect = {
 	}
 
 	root = {
-		add_pressed_claim = title:e_celestia
+		add_pressed_claim = title:h_china
 		#add_trait = founding_monarch
 		add_character_modifier = {
 			modifier = claim_fake_chinese_emperor_modifier
@@ -2067,9 +2066,9 @@ claim_fake_chinese_emperor_effect = {
 	  	}
 	}
 	if = {
-		limit = { exists = title:e_celestia.holder }
+		limit = { exists = title:h_china.holder }
 		reverse_add_opinion = {
-			target = title:e_celestia.holder
+			target = title:h_china.holder
 			modifier = angry_opinion
 			opinion = -50
 		}
@@ -2137,14 +2136,14 @@ found_fake_chinese_kingdom_effect = {
 		if = {
 			limit = {
 				top_liege = scope:founder
-				NOT = { this = root }
+				this != root
 			}
 			trigger_event = major_decisions.1102
 		}
 		else_if = {
 			limit = {
 				exists = scope:send_notifications
-				NOT = { this = root }
+				this != root
 				NOT = { top_liege = scope:founder }
 				any_held_title = {
 					any_in_de_jure_hierarchy = {
