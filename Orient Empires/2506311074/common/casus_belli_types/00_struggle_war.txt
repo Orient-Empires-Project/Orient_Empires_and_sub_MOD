@@ -40,6 +40,7 @@
 			scope:attacker = {
 				any_character_struggle = {
 					involvement = involved
+					# cfv
 					struggle_can_access_unlocks_bargain_fealty_interaction_trigger = yes
 					is_secondary_character_involvement_either_trigger = { CHAR = scope:defender }
 				}
@@ -63,22 +64,12 @@
 	ai_score_mult = {
 		value = struggle_conquest_ai_score_value
 
-		#Declaring war on the frankokratia leader can really ruin the whole thing
-		if = {
-			limit = {
-				scope:defender = {
-					any_owned_story = {
-						story_type = frankokratia_story
-						NOT = { has_variable = franko_war_complete }
-					}
-				}
-			}
-			multiply = 0
-		}
+		add = frankokratia_leader_protection_value #Set back to 0. Declaring war on the frankokratia leader can really ruin the whole thing
 	}
 
 	valid_to_start = {
 		scope:target = {
+			is_landless_type_title = no
 			valid_struggle_cb_target_trigger = { CHARACTER = scope:attacker }
 		}
 	}
@@ -89,8 +80,7 @@
 				list = target_titles
 				any_in_de_jure_hierarchy = {
 					tier >= tier_county
-					exists = holder
-					holder = {
+					holder ?= {
 						OR = {
 							this = scope:defender
 							target_is_liege_or_above = scope:defender
@@ -124,7 +114,7 @@
 			value = 0
 			if = {
 				limit = {
-					NOT = { scope:defender.faith = scope:attacker.faith }
+					scope:defender.faith != scope:attacker.faith
 				}
 				# Struggle multipliers.
 				value = struggle_cb_phase_modifier_cost
@@ -224,6 +214,9 @@
 
 		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
 		laamp_as_mercenary_payout_tooltip_effect = yes
+
+		#Mandalas gain or lose piety/devotion depending on Decree
+		mandala_war_victory_effects = yes
 	}
 
 	on_white_peace_desc = {
@@ -295,8 +288,15 @@
 		# Legitimacy
 		add_legitimacy_attacker_defeat_effect = yes
 
-		#EP2 accolade glory gain for winning against higher ranked enemy
-		scope:defender = { accolade_defender_war_end_glory_gain_low_effect = yes }
+		scope:defender = { 
+			mandala_peacemaker_perk_serenity_effect = yes
+			#EP2 accolade glory gain for winning against higher ranked enemy
+			accolade_defender_war_end_glory_gain_high_effect = yes
+			# Prestige for Defender
+			add_prestige_war_defender_effect = {
+				PRESTIGE_VALUE = medium_prestige_value
+			}
+		}
 		
 		# Prestige loss for the attacker
 		scope:attacker = {
@@ -306,12 +306,6 @@
 			add_prestige = {
 				value = medium_prestige_value
 				multiply = -1.0
-			}
-		}
-		# Prestige for Defender
-		scope:defender = {
-			add_prestige_war_defender_effect = {
-				PRESTIGE_VALUE = medium_prestige_value
 			}
 		}
 		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
@@ -328,6 +322,9 @@
 
 		# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
 		laamp_as_mercenary_payout_tooltip_effect = yes
+
+		#Mandalas gain or lose piety/devotion depending on Decree
+		mandala_war_defeat_effects = yes
 	}
 
 	transfer_behavior = transfer

@@ -1,0 +1,2629 @@
+﻿# Effect called when claiming the Mandate of Heaven
+tgp_claim_mandate_of_heaven_effect = {
+	save_scope_as = new_son_of_heaven
+	set_variable = {
+		name = new_son_of_heaven
+		value = scope:new_son_of_heaven
+		days = 2
+	}
+
+	if = {
+		limit = {
+			royal_members_trigger = no ##非皇族
+		}
+		father = {
+			if = {
+				limit = { is_alive = no }
+				add_trait = miaohao_gaozu
+			}
+		}
+		add_trait = founding_monarch
+	}
+	else_if = {
+		limit = {
+			royal_members_trigger = yes ##前皇族
+		}
+		add_trait = restoration_monarch
+	}
+
+	every_vassal = {
+		limit = {
+			any_held_title = {
+				OR = {
+					exists = var:ceremonial_title
+					exists = var:administrative_ui_special_title
+				}
+			}
+		}
+		random_held_title = {
+			limit = { exists = var:ceremonial_title }
+			save_scope_as = ceremonial_title
+		}
+		save_temporary_scope_as = ceremonial_liege
+		# TGP end the ceremonial liege
+		# MESSAGE
+		hidden_effect = {
+			every_player = {
+				limit = { top_liege = scope:ceremonial_liege.top_liege }
+				send_interface_message = {
+					type = event_generic_bad
+					title = tgp_destroy_ceremonial_liege_throne_title
+					left_icon = scope:ceremonial_liege
+					right_icon = scope:new_son_of_heaven
+					show_as_tooltip = {
+						scope:new_son_of_heaven = { destroy_title = scope:ceremonial_title }
+						scope:ceremonial_liege = { add_trait = former_emperor }
+					}
+				}
+			}
+		}
+		# Actually destroy
+		scope:ceremonial_liege = { add_trait = former_emperor }
+		scope:new_son_of_heaven = { destroy_title = scope:ceremonial_title }
+	}
+	set_variable = {
+		name = claimed_mandate_var
+		value = yes
+		days = 30
+	}
+	# Grant the Hegemon title
+	create_title_and_vassal_change = {
+		type = created
+		save_scope_as = mandate_change
+		add_claim_on_loss = no
+	}
+	title:h_china = {
+		change_title_holder = {
+			holder = scope:new_son_of_heaven
+			change = scope:mandate_change
+		}
+	}
+	resolve_title_and_vassal_change = scope:mandate_change
+	# destroy empire titles for merit hgemony, instead force them granting titles away
+	if = {
+		limit = {
+			is_ai = yes
+		}
+		every_held_title = {
+			title_tier = empire
+			prev = { destroy_title = prev }
+		}
+	}
+	# Adjust tributaries
+	if = {
+		limit = {
+			number_of_tributaries > 0
+		}
+		# Vassalize tributaries within China (except if it's a player)
+		create_title_and_vassal_change = {
+			type = swear_fealty
+			save_scope_as = mandate_vassalize_tributaries_change
+		}
+		every_tributary = {
+			limit = {
+				is_ai = yes
+				primary_title = {
+					target_is_de_jure_liege_or_above = title:h_china
+				}
+			}
+			hidden_effect = { end_tributary = yes }
+			change_liege = {
+				liege = scope:new_son_of_heaven
+				change = scope:mandate_vassalize_tributaries_change
+			}
+		}
+		resolve_title_and_vassal_change = scope:mandate_vassalize_tributaries_change
+		# Turn your other tributaries into hegemonic
+		every_tributary = {
+			custom = custom.every_tributary
+			limit = {
+				NAND = {
+					is_ai = yes
+					primary_title = {
+						target_is_de_jure_liege_or_above = title:h_china
+					}
+				}
+			}
+			start_tributary = {
+				contract_group = tributary_celestial
+				suzerain = scope:new_son_of_heaven
+			}
+		}
+	}
+	scope:new_son_of_heaven = {
+		# Get some gold back from any owned domicile
+		nomad_domicile_refund_effect = yes
+		# Become celestial
+		if = {
+			limit = {
+				NOT = { has_government = celestial_government }
+			}
+			tgp_domicile_conversion_when_changing_government_type = {
+				NEW_DOMICILE_TYPE = east_asian_estate
+				NEW_GOVERNMENT_TYPE = celestial_government
+			}
+			change_government = celestial_government
+		}
+		# Get the de jure capital if possible
+		if = {
+			limit = {
+				title:h_china.title_capital_county.holder ?= {
+					OR = {
+						any_liege_or_above = { this = scope:new_son_of_heaven }
+						this = scope:new_son_of_heaven
+					}
+				}
+			}
+			if = {
+				limit = {
+					title:h_china.title_capital_county.holder = {
+						this != scope:new_son_of_heaven
+					}
+				}
+				create_title_and_vassal_change = {
+					type = revoked
+					save_scope_as = mandate_capital_change
+					add_claim_on_loss = no
+				}
+				title:h_china.title_capital_county = {
+					change_title_holder = {
+						holder = scope:new_son_of_heaven
+						change = scope:mandate_capital_change
+					}
+				}
+				resolve_title_and_vassal_change = scope:mandate_capital_change
+			}
+			set_realm_capital = title:h_china.title_capital_county
+		}
+		# Provide the new emperor with suitable rewards
+		hidden_effect = {
+			add_treasury = {
+				value = gold
+				min = 1000
+			}
+			change_influence = {
+				value = monumental_influence_gain
+				multiply = 4
+			}
+			add_legitimacy = mandate_legitimacy_max
+		}
+		dynasty = {
+			add_dynasty_prestige = excessive_dynasty_prestige_value
+		}
+		add_character_modifier = claim_mandate_decision_modifier
+		# Increase control of every owned county within China
+		hidden_effect = {
+			every_realm_county = {
+				custom = custom_every_realm_county
+				limit = {
+					target_is_de_jure_liege_or_above = title:h_china
+				}
+				change_county_control = 25
+			}
+		}
+		show_as_tooltip = { # We show this as a tooltip because it looks better than the above effect
+			title:h_china = { change_county_control = 25 }
+		}
+		# Populate the emperor's court with high merit characters
+		hidden_effect = {
+			while = {
+				count = 5
+				
+				create_character = {
+					template = tgp_minister_administrator_template
+					employer = scope:new_son_of_heaven
+					faith = scope:new_son_of_heaven.faith
+					culture = scope:new_son_of_heaven.culture
+					save_scope_as = mandate_new_administrator_temp
+				}
+				scope:mandate_new_administrator_temp ?= {
+					change_merit = empire_starting_merit_value
+					assign_completed_exams_based_on_merit_effect = yes
+				}
+				create_character = {
+					template = tgp_minister_diplomat_template
+					employer = scope:new_son_of_heaven
+					faith = scope:new_son_of_heaven.faith
+					culture = scope:new_son_of_heaven.culture
+					save_scope_as = mandate_new_diplomat_temp
+				}
+				scope:mandate_new_diplomat_temp ?= {
+					change_merit = empire_starting_merit_value
+					assign_completed_exams_based_on_merit_effect = yes
+				}
+				create_character = {
+					template = tgp_minister_scholar_template
+					employer = scope:new_son_of_heaven
+					faith = scope:new_son_of_heaven.faith
+					culture = scope:new_son_of_heaven.culture
+					save_scope_as = mandate_new_scholar_temp
+				}
+				scope:mandate_new_scholar_temp ?= {
+					change_merit = empire_starting_merit_value
+					assign_completed_exams_based_on_merit_effect = yes
+				}
+				create_character = {
+					template = tgp_minister_scholar_template
+					employer = scope:new_son_of_heaven
+					faith = scope:new_son_of_heaven.faith
+					culture = scope:new_son_of_heaven.culture
+					save_scope_as = mandate_new_scholar_temp
+				}
+				scope:mandate_new_scholar_temp ?= {
+					change_merit = empire_starting_merit_value
+					assign_completed_exams_based_on_merit_effect = yes
+				}
+				create_character = {
+					template = tgp_minister_commander_template
+					employer = scope:new_son_of_heaven
+					faith = scope:new_son_of_heaven.faith
+					culture = scope:new_son_of_heaven.culture
+					save_scope_as = mandate_new_commander_temp
+				}
+				scope:mandate_new_commander_temp ?= {
+					change_merit = empire_starting_merit_value
+					assign_completed_exams_based_on_merit_effect = yes
+				}
+			}
+			every_courtier = {
+				limit = {
+					merit >= 3000
+				}
+				random = {
+					chance = 50
+					create_noble_family_effect = { GOVERNMENT_GIVER = scope:new_son_of_heaven }
+				}
+			}
+		}
+	}
+	# Convert eligible vassals to celestial
+	custom_tooltip = {
+		text = claim_mandate_turn_vassal_celestial_desc
+		every_vassal_or_below = {
+			limit = {
+				highest_held_title_tier >= tier_county
+				NOR = {
+					# Don't change republics or theocracies
+					government_has_flag = government_is_republic
+					government_has_flag = government_is_theocracy
+					# And just in case, don't change any unfit governments
+					government_has_flag = cannot_be_vassal_or_liege
+				}
+				capital_province ?= {
+					OR = {
+						has_holding_type = castle_holding
+						has_holding_type = city_holding
+						has_holding_type = temple_citadel_holding
+					}
+				}
+				is_ai = yes
+			}
+			if = {
+				limit = {
+					# No need to change if they are celestial already
+					NOT = { government_has_flag = government_is_celestial }
+				}
+				change_to_administrative_effect = yes
+			}
+			# Give characters some merit and exams based on their position
+			change_merit = {
+				value = assign_merit_based_on_tier_value
+				add = {
+					value = age
+					multiply = 2
+				}
+				add = {
+					value = sum_of_all_skills_value
+					multiply = 2
+				}
+			}
+			assign_completed_exams_based_on_merit_effect = yes
+		}
+	}
+	custom_tooltip = claim_mandate_turn_independent_realms_celestial_desc
+	hidden_effect = {
+		#create_title_and_vassal_change = {
+			#type = swear_fealty
+			#save_scope_as = mandate_vassalize_celestial_families_change
+		#}
+		# Vassalize any stray celestial noble families or independent realms within the Cycle's region - we also give them merit to fill out the candidate pools
+		every_independent_ruler = {
+			limit = {
+				this != scope:new_son_of_heaven
+				capital_province.county ?= {
+					target_is_de_jure_liege_or_above = title:h_china
+				}
+				NOT = {	government_has_flag = cannot_be_vassal_or_liege }
+				OR = {
+					government_has_flag = government_is_celestial
+					culture = {
+						has_same_culture_heritage = scope:new_son_of_heaven.culture
+					}
+					dynasty = scope:new_son_of_heaven.dynasty
+				}
+				#is_ai = yes
+			}
+			#改朝换代抉择
+			trigger_event = east_title.0001
+			#change_liege = {
+				#liege = scope:new_son_of_heaven
+				#change = scope:mandate_vassalize_celestial_families_change
+			#}
+			#change_merit = {
+				#value = { 3000 8000 }
+				#add = {
+					#value = age
+					#multiply = 2
+				#}
+				#add = {
+					#value = sum_of_all_skills_value
+					#multiply = 2
+				#}
+			#}
+			#assign_completed_exams_based_on_merit_effect = yes
+			#if = {
+				#limit = {
+					#highest_held_title_tier >= tier_county
+					#NOR = {
+						## Don't change republics or theocracies
+						#government_has_flag = government_is_republic
+						#government_has_flag = government_is_theocracy
+						## No need to change if they are celestial already
+						#government_has_flag = government_is_celestial
+					#}
+					#capital_province ?= {
+						#OR = {
+							#has_holding_type = castle_holding
+							#has_holding_type = city_holding
+							#has_holding_type = temple_citadel_holding
+						#}
+					#}
+				#}
+				#change_to_administrative_effect = yes
+			#}
+		}
+		#resolve_title_and_vassal_change = scope:mandate_vassalize_celestial_families_change
+		# Ensure that we get a family title and a domicile if we don't
+		change_to_administrative_effect = yes
+		# set up the council holder as dejure liege of the ministry title, as this effect is not called with the same scope as council onactions
+		scope:new_son_of_heaven = {
+			save_scope_as = councillor_liege
+		}
+		# Make sure ministers are assigned correctly
+		fill_the_ministry_effect = yes
+	}
+	situation:dynastic_cycle = {
+		if = {
+			limit = {
+				situation_top_has_catalyst = catalyst_hegemon_gains_mandate_of_heaven
+				scope:new_son_of_heaven = {
+					is_valid_celestial_dynasty = yes
+				}
+			}
+			trigger_situation_catalyst = catalyst_hegemon_gains_mandate_of_heaven
+		}
+		else = {
+			custom_tooltip = claim_mandate_trigger_conquest_tt
+		}
+		hidden_effect = {
+			every_situation_participant = {
+				every_owned_story = {
+					limit = {
+						story_type = story_take_mandate_of_heaven
+					}
+					end_story = yes
+				}
+			}
+		}
+	}
+}
+
+# Effect called when entering the Chaos Phase
+tgp_chaos_shattering_effect = {
+	hidden_effect = {
+		title:h_china = {
+			holder = { save_temporary_scope_as = old_emperor_temp }
+			# Reset imperial examination activity
+			set_variable = {
+				name = years_since_imperial_examination
+				value = 0
+			}
+		}
+		#put every vassal of the current hegemon in a list
+		situation:dynastic_cycle = {
+			every_situation_participant = {
+				limit = {
+	   				top_liege = scope:old_emperor_temp
+				}
+				add_to_list = former_vassals
+			}
+		}
+		scope:old_emperor_temp = {
+			primary_title = {
+				save_scope_as = old_title
+			}
+			#创建伪帝国
+			create_dynamic_title = {
+				tier = empire
+				name = NEW_CREATED_TITLE_NAME
+			}
+			create_title_and_vassal_change = {
+				type = created
+				save_scope_as = fake_change
+				add_claim_on_loss = no
+			}
+			scope:new_title = {
+				change_title_holder = {
+					holder = scope:old_emperor_temp
+					change = scope:change
+				}
+			}
+			resolve_title_and_vassal_change = scope:fake_change
+			scope:old_title = {
+				move_title_name_to = scope:new_title
+			}
+
+			#destroy the title of china and all Empires that the Hegemon holds
+			every_held_title = {
+				limit = {
+					tier > tier_kingdom
+					NOT = { this = scope:new_title }
+				}
+				scope:old_emperor_temp = {
+					destroy_title = prev
+				}
+			}
+			create_title_and_vassal_change = {
+				type = independency
+				save_scope_as = chaos_change
+				add_claim_on_loss = yes
+			}
+			every_vassal = {
+				limit = {
+					#breakaway all non-dejure vassals
+					primary_title = {
+						NOT = { target_is_de_jure_liege_or_above = scope:old_emperor_temp.primary_title }
+					}
+				}
+				becomes_independent = { change = scope:chaos_change }
+			}
+			resolve_title_and_vassal_change = scope:chaos_change
+		}
+		# destroy all empire and king level titles if holders have not enough power
+		every_in_list = {
+			list = former_vassals
+			limit = {
+				is_landed = yes
+				is_ai = yes
+				OR = {
+					AND = {
+						highest_held_title_tier = tier_empire
+						var:movement_power_individual < high_movement_power_value
+					}
+					AND = {
+						highest_held_title_tier = tier_kingdom
+						var:movement_power_individual < decent_movement_power_value
+					}
+				}
+			}
+			tgp_fire_china_realm_name_event_for_vassals_effect = yes
+			every_held_title = {
+				limit = {
+					tier > tier_duchy
+				}
+				prev = {
+					destroy_title = prev
+				}
+			}
+		}
+		every_in_list = {
+			list = former_vassals
+			# Destroy any held minister title
+			destroy_held_ministry_titles_effect = yes
+		}
+		every_in_list = {
+			list = former_vassals
+			# let the former vassals of the hegemon become regular conquerors
+			ai_chance_to_become_conqueror_effect = yes
+			# put movement leaders and elders into a list
+			if = {
+				limit = {
+					OR = {
+						num_of_relation_disciple > 0
+						has_variable = former_movement_leader
+					}
+					is_independent_ruler = yes
+					is_landed = yes
+				}
+				add_to_list = new_lieges
+			}
+		}
+		# remake the hierarchy by vassalizing or tributarizing non-leader movement members and disciples
+		every_in_list = {
+			list = new_lieges
+			save_scope_as = new_liege
+			every_in_list = {
+				list = former_vassals
+				limit = {
+					OR = {
+						scope:new_liege.var:former_movement_leader ?= var:former_movement_member
+						has_relation_elder = scope:new_liege
+					}
+					this != scope:new_liege
+				}
+				save_scope_as = member
+				# if lower tier than the potential new liege and is neighboring them or anyone that is also neighboring new liege, vassalize them
+				if = {
+					limit = {
+						highest_held_title_tier < scope:new_liege.highest_held_title_tier
+						OR = {
+							primary_title ?= { is_neighbor_to_realm = scope:new_liege }
+							any_in_list = {
+								list = former_vassals
+								this != scope:new_liege
+								this != scope:member
+								primary_title ?= {
+									is_neighbor_to_realm = scope:new_liege
+									is_neighbor_to_realm = scope:member
+								}
+								is_tributary_of = scope:new_liege
+							}
+						}
+					}
+					create_title_and_vassal_change = {
+						type = swear_fealty
+						save_scope_as = elder_hierarchy_change
+						add_claim_on_loss = no
+					}
+					change_liege = {
+						liege = scope:new_liege
+						change = scope:elder_hierarchy_change
+					}
+					resolve_title_and_vassal_change = scope:elder_hierarchy_change
+					scope:new_liege = {
+						add_to_variable_list = {
+							name = chaos_new_vassals
+							target = scope:member
+						}
+					}
+				}
+				# otherwise turn into tributary
+				else_if = {
+					limit = {
+						top_liege = scope:member
+						is_landed = yes
+					}
+					start_tributary_interaction_effect = {
+						TRIBUTARY = scope:member
+						SUZERAIN = scope:new_liege
+					}
+					scope:new_liege = {
+						add_to_variable_list = {
+							name = chaos_new_tributaries
+							target = scope:member
+						}
+					}
+				}
+			}
+		}
+		# Assign unlanded family heads to a suitable realm
+		every_in_list = {
+			list = former_vassals
+			if = {
+				limit = {
+					any_held_title = { is_noble_family_title = yes }
+					is_landed = no
+					this = top_liege
+				}
+				create_title_and_vassal_change = {
+					type = swear_fealty
+					save_scope_as = unlanded_liege_change
+					add_claim_on_loss = no
+				}
+				# Save the top liege of the domicile's location - If ruler's tier is above county
+				if = {
+					limit = {
+						domicile.domicile_location.county.holder.top_liege = {
+							highest_held_title_tier > tier_county
+						}
+					}
+					domicile.domicile_location.county.holder.top_liege = {
+						save_temporary_scope_as = unlanded_new_liege
+					}
+				}
+				# Otherwise - Try and find a neighboring ruler
+				else_if = {
+					limit = {
+						domicile.domicile_location.county.holder = {
+							any_neighboring_top_liege_realm_owner = {
+								highest_held_title_tier > tier_county
+							}
+						}
+					}
+					domicile.domicile_location.county.holder = {
+						random_neighboring_top_liege_realm_owner = {
+							limit = {
+								highest_held_title_tier > tier_county
+							}
+							save_temporary_scope_as = unlanded_new_liege
+						}
+					}
+				}
+				change_liege = {
+					liege = scope:unlanded_new_liege
+					change = scope:unlanded_liege_change
+				}
+				resolve_title_and_vassal_change = scope:unlanded_liege_change
+			}
+		}
+		# create a story that will make characters pursue taking the mandate
+		situation:dynastic_cycle = {
+			every_situation_participant = {
+				if = {
+					limit = {
+						NOR = {
+							has_trait = conqueror
+							any_owned_story = {
+						 		story_type = story_conqueror
+							}
+							any_owned_story = {
+							 	story_type = story_greatest_of_khans
+							}
+							any_owned_story = {
+								story_type = story_mongol_invasion
+							}
+						}
+						is_landed = yes
+						highest_held_title_tier >= tier_duchy
+						is_tributary = no
+						is_adult = yes
+						is_incapable = no
+						# run the ai personality triggers only for non elders and non movement leaders
+						trigger_if = {
+							limit = {
+								NOT = {
+									is_in_list = new_lieges
+								}
+							}
+							ai_has_cautious_personality = no
+							ai_boldness >= 0
+							ai_greed >= 0
+						}
+					}
+					create_story = story_take_mandate_of_heaven
+				}
+			}
+		}
+	}
+	#depose the previous hegemon from all landed titles
+	scope:old_emperor_temp = {
+		force_step_down_landed_titles = yes
+	}
+	hidden_effect = {
+		situation:dynastic_cycle = {
+			every_situation_participant = {
+				remove_variable = movement_member
+				recalculate_participant_group = situation:dynastic_cycle
+			}
+		}
+	}
+}
+
+
+tgp_assign_china_realm_name_options_effect = {
+	random_list = {
+		pick = 3
+		unique = yes
+		0 = { # Ba 巴
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_ba_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_ba_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ba }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ba }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_ba } }
+				OR = {
+					is_title_localization_key_used = dynn_title_ba
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_ba }
+				}	
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_ba }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_ba } }
+		}
+		0 = { # Bao 宝
+			modifier = {
+				add = 50
+				OR = {
+					capital_province ?= { geographical_region = tgp_bao_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_bao_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_bao }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_bao }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_bao } }
+				OR = {
+					is_title_localization_key_used = dynn_title_bao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_bao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_bao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_bao } }
+		}
+		0 = { # Bi 毕
+			modifier = {
+				add = 50
+				OR = {
+					capital_province ?= { geographical_region = tgp_bi_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_bi_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_bi }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_bi }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_bi } }
+				OR = {
+					is_title_localization_key_used = dynn_title_bi
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_bi }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_bi }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_bi } }
+		}
+		0 = { # Cai 蔡
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_cai_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_cai_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_cai }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_cai }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_cai } }
+				OR = {
+					is_title_localization_key_used = dynn_title_cai
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_cai }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_cai }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_cai } }
+		}
+		0 = { # Cao 曹
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_cao_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_cao_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_cao }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_cao }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_cao } }
+				OR = {
+					is_title_localization_key_used = dynn_title_cao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_cao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_cao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_cao } }
+		}
+		0 = { # Chen 陈
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_chen_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_chen_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_chen }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_chen }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_chen } }
+				OR = {
+					is_title_localization_key_used = dynn_title_chen
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_chen }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_chen }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_chen } }
+		}
+		0 = { # Cheng 成
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_cheng_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_cheng_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_cheng }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_cheng }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_cheng } }
+				OR = {
+					is_title_localization_key_used = dynn_title_cheng
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_cheng }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_cheng }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_cheng } }
+		}
+		0 = { # Chu 楚
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_chu_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_chu_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_chu }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_chu }
+				}
+			}
+			modifier = {
+				add = -100
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_chu } }
+				OR = {
+					capital_province ?= { geographical_region = tgp_xiang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_xiang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xiang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xiang }
+				}
+				NOR = {
+					is_title_localization_key_used = dynn_title_xiang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_xiang }
+					NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_xiang } }
+				}
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_chu
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_chu }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_chu }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_chu } }
+		}
+		0 = { # Dai 代
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_dai_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_dai_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_dai }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_dai }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_dai } }
+				OR = {
+					is_title_localization_key_used = dynn_title_dai
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_dai }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_dai }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_dai } }
+		}
+		0 = { # Dao 道
+			modifier = {
+				add = 50
+				OR = {
+					capital_province ?= { geographical_region = tgp_dao_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_dao_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_dao }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_dao }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_dao } }
+				OR = {
+					is_title_localization_key_used = dynn_title_dao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_dao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_dao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_dao } }
+		}
+		0 = { # Deng 邓
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_deng_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_deng_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_deng }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_deng }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_deng } }
+				OR = {
+					is_title_localization_key_used = dynn_title_deng
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_deng }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_deng }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_deng } }
+		}
+		0 = { # Di 翟
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_di_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_di_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_di }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_di }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_di } }
+				OR = {
+					is_title_localization_key_used = dynn_title_di
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_di }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_di }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_di } }
+		}
+		0 = { # Dian 滇
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_dian_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_dian_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_dian }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_dian }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_dian } }
+				OR = {
+					is_title_localization_key_used = dynn_title_dian
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_dian }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_dian }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_dian } }
+		}
+		0 = { # E 鄂
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_e_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_e_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_e }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_e }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_e } }
+				OR = {
+					is_title_localization_key_used = dynn_title_e
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_e }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_e }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_e } }
+		}
+		0 = { # Gan 赣
+			modifier = {
+				add = 50
+				OR = {
+					capital_province ?= { geographical_region = tgp_gan_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_gan_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_gan }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_gan }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_gan } }
+				OR = {
+					is_title_localization_key_used = dynn_title_gan
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_gan }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_gan }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_gan } }
+		}
+		0 = { # Gui 桂
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_gui_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_gui_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_gui }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_gui }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_gui } }
+				OR = {
+					is_title_localization_key_used = dynn_title_gui
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_gui }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_gui }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_gui } }
+		}
+		0 = { # Guo 虢
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_guo_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_guo_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_guo }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_guo }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_guo } }
+				OR = {
+					is_title_localization_key_used = dynn_title_guo
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_guo }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_guo }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_guo } }
+		}
+		0 = { # Han 汉
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_han_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_han_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_han }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_han }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_han } }
+				OR = {
+					is_title_localization_key_used = dynn_title_han
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_han }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_han }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_han } }
+		}
+		0 = { # Han (Henan) 韩
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_han_henan_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_han_henan_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_han_henan }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_han_henan }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_han_henan } }
+				OR = {
+					is_title_localization_key_used = dynn_title_han_henan
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_han_henan }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_han_henan }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_han_henan } }
+		}
+		0 = { # Hua 滑
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_hua_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_hua_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_hua }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_hua }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_hua } }
+				OR = {
+					is_title_localization_key_used = dynn_title_hua
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_hua }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_hua }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_hua } }
+		}
+		0 = { # Huai 淮
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_huai_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_huai_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huai }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huai }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_huai } }
+				OR = {
+					is_title_localization_key_used = dynn_title_huai
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_huai }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_huai }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_huai } }
+		}
+		0 = { # Huang 黄
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_huang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_huang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huang }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_huang } }
+				OR = {
+					is_title_localization_key_used = dynn_title_huang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_huang }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_huang }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_huang } }
+		}
+		0 = { # Huo 霍
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_huo_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_huo_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huo }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huo }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_huo } }
+				OR = {
+					is_title_localization_key_used = dynn_title_huo
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_huo }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_huo }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_huo } }
+		}
+		0 = { # Ji 纪
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_ji_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_ji_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ji }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ji }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_ji } }
+				OR = {
+					is_title_localization_key_used = dynn_title_ji
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_ji }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_ji }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_ji } }
+		}
+		0 = { # Ji (Hebei) 冀
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_ji_hebei_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_ji_hebei_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ji_hebei }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ji_hebei }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_ji_hebei } }
+				OR = {
+					is_title_localization_key_used = dynn_title_ji_hebei
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_ji_hebei }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_ji_hebei }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_ji_hebei } }
+		}
+		0 = { # Jiao 交
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_jiao_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_jiao_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_jiao }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_jiao }
+				}
+			}
+			# Not likely used by viet people as it's a province name
+			modifier = {
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_jiao } }
+				add = -50
+				culture = { has_cultural_pillar = heritage_viet }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_jiao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_jiao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_jiao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_jiao } }
+		}
+		0 = { # Jin 晋
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_jin_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_jin_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_jin }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_jin }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_jin } }
+				OR = {
+					is_title_localization_key_used = dynn_title_jin
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_jin }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_jin }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_jin } }
+		}
+		0 = { # Jing 荆
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_jing_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_jing_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_jing }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_jing }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_jing } }
+				OR = {
+					is_title_localization_key_used = dynn_title_jing
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_jing }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_jing }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_jing } }
+		}
+		0 = { # Ju 莒
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_ju_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_ju_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ju }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ju }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_ju } }
+				OR = {
+					is_title_localization_key_used = dynn_title_ju
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_ju }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_ju }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_ju } }
+		}
+		0 = { # Kang 康
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_kang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_kang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_kang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_kang }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_kang } }
+				OR = {
+					is_title_localization_key_used = dynn_title_kang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_kang }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_kang }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_kang } }
+		}
+		0 = { # Lai 莱
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_lai_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_lai_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_lai }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_lai }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_lai } }
+				OR = {
+					is_title_localization_key_used = dynn_title_lai
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_lai }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_lai }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_lai } }
+		}
+		0 = { # Liang 梁
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_liang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_liang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_liang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_liang }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_liang } }
+				OR = {
+					is_title_localization_key_used = dynn_title_liang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_liang }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_liang }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_liang } }
+		}
+		0 = { # Liang (west) 凉
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_liang_west_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_liang_west_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_liang_west }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_liang_west }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_liang_west } }
+				OR = {
+					is_title_localization_key_used = dynn_title_liang_west
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_liang_west }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_liang_west }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_liang_west } }
+		}
+		0 = { # Liao 辽
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_liao_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_liao_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_liao }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_liao }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_liao } }
+				OR = {
+					is_title_localization_key_used = dynn_title_liao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_liao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_liao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_liao } }
+		}
+		0 = { # Lu 鲁
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_lu_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_lu_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_lu }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_lu }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_lu } }
+				OR = {
+					is_title_localization_key_used = dynn_title_lu
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_lu }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_lu }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_lu } }
+		}
+		0 = { # Min 闽
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_min_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_min_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_min }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_min }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_min } }
+				OR = {
+					is_title_localization_key_used = dynn_title_min
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_min }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_min }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_min } }
+		}
+		0 = { # Ou 瓯
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_ou_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_ou_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ou }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ou }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_ou } }
+				OR = {
+					is_title_localization_key_used = dynn_title_ou
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_ou }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_ou }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_ou } }
+		}
+		0 = { # Peng 倗
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_peng_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_peng_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_peng }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_peng }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_peng } }
+				OR = {
+					is_title_localization_key_used = dynn_title_peng
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_peng }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_peng }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_peng } }
+		}
+		0 = { # Qi 齐
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_qi_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_qi_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qi }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qi }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_qi } }
+				OR = {
+					is_title_localization_key_used = dynn_title_qi
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_qi }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_qi }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_qi } }
+		}
+		0 = { # Qi (Guannei) 歧
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_qi_guannei_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_qi_guannei_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qi_guannei }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qi_guannei }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_qi_guannei } }
+				OR = {
+					is_title_localization_key_used = dynn_title_qi_guannei
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_qi_guannei }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_qi_guannei }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_qi_guannei } }
+		}
+		0 = { # Qian 黔
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_qian_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_qian_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qian }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qian }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_qian } }
+				OR = {
+					is_title_localization_key_used = dynn_title_qian
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_qian }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_qian }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_qian } }
+		}
+		0 = { # Qin 秦
+			modifier = { # Roman daqin!
+				add = 1000
+				culture = {
+					OR = {
+						has_cultural_pillar = heritage_byzantine
+						culture_is_or_has_ancestor_trigger = { CULTURE = culture:roman }
+					}
+				}
+			}
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_qin_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_qin_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qin }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qin }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_qin } }
+				OR = {
+					is_title_localization_key_used = dynn_title_qin
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_qin }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_qin }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_qin } }
+		}
+		0 = { # Qiong 琼
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_qiong_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_qiong_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qiong }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_qiong }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_qiong } }
+				OR = {
+					is_title_localization_key_used = dynn_title_qiong
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_qiong }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_qiong }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_qiong } }
+		}
+		0 = { # Shang 商
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_shang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_shang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_shang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_shang }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_shang } }
+				OR = {
+					is_title_localization_key_used = dynn_title_shang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_shang }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_shang }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_shang } }
+		}
+		0 = { # Shen 申
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_shen_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_shen_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_shen }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_shen }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_shen } }
+				OR = {
+					is_title_localization_key_used = dynn_title_shen
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_shen }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_shen }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_shen } }
+		}
+		0 = { # Shu 蜀
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_shu_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_shu_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_shu }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_shu }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_shu } }
+				OR = {
+					is_title_localization_key_used = dynn_title_shu
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_shu }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_shu }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_shu } }
+		}
+		0 = { # Song 宋
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_song_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_song_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_song }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_song }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_song } }
+				OR = {
+					is_title_localization_key_used = dynn_title_song
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_song }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_song }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_song } }
+		}
+		0 = { # Sui 隋
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_sui_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_sui_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_sui }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_sui }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_sui } }
+				OR = {
+					is_title_localization_key_used = dynn_title_sui
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_sui }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_sui }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_sui } }
+		}
+		0 = { # Tan 谭
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_tan_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_tan_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_tan }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_tan }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_tan } }
+				OR = {
+					is_title_localization_key_used = dynn_title_tan
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_tan }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_tan }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_tan } }
+		}
+		0 = { # Tang 唐
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_tang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_tang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_tang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_tang }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_tang } }
+				OR = {
+					is_title_localization_key_used = dynn_title_tang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_tang }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_tang }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_tang } }
+		}
+		0 = { # Teng 滕
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_teng_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_teng_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_teng }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_teng }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_teng } }
+				OR = {
+					is_title_localization_key_used = dynn_title_teng
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_teng }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_teng }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_teng } }
+		}
+		0 = { # Wei 魏
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_wei_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_wei_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_wei }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_wei }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_wei } }
+				OR = {
+					is_title_localization_key_used = dynn_title_wei
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_wei }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_wei }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_wei } }
+		}
+		0 = { # Wey 卫
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_wey_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_wey_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_wey }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_wey }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_wey } }
+				OR = {
+					is_title_localization_key_used = dynn_title_wey
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_wey }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_wey }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_wey } }
+		}
+		0 = { # Wu 吴
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_wu_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_wu_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_wu }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_wu }
+				}
+			}
+			modifier = {
+				add = -100
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_wu } }
+				OR = {
+					capital_province ?= { geographical_region = tgp_huai_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_huai_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huai }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_huai }
+				}
+				NOR = {
+					is_title_localization_key_used = dynn_title_huai
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_huai }
+					NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_huai } }
+				}
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_wu
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_wu }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_wu }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_wu } }
+		}
+		0 = { # Xi 息
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_xi_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_xi_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xi }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xi }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_xi } }
+				OR = {
+					is_title_localization_key_used = dynn_title_xi
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_xi }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_xi }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_xi } }
+		}
+		0 = { # Xia 夏
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_xia_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_xia_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xia }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xia }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_xia } }
+				OR = {
+					is_title_localization_key_used = dynn_title_xia
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_xia }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_xia }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_xia } }
+		}
+		0 = { # Xiang 湘
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_xiang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_xiang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xiang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xiang }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_xiang } }
+				OR = {
+					is_title_localization_key_used = dynn_title_xiang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_xiang }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_xiang }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_xiang } }
+		}
+		0 = { # Xing 邢
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_xing_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_xing_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xing }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xing }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_xing } }
+				OR = {
+					is_title_localization_key_used = dynn_title_xing
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_xing }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_xing }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_xing } }
+		}
+		0 = { # Xu 许
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_xu_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_xu_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xu }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xu }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_xu } }
+				OR = {
+					is_title_localization_key_used = dynn_title_xu
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_xu }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_xu }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_xu } }
+		}
+		0 = { # Xu (Shandong) 徐
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_xu_shandong_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_xu_shandong_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xu_shandong }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_xu_shandong }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_xu_shandong } }
+				OR = {
+					is_title_localization_key_used = dynn_title_xu_shandong
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_xu_shandong }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_xu_shandong }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_xu_shandong } }
+		}
+		0 = { # Yan 燕
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_yan_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yan_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yan }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yan }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yan } }
+				OR = {
+					is_title_localization_key_used = dynn_title_yan
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yan }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yan }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yan } }
+		}
+		0 = { # Yang 扬
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_yang_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yang_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yang }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yang }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yang } }
+				OR = {
+					is_title_localization_key_used = dynn_title_yang
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yang }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yang }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yang } }
+		}
+		0 = { # Yin 殷
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_yin_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yin_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yin }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yin }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yin } }
+				OR = {
+					is_title_localization_key_used = dynn_title_yin
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yin }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yin }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yin } }
+		}
+		0 = { # Ying 应
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_ying_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_ying_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ying }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_ying }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_ying } }
+				OR = {
+					is_title_localization_key_used = dynn_title_ying
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_ying }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_ying }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_ying } }
+		}
+		0 = { # Yong 雍
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_yong_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yong_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yong }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yong }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yong } }
+				OR = {
+					is_title_localization_key_used = dynn_title_yong
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yong }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yong }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yong } }
+		}
+		0 = { # You 幽
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_you_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_you_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_you }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_you }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_you } }
+				OR = {
+					is_title_localization_key_used = dynn_title_you
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_you }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_you }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_you } }
+		}
+		0 = { # Yu 虞
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_yu_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yu_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yu }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yu }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yu } }
+				OR = {
+					is_title_localization_key_used = dynn_title_yu
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yu }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yu }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yu } }
+		}
+		0 = { # Yuan (ferghana) 宛
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_yuan_ferghana_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yuan_ferghana_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yuan_ferghana }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yuan_ferghana }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yuan_ferghana } }
+				OR = {
+					is_title_localization_key_used = dynn_title_yuan_ferghana
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yuan_ferghana }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yuan_ferghana }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yuan_ferghana } }
+		}
+		# Less perfer Yues intendly
+		0 = { # Yue 越
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_yue_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yue_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yue }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yue }
+				}
+				highest_held_title_tier >= tier_kingdom
+			}
+			modifier = {
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yue } }
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_yue
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yue }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yue }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yue } }
+		}
+		0 = { # Yue_2 粤
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_yue_2_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_yue_2_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yue_2 }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_yue_2 }
+				}
+				highest_held_title_tier >= tier_kingdom
+			}
+			modifier = {
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_yue_2 } }
+				add = -100
+				OR = {
+					capital_province ?= { geographical_region = tgp_gui_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_gui_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_gui }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_gui }
+				}
+				NOR = {
+					is_title_localization_key_used = dynn_title_gui
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_gui }
+					NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_gui } }
+				}
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_yue_2
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yue_2 }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yue_2 }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yue_2 } }
+		}
+		0 = { # Zhao 赵
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_zhao_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_zhao_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zhao }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zhao }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_zhao } }
+				OR = {
+					is_title_localization_key_used = dynn_title_zhao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_zhao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_zhao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_zhao } }
+		}
+		0 = { # Zheng 郑
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_zheng_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_zheng_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zheng }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zheng }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_zheng } }
+				OR = {
+					is_title_localization_key_used = dynn_title_zheng
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_zheng }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_zheng }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_zheng } }
+		}
+		0 = { # Zhou 周
+			modifier = {
+				add = 100
+				OR = {
+					capital_province ?= { geographical_region = tgp_zhou_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_zhou_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zhou }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zhou }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_zhou } }
+				OR = {
+					is_title_localization_key_used = dynn_title_zhou
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_zhou }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_zhou }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_zhou } }
+		}
+		0 = { # Zou 邹
+			modifier = {
+				add = 75
+				OR = {
+					capital_province ?= { geographical_region = tgp_zou_region }
+					scope:title.capital_county.title_province ?= { geographical_region = tgp_zou_region }
+					house ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zou }
+					dynasty ?= { has_variable = dynn_title var:dynn_title = flag:dynn_title_zou }
+				}
+			}
+			modifier = {
+				add = -50
+				NOT = { house = { has_variable = dynn_title var:dynn_title = flag:dynn_title_zou } }
+				OR = {
+					is_title_localization_key_used = dynn_title_zou
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_zou }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_zou }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_zou } }
+		}
+		# cultural names
+		0 = { # Nan 南
+			modifier = {
+				add = 1000
+				culture = { has_cultural_pillar = heritage_viet }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_nan
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_nan }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_nan }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_nan } }
+		}
+		0 = { # He 和
+			modifier = {
+				add = 1000
+				culture = { has_cultural_pillar = heritage_japonic }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_he
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_he }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_he }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_he } }
+		}
+		0 = { # (Zhuang) Li 历
+			modifier = {
+				add = 1000
+				culture = { culture_is_or_has_ancestor_trigger = { CULTURE = culture:bouxcuengh } }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_zhuang_li
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_zhuang_li }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_zhuang_li }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_zhuang_li } }
+		}
+		0 = { # Bo 蕃
+			modifier = {
+				add = 1000
+				culture = { has_cultural_pillar = heritage_tibetan }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_bo
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_bo }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_bo }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_bo } }
+		}
+		0 = { # Zhen 震
+			modifier = {
+				add = 1000
+				culture = { has_cultural_pillar = heritage_buyeo }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_zhen
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_zhen }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_zhen }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_zhen } }
+		}
+		0 = { # Rui 芮
+			modifier = {
+				add = 1000
+				culture = { culture_is_or_has_ancestor_trigger = { CULTURE = culture:avar } }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_rui
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_rui }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_rui }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_rui } }
+		}
+		0 = { # Li 理
+			modifier = {
+				add = 1000
+				culture = { culture_is_or_has_ancestor_trigger = { CULTURE = culture:bai } }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_li
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_li }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_li }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_li } }
+		}
+		0 = { # Fu 福
+			modifier = {
+				add = 1000
+				culture = {
+					any_parent_culture_or_above = {
+						OR = {
+							this = culture:uyghur
+							this = culture:yughur
+						}
+					}
+				}
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_fu
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_fu }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_fu }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_fu } }
+		}
+		0 = { # Yuan 元
+			modifier = {
+				add = 1000
+				culture = { has_cultural_pillar = heritage_mongolic }
+				NOR = {
+					culture = { has_name_list = name_list_khitan }
+					culture = { has_name_list = name_list_qay }
+				}
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_yuan
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_yuan }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_yuan }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_yuan } }
+		}	
+		0 = { # (Khitan) Liao 辽
+			modifier = {
+				add = 1000
+				OR = {
+					culture = { has_name_list = name_list_khitan }
+					culture = { has_name_list = name_list_qay }
+				}
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_liao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_liao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_liao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_liao } }
+		}
+		0 = { # (Jurchen) Jin 金
+			modifier = {
+				add = 1000
+				culture = { has_name_list = name_list_jurchen }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_jurchen_jin
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_jurchen_jin }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_jurchen_jin }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_jurchen_jin } }
+		}
+		0 = { # Han (Korea) 韩
+			modifier = {
+				add = 1000
+				culture = { has_cultural_pillar = heritage_korean }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_han_korea
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_han_korea }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_han_korea }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_han_korea } }
+		}
+		0 = { # Miao 苗
+			modifier = {
+				add = 1000
+				culture = { has_cultural_pillar = heritage_hmongic }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_miao
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_miao }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_miao }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_miao } }
+		}
+		0 = { # Luo 罗
+			modifier = {
+				add = 1000
+				culture = { culture_is_or_has_ancestor_trigger = { CULTURE = culture:yi } }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_luo
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_luo }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_luo }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_luo } }
+		}
+		0 = { # Le 泐
+			modifier = {
+				add = 1000
+				culture = { culture_is_or_has_ancestor_trigger = { CULTURE = culture:tai } }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_le
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_le }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_le }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_le } }
+		}
+		0 = { # Zhan 占
+			modifier = {
+				add = 1000
+				culture = { culture_is_or_has_ancestor_trigger = { CULTURE = culture:cham } }
+			}
+			modifier = {
+				add = -50
+				OR = {
+					is_title_localization_key_used = dynn_title_zhan
+					is_target_in_variable_list = { name = realm_title_names target = flag:dynn_title_zhan }
+				}
+			}
+			add_to_variable_list = { name = realm_title_names target = flag:dynn_title_zhan }
+			house = { set_variable = { name = dynn_title value = flag:dynn_title_zhan } }
+		}
+	}
+}
+
+
+
+#劫持效果
+tgp_fire_china_realm_name_event_effect = {
+	if = {
+		limit = {
+			is_ai = no
+			highest_held_title_tier >= tier_empire
+		}
+		trigger_event = Dynasty_Title.9004
+	}
+	else_if = {
+		limit = {
+			is_ai = no
+		}
+		trigger_event = {
+			id = tgp_dynastic_cycle.9000
+			days = 1 # so the player gets to choose first
+		}
+	}
+	else = {
+		trigger_event = {
+			id = tgp_dynastic_cycle.9000
+			days = 2
+		}
+	}
+}
+
+#tgp_fire_china_realm_name_event_for_vassals_effect = {
+	#every_vassal = {
+		## Because a change in liege isn't triggered when the title being destroyed
+		#limit = {
+			#tgp_use_chinese_naming_trigger = yes
+			#primary_title = {
+				#has_custom_title_name = no
+			#}
+			#tgp_chinese_naming_tier_trigger = yes
+			#tgp_has_unique_chinese_naming = yes
+		#}
+		#tgp_fire_china_realm_name_event_effect = yes
+	#}
+#}

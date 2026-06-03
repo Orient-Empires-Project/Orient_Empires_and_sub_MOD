@@ -15,32 +15,29 @@ convert_to_legion_government_decision = {
 	sort_order = 80
 	desc = convert_to_legion_government_decision_desc
 	
-	ai_check_interval = 36
-	
 	is_shown = {
 		OR = {
 			any_liege_or_above = { 
 				culture = { has_cultural_pillar = heritage_chinese }
 			}
-			culture = { has_cultural_pillar = heritage_yamato }
-			any_neighboring_top_liege_realm_owner = { has_title = title:e_celestia }
+			culture = { has_cultural_pillar = heritage_japonic }
+			any_neighboring_top_liege_realm_owner = { has_title = title:h_china }
 			liege = {
 				OR = {
-					government_has_flag = government_is_celestial
-					government_has_flag = government_is_legion
+					government_has_flag = government_use_bureaucracy
+					government_has_flag = government_is_stratocratic
 				}
 			}
 		}
+		NOT = {
+			government_allows = administrative
+		}
 		OR = {
-			AND = { 
-				vassal_contract_has_flag = imperial_contract_1
-				vassal_contract_has_flag = imperial_legion_2
-			}
 			government_has_flag = government_is_feudal
 			government_has_flag = government_is_clan
 		}
 		capital_province ?= { geographical_region = world_asia }
-		is_independent_ruler = no
+		top_liege != this
 	}
 	
 	is_valid = {
@@ -64,16 +61,25 @@ convert_to_legion_government_decision = {
 	}
 	
 	effect = {
-		change_government = legion_government
+		change_government = stratocratic_government
 		add_realm_law_skip_effects = legion_succession_law
 	}
 	
-	ai_potential = {
-		culture = { has_cultural_pillar = heritage_yamato }
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 72
+		duchy = 36
+		kingdom = 0
+		empire = 0
+		hegemony = 0
 	}
 	
 	ai_will_do = {
 		base = 100
+		modifier = { #Go for the more lenient decision if this is the case
+			add = 50
+			culture = { has_cultural_pillar = heritage_japonic } 
+		}
 		modifier = { #Go for the more lenient decision if this is the case
 			add = -25
 			liege = { government_has_flag = government_is_feudal }  
@@ -83,18 +89,18 @@ convert_to_legion_government_decision = {
 			liege = { government_has_flag = government_is_tribal } 
 		}
 		modifier = { #Go for the more lenient decision if this is the case
-		add = -50
-		liege = { government_has_flag = government_is_nomadic } 
-	}
+			add = -50
+			liege = { government_has_flag = government_is_nomadic } 
+		}
 		modifier = { #Go for the more lenient decision if this is the case
 			add = -100
-			liege = { government_has_flag = government_is_celestial } 
+			liege = { government_has_flag = government_use_bureaucracy } 
 		}
 	}
 }
 
 #部落转军镇
-convert_whole_realm_to_legion_decision = { 
+convert_whole_realm_to_legion_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	}
@@ -102,16 +108,14 @@ convert_whole_realm_to_legion_decision = {
 	sort_order = 80
 	desc = convert_whole_realm_to_legion_decision_desc
 
-	ai_check_interval = 30
-
 	is_shown = {
 		highest_held_title_tier < tier_empire
 		government_has_flag = government_is_tribal
-		is_independent_ruler = no
+		top_liege != this
 		liege = {
 			OR = {
-				government_has_flag = government_is_celestial
-				government_has_flag = government_is_legion
+				government_has_flag = government_use_bureaucracy
+				government_has_flag = government_is_stratocratic
 			}
 		}
 	}
@@ -131,13 +135,13 @@ convert_whole_realm_to_legion_decision = {
 			top_liege = {
 				AND = {
 					culture = { has_cultural_pillar = heritage_chinese }
-					has_title = title:e_celestia
+					has_title = title:h_china
 				}
 			}
 			any_neighboring_top_liege_realm_owner = { 
 				AND = {
 					culture = { has_cultural_pillar = heritage_chinese }
-					has_title = title:e_celestia
+					has_title = title:h_china
 				}
 			}
 		}
@@ -172,7 +176,7 @@ convert_whole_realm_to_legion_decision = {
 	}
 
 	effect = {
-		change_government = legion_government
+		change_government = stratocratic_government
 		add_realm_law_skip_effects = legion_succession_law
 
 		trigger_event = major_decisions.0001
@@ -187,21 +191,26 @@ convert_whole_realm_to_legion_decision = {
 		}
 	}
 
-	ai_potential = {
-		mpo_has_gok_mongol_empire_trigger = no #Stop the Mongols from slowing their conquest.
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 72
+		duchy = 36
+		kingdom = 0
+		empire = 0
+		hegemony = 0
 	}
 
 	ai_will_do = {
 		base = 10
 		modifier = { #Go for the more lenient decision if this is the case
 			add = 200
-			liege = { government_has_flag = government_is_celestial } 
+			liege = { government_has_flag = government_use_bureaucracy } 
 		}
 	}
 }
 
 #请封军府
-convert_to_milita_contract_decision = { 
+convert_to_milita_contract_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	}
@@ -211,13 +220,12 @@ convert_to_milita_contract_decision = {
 	desc = convert_to_milita_contract_decision_desc
 	selection_tooltip = convert_to_milita_contract_decision_tooltip
 	sort_order = 75
-	ai_check_interval = 720
 	
 	is_shown = {
-		government_has_flag = government_is_celestial
-		NOT = { vassal_contract_has_flag = imperial_contract_1 }
+		government_has_flag = government_use_bureaucracy
+		NOT = { vassal_contract_has_flag = celestial_military_appointment }
 		is_ai = no
-		is_independent_ruler = no
+		top_liege != this
 	}
 	
 	is_valid = {
@@ -272,8 +280,13 @@ convert_to_milita_contract_decision = {
 	}
 	
 	
-	ai_potential = {
-		is_ruler = yes
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 720
+		duchy = 360
+		kingdom = 360
+		empire = 0
+		hegemony = 0
 	}
 	
 	ai_will_do = {
@@ -298,8 +311,8 @@ convert_to_milita_contract_decision = {
 	}
 }
 
-#请封藩镇
-transfer_to_legion_contract_decision = { 
+#军府转军镇制
+transfer_to_legion_contract_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	}
@@ -309,14 +322,13 @@ transfer_to_legion_contract_decision = {
 	desc = transfer_to_legion_contract_decision_desc
 	selection_tooltip = transfer_to_legion_contract_decision_tooltip
 	sort_order = 75
-	ai_check_interval = 720
 	
 	is_shown = {
-		government_has_flag = government_is_celestial
-        vassal_contract_has_flag = imperial_contract_1
-		NOT = { vassal_contract_has_flag = imperial_legion_2 }
+		vassal_contract_has_flag = celestial_military_appointment
+        
+		#NOT = { vassal_contract_has_flag = imperial_legion_2 }
 		is_ai = no
-		is_independent_ruler = no
+		top_liege != this
 	}
 	
 	is_valid = {
@@ -379,8 +391,13 @@ transfer_to_legion_contract_decision = {
 	}
 	
 	
-	ai_potential = {
-		is_ruler = yes
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 360
+		kingdom = 360
+		empire = 0
+		hegemony = 0
 	}
 	
 	ai_will_do = {
@@ -400,83 +417,83 @@ transfer_to_legion_contract_decision = {
 	}
 }
 
-#封建军镇转律令
+#封建转天朝制
 adopt_celestial_government_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	}
 	decision_group_type = admin
 	sort_order = 80
-	ai_check_interval = 90
 
 	desc = adopt_celestial_government_decision_desc
 	selection_tooltip = adopt_celestial_government_decision_tooltip
 
 	is_shown = {
 		NOR = {
-			government_has_flag = government_is_celestial
+			government_has_flag = government_use_bureaucracy
 		}
 		OR = {
-			is_independent_ruler = yes
-			top_liege = { government_has_flag = government_is_celestial }
+			top_liege = this
+			liege = { government_has_flag = government_use_bureaucracy }
 		}
 		OR = {
 			culture = { has_cultural_pillar = heritage_chinese }
-			top_liege = { has_title = title:e_celestia }
+			liege = { has_title = title:h_china }
 			any_neighboring_and_across_water_top_liege_realm_owner = { 
 				culture = { has_cultural_pillar = heritage_chinese }
-				has_title = title:e_celestia
+				has_title = title:h_china
 				in_diplomatic_range = root
 			}
+		}
+		capital_province ?= {
+			has_holding_type = castle_holding
 		}
 	}
 
 	is_valid = {
-			highest_held_title_tier >= tier_duchy
+		highest_held_title_tier >= tier_duchy
+		OR = {
+			has_realm_law = crown_authority_3
+			has_realm_law = tribal_authority_3
+			has_realm_law = imperial_bureaucracy_3
+		}			
+		NOT = { government_has_flag = government_is_landless_adventurer }
+		capital_province.county = {
+			development_level >= convert_to_feudalism_development_requirement
+		}
+		OR = {
 			OR = {
-				has_realm_law = crown_authority_3
-				has_realm_law = tribal_authority_3
-				has_realm_law = imperial_bureaucracy_3
-				has_realm_law = celestial_bureaucracy_3
+				culture = { has_cultural_pillar = heritage_chinese }
+				culture = {
+					cultural_acceptance = {
+						target = culture:han
+						value >= 100
+					}
+				}
 			}
-			
-			NOT = { government_has_flag = government_is_landless_adventurer }
-			capital_province.county = {
-				development_level >= convert_to_feudalism_development_requirement
-			}
-			OR = {
-				OR = {
+			top_liege = { has_title = title:h_china }
+			AND = {
+				highest_held_title_tier <= tier_kingdom
+				any_neighboring_top_liege_realm_owner = { 
 					culture = { has_cultural_pillar = heritage_chinese }
-					culture = {
-						cultural_acceptance = {
-							target = culture:han
-							value >= 100
-						}
-					}
-				}
-				top_liege = { has_title = title:e_celestia }
-				AND = {
-					highest_held_title_tier <= tier_kingdom
-					any_neighboring_top_liege_realm_owner = { 
-						culture = { has_cultural_pillar = heritage_chinese }
-						has_title = title:e_celestia
-					}
-				}
-				AND = {
-					government_has_flag = government_is_ulus
-					capital_province ?= {
-						geographical_region = world_asia_china
-					}
-				}
-				AND = {
-					any_neighboring_top_liege_realm_owner = { 
-						is_oe_imperial_government_trigger = yes
-					}
-					capital_province ?= {
-						geographical_region = world_asia_china
-					}
+					has_title = title:h_china
 				}
 			}
+			AND = {
+				government_has_flag = government_is_ulus
+				capital_province ?= {
+					geographical_region = world_asia_china
+				}
+			}
+			AND = {
+				any_neighboring_top_liege_realm_owner = { 
+					is_oe_imperial_government_trigger = yes
+				}
+				capital_province ?= {
+					geographical_region = world_asia_china
+				}
+			}
+		}
 	}
 
 	is_valid_showing_failures_only = {
@@ -489,21 +506,25 @@ adopt_celestial_government_decision = {
 
 	effect = {
 		change_to_celes_government_effect = yes
-		
 		add_realm_law_skip_effects = tradition_succession_law
 	}
 	
-	ai_potential = {
-		mpo_has_gok_mongol_empire_trigger = no #Stop the Mongols from slowing their conquest.
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 12
+		kingdom = 12
+		empire = 12
+		hegemony = 12
 	}
 
 	ai_will_do = {
-		base = 30
+		base = 0
 	}
 }
 
 #转二元政体
-convert_whole_realm_to_ulus_decision = { 
+convert_whole_realm_to_ulus_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	}
@@ -511,17 +532,14 @@ convert_whole_realm_to_ulus_decision = {
 	sort_order = 80
 	desc = convert_whole_realm_to_ulus_decision_desc
 
-	ai_check_interval = 100
-
 	is_shown = {
 		highest_held_title_tier >= tier_kingdom
 		OR = {
 			government_has_flag = government_is_tribal
 			government_has_flag = government_is_nomadic
-			government_has_flag = government_is_legion
 			government_has_flag = government_is_clan
 		}
-		is_independent_ruler = yes
+		top_liege = this
 		capital_province ?= { geographical_region = world_steppe }
 	}
 
@@ -583,7 +601,8 @@ convert_whole_realm_to_ulus_decision = {
 	}
 
 	effect = {
-		change_government = ulus_government
+		#change_government = ulus_government
+		change_government = steppe_admin_government
 		trigger_event = major_decisions.0001
 		save_scope_as = actor
 		hidden_effect = {
@@ -596,33 +615,37 @@ convert_whole_realm_to_ulus_decision = {
 		}
 	}
 
-	ai_potential = {
-		always = yes
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 24
+		empire = 24
+		hegemony = 12
 	}
 
 	ai_will_do = {
-		base = 100
+		base = 50
 	}
 }
 
-#律令制互换
+#天朝制转军镇制
 celestial_change_to_imperial_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
 	}
 	decision_group_type = admin
 	sort_order = 60
-	ai_check_interval = 12
+
 	ai_goal = yes
 
 	is_shown = {
-		has_ep3_dlc_trigger = yes
+		always = no
 		has_government = celestial_government
-		OR = {
-			is_independent_ruler = yes
-			is_ai = no
-		}
+		top_liege = this
+		is_ai = no
 		NOT = { has_global_variable = used_celestial_change_to_imperial }
+		NOT = { has_title = title:h_china }
 	}
 
 	is_valid = {
@@ -639,7 +662,7 @@ celestial_change_to_imperial_decision = {
 	}
 
 	cost = {
-		prestige = 1
+		prestige = 1000
 	}
 
 	effect = {
@@ -653,7 +676,7 @@ celestial_change_to_imperial_decision = {
 			if = {
 				limit = {
 					any_vassal_or_below = {
-						exists = this
+						exists = yes
 					}
 				}
 				every_vassal_or_below = {
@@ -669,16 +692,21 @@ celestial_change_to_imperial_decision = {
 		}
 	}
 	
-	ai_potential = {
-		is_independent_ruler = yes
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 0
+		empire = 0
+		hegemony = 0
 	}
 
 	ai_will_do = {
-		base = 100
+		base = 0
 	}
 }
 
-#
+#军镇制转天朝制
 imperial_change_to_celestial_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
@@ -687,8 +715,9 @@ imperial_change_to_celestial_decision = {
 	sort_order = 60
 
 	is_shown = {
-		has_ep3_dlc_trigger = yes
-		has_government = imperial_government
+		has_dlc_feature = all_under_heaven
+		has_government = stratocratic_government
+		top_liege = this
 		is_ai = no
 		NOT = { has_global_variable = used_celestial_change_decision }
 	}
@@ -719,13 +748,13 @@ imperial_change_to_celestial_decision = {
 			if = {
 				limit = {
 					any_vassal_or_below = {
-						exists = this
-						has_government = imperial_government
+						exists = yes
+						has_government = stratocratic_government
 					}
 				}
 				every_vassal_or_below = {
 					limit = {
-						has_government = imperial_government
+						has_government = stratocratic_government
 						primary_title = {
 							is_landless_type_title = no
 						}
@@ -736,8 +765,13 @@ imperial_change_to_celestial_decision = {
 		}
 	}
 	
-	ai_potential = {
-		always = no
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 0
+		empire = 0
+		hegemony = 0
 	}
 
 	ai_will_do = {

@@ -1,4 +1,4 @@
-﻿#称帝开国
+﻿#称帝开国 - 仅帝国版
 found_new_chinese_empire_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_activity.dds"
@@ -9,31 +9,38 @@ found_new_chinese_empire_decision = {
 	is_shown = {
 		is_ai = no
 	 	is_landed = yes
-		OR = {
-			highest_held_title_tier = tier_kingdom
-			is_oe_imperial_government_trigger = yes
-			AND = {
-				highest_held_title_tier > tier_kingdom
-				primary_title = { is_titular = yes }
-			}
-		} 
+		is_independent_ruler = yes
+		highest_held_title_tier = tier_kingdom
+		government_use_bureaucracy_trigger = yes
 		capital_province ?= {
-			geographical_region = world_asia
+			geographical_region = world_asia_china
 		}
-		NOT = { has_title = title:e_celestia }		
+		NOT = { has_title = title:h_china }		
 	}
 
 	is_valid = {
 		prestige_level >= 2
 		trigger_if = {
 			limit = {
-				NOT = { exists = title:e_celestia.holder }
+				NOT = { exists = title:h_china.holder }
 			}
 			OR = {
+				capital_province.empire = { holder = root }
+				capital_province.empire = {
+					any_in_de_jure_hierarchy = {
+						tier = tier_kingdom
+						holder = root
+					}
+				}
+				AND = {
+					capital_province.empire.title_capital_county = { holder = root }
+					capital_province.empire.title_capital_county.kingdom = { holder = root }
+				}
+
 				calc_true_if = {
 					amount >= 5
-					completely_controls = title:c_changan
-					completely_controls = title:c_luoyang
+					completely_controls = title:c_jingzhao
+					completely_controls = title:c_henan
 					completely_controls = title:c_bianzhou
 					completely_controls = title:c_taiyuan
 					completely_controls = title:c_weizhou
@@ -41,52 +48,67 @@ found_new_chinese_empire_decision = {
 					completely_controls = title:k_yue
 					has_title = title:k_chu
 					has_title = title:k_shu
-					has_title = title:k_nanyue
+					has_title = title:k_lingnan
 				}
 			}
 		}
 		trigger_if = {
 			limit = {
-				exists = title:e_celestia.holder
+				exists = title:h_china.holder
 			}
-			calc_true_if = {
-				amount >= 8
-				completely_controls = title:c_changan #雍
-				completely_controls = title:c_luoyang #豫
-				completely_controls = title:c_bianzhou #兖
-				completely_controls = title:c_taiyuan #并
-				completely_controls = title:c_weizhou #冀
-				completely_controls = title:c_chengdu #益
-				completely_controls = title:c_jinling #徐
-				completely_controls = title:c_hangzhou #扬
-				completely_controls = title:c_xiangfan #荆
-				completely_controls = title:c_nanhai #交
+			OR = {
+				capital_province.empire = { holder = root }
+				capital_province.empire = {
+					any_in_de_jure_hierarchy = {
+						tier = tier_kingdom
+						holder = root
+					}
+				}
+				AND = {
+					capital_province.empire.title_capital_county = { holder = root }
+					capital_province.empire.title_capital_county.kingdom = { holder = root }
+				}
+				calc_true_if = {
+					amount >= 8
+					completely_controls = title:c_jingzhao #雍
+					completely_controls = title:c_henan #豫
+					completely_controls = title:c_bianzhou #兖
+					completely_controls = title:c_taiyuan #并
+					completely_controls = title:c_weizhou #冀
+					completely_controls = title:c_chengdu #益
+					completely_controls = title:c_jiangning #徐
+					completely_controls = title:c_hangzhou #扬
+					completely_controls = title:c_xiangyang #荆
+					completely_controls = title:c_guangzhou_1 #交
+				}
 			}
+			
 		}
 		OR = {
-			sub_realm_size >= 120
+			sub_realm_size >= 60
 			AND = {
 				custom_description = {
 					text = found_empire_decision_three_kingdoms_held
 					any_held_title = {
-						count >= 4
+						count >= 3
 						tier = tier_kingdom
-						target_is_de_jure_liege_or_above = title:e_celestia
+						target_is_de_jure_liege_or_above = title:h_china
 					}
 				}
-				sub_realm_size >= 80
+				sub_realm_size >= 40
 			}
 		}
 	}
 
 	is_valid_showing_failures_only = {
-		is_independent_ruler = yes
+		top_liege = this
 		is_capable_adult = yes
 		is_at_war = no
 	}
 
 	effect = {
-		found_new_chinese_empire_effect = yes	
+		found_new_chinese_empire_effect = yes
+		#结算国号
 	}
 
 	cost = {
@@ -109,24 +131,23 @@ restore_tang_empire_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_destiny_goal.dds"
 	}
-	ai_check_interval = 120
 	decision_group_type = imperial
 
 	is_shown = {
-		is_independent_ruler = yes
+		top_liege = this
 		is_ruler = yes
 		highest_held_title_tier = tier_kingdom
 		capital_province ?= { geographical_region = world_asia_china }
 		trigger_if = {
-			limit = { exists = title:e_celestia.holder }
+			limit = { exists = title:h_china.holder }
 			NOT = {
-				house = title:e_celestia.holder.house
+				house = title:h_china.holder.house
 			}
 		}
 		NAND = { 
-			exists = title:e_celestia.holder
-			title:e_celestia.holder = {
-				dynasty = dynasty:longxi_li_dyn
+			exists = title:h_china.holder
+			title:h_china.holder = {
+				dynasty ?= dynasty:longxi_li_dyn
 			}
 		}
 		OR = {
@@ -153,9 +174,9 @@ restore_tang_empire_decision = {
 
 	is_valid = {
 		NAND = { 
-			exists = title:e_celestia.holder
-			title:e_celestia.holder = {
-				dynasty = dynasty:longxi_li_dyn
+			exists = title:h_china.holder
+			title:h_china.holder = {
+				dynasty ?= dynasty:longxi_li_dyn
 			}
 		}
 		NOT = { exists = title:e_tang.holder }
@@ -188,12 +209,12 @@ restore_tang_empire_decision = {
 					completely_controls = title:c_youzhou
 				}
 				AND = {
-					completely_controls = title:c_changan
-					completely_controls = title:c_luoyang
+					completely_controls = title:c_jingzhao
+					completely_controls = title:c_henan
 				}
 				AND = {
 					completely_controls = title:c_yangzhou
-					completely_controls = title:c_jinling
+					completely_controls = title:c_jiangning
 				}
 			}
 		}
@@ -201,7 +222,7 @@ restore_tang_empire_decision = {
 
 	is_valid_showing_failures_only = {
 		is_capable_adult = yes
-		is_independent_ruler = yes
+		top_liege = this
 	}
 	cost = {
 		gold = 500
@@ -218,8 +239,17 @@ restore_tang_empire_decision = {
 		#	}
 		#}
 	}
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 120
+		empire = 120
+		hegemony = 120
+	}
+
 	ai_potential = {
-		always = yes
+		highest_held_title_tier >= tier_kingdom
 	}
 
 	ai_will_do = {
@@ -231,7 +261,6 @@ build_han_empire_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_personal_religious.dds"
 	}
-	ai_check_interval = 90
   	decision_group_type = imperial
 	
 	is_shown = {	
@@ -240,17 +269,17 @@ build_han_empire_decision = {
 			geographical_region = world_asia_china
 		}
 		trigger_if = {
-			limit = { exists = title:e_celestia.holder }
+			limit = { exists = title:h_china.holder }
 			NOT = {
-				house = title:e_celestia.holder.house
+				house = title:h_china.holder.house
 			}
 		}
 		
 		NOR = {
 			culture = { has_cultural_pillar = heritage_nanman }
-			culture = { has_cultural_pillar = heritage_tunguse }
+			culture = { has_cultural_pillar = heritage_tungusic }
 			culture = { has_cultural_pillar = heritage_tibetan }
-			culture = { has_cultural_pillar = heritage_yues }
+			culture = { has_cultural_pillar = heritage_viet }
 			culture = { has_cultural_pillar = heritage_mongolic }
 		}
 		NAND = {
@@ -265,147 +294,15 @@ build_han_empire_decision = {
 		OR = { 
 			custom_description = {
 				text = dynasty_is_dynn_Liu1
-				OR = {
-				dynasty = dynasty:xiangfu_liu_dyn
-				dynasty = dynasty:huayang_liu_dyn
-				dynasty = dynasty:fanyang_liu_dyn
-				dynasty = dynasty:anqiu_liu_dyn
-				dynasty = dynasty:anfu_liu_dyn
-				dynasty = dynasty:qingchi_liu_dyn
-				dynasty = dynasty:yuancheng_liu_dyn
-				dynasty = dynasty:xian_liu_dyn
-				dynasty = dynasty:leshou_liu_dyn
-				dynasty = dynasty:peiguo_han_dyn
-				dynasty = dynasty:dongming_liu_dyn
-				dynasty = dynasty:yongjia_liu_dyn
-				dynasty = dynasty:gaoan_liu_dyn
-				dynasty = dynasty:baoan_liu_dyn
-				dynasty = dynasty:fucheng_liu_dyn
-				dynasty = dynasty:jingzhao_liu_dyn
-				dynasty = dynasty:chongan_jliu_dyn
-				dynasty = dynasty:chengji_liu_dyn
-				dynasty = dynasty:lujun_liu_dyn
-				dynasty = dynasty:guian_liu_dyn
-				dynasty = dynasty:songcheng_liu_dyn
-				dynasty = dynasty:jinjiang_liu_dyn
-				dynasty = dynasty:jianchang_liu_dyn
-				dynasty = dynasty:huizong_hou_liu_dyn_001
-				dynasty = dynasty:huizong_hou_liu_dyn_002
-				dynasty = dynasty:song_liu_dyn_001
-				dynasty = dynasty:song_liu_dyn_002
-				dynasty = dynasty:song_liu_dyn_003
-				dynasty = dynasty:song_liu_dyn_004
-				dynasty = dynasty:song_liu_dyn_005
-				dynasty = dynasty:song_liu_dyn_006
-				dynasty = dynasty:song_liu_dyn_007
-				dynasty = dynasty:song_liu_dyn_008
-				dynasty = dynasty:song_liu_dyn_009
-				dynasty = dynasty:liu_qi_liu_dyn_001
-				dynasty = dynasty:liu_qi_liu_dyn_002
-				dynasty = dynasty:peiguo_han_dyn
-				dynasty = dynasty:1000048895 
-				dynasty = dynasty:1000048987 
-				dynasty = dynasty:1000048271
-				dynasty = dynasty:1000048969
-				dynasty = dynasty:1000050108
-				dynasty = dynasty:1000048389
-				dynasty = dynasty:later_shu_liu_dyn
-				dynasty = dynasty:later_tang_liu_dyn
-				dynasty = dynasty:1000048025
-				dynasty = dynasty:1000048268
-				dynasty = dynasty:1000049855
-				dynasty = dynasty:1000049602
-				dynasty = dynasty:1000048182
-				dynasty = dynasty:1000048249
-				dynasty = dynasty:yongqiu_liu_dyn
-				dynasty = dynasty:yonghe_liu_dyn
-				dynasty = dynasty:1000048008
-				dynasty = dynasty:1000048012
-				dynasty = dynasty:1000048016
-				dynasty = dynasty:1000048025
-				dynasty = dynasty:1000048128
-				dynasty = dynasty:1000048136
-				dynasty = dynasty:1000048143
-				dynasty = dynasty:1000048182
-				dynasty = dynasty:1000048207
-				dynasty = dynasty:1000048211
-				dynasty = dynasty:1000048223
-				dynasty = dynasty:1000048227
-				dynasty = dynasty:1000048238
-				dynasty = dynasty:1000048249
-				dynasty = dynasty:1000048252
-				dynasty = dynasty:1000048268
-				dynasty = dynasty:1000048271
-				dynasty = dynasty:1000048311
-				dynasty = dynasty:1000048345
-				dynasty = dynasty:1000048346
-				dynasty = dynasty:1000048362
-				dynasty = dynasty:1000048389
-				dynasty = dynasty:1000048398
-				dynasty = dynasty:1000048427
-				dynasty = dynasty:1000048483
-				dynasty = dynasty:1000048513
-				dynasty = dynasty:1000048524
-				dynasty = dynasty:1000048555
-				dynasty = dynasty:1000048640
-				dynasty = dynasty:1000048642
-				dynasty = dynasty:1000048645
-				dynasty = dynasty:1000048659
-				dynasty = dynasty:1000048677
-				dynasty = dynasty:1000048705
-				dynasty = dynasty:1000048737
-				dynasty = dynasty:1000048745
-				dynasty = dynasty:1000048758
-				dynasty = dynasty:1000048769
-				dynasty = dynasty:1000048775
-				dynasty = dynasty:1000048800
-				dynasty = dynasty:1000048810
-				dynasty = dynasty:1000048822
-				dynasty = dynasty:1000048824
-				dynasty = dynasty:1000048850
-				dynasty = dynasty:1000048858
-				dynasty = dynasty:1000048871
-				dynasty = dynasty:1000048881
-				dynasty = dynasty:1000048895
-				dynasty = dynasty:1000048934
-				dynasty = dynasty:1000048969
-				dynasty = dynasty:1000048981
-				dynasty = dynasty:1000048987
-				dynasty = dynasty:1000048994
-				dynasty = dynasty:1000050003
-				dynasty = dynasty:1000050042
-				dynasty = dynasty:1000050049
-				dynasty = dynasty:1000050080
-				dynasty = dynasty:1000050081
-				dynasty = dynasty:1000050092
-				dynasty = dynasty:1000050104
-				dynasty = dynasty:1000050108
-				dynasty = dynasty:1000050127
-				dynasty = dynasty:1000050139
-				dynasty = dynasty:1000050146
-				dynasty = dynasty:1000050158
-				dynasty = dynasty:1000050177
-				dynasty = dynasty:1000050200
-				dynasty = dynasty:1000050222
-				dynasty = dynasty:1000050223
-				dynasty = dynasty:1000050224
-				dynasty = dynasty:1000050227
-				dynasty = dynasty:1000050303
-				dynasty = dynasty:1000050305
-				dynasty = dynasty:1000050306
-				dynasty = dynasty:1000050366
-				dynasty = dynasty:baoan_liu_dyn
-				dynasty = dynasty:song_liu_dyn_001
-				dynasty = dynasty:song_liu_dyn_002
-				}
+				house_liu_trigger = yes
 			}
 			has_primary_title = title:k_han
 			has_title = title:e_wu
 			has_title = title:e_shu
 			has_title = title:e_min
 			trigger_if = {
-				exists = title:e_celestia.holder
-				title:e_celestia.holder = {
+				exists = title:h_china.holder
+				title:h_china.holder = {
 					NOT = { culture = { has_cultural_pillar = heritage_chinese }  }
 				}
 				culture = { has_cultural_pillar = heritage_chinese }
@@ -428,8 +325,17 @@ build_han_empire_decision = {
 		piety = 300
 	}
 	
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 36
+		empire = 36
+		hegemony = 0
+	}
+
 	ai_potential = {
-		always = yes
+		highest_held_title_tier >= tier_kingdom
 	}
 
 	ai_will_do = {
@@ -445,35 +351,34 @@ replace_celestia_empire_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_personal_religious.dds"
 	}
-	ai_check_interval = 90
   	decision_group_type = imperial
 	is_shown = {
 	 	is_landed = yes
-		is_independent_ruler = no
+		top_liege != this
 		highest_held_title_tier = tier_kingdom
-		OR = {
-			top_liege = { has_title = title:e_celestia }
-			liege = { has_title = title:e_celestia }
-			#government_has_flag = government_is_feudal
-		}
+		top_liege = { has_title = title:h_china }
 	}
 	is_valid = {
 		is_capable_adult = yes
 		is_imprisoned = no
 		is_at_war = no
 		prestige_level >= high_prestige_level
+		title:h_china.holder ?= {
+			legitimacy_level < 4
+		}
 		custom_description = {
 			text = "replace_celestia_empire_decision_five_kingdoms_held"
 			any_held_title = {
 				count >= 5
 				tier = tier_kingdom
+				is_landless_type_title = no
 			}
 		}
 		custom_description = {
 			text = "liege_has_e_celestia_title"
 			OR = {
-				top_liege = { has_title = title:e_celestia }
-				liege = { has_title = title:e_celestia }
+				top_liege = { has_title = title:h_china }
+				liege = { has_title = title:h_china }
 			}
 		}
 		capital_province ?= {
@@ -495,8 +400,17 @@ replace_celestia_empire_decision = {
 		piety = 1000
 	}
 	
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 72
+		empire = 36
+		hegemony = 0
+	}
+
 	ai_potential = {
-		always = yes
+		highest_held_title_tier >= tier_kingdom
 	}
 
 	ai_will_do = {
@@ -524,10 +438,9 @@ claim_fake_chinese_emperor_decision = {
 		reference = "gfx/interface/illustrations/decisions/decision_major_religion.dds"
 	}
 	decision_group_type = imperial
-	ai_check_interval = 30
 	ai_goal = yes
 	is_shown = {
-		is_independent_ruler = yes
+		top_liege = this
 		highest_held_title_tier = tier_kingdom
 		capital_province ?= {
 			geographical_region = world_asia_china
@@ -545,26 +458,26 @@ claim_fake_chinese_emperor_decision = {
 					#any_held_title = {
 						#count >= 3
 						#tier = tier_kingdom
-						#target_is_de_jure_liege_or_above = title:e_celestia
+						#target_is_de_jure_liege_or_above = title:h_china
 					#}
 				#}
 			#}
 			has_title = title:k_shu
 			has_title = title:k_chu
-			has_title = title:k_nanyue
+			has_title = title:k_lingnan
 			has_title = title:k_wu
 			calc_true_if = {
 				amount >= 1
-				has_title = title:c_changan
-				has_title = title:c_luoyang
+				has_title = title:c_jingzhao
+				has_title = title:c_henan
 				has_title = title:c_bianzhou
 				has_title = title:c_taiyuan
 				has_title = title:c_weizhou
 				has_title = title:c_chengdu
-				has_title = title:c_jinling
+				has_title = title:c_jiangning
 				has_title = title:c_hangzhou
-				has_title = title:c_changsha
-				has_title = title:c_nanhai
+				has_title = title:c_tanzhou
+				has_title = title:c_guangzhou_1
 			}
 		}
 	}
@@ -581,6 +494,14 @@ claim_fake_chinese_emperor_decision = {
 		claim_fake_chinese_emperor_effect = yes
 	}
 
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 72
+		kingdom = 36
+		empire = 0
+		hegemony = 0
+	}
 	ai_potential = {
 		always = yes
 	}
@@ -595,8 +516,8 @@ found_western_protectorate_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_destiny_goal.dds"
 	}
-	ai_check_interval = 1000
   	decision_group_type = imperial
+	is_goal = yes
 
 	is_shown = {
 	 	is_landed = yes
@@ -616,10 +537,10 @@ found_western_protectorate_decision = {
 
 	is_valid = {
 		prestige_level >= 2
-		completely_controls = title:d_guiyi
 		completely_controls = title:k_khotan
 		completely_controls = title:d_kara_khoja
-		completely_controls = title:d_muyunkum
+		completely_controls = title:d_ili_alatau
+		completely_controls = title:d_talas_alatau
 	}
 
 	is_valid_showing_failures_only = {
@@ -640,6 +561,14 @@ found_western_protectorate_decision = {
 		}
 	}
 	
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 60
+		empire = 36
+		hegemony = 36
+	}
 	ai_potential = {
 		always = yes
 	}
@@ -671,7 +600,6 @@ found_new_chinese_kingdom_decision = {
 		reference = "gfx/interface/illustrations/decisions/decision_activity.dds"
 	}
   	decision_group_type = imperial
-	ai_check_interval = 60
 	
 	is_shown = {
 		highest_held_title_tier = tier_duchy	
@@ -702,13 +630,13 @@ found_new_chinese_kingdom_decision = {
 			localization = found_fake_chinese_kingdom_decision
 			current_description = found_fake_chinese_kingdom_decision_desc
 			is_valid = {
-				is_independent_ruler = yes
+				top_liege = this
 				#custom_description = {
 					#text = found_kingdom_decision_three_duchies_held
 					#any_held_title = {
 						#count >= 3
 						#tier = tier_duchy
-						#target_is_de_jure_liege_or_above = title:e_celestia
+						#target_is_de_jure_liege_or_above = title:h_china
 					#}
 				#}
 			}
@@ -729,7 +657,7 @@ found_new_chinese_kingdom_decision = {
 			is_valid = {
 				completely_controls = title:d_zhedong
 				completely_controls = title:d_zhexi
-				#completely_controls = title:d_zhenhai
+				#completely_controls = title:d_jiangdong
 			}
 			
 			icon = "gfx/interface/icons/message_feed/titles.dds"
@@ -742,11 +670,11 @@ found_new_chinese_kingdom_decision = {
 			current_description = found_min_kingdom_decision_desc
 			is_shown = {
 				capital_county ?= {
-					target_is_de_jure_liege_or_above = title:d_fujian
+					target_is_de_jure_liege_or_above = title:k_fujian
 				}
 			}
 			is_valid = {
-				completely_controls = title:d_fujian
+				completely_controls = title:k_fujian
 			}
 			
 			icon = "gfx/interface/icons/message_feed/titles.dds"
@@ -766,7 +694,7 @@ found_new_chinese_kingdom_decision = {
 				completely_controls = title:d_weibo
 				completely_controls = title:d_xiangwei
 				completely_controls = title:c_xingzhou
-				completely_controls = title:c_mingzhou_hebei
+				completely_controls = title:c_mingzhou
 				completely_controls = title:c_cizhou
 			}
 			
@@ -787,7 +715,7 @@ found_new_chinese_kingdom_decision = {
 				}
 			}
 			is_valid = {
-				completely_controls = title:d_hanzhong
+				completely_controls = title:d_xingyuan
 			}
 			
 			icon = "gfx/interface/icons/message_feed/titles.dds"
@@ -798,6 +726,15 @@ found_new_chinese_kingdom_decision = {
 	cost = {
 		gold = 300
 		piety = 300
+	}
+
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 36
+		duchy = 36
+		kingdom = 0
+		empire = 0
+		hegemony = 0
 	}
 
 	ai_potential = {
@@ -842,22 +779,22 @@ found_xixia_kingdom_decision = {
 	is_shown = {
 		culture = { has_cultural_pillar = heritage_qiangic }
 		OR = { 
-			has_title = title:k_xia_east
+			has_title = title:k_xia
 			has_title = title:k_xia
 		}
-		exists = title:k_xia_east
+		exists = title:k_xia
 		NOT = { exists = global_var:xixia_kingdom }
 	}
 
 	is_valid = {
-		has_title = title:k_xia_east
+		has_title = title:k_xia
 		OR = {
 			has_title = title:k_xia
 			AND = {
-				completely_controls = title:d_liangzhou
-				completely_controls = title:d_ganzhou
-				completely_controls = title:d_guiyi
-				completely_controls = title:d_xia
+				completely_controls = title:d_hexi
+				completely_controls = title:d_gansu
+				completely_controls = title:d_guasha
+				completely_controls = title:d_shuofang
 			}
 		}
 	}
@@ -900,11 +837,11 @@ found_steppe_chinese_empire_decision = {
 	 	is_landed = yes
 		highest_held_title_tier <= tier_kingdom
 		NOT = { culture = { has_cultural_pillar = heritage_chinese } }
-		is_independent_ruler = yes
+		top_liege = this
 		capital_province ?= {
 			OR = {
 				geographical_region = world_steppe
-				geographical_region = world_steppe_tartaria
+				geographical_region = world_asia_north_east
 			}
 		}
 	}
@@ -915,11 +852,11 @@ found_steppe_chinese_empire_decision = {
 		OR = {
 			AND = { #上秦/北朝
 				completely_controls = title:d_youzhou
-				completely_controls = title:d_yunzhong
+				completely_controls = title:d_yunshuo
 				OR = {
-					completely_controls = title:c_luoyang
+					completely_controls = title:c_henan
 					completely_controls = title:c_bianzhou
-					completely_controls = title:c_changan
+					completely_controls = title:c_jingzhao
 					completely_controls = title:c_weizhou
 				}
 			}
@@ -927,15 +864,15 @@ found_steppe_chinese_empire_decision = {
 				has_title = title:k_khitan
 				has_title = title:k_liao
 				OR = {
-					completely_controls = title:d_fengzhou
-					completely_controls = title:d_teriqan
-					completely_controls = title:d_karat
-					completely_controls = title:d_holon
-					completely_controls = title:d_uroghu
-					completely_controls = title:d_yulou
-					completely_controls = title:d_heishui
-					completely_controls = title:d_xiazhou
-					completely_controls = title:c_yunzhou
+					completely_controls = title:d_tiande
+					completely_controls = title:d_gobi_shatuoguo
+					completely_controls = title:d_gobi_onji
+					completely_controls = title:d_EM_yujuelu
+					completely_controls = title:d_SW_qingxingan
+					completely_controls = title:d_BAL_yeojintang
+					completely_controls = title:d_BAL_hoewon
+					completely_controls = title:d_xiasui
+					completely_controls = title:c_datong_2
 					completely_controls = title:c_youzhou
 				}
 			}
@@ -951,12 +888,12 @@ found_steppe_chinese_empire_decision = {
 				}
 			}
 			AND = { #大白高国
-				has_title = title:k_xia_east
+				has_title = title:k_xia
 				has_title = title:k_xia
 				OR = {
-					completely_controls = title:d_wuluhai
+					completely_controls = title:d_langshan
 					completely_controls = title:d_amdo
-					completely_controls = title:d_guiyi
+					completely_controls = title:d_guasha
 				}
 			}
 		}
@@ -964,7 +901,7 @@ found_steppe_chinese_empire_decision = {
 	}
 
 	is_valid_showing_failures_only = {
-		is_independent_ruler = yes
+		top_liege = this
 		is_capable_adult = yes
 		#is_at_war = no
 	}
@@ -1007,11 +944,11 @@ found_steppe_empire_decision = {
 	is_shown = {
 		highest_held_title_tier <= tier_kingdom
 		NOT = { culture = { has_cultural_pillar = heritage_chinese } }
-		is_independent_ruler = yes
+		top_liege = this
 		capital_province ?= {
 			OR = {
 				geographical_region = world_steppe
-				geographical_region = world_steppe_tartaria
+				geographical_region = world_asia_north_east
 			}
 		}
 	}
@@ -1021,15 +958,15 @@ found_steppe_empire_decision = {
 		completely_controls = title:d_orkhon
 		calc_true_if = {
 			amount >= 5
-			completely_controls = title:d_khiyat
-			completely_controls = title:c_chanyufu
-			completely_controls = title:d_tohchen
-			completely_controls = title:c_degere
+			completely_controls = title:d_em_tataria
+			completely_controls = title:c_lxj_yunneizhou
+			completely_controls = title:d_LIAO_zhongjing
+			completely_controls = title:c_LIAO_linhuang
 
-			completely_controls = title:d_weisai
-			completely_controls = title:d_hiyaxu
-			completely_controls = title:d_yunzhong
-			completely_controls = title:d_malgal
+			completely_controls = title:d_sanggan
+			completely_controls = title:d_yanyun_yuyi
+			completely_controls = title:d_yunshuo
+			completely_controls = title:d_BAL_moe_su
 			completely_controls = title:d_khakass_hollow
 			completely_controls = title:d_khovd		
 		}
@@ -1037,7 +974,7 @@ found_steppe_empire_decision = {
 	}
 
 	is_valid_showing_failures_only = {
-		is_independent_ruler = yes
+		top_liege = this
 		is_capable_adult = yes
 		is_at_war = no
 	}
@@ -1070,15 +1007,58 @@ taichang_banner_decision = {
 	}
 
 	is_shown = {
-		has_title = title:e_celestia
-		government_has_flag = government_is_celestial
+		is_ai = no
+		has_title = title:h_china
+		government_has_flag = government_has_influence
 	}
 	ai_check_interval = 0
 	sort_order = 75
 	is_valid = {
-		OR = {
-			#religion = religion:taoism_religion
-			religion = religion:confucianism_religion
+	}
+
+	widget = {
+		gui = "decision_view_widget_taichang_banner"
+		controller = decision_option_list_controller
+		decision_to_second_step_button = "taichang_banner_decision_tooltip"
+		show_from_start = yes
+
+		#太常旗
+		item = {
+			value = celestia
+			localization = set_coa_celestia
+			current_description = set_coa_celestia_desc
+			is_valid = {}
+			icon = "gfx/interface/icons/message_feed/titles.dds"
+			ai_chance = { value = 50 }
+		}
+		#三辰旗
+		item = {
+			value = xiyu
+			localization = set_coa_xiyu
+			current_description = set_coa_xiyu_desc
+			is_valid = {}
+			icon = "gfx/interface/icons/message_feed/titles.dds"
+			ai_chance = { value = 50 }
+		}
+		#苍天金龙旗
+		item = {
+			value = china
+			localization = set_coa_china
+			current_description = set_coa_china_desc
+			is_shown = {}
+			is_valid = {}
+			icon = "gfx/interface/icons/message_feed/titles.dds"
+			ai_chance = { value = 100 }
+		}
+		#黄天白龙旗
+		item = {
+			value = song
+			localization = set_coa_song
+			current_description = set_coa_song_desc
+			is_shown = {}
+			is_valid = {}
+			icon = "gfx/interface/icons/message_feed/titles.dds"
+			ai_chance = { value = 100 }
 		}
 	}
 
@@ -1096,28 +1076,35 @@ song_clothing_decision = {
 	picture = {
 		reference = "gfx/interface/illustrations/decisions/decision_destiny_goal.dds"
 	}
-	ai_check_interval = 36
 	decision_group_type = admin
-
 	is_shown = {
-		government_has_flag = government_is_celestial
-		current_date > 960.1.1
-		NOT = {	exists = global_var:flag_song_clothing }
-		has_primary_title = title:e_celestia
-	}
-	
+		government_has_flag = government_has_influence
+		NOR = {
+			exists = global_var:chinese_fashion_change
+			exists = global_var:flag_song_clothing
+		}
+		has_primary_title = title:h_china
+	}	
 	is_valid = {
-		religion = religion:confucianism_religion
 	}
-
 	effect = {
 		song_clothing_effect = yes
-	}	
-	ai_potential = {
-		always = yes
+	}
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 0
+		empire = 0
+		hegemony = 60
 	}
 	ai_will_do = {
-		base = 1000
+		base = 0
+		modifier = {
+			current_date > 960.1.1
+			NOT = { dynasty = dynasty:longxi_li_dyn }
+			add = 100
+		}
 	}
 }
 
@@ -1127,23 +1114,32 @@ tang_clothing_decision = {
 		reference = "gfx/interface/illustrations/decisions/decision_destiny_goal.dds"
 	}
 	ai_check_interval = 0
-
 	is_shown = {
-		government_has_flag = government_is_celestial
-		exists = global_var:flag_song_clothing	
+		government_has_flag = government_has_influence
+		OR = {
+			exists = global_var:chinese_fashion_change
+			exists = global_var:flag_song_clothing
+		}		
 		is_ai = no
-		highest_held_title_tier = tier_empire
+		highest_held_title_tier >= tier_empire
 	}
-	
 	is_valid = {
-		current_date > 1000.1.1
 	}
 	effect = {
 		tang_clothing_effect = yes
-	}	
-
+	}
+	ai_potential = { always = no }
 	ai_will_do = {
 		base = 0
+		modifier = {
+			add = 100
+			OR = {
+				dynasty = dynasty:longxi_li_dyn
+				house = house:house_nantang_li
+				dynasty = dynasty:1000049851
+				dynasty = dynasty:1000049852
+			}
+		}
 	}
 }
 
@@ -1156,7 +1152,7 @@ tang_usurped_decision = {
 	ai_goal = yes
 	decision_group_type = imperial
 	is_shown = {
-		is_independent_ruler = no
+		top_liege != this
 		liege = {
 			OR = {
 				has_title = title:e_wu
@@ -1164,7 +1160,7 @@ tang_usurped_decision = {
 				has_title = title:e_min
 				has_title = title:e_han
 				has_title = title:e_tang
-				has_title = title:k_nanzhong
+				has_title = title:k_dali
 			}
 		}
 	}
@@ -1200,19 +1196,19 @@ found_puppet_empire_decision = {
 		reference = "gfx/interface/illustrations/decisions/decision_major_religion.dds"
 	}
 	decision_group_type = imperial
-	ai_check_interval = 60
 
 	is_shown = {
-		NOT = {
+		NOR = {
 			culture = { has_cultural_pillar = heritage_chinese }
+			capital_province ?= { geographical_region = world_asia_china }
 		}
-		highest_held_title_tier = tier_empire
+		highest_held_title_tier >= tier_empire
 	}
 
 	is_valid = {
 		completely_controls = title:c_weizhou
 		completely_controls = title:c_bianzhou
-		completely_controls = title:c_changan
+		completely_controls = title:c_jingzhao
 		any_vassal = {
 			culture = { has_cultural_pillar = heritage_chinese }
 			highest_held_title_tier >= tier_duchy
@@ -1232,6 +1228,14 @@ found_puppet_empire_decision = {
 		found_puppet_empire_effect = yes
 	}
 
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 0
+		empire = 36
+		hegemony = 72
+	}
 	ai_potential = {
 		always = no
 	}
@@ -1239,7 +1243,7 @@ found_puppet_empire_decision = {
 	ai_will_do = {
 		base = 0
 		modifier = {
-			culture = { has_cultural_pillar = heritage_tunguse }
+			culture = { has_cultural_pillar = heritage_tungusic }
 			add = 50
 		}
 	}
@@ -1251,9 +1255,9 @@ start_examination_decision = {
 		reference = "gfx/interface/illustrations/decisions/decision_major_religion.dds"
 	}
 	decision_group_type = admin
-	ai_check_interval = 60
 
 	is_shown = {
+		has_tgp_dlc_trigger = no
 		is_oe_imperial_court_trigger = yes
 		NOT = {
 			has_global_variable = examination_modifier
@@ -1261,7 +1265,7 @@ start_examination_decision = {
 	}
 
 	is_valid = {
-		has_primary_title = title:e_celestia
+		has_primary_title = title:h_china
 		piety_level >= 4
 		is_at_war = no
 		faith.religion = religion:confucianism_religion
@@ -1290,6 +1294,14 @@ start_examination_decision = {
         }
 	}
 
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 0
+		empire = 36
+		hegemony = 72
+	}
 	ai_potential = {
 		always = no
 	}
@@ -1303,15 +1315,15 @@ stop_examination_decision = {
 		reference = "gfx/interface/illustrations/decisions/decision_major_religion.dds"
 	}
 	decision_group_type = admin
-	ai_check_interval = 60
 
 	is_shown = {
-		has_primary_title = title:e_celestia
+		has_tgp_dlc_trigger = no
+		has_primary_title = title:h_china
 		has_global_variable = examination_modifier
 	}
 
 	is_valid = {
-		has_primary_title = title:e_celestia	
+		has_primary_title = title:h_china	
 	}
 
 	is_valid_showing_failures_only = {
@@ -1332,6 +1344,15 @@ stop_examination_decision = {
         }
 	}
 
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 0
+		empire = 36
+		hegemony = 72
+	}
+
 	ai_potential = {
 		always = no
 	}
@@ -1346,10 +1367,10 @@ move_dejure_capital_decision = {
 		reference = "gfx/interface/illustrations/decisions/decision_destiny_goal.dds"
 	}
 	decision_group_type = admin
-	ai_check_interval = 60
 
 	is_shown = {
 		is_landed = yes
+		government_has_flag = goverument_use_bureaucracy
 		primary_title = {
 			tier >= tier_duchy
 			NOT = {
@@ -1380,6 +1401,14 @@ move_dejure_capital_decision = {
 		}
 	}
 
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 36
+		empire = 36
+		hegemony = 36
+	}
 	ai_potential = {
 		is_oe_imperial_court_trigger = yes
 	}
@@ -1435,7 +1464,7 @@ found_new_chinese_empire_decision_ai = {
 		capital_province ?= {
 			geographical_region = world_asia
 		}
-		NOT = { has_title = title:e_celestia }		
+		NOT = { has_title = title:h_china }		
 	}
 
 	is_valid = {
@@ -1445,13 +1474,13 @@ found_new_chinese_empire_decision_ai = {
 		#prestige_level >= 3
 		trigger_if = {
 			limit = {
-				NOT = { exists = title:e_celestia.holder }
+				NOT = { exists = title:h_china.holder }
 			}
 			OR = {
 				calc_true_if = {
 					amount >= 4
-					completely_controls = title:c_changan
-					completely_controls = title:c_luoyang
+					completely_controls = title:c_jingzhao
+					completely_controls = title:c_henan
 					completely_controls = title:c_bianzhou
 					completely_controls = title:c_taiyuan
 					completely_controls = title:c_weizhou
@@ -1459,26 +1488,26 @@ found_new_chinese_empire_decision_ai = {
 					completely_controls = title:k_yue
 					has_title = title:k_chu
 					has_title = title:k_shu
-					has_title = title:k_nanyue
+					has_title = title:k_lingnan
 				}
 			}
 		}
 		trigger_if = {
 			limit = {
-				exists = title:e_celestia.holder
+				exists = title:h_china.holder
 			}
 			calc_true_if = {
 				amount >= 7
-				completely_controls = title:c_changan
-				completely_controls = title:c_luoyang
+				completely_controls = title:c_jingzhao
+				completely_controls = title:c_henan
 				completely_controls = title:c_bianzhou
 				completely_controls = title:c_taiyuan
 				completely_controls = title:c_weizhou
 				completely_controls = title:c_chengdu
-				completely_controls = title:c_jinling
+				completely_controls = title:c_jiangning
 				completely_controls = title:c_hangzhou
-				completely_controls = title:c_xiangfan
-				completely_controls = title:c_nanhai
+				completely_controls = title:c_xiangyang
+				completely_controls = title:c_guangzhou_1
 			}
 		}
 		OR = {
@@ -1489,7 +1518,7 @@ found_new_chinese_empire_decision_ai = {
 					any_held_title = {
 						count >= 3
 						tier = tier_kingdom
-						target_is_de_jure_liege_or_above = title:e_celestia
+						target_is_de_jure_liege_or_above = title:h_china
 					}
 				}
 				sub_realm_size >= 60
@@ -1498,7 +1527,7 @@ found_new_chinese_empire_decision_ai = {
 	}
 
 	is_valid_showing_failures_only = {
-		is_independent_ruler = yes
+		top_liege = this
 		is_capable_adult = yes
 		is_at_war = no
 	}
@@ -1525,7 +1554,7 @@ unite_chinese_empire_decision_ai = {
 
 	is_shown = {
 		is_ai = yes
-	 	is_independent_ruler = yes
+	 	top_liege = this
 		culture = { has_innovation = innovation_centralization_of_authority }
 		capital_province ?= {
 			geographical_region = world_asia_china
@@ -1533,7 +1562,7 @@ unite_chinese_empire_decision_ai = {
 	}
 
 	is_valid = {
-		completely_controls = title:e_celestia
+		completely_controls = title:h_china
 	}
 
 	is_valid_showing_failures_only = {
@@ -1560,7 +1589,7 @@ unite_steppe_empire_decision_ai = {
 
 	is_shown = {
 		is_ai = yes
-		is_independent_ruler = yes
+		top_liege = this
 		capital_province ?= {
 			geographical_region = world_steppe_east
 		}	
@@ -1590,17 +1619,16 @@ unite_steppe_empire_decision_ai = {
 #销毁多余帝国
 destroy_fake_empire_decision_ai = {
 	decision_group_type = imperial
-	ai_check_interval = 120
 	is_shown = {
 		is_ai = yes
-	 	is_independent_ruler = yes
-		has_primary_title = title:e_celestia
+	 	top_liege = this
+		has_primary_title = title:h_china
 	}
 
 	is_valid = {
 		any_held_title = {
 			is_head_of_faith = no
-			tier = tier_empire
+			tier >= tier_empire
 			OR = {
 				is_titular = yes
 				is_landless_type_title = yes
@@ -1646,8 +1674,17 @@ destroy_fake_empire_decision_ai = {
 	cost = {
 	}
 	
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 120
+		empire = 120
+		hegemony = 120
+	}
+
 	ai_potential = {
-		always = yes
+		highest_held_title_tier >= tier_kingdom
 	}
 
 	ai_will_do = {
@@ -1670,18 +1707,18 @@ found_shogunate_decision = {
 	is_shown = {
 	 	is_landed = yes
 		highest_held_title_tier <= tier_kingdom
-		culture = { has_cultural_pillar = heritage_yamato }
+		culture = { has_cultural_pillar = heritage_japonic }
 		capital_province ?= {
 			geographical_region = world_asia_japan
 		}
-		exists = title:d_gosho.holder
+		exists = title:k_chrysanthemum_throne.holder
 		NOT = { exists = title:d_shogunate.holder }
 	}
 
 	is_valid = {
 		completely_controls = title:c_yamashiro
 		sub_realm_size >= root.great_misit_min_realm_size
-		government_has_flag = government_is_legion
+		government_has_flag = government_is_stratocratic
 	}
 
 	is_valid_showing_failures_only = {
@@ -1691,7 +1728,7 @@ found_shogunate_decision = {
 
 	effect = {
 		get_title = title:d_shogunate
-		add_pressed_claim = title:k_yamato
+		add_pressed_claim = title:e_japan
 	}
 
 	cost = {
@@ -1718,14 +1755,14 @@ merge_cathay_decision = {
 	decision_group_type = imperial
 
 	is_shown = {
-		has_title = title:e_celestia
+		has_title = title:h_china
 		has_title = title:e_cathay
 	}
 
 	is_valid = {
-		has_primary_title = title:e_celestia
+		has_primary_title = title:h_china
 		OR = {
-			government_has_flag = government_is_celestial
+			government_has_flag = government_has_influence
 			government_has_flag = government_is_ulus
 		}
 	}
@@ -1750,7 +1787,7 @@ merge_cathay_decision = {
 	
 	ai_potential = {
 		has_title = title:e_cathay
-		has_primary_title = title:e_celestia
+		has_primary_title = title:h_china
 	}
 
 	ai_will_do = {

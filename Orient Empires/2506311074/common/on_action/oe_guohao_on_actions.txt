@@ -1,0 +1,138 @@
+on_title_gain = {
+	on_actions = {
+		miaohao_on_title_gain
+	}
+}
+
+miaohao_on_title_gain = {
+	trigger = {
+		scope:title.tier >= tier_empire
+		OR = {
+			scope:transfer_type = flag:created
+			scope:transfer_type = flag:usurped
+			scope:transfer_type = flag:conquest_claim
+		}
+		#帝国升天朝不重复获得
+		NAND = {
+			scope:title.tier > tier_empire 
+			any_held_title = {
+				tier = tier_empire
+			}
+			capital_province ?= { geographical_region = world_asia_china }
+		}
+	}
+	effect = {
+		if = {
+			limit = {
+				highest_held_title_tier >= tier_empire
+				royal_members_trigger = no ##非皇族
+				NOT = { has_trait = founding_monarch }
+			}
+			father = {
+				if = {
+					limit = {
+						is_alive = no
+					}
+					add_trait = miaohao_gaozu
+				}
+			}
+			add_trait = founding_monarch
+		}
+		else_if = {
+			limit = {
+				highest_held_title_tier >= tier_empire
+				royal_members_trigger = yes ##前皇族
+				NOR = {
+					has_trait = founding_monarch
+					has_trait = restoration_monarch
+				}
+			}
+			add_trait = restoration_monarch
+		}
+	}
+}
+
+
+on_rank_up = {
+	on_actions = {
+		Guohao_on_action
+	}
+}
+
+Guohao_on_action = {
+	effect = {
+		if = {
+			limit = {
+				liege = root
+				tgp_use_chinese_naming_trigger = yes
+
+				primary_title = {
+					tier >= tier_kingdom
+				}
+			}
+			if = {
+				limit = {
+					scope:title = {
+						has_custom_title_name = yes
+					}
+					primary_title ?= {
+						has_custom_title_name = no
+					}
+				}
+				scope:title = {
+					move_title_name_to = root.primary_title
+					reset_title_name = yes
+				}
+			}
+		}
+
+		#if = {
+			#limit = {
+				##liege = root
+				#is_independent_ruler = yes
+				#tgp_use_chinese_naming_trigger = yes
+				#OR = {
+					#highest_held_title_tier > tier_empire
+					##AND = {
+						##highest_held_title_tier >= tier_empire
+						##NOT = {
+							##government_has_flag = government_is_celestial
+						##}
+					##}
+					##AND = {
+						##highest_held_title_tier >= tier_kingdom
+						##is_independent_ruler = yes
+					##}
+				#}
+				#OR = {
+					#primary_title ?= {
+						#has_custom_title_name = no
+					#}
+					#NOT = { exists = primary_title.previous_holder }
+					#primary_title.previous_holder.dynasty != root.dynasty
+				#}
+			#}
+			#if = {
+				#limit = {
+					#is_ai = no
+				#}
+				#trigger_event = {
+					#id = Dynasty_Title.9004
+					##days = 1
+				#}
+			#}
+			#else = {
+				#trigger_event = {
+					#id = tgp_dynastic_cycle.9001
+					#days = 1
+				#}
+			#}
+		#}
+	}
+}
+
+#废帝标记 TODO
+#on_rank_down = {
+	#on_actions = {	
+	#}
+#}

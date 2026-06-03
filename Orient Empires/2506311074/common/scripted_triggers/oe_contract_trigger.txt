@@ -1,83 +1,74 @@
-﻿is_legion_government_trigger = { #什么是军镇制
+﻿government_use_bureaucracy_trigger = { #什么是流官政体
+	OR = {
+		#government_has_flag = government_is_bureau
+		government_has_flag = government_use_bureaucracy
+		government_has_flag = government_has_merit
+
+		government_has_flag = government_has_county_tier_noble_families
+	}
+}
+
+is_legion_government_trigger = { #什么是军镇制/军制
 	OR = { 
-		government_has_flag = government_is_legion
+		government_has_flag = government_is_stratocratic
 		vassal_contract_has_flag = imperial_legion_2
+		vassal_contract_has_flag = celestial_military_appointment #实际中已混用
+		vassal_contract_has_flag = celestial_province_warlord
 	}
 }
 is_milita_government_trigger = { #什么是军府
-	vassal_contract_has_flag = imperial_contract_1
+	vassal_contract_has_flag = celestial_military_appointment
 }
-is_bureau_government_trigger = { #什么是文官制
-	OR = { 
-		government_has_flag = government_is_bureau
-		vassal_contract_has_flag = imperial_contract_0
+is_bureau_government_trigger = { #什么是文官制/民州
+	custom_description = {
+		text = special_imperial_contract_0
+		OR = { 
+			government_has_flag = government_is_bureau
+			vassal_contract_has_flag = celestial_civil_appointment
+		}
 	}
 }
 is_oe_imperial_government_trigger = { #什么是中华皇帝
 	exists = this
 	is_landed = yes
-	is_independent_ruler = yes
-	OR = {
-		has_title = title:e_celestia
-		has_title = title:e_tang
-		has_title = title:e_han		
-		has_title = title:e_shu
-		has_title = title:e_min
-		has_title = title:e_wu
-		has_title = title:e_huang_qi
-		has_title = title:k_puppet_qi
-		has_title = title:k_ming
-		AND = {
-			highest_held_title_tier = tier_empire
-			government_has_flag = government_is_celestial
-		}
-		AND = {
-			has_primary_title = title:e_cathay
-			OR = {
-				government_has_flag = government_is_celestial
-				government_has_flag = government_is_ulus
-			}
-		}
-	}
+	top_liege = this
+	highest_held_title_tier >= tier_empire
+	government_use_bureaucracy_trigger = yes
+	is_minister_trigger = no
 }
 is_oe_imperial_title_trigger = { #什么是中华帝国
+	tier >= tier_empire
 	OR = {
-		this = title:e_celestia
-		this = title:e_tang
-		this = title:e_han		
-		this = title:e_shu
-		this = title:e_min
-		this = title:e_wu
-		this = title:e_huang_qi
-		this = title:k_puppet_qi
-		this = title:k_ming
-		AND = {
-			tier = tier_empire
-			exists = holder
-			holder = { culture = { has_cultural_pillar = heritage_chinese } }
-		}
-		AND = {
-			this = title:e_cathay
-			exists = holder
-			holder = { government_has_flag = government_is_celestial }
-		}
+		this = title:h_china
+		this = title:e_cathay
+		de_jure_liege = title:h_china
+		de_jure_liege.de_jure_liege = title:h_china
+	}
+	NOR = {
+		this = title:e_minister_chancellor
+		this = title:e_minister_censor
+		this = title:e_minister_grand_marshal
+		this = title:e_minister_of_personnel
+		this = title:e_minister_of_revenue
+		this = title:e_minister_of_rites
+		this = title:e_minister_of_war
+		this = title:e_minister_of_justice
+		this = title:e_minister_of_works
 	}
 }
 
 is_royal_government_trigger = { #什么是皇室领地
+	top_liege != this
 	OR = {		
 		AND = {
-			is_independent_ruler = no
 			vassal_contract_has_flag = imperial_contract_2
 			vassal_contract_has_flag = imperial_royal_1
 		}
 		AND = {
-			is_independent_ruler = no
 			top_liege ?= { is_oe_imperial_government_trigger = yes }
-			has_title = title:d_gosho
+			has_title = title:k_chrysanthemum_throne
 		}
 		AND = {
-			is_independent_ruler = no
 			top_liege ?= { is_oe_imperial_government_trigger = yes }
 			has_title = title:d_confucius
 		}
@@ -90,95 +81,57 @@ is_royal_government_trigger = { #什么是皇室领地
 	}
 }
 
-#边境持有者
-is_border_holder = {
-	is_landed = yes
-	any_realm_county = {
-		#NOT = { this = root.capital_county }
-		any_neighboring_county = {
-			NOT = {
-				holder.top_liege = root.top_liege
-			}
-		}
-	}
-}
-#边境头衔
-is_border_title = {
-	any_neighboring_county = {
-		holder = {
-			NOT = {
-				top_liege = root.holder.top_liege
-			}
-		}
-	}
-}
-
-is_oe_imperial_clothing_trigger = { #天子帝后服装
-	OR = {
-		has_title = title:e_celestia
-		AND = {
-			highest_held_title_tier = tier_empire
-			culture = { has_cultural_pillar = heritage_chinese }
-		}
-		AND = {
-			exists = primary_spouse
-			primary_spouse = {
-				OR = {
-					has_title = title:e_celestia
-					AND = {
-						highest_held_title_tier = tier_empire
-						culture = { has_cultural_pillar = heritage_chinese }
-					}
-				}
-			}
-		}
-	}
-}
-
-is_oe_court_fashion_level_5_trigger = { #宫廷奢侈礼服
-	exists = this
-	is_adult = yes
-	OR = {
-		AND = {
-			has_royal_court = yes
-			amenity_level = { type = court_fashion value = 5 }
-		}
-		AND = {
-			exists = primary_spouse
-			primary_spouse = {
-				has_royal_court = yes
-				amenity_level = { type = court_fashion value = 5 }
-			}	
-		}
-	}
-}
 
 is_oe_imperial_court_trigger = { #什么是朝廷
 	exists = this
-	is_landed = yes
-	is_independent_ruler = yes
-	government_has_flag = government_is_celestial
+	top_liege = this
+	government_use_bureaucracy_trigger = yes
 	OR = {
 		is_oe_imperial_government_trigger = yes
-		AND = {
-			government_has_flag = government_is_celestial
-			highest_held_title_tier >= tier_kingdom
-		}
+		highest_held_title_tier >= tier_kingdom
 	}
+	is_minister_trigger = no
 }
 
 is_oe_imperial_official_trigger = { #不一定独立的朝廷
 	exists = this
 	is_landed = yes
-	government_has_flag = government_is_celestial
+	government_use_bureaucracy_trigger = yes
 	highest_held_title_tier >= tier_kingdom
+	is_minister_trigger = no
 }
 
+is_oe_imperial_low_trigger = { #什么是非霸权的朝廷
+	exists = this
+	is_landed = yes
+	top_liege = this
+	government_use_bureaucracy_trigger = yes
+	OR = {
+		highest_held_title_tier = tier_kingdom
+		highest_held_title_tier = tier_empire
+	}
+	is_minister_trigger = no
+}
+
+is_minister_trigger = {
+	exists = this
+	is_councillor = yes
+	OR = {
+		primary_title = title:e_minister_chancellor
+		primary_title = title:e_minister_censor
+		primary_title = title:e_minister_grand_marshal
+		primary_title = title:e_minister_of_personnel
+		primary_title = title:e_minister_of_revenue
+		primary_title = title:e_minister_of_rites
+		primary_title = title:e_minister_of_war
+		primary_title = title:e_minister_of_justice
+		primary_title = title:e_minister_of_works
+	}
+}
 
 is_oe_imperial_councillor_trigger = { #什么是京官
 	top_liege ?= { is_oe_imperial_court_trigger = yes }
 	is_councillor_of = top_liege
-	NOT = { has_trait = peasant_leader }
 }
 
 is_oe_imperial_shangshu_trigger = { #什么是尚书
@@ -188,26 +141,27 @@ is_oe_imperial_shangshu_trigger = { #什么是尚书
 		#has_council_position = councillor_zongbo
 		#has_council_position = councillor_hanlin
 		#has_council_position = councillor_tongpingzhang
-		#has_council_position = councillor_shumishi
+		#has_council_position = minister_grand_marshal
 		#has_council_position = councillor_canzhi
 		has_court_position = puye_1_court_position
 		has_court_position = puye_2_court_position
-		has_court_position = liebu_court_position
-		has_court_position = bingbu_court_position
-		has_court_position = libu_court_position
-		has_court_position = hubu_court_position
-		has_court_position = xingbu_court_position
-		has_court_position = gongbu_court_position
+		has_court_position = taishi_court_position
+		has_court_position = taifu_court_position
+		has_court_position = taibao_court_position
+		has_court_position = shaoshi_court_position
+		has_court_position = shaofu_court_position
+		has_court_position = shaobao_court_position
 	}
 }
 
 is_oe_landed_bureaucrat_trigger = { #什么是在职流官
 	custom_description = {
 		text = IS_BUREAU
-		is_independent_ruler = no
+		top_liege != this
 		OR = {
 			government_has_flag = government_is_bureau
-			government_has_flag = government_is_celestial
+			government_has_flag = government_use_bureaucracy
+			government_has_flag = government_has_merit
 		}
 		#所有流官继承头衔
 		OR = {
@@ -216,12 +170,9 @@ is_oe_landed_bureaucrat_trigger = { #什么是在职流官
 			has_realm_law = admin_succession_law
 		}	
 		#伯爵级以上
-		#highest_held_title_tier >= tier_county
-		#highest_held_title_tier <= tier_kingdom
+		highest_held_title_tier >= tier_county
 		NOT = { has_trait = great_misit	}
 		NOR = {
-			#vassal_contract_has_flag = imperial_legion_3
-			#vassal_contract_has_flag = imperial_royal_1
 			vassal_contract_has_flag = heir_succession_rights_unlock
 			primary_title ?= { has_variable = titular_title }
 		}
@@ -229,28 +180,30 @@ is_oe_landed_bureaucrat_trigger = { #什么是在职流官
 }
 
 is_prefect = { #什么是知州
-	is_independent_ruler = no
-	government_has_flag = government_is_celestial
+	top_liege != this
+	government_use_bureaucracy_trigger = yes
 	highest_held_title_tier = tier_county
 }
 
 is_jiedushi = { #什么是节度使  is_governor
-	is_independent_ruler = no
-	government_has_flag = government_is_celestial
+	top_liege != this
+	government_use_bureaucracy_trigger = yes
 	highest_held_title_tier = tier_duchy
 	#vassal_contract_has_flag = imperial_legion_2
 }
 
 oe_revocation_is_NOT_tyrannical_trigger = { #无暴政剥夺流官
-	OR = {
-		is_independent_ruler = yes
-		is_oe_imperial_court_trigger = yes
-		has_strong_hook = $VASSAL$
-	}
-	$VASSAL$ = {
+	scope:recipient = {
 		is_oe_landed_bureaucrat_trigger = yes
 		NOT = { vassal_contract_has_flag = vassal_contract_cannot_revoke_titles }
 		is_legion_government_trigger = no #藩镇不迁
+	}
+	scope:actor = {
+		OR = {
+			top_liege = this
+			is_oe_imperial_court_trigger = yes
+			has_strong_hook = scope:recipient
+		}
 	}
 }
 
@@ -343,7 +296,7 @@ is_oe_available_ai_at_peace = {
 	is_available_for_activity_trigger = yes
 }
 
-#官阶组升级判定
+#官资组升级判定
 lifestyle_bureaucrat_1_trigger = {
 	has_trait = lifestyle_bureaucrat
 	NOR = {
@@ -618,16 +571,26 @@ bureaucrat_title_rank_5 = {
 	bureaucrat_title_score >= 180
 }
 bureaucrat_title_rank_6 = {
+	highest_held_title_tier = tier_kingdom
+	is_landed = yes
+	bureaucrat_title_score < 180
+}
+bureaucrat_title_rank_7 = {
+	highest_held_title_tier = tier_kingdom
+	is_landed = yes
+	bureaucrat_title_score >= 180
+}
+bureaucrat_title_rank_8 = {
 	OR = {
 		highest_held_title_tier = tier_kingdom
 		AND = {
 			is_councillor_of = top_liege
-			top_liege = { highest_held_title_tier = tier_empire }
+			top_liege = { highest_held_title_tier >= tier_empire }
 		}
 	}
 }
-bureaucrat_title_rank_7 = {
-	top_liege = { highest_held_title_tier = tier_empire }
+bureaucrat_title_rank_9 = {
+	top_liege = { highest_held_title_tier >= tier_empire }
 	OR = {
 		AND = {
 			highest_held_title_tier = tier_kingdom
@@ -708,11 +671,10 @@ disloyal_to_emperor = {
 is_yamato_regency_title = { #for titles
 	OR = {
 		tier >= tier_duchy
-		this = title:d_gosho
-		this = title:d_kyoto
-		this = title:d_kansai
+		this = title:k_chrysanthemum_throne
+		this = title:d_kinai
 		this = title:d_incho
-		this = title:d_sekke
+		this = title:k_sekke
 		this = title:d_shogunate
 		this = title:c_yamashiro
 	}
@@ -720,11 +682,10 @@ is_yamato_regency_title = { #for titles
 
 has_yamato_regency_title = { #for characters
 	OR = {
-		has_title = title:d_gosho
-		has_title = title:d_kyoto
-		has_title = title:d_kansai
+		has_title = title:k_chrysanthemum_throne
+		has_title = title:d_kinai
 		has_title = title:d_incho
-		has_title = title:d_sekke
+		has_title = title:k_sekke
 		has_title = title:d_shogunate
 		has_title = title:c_yamashiro
 	}
@@ -745,7 +706,7 @@ oe_autocracy_level_3 = {
 granted_title_creation_right_trigger = {
 	trigger_if = {
 		limit = {
-			is_independent_ruler = no
+			top_liege != this
 			liege ?= { government_allows = administrative }
 		}
 		custom_tooltip = {
@@ -753,4 +714,81 @@ granted_title_creation_right_trigger = {
 			vassal_contract_has_flag = title_creation_rights_granted
 		}
 	}
+}
+
+
+#权代  相、长史、留后
+is_agency = {
+	capital_county = primary_title.de_jure_liege.title_capital_county
+	primary_title.de_jure_liege = { exists = holder }
+	primary_title.de_jure_liege = { NOT = { holder = root } }
+	top_liege = primary_title.de_jure_liege.holder.top_liege
+}
+
+
+
+
+#边境持有者
+is_border_holder = {
+	is_landed = yes
+	any_realm_county = {
+		#NOT = { this = root.capital_county }
+		any_neighboring_county = {
+			NOT = {
+				holder.top_liege = root.top_liege
+			}
+		}
+	}
+}
+#边境头衔
+is_border_title = {
+	any_neighboring_county = {
+		holder = {
+			NOT = {
+				top_liege = root.holder.top_liege
+			}
+		}
+	}
+}
+
+is_oe_imperial_clothing_trigger = { #天子帝后服装
+	OR = {
+		has_title = title:h_china
+		AND = {
+			highest_held_title_tier >= tier_empire
+			culture = { has_cultural_pillar = heritage_chinese }
+		}
+		AND = {
+			exists = primary_spouse
+			primary_spouse = {
+				OR = {
+					has_title = title:h_china
+					AND = {
+						highest_held_title_tier >= tier_empire
+						culture = { has_cultural_pillar = heritage_chinese }
+					}
+				}
+			}
+		}
+	}
+	is_minister_trigger = no
+}
+
+is_oe_court_fashion_level_5_trigger = { #宫廷奢侈礼服
+	exists = this
+	is_adult = yes
+	OR = {
+		AND = {
+			has_royal_court = yes
+			amenity_level = { type = court_fashion value = 5 }
+		}
+		AND = {
+			exists = primary_spouse
+			primary_spouse = {
+				has_royal_court = yes
+				amenity_level = { type = court_fashion value = 5 }
+			}	
+		}
+	}
+	is_minister_trigger = no
 }

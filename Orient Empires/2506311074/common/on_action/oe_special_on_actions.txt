@@ -1,0 +1,684 @@
+﻿on_game_start_after_lobby = {
+	on_actions = {
+		oe_info_effects
+		#oe_extra_nomad_region
+		oe_performance_government_change_after_lobby
+		
+
+		oe_empire_councillors_check
+		oe_too_many_kingdom_duchy
+	}
+}
+oe_info_effects = {
+	effect = {
+		every_player = {
+			trigger_event = { 
+				id = oe_info.001
+				days = 1
+			}
+		}
+	}
+}
+
+oe_setup_tributaries_action = {
+	effect = {
+		#设定游牧朝贡、所有朝贡
+		oe_setup_tributaries_effect = yes
+	}
+}
+
+oe_too_many_kingdom_duchy = {
+	effect = {
+		title:h_china.holder = {
+			every_held_title = {
+				limit = {
+					is_oe_noble_family_title = no
+					OR = {
+						AND = {
+							tier >= tier_duchy
+							tier < tier_empire
+							NOT = {
+								title_capital_county.kingdom = title:h_china.holder.capital_county.kingdom
+							}
+						}
+						tier = tier_empire
+					}
+					
+				}
+				add_to_list = titles_to_destroy
+			}
+		}
+		every_in_list = {
+			list = titles_to_destroy
+			title:h_china.holder = { destroy_title = prev }
+		}
+		#移除皇帝持有的朝臣头衔
+		#title:h_china.holder ?= {
+			#every_held_title = {
+				#limit = { tier = tier_empire
+				#add_to_list = empire_to_destroy
+			#}
+			#every_in_list = {
+				#list = empire_to_destroy
+				#holder = { destroy_title = prev }
+			#}
+			#if = {
+				#limit = {
+					#NOT = {
+						#any_held_title = { is_noble_family_title = yes }
+					#}
+					#create_noble_family_effect = { GOVERNMENT_GIVER = this }
+				#}
+			#}
+		#}
+	}
+}
+
+# root = character gaining vassal
+# scope:vassal = vassal being gained
+# scope:old_liege = the previous liege of the vassal.
+
+on_natural_death_second_chance = {
+	on_actions = { on_shihao_effect }
+}
+
+on_death = {
+	on_actions = { 
+		on_shihao_effect
+	}
+}
+
+on_shihao_effect = {
+	trigger = {
+		NOR = {
+			has_trait = miaohao_gaozu
+			has_trait = miaohao_taizu
+			has_trait = miaohao_shizu
+		}			
+		OR = {			
+			AND = {
+				is_oe_imperial_court_trigger = yes
+				OR = {
+					culture = { has_cultural_pillar = heritage_chinese }
+					culture = { has_cultural_pillar = heritage_mongolic }
+					culture = { has_cultural_pillar = heritage_turkic }
+					culture = { has_cultural_pillar = heritage_iranian }
+					culture = { has_cultural_pillar = heritage_nanman }
+					culture = { has_cultural_pillar = heritage_tungusic }
+					culture = { has_cultural_pillar = heritage_buyeo }
+					culture = { has_cultural_pillar = heritage_viet }
+				}
+				primary_title.tier >= tier_kingdom
+				government_has_flag = government_has_influence
+			}	
+			has_trait = shanghuang
+		}
+		NOR = {
+			primary_title = title:k_guiyi
+		}
+	}
+	effect = {
+		save_scope_as = death_man
+
+		#primary_heir = {
+			#if = {
+				#limit = { is_ai = no }
+				#trigger_event = {
+					#id = nianhao.1
+					#days = 2
+				#}
+			#}
+		#}
+		
+		if = {
+			limit = {
+				exists = primary_heir
+				primary_title.tier > tier_kingdom
+				OR = {
+					dynasty ?= dynasty:longxi_li_dyn #李唐
+					dynasty ?= dynasty:1000049852 #沙唐
+				}
+			}
+			primary_heir = {
+				trigger_event = {
+					days = 7
+					id = miaohao.1  #选定庙号
+				}
+				trigger_event = {
+					days = 7
+					id = shihao.1001  #选定唐式谥号	
+				}
+			}		
+		}
+		else_if = {
+			limit = {
+				exists = primary_heir
+				primary_title.tier > tier_kingdom
+			}
+			primary_heir = {
+				trigger_event = {
+					days = 7
+					id = miaohao.1  #选定庙号
+				}
+				trigger_event = {
+					days = 10
+					id = shihao.1002  #选定单字谥号
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				exists = primary_heir
+				primary_title.tier = tier_kingdom
+			}
+			primary_heir = {
+				trigger_event = {
+					days = 10
+					id = shihao.1002  #选定单字谥号
+				}
+			}
+		}
+		else_if = {
+			limit = { 
+				has_trait = shanghuang
+			}
+			top_liege = {
+				save_scope_as = heir
+				trigger_event = {
+					days = 7
+					id = miaohao.1  #选定庙号
+				}
+				if = {
+					limit = {
+						OR = {
+							dynasty ?= dynasty:longxi_li_dyn #李唐
+							dynasty ?= dynasty:1000049852 #沙唐
+						}
+					}
+					trigger_event = {
+						days = 10
+						id = shihao.1001  #选定唐式谥号	
+					}
+				}
+				else = {
+					trigger_event = {
+						days = 10
+						id = shihao.1002  #选定谥号	
+					}
+				}
+			}	
+		}
+		else_if = {
+			limit = { 
+				scope:death_man = {			
+					OR = {
+						has_trait = hoo
+						has_trait = joko
+					} 
+				}
+			}
+			title:k_chrysanthemum_throne.holder = {
+				save_scope_as = heir
+				trigger_event = {
+					days = 7
+					id = miaohao.1  #选定庙号
+				}
+				trigger_event = {
+					days = 10
+					id = shihao.1001  #选定谥号	
+				}
+			}		
+		}
+		
+	}
+}
+
+on_title_gain = {
+	on_actions = {	
+		#kingdom_guohao_effects
+		zunhao_effects
+	}
+}
+
+kingdom_guohao_effects = {
+	effect = {
+		#入主中原洗法理
+		if = {
+			limit = {
+				OR = {
+					government_has_flag = government_is_nomadic
+					government_has_flag = government_is_ulus
+					government_has_flag = government_is_tribal
+				}
+				has_title = title:e_andong
+				scope:title = title:h_china
+			}
+			title:k_youji = { set_de_jure_liege_title = title:e_andong }
+			title:d_yunshuo = { set_de_jure_liege_title = title:k_daibei }
+		}
+	}
+}
+
+
+zunhao_effects = {
+	trigger = {
+		scope:title = primary_title
+		exists = scope:secondary_title
+		primary_title.tier > scope:secondary_title.tier
+		highest_held_title_tier >= tier_empire
+		is_ai = no
+		OR = {
+			government_has_flag = government_is_tribal
+			government_has_flag = government_is_nomadic
+			government_has_flag = government_is_ulus
+		}
+	}
+	effect = {
+		trigger_event = nianhao.2
+	}
+}
+
+#被俘退位
+on_imprison = {
+	on_actions = {
+		oe_imprison_empiror
+	}
+}
+
+oe_imprison_empiror = {
+	effect = {
+		if = {
+			limit = {
+				is_oe_imperial_government_trigger = yes
+			}
+			trigger_event = {
+				id = abdication.0001
+				days = { 300 1000 }
+			}
+		}
+	}
+}
+
+#女真入侵
+on_war_won_attacker = {
+	on_actions = {
+		jurchen_incident_effects
+	}
+}
+
+jurchen_incident_effects = {
+	trigger = {
+		current_year > 1100
+		scope:war = {
+			using_cb = steppe_war
+		}
+	}
+	effect = {
+		jurchen_incident_effect = yes
+	}
+}
+
+
+on_title_destroyed = {
+	on_actions = {
+		destroy_fake_empire_effects
+		destroy_titular_title_effects
+	}
+}
+destroy_titular_title_effects = {
+	trigger = {
+		scope:landed_title = {
+			has_variable = titular_title
+		}
+	}
+	effect = {
+		scope:landed_title.var:titular_title = {
+			save_scope_as = title_from
+		}
+		scope:title_from = {
+			if = {
+				limit = {
+					has_variable = titular_granted
+				}
+				remove_variable = titular_granted
+			}
+		}
+	}
+}
+
+destroy_fake_empire_effects = {
+	trigger = {
+		primary_title = {
+			is_oe_imperial_title_trigger = yes
+		}
+		scope:landed_title = {
+			is_head_of_faith = no
+			tier >= tier_empire
+			OR = {
+				is_titular = yes
+				is_landless_type_title = yes
+			}
+		}
+	}
+	effect = {
+		scope:landed_title = {
+			every_claimant = {
+				remove_claim = prev
+			}
+		}
+		add_prestige = 1000
+		dynasty = {
+			add_dynasty_prestige = 1200
+		}
+	}
+}
+
+oe_extra_nomad_region = {
+	effect = {
+		# Extra Nomad Regions
+		#tunguse
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = tunguse_nomad_region_on
+			}
+			start_situation = {
+				type = game_rule_extra_nomads_tunguse
+				start_phase = situation_steppe_abundant_grazing_season
+				save_scope_as = my_situation
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+							OR = {
+								culture = { has_cultural_pillar = heritage_tungusic }
+								culture = { has_cultural_pillar = heritage_sahelian }
+								culture = { has_cultural_pillar = heritage_nivkh }
+								culture = { has_cultural_pillar = heritage_yeniseian }
+								culture = { has_cultural_pillar = heritage_hunnic }
+								culture = { has_cultural_pillar = heritage_mongolic }
+								culture = { has_cultural_pillar = heritage_turkic }
+							}
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
+			}
+		}	
+		#nanzhong
+		if = {
+		    limit = {
+				has_mpo_dlc_trigger = yes
+				has_game_rule = nanzhong_nomad_region_on
+			}
+		    start_situation = { 
+				type = game_rule_extra_nomads_nanzhong
+				start_phase = situation_steppe_abundant_grazing_season
+				save_scope_as = my_situation
+			}
+			scope:my_situation = {
+				every_situation_county = {
+					limit = {
+						holder = {
+							government_has_flag = government_is_tribal
+							OR = {
+								culture = { has_cultural_pillar = heritage_tibetan }
+								culture = { has_cultural_pillar = heritage_qiangic }
+								culture = { has_cultural_pillar = heritage_viet }
+								culture = { has_cultural_pillar = heritage_burman }
+
+								culture ?= culture:tai
+								culture ?= culture:pyu
+								culture ?= culture:laos
+								culture ?= culture:ava
+								culture ?= culture:lisu
+							}
+						}
+					}
+					holder = {
+						set_variable = {
+							name = steppe_game_start_var
+							years = 1
+						}
+						every_held_title = {
+							if = {
+								limit = {
+									title_province = {
+										has_holding_type = tribal_holding
+									}
+								}
+								title_province = {
+									set_holding_type = nomad_holding
+								}
+							}
+						}
+						change_government = nomad_government
+					}
+				}
+			}
+		}
+	}
+}
+
+#低功耗政体规则
+yearly_playable_pulse = {
+	on_actions = {
+		oe_performance_government_change
+	}
+}
+
+oe_performance_government_change = {
+	trigger = {
+		NAND = {
+			has_game_rule = single_celestial_transfer_to_bureau_off
+			has_game_rule = single_nomad_transfer_to_herd_off
+			has_game_rule = single_tribal_transfer_to_native_off
+		}
+		is_ai = yes
+		is_at_war = no
+		is_imprisoned = no
+		is_migrating = no
+		is_ruler = yes
+		highest_held_title_tier = tier_county
+	}
+	on_actions = {
+		oe_check_change_to_bureau
+		oe_check_change_to_herder
+		oe_check_change_to_native
+	}
+}
+oe_check_change_to_bureau = {
+	trigger = {
+		has_game_rule = single_celestial_transfer_to_bureau_on
+		is_oe_landed_bureaucrat_trigger = yes
+	}
+	effect = {
+		change_government = bureau_government
+	}
+}
+
+oe_check_change_to_herder = {
+	trigger = {
+		NOT = { has_game_rule = single_nomad_transfer_to_herd_off }
+		government_has_flag = government_is_nomadic
+		top_liege = this
+		has_dlc_feature = khans_of_the_steppe
+		NOR = {
+			any_neighboring_top_liege_realm_owner = { is_ai = no }
+			primary_title = {
+				any_neighboring_county = {
+					holder = { is_ai = no }
+				}
+			}
+		}
+		switch = {
+			trigger = has_game_rule
+			single_nomad_transfer_to_herd_1 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count = 1
+				}
+			}
+			single_nomad_transfer_to_herd_2 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 2
+				}
+			}
+			single_nomad_transfer_to_herd_3 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 3
+				}
+			}
+		}
+	}
+	effect = {
+		change_government = herder_government
+		every_held_title = {
+			if = {
+				limit = {
+					title_province = {
+						has_holding_type = nomad_holding
+					}
+				}
+				title_province = {
+					set_holding_type = herder_holding
+				}
+			}
+		}
+	}
+}
+
+oe_check_change_to_native = {
+	trigger = {
+		NOT = { has_game_rule = single_tribal_transfer_to_native }
+		government_has_flag = government_is_tribal
+		top_liege = this
+		NOR = {
+			any_neighboring_top_liege_realm_owner = { is_ai = no }
+			primary_title = {
+				any_neighboring_county = {
+					holder = { is_ai = no }
+				}
+			}
+		}
+		switch = {
+			trigger = has_game_rule
+			single_tribal_transfer_to_native_1 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count = 1
+				}
+			}
+			single_tribal_transfer_to_native_2 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 2
+				}
+			}
+			single_tribal_transfer_to_native_3 = {
+				any_held_title = {
+					is_landless_type_title = no
+					count <= 3
+				}
+			}
+		}
+	}
+	effect = {
+		change_government = native_government
+	}
+}
+
+oe_performance_government_change_after_lobby = {
+	trigger = {
+		NAND = {
+			has_game_rule = single_celestial_transfer_to_bureau_off
+			has_game_rule = single_nomad_transfer_to_herd_off
+			has_game_rule = single_tribal_transfer_to_native_off
+		}
+	}
+	effect = {
+		every_ruler = {
+			trigger_event = {
+				on_action = oe_performance_government_change
+			}
+		}
+	}
+}
+
+oe_followers_setup = {
+	effect = {
+		character:shuihu_liangshan_001 ?= {
+			trigger_event = {
+				id = province_history.0002
+				days = 4
+			}
+		}
+		character:fun_dgsd10 ?= {
+			add_countier = character:fun_dgsd12
+		}
+	}
+}
+
+
+oe_empire_councillors_check = {
+	effect = {
+		primary_title.holder ?= {
+			save_scope_as = councillor_liege
+			every_councillor = {
+				switch = {
+					trigger = has_council_position
+					councillor_chancellor = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_chancellor MINISTER_POSITION = councillor_chancellor }
+					}
+					councillor_spymaster = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_censor MINISTER_POSITION = councillor_spymaster }
+					}
+					minister_grand_marshal = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_grand_marshal MINISTER_POSITION = minister_grand_marshal }
+					}
+					minister_personnel = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_of_personnel MINISTER_POSITION = minister_personnel }
+					}
+					councillor_steward = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_of_revenue MINISTER_POSITION = councillor_steward }
+					}
+					councillor_court_chaplain = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_of_rites MINISTER_POSITION = councillor_court_chaplain }
+					}
+					councillor_marshal = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_of_war MINISTER_POSITION = councillor_marshal }
+					}
+					minister_justice = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_of_justice MINISTER_POSITION = minister_justice }
+					}
+					minister_works = {
+						oe_grant_minister_title_effect = { MINISTER_TITLE = e_minister_of_works MINISTER_POSITION = minister_works }
+					}
+				}
+			}
+			
+		}
+	}
+}

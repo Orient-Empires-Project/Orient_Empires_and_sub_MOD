@@ -1,0 +1,351 @@
+﻿### buildings ###
+
+on_holding_built_effect = {
+	county.holder = {
+		if = {
+			limit = {
+				any_vassal = {
+					vassal_stance = parochial
+				}
+				save_temporary_scope_as = holder_scope
+			}
+			custom_tooltip = parochial_vassal_approves_holding_construction
+			hidden_effect = {
+				every_vassal = {
+					vassal_stance = parochial
+					add_opinion = {
+						target = prev
+						modifier = parochial_approves_holding_construction_opinion
+					}
+				}
+			}
+		}
+	}
+	# Building Oath
+	hidden_effect = {
+		if = {
+			limit = {
+				county.holder = {
+					has_character_modifier = oath_of_buildings
+				}
+			}
+			add_random_economic_building_effect = yes
+			add_random_military_building_effect = yes
+			add_random_fortification_building_effect = yes
+		}
+	}
+}
+on_holding_upgraded_effect = {
+	barony.holder = {
+		if = {
+			limit = {
+				any_vassal = {
+					vassal_stance = parochial
+				}
+				save_temporary_scope_as = holder_scope
+			}
+			custom_tooltip = parochial_vassal_approves_holding_upgrade
+			hidden_effect = {
+				every_vassal = {
+					vassal_stance = parochial
+					add_opinion = {
+						target = prev
+						modifier = parochial_approves_holding_upgrade_opinion
+					}
+				}
+			}
+		}
+	}
+}
+on_religious_building_built_effect = {
+	mandala_built_piety_building_effect = yes
+}
+on_big_t1_religious_building_built_effect = {
+	mandala_built_piety_duchy_building_t1_effect = yes
+}
+on_big_t2_religious_building_built_effect = {
+	mandala_built_piety_duchy_building_t2_effect = yes
+}
+on_big_t3_religious_building_built_effect = {
+	mandala_built_piety_duchy_building_t3_effect = yes
+}
+on_religious_holding_built_effect = {
+	county.holder = {
+		if = {
+			limit = {
+				culture = {
+					has_cultural_parameter = renown_from_temple_construction
+				}
+			}
+			dynasty ?= { add_dynasty_prestige = major_dynasty_prestige_value }
+		}
+
+		if = {
+			limit = {
+				culture = {
+					has_cultural_parameter = extra_piety_from_temple_construction
+				}
+			}
+			add_piety = omega_piety_gain
+		}
+		else_if = {
+			limit = { government_has_flag = government_is_mandala }
+			mandala_built_temple_holding_effect = yes
+		}
+		else = { add_piety = massive_piety_gain }
+		save_scope_as = temple_location
+
+		if = {
+			limit = {
+				culture = { has_cultural_parameter = more_fervor_on_church_construction }
+			}
+			faith = {
+				change_fervor = {
+					value = 5
+					desc = fervor_gain_built_temple_holding
+				}
+			}
+		}
+		else = {
+			faith = {
+				change_fervor = {
+					value = 1
+					desc = fervor_gain_built_temple_holding
+				}
+			}
+		}
+
+		if = {
+			limit = {
+				culture = { has_cultural_parameter = prestige_from_temple_construction }
+			}
+			add_prestige = massive_prestige_gain
+		}
+
+		#Holy Legend Seed drop
+		if = {
+			limit = {
+				has_dlc_feature = legends
+				NOR = {
+					has_game_rule = historical_legends_only
+					has_personal_legend_seed = holy
+				}
+			}
+			random = {
+				chance = {
+					value = 10
+					if = {
+						limit = { piety_level >= high_piety_level }
+						add = 15 #25%
+					}
+					if = {
+						limit = { piety_level >= max_piety_level }
+						add = 25 #50%
+					}
+				}
+				send_interface_toast = {
+					type = msg_legend_seed_created
+					title = holy_seed_toast
+					left_icon = root.barony
+					create_legend_seed = {
+						type = holy
+						quality = famed
+						chronicle = saintly_building
+						properties = {
+							location = prev
+							religion = this.religion
+							faith = this.faith
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				any_vassal = {
+					vassal_stance = zealot
+				}
+				save_temporary_scope_as = holder_scope
+			}
+			custom_tooltip = zealot_vassal_approves_holding_construction
+			hidden_effect = {
+				every_vassal = {
+					vassal_stance = zealot
+					add_opinion = {
+						target = prev
+						modifier = zealot_approves_temple_construction_opinion
+					}
+				}
+			}
+		}
+	}
+	#to give follow-up to the vassal.1001 event
+	hidden_effect = {
+		if = {
+			limit = {
+				exists = province_owner
+			}
+			province_owner = {
+				save_scope_as = owner_of_province
+
+				scope:owner_of_province = {
+					if = { #Religious liege asked me to build a temple
+						limit = {
+							exists = var:promised_to_build_temple
+							var:promised_to_build_temple = {
+								is_alive = yes
+								faith = scope:owner_of_province.faith
+							}
+							has_character_flag = promised_liege_temple
+						}
+						trigger_event = vassal.1010
+					}
+					if = { #Religious vassal asked me to build a temple
+						limit = {
+							exists = var:promised_to_build_temple
+							var:promised_to_build_temple = {
+								is_alive = yes
+								faith = scope:owner_of_province.faith
+							}
+							has_character_flag = promised_vassal_temple
+						}
+						trigger_event = vassal.1110
+					}
+
+					#To remove the variables if the character has died or someone has changed their faith
+					if = {
+						limit = {
+							exists = var:promised_to_build_temple
+							OR = {
+								var:promised_to_build_temple = { is_alive = no }
+								faith != scope:owner_of_province.faith
+							}
+						}
+						remove_variable = promised_to_build_temple
+					}
+				}
+			}
+		}
+	}
+	on_holding_built_effect = yes
+	mandala_built_temple_holding_effect = yes
+}
+on_religious_holding_upgraded_effect = {
+	county.holder = {
+		if = {
+			limit = {
+				culture = {
+					has_cultural_parameter = renown_from_temple_construction
+				}
+				exists = dynasty
+			}
+			dynasty = { add_dynasty_prestige = medium_dynasty_prestige_value }
+		}
+		if = {
+			limit = {
+				culture = {
+					has_cultural_parameter = more_fervor_on_church_construction
+				}
+			}
+			faith = {
+				change_fervor = {
+					value = 2
+					desc = fervor_gain_upgraded_temple_holding_culture_parameter
+				}
+			}
+		}
+	}
+	barony.holder = {
+		if = {
+			limit = {
+				any_vassal = {
+					vassal_stance = zealot
+				}
+				save_temporary_scope_as = holder_scope
+			}
+			custom_tooltip = zealot_vassal_approves_holding_upgrade
+			hidden_effect = {
+				every_vassal = {
+					vassal_stance = zealot
+					add_opinion = {
+						target = prev
+						modifier = zealot_approves_temple_upgrade_opinion
+					}
+				}
+			}
+		}
+	}
+	on_holding_upgraded_effect = yes
+	mandala_upgraded_temple_holding_effect = yes
+}
+on_regular_building_built_effect = {
+	creator_mandala_built_regular_building_piety_effect = yes
+}
+on_big_t1_regular_building_built_effect = {
+	creator_mandala_built_regular_duchy_building_t1_piety_effect = yes
+}
+on_big_t2_regular_building_built_effect = {
+	creator_mandala_built_regular_duchy_building_t2_piety_effect = yes
+}
+on_big_t3_regular_building_built_effect = {
+	creator_mandala_built_regular_duchy_building_t3_piety_effect = yes
+}
+on_regular_holding_built_effect = {
+	creator_mandala_built_regular_holding_piety_effect = yes
+}
+on_regular_holding_upgraded_effect = {
+	creator_mandala_upgraded_regular_holding_piety_effect = yes
+}
+
+### CB ###
+general_on_war_end_effect = {
+	scope:attacker = { show_pow_release_message_effect = yes }
+	# EP3: note gold gained from military assistance/join war contracts and their war contribution threshold
+	laamp_as_mercenary_payout_tooltip_effect = yes
+}
+# NOT FOR CIVIL WARS!!! They have different truce (always both way)
+# reparations, accolade, influence, fame and prestige are per case.
+on_victory_effect = {
+	general_on_war_end_effect = yes
+	# Legitimacy
+	add_legitimacy_attacker_victory_effect = yes
+	add_truce_attacker_victory_effect = yes
+	#Mandalas gain or lose piety/devotion depending on Decree
+	mandala_war_victory_effects = yes
+}
+on_white_peace_effect = {
+	general_on_war_end_effect = yes
+	add_truce_white_peace_effect = yes
+	scope:attacker = {
+		stress_impact = {
+			ambitious = medium_stress_impact_gain
+			arrogant = medium_stress_impact_gain
+		}
+	}
+	scope:defender = {
+		stress_impact = {
+			arrogant = medium_stress_impact_gain
+		}
+	}
+}
+on_defeat_effect = {
+	scope:attacker = { save_temporary_scope_as = loser }
+	general_on_war_end_effect = yes
+	# Legitimacy
+	add_legitimacy_attacker_defeat_effect = yes
+	scope:defender = { 
+		mandala_peacemaker_perk_serenity_effect = yes
+	}
+	add_truce_attacker_defeat_effect = yes
+	#Mandalas gain or lose piety/devotion depending on Decree
+	mandala_war_defeat_effects = yes
+}
+on_victory_aggressive_war_effect = {
+	on_victory_effect = yes
+	# FP1: note the victory for future memorialisation via stele (if applicable).
+	scope:attacker = { fp1_remember_recent_conquest_victory_effect = yes }
+}
+on_defeat_aggressive_war_effect = {
+	on_defeat_effect = yes
+	on_lost_aggression_war_discontent_loss = yes
+}

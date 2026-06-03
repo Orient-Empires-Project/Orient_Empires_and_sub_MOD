@@ -1,0 +1,135 @@
+tradition_tgp_court_machinations = {
+	category = regional
+	layers = {
+		0 = intrigue
+		1 = asian
+		4 = officials.dds
+	}
+	is_shown = {
+		has_tgp_dlc_trigger = yes
+		has_cultural_pillar = heritage_chinese
+		scope:character = {
+			has_title = title:h_china
+		}
+	}
+	can_pick = {
+		custom_tooltip = {
+			text = only_one_marriage_tradition_allowed
+			trigger_if = {
+				limit = {
+					OR = {
+						NOT = { exists = scope:replacing }
+						NOR = {
+							scope:replacing = culture_tradition:tradition_monogamous
+							scope:replacing = culture_tradition:tradition_polygamous
+							scope:replacing = culture_tradition:tradition_concubines
+							scope:replacing = culture_tradition:tradition_court_eunuchs
+						}
+					}
+				}
+				NOR = {
+					culture_tradition:tradition_monogamous = { is_in_list = traits }
+					culture_tradition:tradition_polygamous = { is_in_list = traits }
+					culture_tradition:tradition_concubines = { is_in_list = traits }
+					culture_tradition:tradition_court_eunuchs = { is_in_list = traits }
+				}
+			}
+		}
+	}
+	can_pick_for_hybridization = {
+		custom_tooltip = {
+			text = only_one_marriage_tradition_allowed
+			NOT = { # Only blocks monogamous to avoid duplicate warnings, but is blocked by polygamous
+				culture_tradition:tradition_monogamous = { is_in_list = traits }
+			}
+		}
+	}
+	parameters = {
+		number_of_consorts_hegemony = 20
+		number_of_consorts = 3
+		number_of_spouses = 1
+		can_appoint_chief_eunuch = yes
+		court_machinations_eunuch_trait_bonuses = yes
+		courtiers_more_likely_to_join_hostile_schemes_in_court = yes
+		eunuch_powerful_scheme_agents = yes
+		can_castrate_prisoners = yes
+		cultrad_unlocks_t4_bounties_for_whispers = yes
+
+		#宗法父权
+		patriarch_society = yes  #拆分为具体功能
+		#male_only_inheritance = yes
+		#male_preference_inheritance = yes
+		can_have_tradition_succession_law = yes
+		house_marriage_banned = yes
+	}
+	character_modifier = {
+		owned_political_scheme_success_chance_add = 10
+	}
+	cost = {
+		prestige = {
+			add = {
+				value = tradition_double_base_cost
+				desc = BASE
+				format = "BASE_VALUE_FORMAT"
+			}
+			if = {
+				limit = {
+					NOR = {
+						culture_pillar:ethos_bureaucratic = { is_in_list = traits }
+						culture_pillar:ethos_courtly = { is_in_list = traits }
+						culture_pillar:ethos_spiritual = { is_in_list = traits }
+					}
+				}
+				add = {
+					value = tradition_incompatible_ethos_penalty
+					desc = not_bureaucratic_courtly_or_spiritual_desc
+				}
+			}
+			if = {
+				limit = {
+					has_dlc_feature = royal_court
+					OR = {
+						scope:character = { has_royal_court = no }
+						NOT = {
+							scope:character = {
+								court_grandeur_current_level >= very_high_court_grandeur_level
+							}
+						}
+					}
+				}
+				add = {
+					value = tradition_unfulfilled_criteria_penalty
+					desc = culture_head_court_grandeur_desc
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						scope:character.faith = {
+							OR = {
+								has_doctrine = doctrine_polygamy
+								has_doctrine = doctrine_concubines
+							}
+						}
+					}
+				}
+				add = {
+					value = tradition_unfulfilled_criteria_penalty
+					desc = cheaper_tradition_from_faith
+				}
+			}
+			multiply = tradition_replacement_cost_if_relevant
+		}
+	}
+	ai_will_do = {
+		value = 200
+		if = {
+			limit = { # Admin should be more into this
+				scope:character = {
+					government_allows = administrative
+				}
+			}
+			multiply = 2
+		}
+	}
+}

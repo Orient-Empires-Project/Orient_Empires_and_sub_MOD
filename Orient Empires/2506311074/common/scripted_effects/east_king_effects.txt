@@ -4,7 +4,7 @@ show_chinese_king_effect = {
 		if = {
 			limit = {
 				root = {
-					government_has_flag = government_is_celestial
+					government_has_flag = government_has_influence
 				}				
 			}
 			root = {
@@ -27,10 +27,10 @@ show_chinese_king_effect = {
 			limit = {
 				root = {
 					NOT = {
-						government_has_flag = government_is_celestial
+						government_has_flag = government_has_influence
 					}	
 					any_liege_or_above = {
-						government_has_flag = government_is_celestial
+						government_has_flag = government_has_influence
 					}				
 				}
 			}
@@ -61,8 +61,8 @@ OE_create_kingdom_effect = {
 		}
 		$KINGTITLE$ = {
 			change_title_holder = {
-			holder = scope:secondary_actor
-			change = scope:change
+				holder = scope:secondary_actor
+				change = scope:change
 			}	
 		}
 		scope:secondary_actor = {
@@ -73,8 +73,11 @@ OE_create_kingdom_effect = {
 		}
 		resolve_title_and_vassal_change = scope:change
 	}
+	$KINGTITLE$ = {
+		set_variable = { name = titular_title value = yes }
+	}
 	$KINGTITLE$.holder = {
-		change_government = feudal_government
+		change_government = stratocratic_government
 		add_opinion_to_actor_receive_kingdom = yes
 	}
 }
@@ -87,7 +90,7 @@ show_chinese_duke_effect = {
 	if = {
 		limit = {
 			root = {
-				government_has_flag = government_is_celestial
+				government_has_flag = government_has_influence
 			}				
 		}
 		root = {
@@ -110,10 +113,10 @@ show_chinese_duke_effect = {
 		limit = {
 			root = {
 				NOT = {
-					government_has_flag = government_is_celestial
+					government_has_flag = government_has_influence
 				}	
 				any_liege_or_above = {
-					government_has_flag = government_is_celestial
+					government_has_flag = government_has_influence
 				}				
 			}
 		}
@@ -157,9 +160,65 @@ OE_create_duchy_effect = {
 		}
 		resolve_title_and_vassal_change = scope:change
 	}
+	$DUKETITLE$ = {
+		set_variable = { name = titular_title value = yes }
+	}
 	$DUKETITLE$.holder = {
 		add_realm_law_skip_effects = official_succession_law
-		change_government_royal_government_effect = yes
+		convert_celestial_contract_industry = yes
 		add_opinion_to_actor_receive_duchy = yes
 	}
 }
+
+### 宫廷职位藩王 ###
+gained_principality_effect = {
+	scope:liege = {
+		create_title_and_vassal_change = {
+			type = granted
+			save_scope_as = change
+			add_claim_on_loss = no
+		}
+		title:$TITLE$ = {
+			change_title_holder = {
+				holder = scope:employee
+				change = scope:change
+			}
+		}
+		scope:employee = {
+			change_liege = {
+				liege = scope:liege
+				change = scope:change
+			}
+		}
+		resolve_title_and_vassal_change = scope:change
+	}
+	title:$TITLE$ = {
+		set_variable = { name = titular_title value = yes }
+	}
+	title:$TITLE$.holder = {
+		convert_celestial_contract_commissioner = yes
+		add_realm_law_skip_effects = tradition_succession_law
+		change_to_hereditary_effect = yes
+
+		add_opinion_to_actor_receive_kingdom = yes #添加 王 称号
+	}
+}
+
+revoked_principality_effect = {
+	if = {
+		limit = {
+			scope:employee = {
+				target_is_vassal_or_below = scope:liege
+			}
+		}
+		scope:employee = {
+			destroy_title = title:$TITLE$
+		}
+	}
+}
+
+
+#TODO
+#授予藩王时，选择 1建立分家和庄园  2袭爵降等——自动创建公爵头衔
+#自定义藩王绑定宫廷头衔
+#检查继承法

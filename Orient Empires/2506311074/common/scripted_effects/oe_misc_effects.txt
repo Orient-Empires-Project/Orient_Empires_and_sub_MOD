@@ -1,4 +1,75 @@
-﻿change_influence_or_prestige = {
+﻿dynastic_cycle_hidden_effect = {
+	create_title_and_vassal_change = {
+		type = swear_fealty
+		save_scope_as = mandate_vassalize_celestial_families_change
+	}
+	# Vassalize any stray celestial noble families or independent realms within the Cycle's region - we also give them merit to fill out the candidate pools
+	every_independent_ruler = {
+		limit = {
+			this != scope:new_son_of_heaven
+			capital_province.county ?= {
+				target_is_de_jure_liege_or_above = title:h_china
+			}
+			NOT = {	government_has_flag = cannot_be_vassal_or_liege }
+			OR = {
+				government_has_flag = government_is_celestial
+				culture = {
+					has_same_culture_heritage = scope:new_son_of_heaven.culture
+				}
+				dynasty = scope:new_son_of_heaven.dynasty
+			}
+			is_ai = yes
+		}
+		change_liege = {
+			liege = scope:new_son_of_heaven
+			change = scope:mandate_vassalize_celestial_families_change
+		}
+		change_merit = {
+			value = { 3000 8000 }
+			add = {
+				value = age
+				multiply = 2
+			}
+			add = {
+				value = sum_of_all_skills_value
+				multiply = 2
+			}
+		}
+		assign_completed_exams_based_on_merit_effect = yes
+		if = {
+			limit = {
+				highest_held_title_tier >= tier_county
+				NOR = {
+					# Don't change republics or theocracies
+					government_has_flag = government_is_republic
+					government_has_flag = government_is_theocracy
+					# No need to change if they are celestial already
+					government_has_flag = government_is_celestial
+				}
+				capital_province ?= {
+					OR = {
+						has_holding_type = castle_holding
+						has_holding_type = city_holding
+						has_holding_type = temple_citadel_holding
+					}
+				}
+			}
+			change_to_administrative_effect = yes
+		}
+	}
+	resolve_title_and_vassal_change = scope:mandate_vassalize_celestial_families_change
+	# Ensure that we get a family title and a domicile if we don't
+	change_to_administrative_effect = yes
+	# set up the council holder as dejure liege of the ministry title, as this effect is not called with the same scope as council onactions
+	scope:new_son_of_heaven = {
+		save_scope_as = councillor_liege
+	}
+	# Make sure ministers are assigned correctly
+	fill_the_ministry_effect = yes
+}
+
+
+change_influence_or_prestige = {
 	if = {
 		limit = {
 			government_has_flag = government_has_influence
@@ -25,6 +96,32 @@ set_culture_in_region_effect = {
 				capital_province = {
 					geographical_region = $REGION$
 				}
+			}
+			set_culture = $NEW_CULTURE$
+			every_courtier = {
+				set_culture = $NEW_CULTURE$
+			}
+		}
+	}
+}
+
+convert_county_and_holder_if_in_region_effect = {
+	if = {
+		limit = {
+			title_province = {
+				geographical_region = $REGION$
+			}
+			culture = $OLD_CULTURE$
+		}
+		set_county_culture = $NEW_CULTURE$
+	}
+	holder = {
+		if = {
+			limit = {
+				capital_province = {
+					geographical_region = $REGION$
+				}
+				culture = $OLD_CULTURE$
 			}
 			set_culture = $NEW_CULTURE$
 			every_courtier = {

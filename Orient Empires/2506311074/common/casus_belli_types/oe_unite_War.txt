@@ -53,7 +53,7 @@
 		OR = {
 			NOT = {
 				scope:attacker = {			
-					is_independent_ruler = no
+					top_liege != this
 					highest_held_title_tier <= scope:defender.highest_held_title_tier 
 				}
 			}
@@ -149,10 +149,7 @@
 	}
 	
 	on_victory = {
-		scope:attacker = { show_pow_release_message_effect = yes }
-
-		# Legitimacy
-		add_legitimacy_attacker_victory_effect = yes
+		on_victory_aggressive_war_effect = yes
 
         #EP2 accolade glory gain for winning against higher ranked enemy
 		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
@@ -174,8 +171,8 @@
 			limit = {
 				scope:defender.primary_title.tier > scope:attacker.primary_title.tier
 				scope:defender.primary_title = {
-					tier = tier_empire
-					NOT = { this = title:e_celestia }
+					tier >= tier_empire
+					this != title:h_china
 				}			
 			}
 			scope:defender = {
@@ -290,27 +287,24 @@
 			LOSER_ALLY_FAME_SCALE = 1
 		}
 
-		# Truce
-		add_truce_attacker_victory_effect = yes
-
 		#望风而降
 		if = {
 			limit = {
 				scope:attacker = {
-					highest_held_title_tier = tier_empire
+					highest_held_title_tier >= tier_empire
 					is_ai = yes
 				}
 			}
 			scope:attacker = { save_scope_as = new_ruler }
-			title:e_celestia = {
+			title:h_china = {
 				every_dejure_vassal_title_holder = {
 					limit = {
-						is_independent_ruler = yes
+						top_liege = this
 						is_ai = yes
 						character_is_realm_neighbor = scope:attacker
-						NOT = { has_title = title:e_celestia }
-						NOT = { this = scope:defender }
-						NOT = { this = scope:attacker }
+						NOT = { has_title = title:h_china }
+						this != scope:defender
+						this != scope:attacker
 						NOT = { has_truce = scope:attacker }
 						highest_held_title_tier < tier_empire
 					}
@@ -324,14 +318,14 @@
 		if = {
 			limit = {
 				scope:attacker = {
-					has_primary_title = title:e_celestia
+					has_primary_title = title:h_china
 				}
 				scope:defender = {
 					OR = {
 						is_oe_imperial_government_trigger = yes
 						has_primary_title = title:k_han
 					}
-					NOT = { has_title = title:e_celestia }
+					NOT = { has_title = title:h_china }
 					NOT = { has_title = title:e_cathay }
 				}
 			}
@@ -339,7 +333,7 @@
 				every_held_title = {
 					limit = {
 						OR = {
-							tier = tier_empire
+							tier >= tier_empire
 							AND = {
 								tier = tier_kingdom
 								is_titular = yes
@@ -369,7 +363,7 @@
 	}
 	
 	on_white_peace = {
-		scope:attacker = { show_pow_release_message_effect = yes }
+		on_white_peace_effect = yes
 
 		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
@@ -390,21 +384,9 @@
 			}
 		}
 
-		# Truce
-		add_truce_white_peace_effect = yes
 
 		scope:attacker = {
 			add_prestige = mongol_invasion_cb_prestige_white_peace
-			stress_impact = {
-				ambitious = medium_stress_impact_gain
-				arrogant = medium_stress_impact_gain
-			}
-		}
-
-		scope:defender = {
-			stress_impact = {
-				arrogant = medium_stress_impact_gain
-			}
 		}
 	}
 
@@ -419,15 +401,11 @@
 	}
 	
 	on_defeat = {
-		scope:attacker = { show_pow_release_message_effect = yes }
-		
-		# Legitimacy
-		add_legitimacy_attacker_defeat_effect = yes
+		on_defeat_aggressive_war_effect = yes
 
 		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:defender = { accolade_defender_war_end_glory_gain_med_effect = yes }
 
-		# Prestige loss for the attacker
 		# Prestige loss for the attacker
 		scope:attacker = {
 			pay_short_term_gold_reparations_effect = {
@@ -454,13 +432,6 @@
 			WINNER_ALLY_FAME_SCALE = 1
 			LOSER_ALLY_FAME_SCALE = 1
 		}
-	
-		add_truce_attacker_defeat_effect = yes
-		
-		scope:attacker = {
-			save_temporary_scope_as = loser
-		}
-		on_lost_aggression_war_discontent_loss = yes
 	}
 	
 	on_invalidated = {
@@ -538,6 +509,7 @@ oe_de_jure_cb = {
 
 	valid_to_start = {
 		scope:target = {
+			is_landless_type_title = no
 			any_this_title_or_de_jure_above = {
 				exists = holder
 				holder = {
@@ -603,10 +575,7 @@ oe_de_jure_cb = {
 	}
 	
 	on_victory = {
-		scope:attacker = { show_pow_release_message_effect = yes }
-
-		# Legitimacy
-		add_legitimacy_attacker_victory_effect = yes
+		on_victory_effect = yes
 		
 		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
@@ -641,12 +610,6 @@ oe_de_jure_cb = {
 			WINNER_ALLY_FAME_SCALE = 100
 			LOSER_ALLY_FAME_SCALE = 100
 		}
-		
-		# truce
-		add_truce_attacker_victory_effect = yes
-
-		# FP1: note the victory for future memorialisation via stele (if applicable).
-		scope:attacker = { fp1_remember_recent_conquest_victory_effect = yes }
 	}
 
 	on_white_peace_desc = {
@@ -661,7 +624,7 @@ oe_de_jure_cb = {
 	}
 	
 	on_white_peace = {
-		scope:attacker = { show_pow_release_message_effect = yes }
+		on_white_peace_effect = yes
 
 		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:attacker = { accolade_attacker_war_end_glory_gain_high_effect = yes }
@@ -678,10 +641,6 @@ oe_de_jure_cb = {
 				value = scope:cb_prestige_factor # Set by 'setup_de_jure_cb'
 				multiply = -5.0
 			}
-			stress_impact = {
- 				ambitious = medium_stress_impact_gain
- 				arrogant = medium_stress_impact_gain
- 			}
 		}
 
 		# Allies on both sides get full prestige value for helping in the war, based on their war participation.
@@ -692,15 +651,6 @@ oe_de_jure_cb = {
 			WINNER_ALLY_FAME_SCALE = 100
 			LOSER_ALLY_FAME_SCALE = 100
 		}
-		# Defender neither gains nor loses any prestige.
-		scope:defender = {
-			stress_impact = {
- 				arrogant = medium_stress_impact_gain
- 			}
-		}
-		
-		# Truce
-		add_truce_white_peace_effect = yes
 	}
 
 	on_defeat_desc = {
@@ -720,10 +670,7 @@ oe_de_jure_cb = {
 	}
 	
 	on_defeat = {
-		scope:attacker = { show_pow_release_message_effect = yes }
-		
-		# Legitimacy
-		add_legitimacy_attacker_defeat_effect = yes
+		on_defeat_aggressive_war_effect = yes
 
 		#EP2 accolade glory gain for winning against higher ranked enemy
 		scope:defender = { accolade_defender_war_end_glory_gain_med_effect = yes }
@@ -752,16 +699,6 @@ oe_de_jure_cb = {
 			WINNER_ALLY_FAME_SCALE = 100
 			LOSER_ALLY_FAME_SCALE = 100
 		}
-
-
-	
-		# Truce
-		add_truce_attacker_defeat_effect = yes
-		
-		scope:attacker = {
-			save_temporary_scope_as = loser
-		}
-		on_lost_aggression_war_discontent_loss = yes
 	}
 	
 	on_primary_attacker_death = inherit

@@ -30,12 +30,12 @@
 			title_province = {
 				OR = {
 					geographical_region = world_steppe
-					geographical_region = world_steppe_tartaria
+					geographical_region = world_asia_north_east
 					geographical_region = world_tibet
 				}
 			}
 		}
-		NOT = { has_title = title:e_celestia }
+		NOT = { has_title = title:h_china }
 	}
 
 	is_valid = {
@@ -54,8 +54,8 @@
 		custom_tooltip = {
 			text = fp2_struggle_secure_tartaria_foothold_empire_tt
 			any_held_title = {
-				tier = tier_empire
-				NOT = { this = title:e_celestia }
+				tier >= tier_empire
+				this != title:h_china
 			}
 		}
 		# If my religion is involved, I need to own the better portion of those counties
@@ -143,7 +143,7 @@
 	effect = {
 		if = {
 			limit = {
-				any_held_title = { tier = tier_empire }
+				any_held_title = { tier >= tier_empire }
 			}
 			custom_tooltip = fp2_struggle_secure_tartaria_foothold_empire_held_effect_tt
 		}
@@ -158,9 +158,16 @@
 
 	cost = {}
 
-	ai_check_interval = 120
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 120
+		empire = 120
+		hegemony = 120
+	}
 	
-	ai_potential = {}
+	ai_potential = { always = yes }
 
 	ai_will_do = {
 		base = 100
@@ -188,7 +195,7 @@ struggle_tartaria_ending_hostility_decision = {
 	}
 
 	is_valid = {
-		is_independent_ruler = yes
+		top_liege = this
 
 		custom_tooltip = {
 			text = struggle_tartaria_ending_hostility_decision_correct_phase_tt
@@ -211,8 +218,11 @@ struggle_tartaria_ending_hostility_decision = {
 		OR = {
 			custom_tooltip = { #
 				text = struggle_tartaria_ending_hostility_decision_kingdom_tt
-				completely_controls = title:e_mongolia
-				completely_controls = title:e_celestia
+				every_county_in_region = {
+					region = world_steppe_east
+					target_is_de_facto_liege_or_above = root.primary_title
+				}
+				completely_controls = title:h_china
 			}
 			custom_tooltip = {
 				text = struggle_tartaria_ending_hostility_decision_united_chinese_throne_tt
@@ -223,7 +233,7 @@ struggle_tartaria_ending_hostility_decision = {
 						primary_title = global_var:steppe_chinese_empire_decision_title
 					}
 				}
-				completely_controls = title:e_celestia
+				completely_controls = title:h_china
 			}
 		}
 
@@ -246,8 +256,8 @@ struggle_tartaria_ending_hostility_decision = {
 			NOT = {
 				struggle:tartaria_struggle = {
 					any_involved_ruler = {
-						NOT = { this = root }
-						is_independent_ruler = yes
+						this != root
+						top_liege = this
 						exists = primary_title
 						primary_title = { is_mercenary_company = no }
 						save_temporary_scope_as = chinese_realm
@@ -265,12 +275,12 @@ struggle_tartaria_ending_hostility_decision = {
 		calc_true_if = {
 			amount >= 5
 			completely_controls = title:d_youzhou
-			completely_controls = title:d_xijing
+			completely_controls = title:d_yongxing
 			completely_controls = title:d_xuanshe
 			completely_controls = title:d_biansong
 			completely_controls = title:d_xichuan
-			completely_controls = title:d_xarmoron
-			completely_controls = title:d_xia
+			completely_controls = title:d_LIAO_linhuang
+			completely_controls = title:d_shuofang
 		}
 	}
 
@@ -311,9 +321,18 @@ struggle_tartaria_ending_hostility_decision = {
 
 	cost = {}
 
-	ai_check_interval = 120
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 120
+		empire = 120
+		hegemony = 120
+	}
 
-	ai_potential = { always = yes }
+	ai_potential = {
+		highest_held_title_tier >= tier_kingdom
+	}
 
 	ai_will_do = { base = 100 }
 }
@@ -340,8 +359,8 @@ struggle_tartaria_ending_compromise_decision = {
 	}
 
 	is_valid = {
-		is_independent_ruler = yes
-		NAND = { has_primary_title = title:e_celestia is_ai = yes }
+		top_liege = this
+		NAND = { has_primary_title = title:h_china is_ai = yes }
 		custom_tooltip = {
 			text = struggle_tartaria_ending_compromise_decision_correct_phase_tt
 			any_character_struggle = {
@@ -386,10 +405,10 @@ struggle_tartaria_ending_compromise_decision = {
 			NOT = {
 				struggle:tartaria_struggle = {
 					any_involved_ruler = {
-						is_independent_ruler = yes
+						top_liege = this
 						primary_title = { is_mercenary_company = no }
 						any_primary_war_enemy = {
-							is_independent_ruler = yes
+							top_liege = this
 							any_character_struggle = {
 								involvement = involved
 								is_struggle_type = tartaria_struggle
@@ -408,8 +427,8 @@ struggle_tartaria_ending_compromise_decision = {
 				struggle:tartaria_struggle = {
 					NOT = {
 						any_involved_ruler = {
-							NOT = { this = root }
-							is_independent_ruler = yes
+							this != root
+							top_liege = this
 							primary_title = { is_holy_order = no }
 							primary_title = { is_mercenary_company = no }
 							save_temporary_scope_as = this_character
@@ -429,8 +448,8 @@ struggle_tartaria_ending_compromise_decision = {
 				text = struggle_tartaria_ending_compromise_decision_independent_tt
 				struggle:tartaria_struggle = {
 					any_involved_ruler = {
-						NOT = { this = root }
-						is_independent_ruler = yes
+						this != root
+						top_liege = this
 						primary_title = { is_mercenary_company = no }
 						primary_title.tier >= tier_empire
 					}
@@ -451,12 +470,12 @@ struggle_tartaria_ending_compromise_decision = {
 		calc_true_if = {
 			amount >= 3
 			completely_controls = title:d_youzhou
-			completely_controls = title:d_xijing
+			completely_controls = title:d_yongxing
 			completely_controls = title:d_xuanshe
 			completely_controls = title:d_biansong
 			completely_controls = title:d_xichuan
-			completely_controls = title:c_degere
-			completely_controls = title:d_xia
+			completely_controls = title:c_LIAO_linhuang
+			completely_controls = title:d_shuofang
 		}
 	}
 
@@ -499,9 +518,18 @@ struggle_tartaria_ending_compromise_decision = {
 
 	cost = {}
 
-	ai_check_interval = 120
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 120
+		empire = 120
+		hegemony = 120
+	}
 
-	ai_potential = { always = yes }
+	ai_potential = {
+		highest_held_title_tier >= tier_kingdom
+	}
 
 	ai_will_do = { base = 100 }
 }
@@ -528,15 +556,15 @@ struggle_tartaria_ending_conciliation_decision = {
 	}
 
 	is_valid = {
-		is_independent_ruler = yes
-		has_title = title:e_celestia
+		top_liege = this
+		has_title = title:h_china
 
 		custom_tooltip = {
 			text = primary_spouse_same_culture_tt
 			AND = {
 				exists = primary_spouse
 				primary_spouse = {
-					is_independent_ruler = yes
+					top_liege = this
 					#any_character_struggle = {
 						#involvement = involved
 						#is_struggle_type = tartaria_struggle
@@ -545,7 +573,7 @@ struggle_tartaria_ending_conciliation_decision = {
 				}
 				struggle:tartaria_struggle = {
 					any_involved_ruler = {
-						is_independent_ruler = yes
+						top_liege = this
 						highest_held_title_tier >= tier_kingdom
 						NOT = { culture = root.culture }
 						primary_spouse = root					
@@ -584,7 +612,7 @@ struggle_tartaria_ending_conciliation_decision = {
 			struggle:tartaria_struggle = {
 				NOT = {
 					any_involved_ruler = {
-						is_independent_ruler = yes
+						top_liege = this
 						primary_title = { is_mercenary_company = no }
 						primary_title = { is_holy_order = no }
 						NOR = {
@@ -633,9 +661,18 @@ struggle_tartaria_ending_conciliation_decision = {
 
 	cost = {}
 
-	ai_check_interval = 120
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 0
+		duchy = 0
+		kingdom = 120
+		empire = 120
+		hegemony = 120
+	}
 
-	ai_potential = { always = yes }
+	ai_potential = {
+		highest_held_title_tier >= tier_kingdom
+	}
 
 	ai_will_do = { base = 100 }
 }

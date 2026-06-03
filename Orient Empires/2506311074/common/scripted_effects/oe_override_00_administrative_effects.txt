@@ -1,76 +1,251 @@
 ﻿change_to_administrative_effect = {
 	save_scope_as = governor
-	# OE
+	if = {
+		limit = { exists = scope:new_liege }
+		scope:new_liege = { save_scope_as = governor_liege }
+	}
+	else = {
+		top_liege = { save_scope_as = governor_liege }
+	}
+	# exactly 0 treasury,  i.e. newly get this feature
 	if = {
 		limit = {
-			government_has_flag = government_is_bureau
-		}
-		change_government_bureau_government_effect = yes
-		save_scope_as = new_admin
-	}
-	if = {
-		limit = {
-			liege = { government_has_flag = government_is_celestial }
-			NOT = { government_has_flag = government_is_celestial }
-		}
-		change_government_legion_government_effect = yes
-		save_scope_as = new_admin
-	}
-	else_if = {
-		limit = {
-			NOT = { government_has_flag = government_is_celestial }
-			NOT = { government_has_flag = government_is_ulus }
-			NOT = { government_has_flag = government_is_administrative }
-			NOT = { government_has_flag = government_is_bureau }
-		}
-		# HMI
-		hm_change_to_administrative_effect = yes
-		# change_government = administrative_government for placeholder!
-		save_scope_as = new_admin
-	}
-	if = {
-		limit = {
-			primary_title.tier >= tier_duchy
-			liege = {
-				is_independent_ruler = yes
-				government_has_flag = government_use_estate
+			OR = {
+				has_treasury = no
+				treasury = 0
 			}
-			house.house_head = {
-				NOT = {
-					any_held_title = { is_noble_family_title = yes }
+		}
+		save_scope_as = new_treasury
+	}
+	# Set the correct government
+	if = {
+		limit = {
+			OR = {
+				NOT = { government_allows = administrative }
+				AND = {
+					government_allows = administrative
+					scope:governor_liege = { government_has_flag = government_is_japan_administrative }
+					NOT = { government_has_flag = government_is_japan_administrative }
+				}
+				AND = {
+					government_allows = administrative
+					scope:governor_liege = { government_has_flag = government_is_meritocratic }
+					NOT = { government_has_flag = government_is_meritocratic }
+				}
+				AND = {
+					government_allows = administrative
+					scope:governor_liege = { government_has_flag = government_is_celestial }
+					NOT = { government_has_flag = government_is_celestial }
+				}
+				AND = {
+					government_allows = administrative
+					scope:governor_liege = { government_has_flag = government_is_stratocratic }
+					NOT = { government_has_flag = government_is_stratocratic }
+				}
+				AND = {
+					government_allows = administrative
+					scope:governor_liege = { government_has_flag = government_is_steppe_admin }
+					NOT = { government_has_flag = government_is_steppe_admin }
 				}
 			}
 		}
-		create_noble_family_effect = yes
-	}
-	else_if = {
-		limit = {
-			primary_title.tier >= tier_duchy
-			liege = {
-				is_independent_ruler = yes
-				government_allows = administrative
-			}
-			# HMI
-			NOT = { government_has_flag = use_hm_laws }
-			house.house_head = {
-				NOT = {
-					any_held_title = { is_noble_family_title = yes }
-				}
-			}
-		}
-		create_noble_family_effect = yes
-	}
-
-	hidden_effect = {
+		# Only case where Estate type is shared between Admin and non-Admin
 		if = {
 			limit = {
-				is_governor = yes
-				government_has_flag = government_is_celestial
-				NOT = { has_trait = lifestyle_bureaucrat }
+				NAND = {
+					government_has_flag = government_is_japan_feudal
+					scope:governor_liege = { government_has_flag = government_is_japan_administrative }
+				}
 			}
-			add_trait = lifestyle_bureaucrat
+			save_scope_as = new_admin
 		}
+		# Also Stratocratic OE
 		else_if = {
+			limit = {
+				NAND = {
+					government_has_flag = government_is_stratocratic
+					scope:governor_liege = { government_has_flag = government_is_celestial }
+				}
+			}
+			save_scope_as = new_admin
+		}
+		# If we are greek, let's ensure we become administrative
+		if = {
+			limit = {
+				NOT = { exists = scope:has_selected_a_government }
+				scope:governor_liege = {
+					this = scope:governor # not vassal of some other admin liege
+					culture = {
+						OR = {
+							this = culture:greek
+							any_parent_culture_or_above = { this = culture:greek }
+						}
+					}
+				}
+			}
+			save_scope_value_as = {
+				name = has_selected_a_government
+				value = flag:administrative
+			}
+		}
+		# Change government
+		# We first check if you have a selected government, then if you are independent, then what your liege has
+		if = { # Ritsuryo
+			limit = {
+				trigger_if = {
+					limit = {
+						exists = scope:has_selected_a_government
+					}
+					scope:has_selected_a_government = flag:japan_administrative
+				}
+				trigger_else_if = {
+					limit = {
+						top_liege = this
+					}
+					has_tgp_dlc_trigger = yes
+					tgp_can_become_japan_administrative_trigger = yes
+				}
+				trigger_else = {
+					scope:governor_liege = { government_has_flag = government_is_japan_administrative }
+				}
+			}
+			change_to_administrative_holding_effect = yes
+			tgp_domicile_conversion_when_changing_government_type = {
+				NEW_DOMICILE_TYPE = japanese_manor
+				NEW_GOVERNMENT_TYPE = japan_administrative_government
+			}
+			change_government = japan_administrative_government
+		}
+		else_if = { # Celestial
+			limit = {
+				trigger_if = {
+					limit = {
+						exists = scope:has_selected_a_government
+					}
+					scope:has_selected_a_government = flag:celestial
+				}
+				trigger_else_if = {
+					limit = {
+						scope:governor_liege ?= this
+					}
+					has_tgp_dlc_trigger = yes
+					OR = {
+						tgp_can_become_celestial_trigger = yes
+						#This is Mongol breakup and they are hegemon
+						AND = {
+							exists = scope:great_yuan_ruler
+							this = scope:great_yuan_ruler
+							primary_title = title:h_china
+						}
+					}
+				}
+				trigger_else = {
+					scope:governor_liege = { government_has_flag = government_is_celestial }
+				}
+			}
+			change_to_administrative_holding_effect = yes
+			tgp_domicile_conversion_when_changing_government_type = {
+				NEW_DOMICILE_TYPE = east_asian_estate
+				NEW_GOVERNMENT_TYPE = celestial_government
+			}
+			change_government = celestial_government
+		}
+		else_if = { # Stratocratic OE
+			limit = {
+				trigger_if = {
+					limit = {
+						exists = scope:has_selected_a_government
+					}
+					scope:has_selected_a_government = flag:stratocratic
+				}
+				trigger_else = {
+					scope:governor_liege = { government_has_flag = government_is_stratocratic }
+				}
+			}
+			change_to_administrative_holding_effect = yes
+			tgp_domicile_conversion_when_changing_government_type = {
+				NEW_DOMICILE_TYPE = east_asian_estate
+				NEW_GOVERNMENT_TYPE = stratocratic_government
+			}
+			change_government = stratocratic_government
+		}
+		else_if = { # Meritocratic Khanate
+			limit = {
+				trigger_if = {
+					limit = {
+						exists = scope:has_selected_a_government
+					}
+					# There's a separate decision to go from Nomad to Meritocratic Khanate, so you cannot pick it from here
+					always = no
+				}
+				trigger_else = {
+					scope:governor_liege = { government_has_flag = government_is_steppe_admin }
+				}
+			}
+			change_to_administrative_holding_effect = yes
+			tgp_domicile_conversion_when_changing_government_type = {
+				NEW_DOMICILE_TYPE = east_asian_estate
+				NEW_GOVERNMENT_TYPE = steppe_admin_government
+			}
+			change_government = steppe_admin_government
+		}
+		else_if = { # Meritocratic
+			limit = {
+				trigger_if = {
+					limit = {
+						exists = scope:has_selected_a_government
+					}
+					scope:has_selected_a_government = flag:meritocratic
+				}
+				trigger_else_if = {
+					limit = {
+						scope:governor_liege ?= this
+					}
+					has_tgp_dlc_trigger = yes
+					tgp_should_become_meritocratic_trigger = yes
+				}
+				trigger_else = {
+					scope:governor_liege = { government_has_flag = government_is_meritocratic }
+				}
+			}
+			change_to_administrative_holding_effect = yes
+			tgp_domicile_conversion_when_changing_government_type = {
+				NEW_DOMICILE_TYPE = east_asian_estate
+				NEW_GOVERNMENT_TYPE = meritocratic_government
+			}
+			change_government = meritocratic_government
+		}
+		else = { # Administrative
+			add_character_flag = new_government_is_byz_admin
+			change_to_administrative_holding_effect = yes
+			tgp_domicile_conversion_when_changing_government_type = {
+				NEW_DOMICILE_TYPE = estate
+				NEW_GOVERNMENT_TYPE = administrative_government
+			}
+			change_government = administrative_government 
+			remove_character_flag = new_government_is_byz_admin
+		}
+	}
+	# Set up a noble family title
+	if = {
+		limit = {
+			primary_title.tier >= min_appointment_tier
+			liege = {
+				scope:governor_liege = this
+				government_allows = administrative
+			}
+			house.house_head = {
+				top_liege = scope:governor_liege
+				NOT = {
+					any_held_title = { is_noble_family_title = yes }
+				}
+			}
+		}
+		create_noble_family_effect = { GOVERNMENT_GIVER = top_liege }
+	}
+	# Add the governor trait if applicable
+	hidden_effect = {
+		if = {
 			limit = {
 				is_governor = yes
 				NOT = { has_trait = governor }
@@ -78,14 +253,24 @@
 			add_trait = governor
 		}
 	}
+	# Set up the domicile
 	if = {
-		# HMI
 		limit = {
-			exists = scope:new_admin 
-			NOT = { government_has_flag = use_hm_laws }
+			exists = scope:new_admin
+			exists = domicile
 		}
 		domicile ?= {
 			set_up_domicile_estate_effect = yes
+		}
+	}
+	if = {
+		limit = {
+			has_treasury = yes
+			exists = scope:new_treasury  # do not give it mutiple times
+		}
+		add_treasury = {
+			value = gold
+			min = 100
 		}
 	}
 }

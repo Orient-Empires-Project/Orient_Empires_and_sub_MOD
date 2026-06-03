@@ -25,7 +25,7 @@
 
 #方向：从流官池升官 改为 内阁成员升官
 
-on_game_start_after_lobby = { #开局分配官阶
+on_game_start_after_lobby = { #开局分配官资
 	on_actions = {
 		east_on_after_lobby_bureaucrat_effects
 	}
@@ -34,36 +34,6 @@ on_game_start_after_lobby = { #开局分配官阶
 	
 east_on_after_lobby_bureaucrat_effects = {	
 	effect = {
-		### EP3 ADMIN SETUP ###
-		every_independent_ruler = {
-			limit = { government_has_flag = government_is_celestial }
-			save_scope_as = top_liege
-			### EP3 NOBLE FAMILIES & DOMICILE SETUP ###
-			random_held_title = { # May be removed once every_noble_family includes liege (TIT-51212)
-				limit = { is_oe_noble_family_title = yes }
-				set_coa = scope:top_liege.house
-			}
-			every_noble_family = {
-				# Ensure Noble Family CoA match House
-				set_coa = holder.house
-				# Ensure holders of historical noble family titles are the default house heads
-				holder ?= {
-					save_scope_as = nf_holder
-					if = {
-						limit = { is_landed = yes }
-						capital_province = { save_scope_as = domicile_location }
-					}
-					# TODO_CD_EP3: remove once TIT-51212 is resolved and confirmed
-					house ?= {
-						if = {
-							limit = { house_head != scope:nf_holder }
-							set_house_head = scope:nf_holder
-						}
-					}
-				}
-				set_color_from_title = scope:nf_holder.capital_county
-			}
-		}
 		every_ruler = {
 			if = {
 				limit = {
@@ -138,11 +108,11 @@ east_on_after_lobby_bureaucrat_effects = {
 					}
 				}
 				#every_councillor = {
-					##随机获得官阶经验
+					##随机获得官资经验
 					#if = {
 						#limit = { NOT = { has_trait = lifestyle_bureaucrat } }
 						#add_trait = lifestyle_bureaucrat
-						##考绩数值用于开局判定资历，可比较同官阶角色的次序，以节省性能。
+						##考绩数值用于开局判定资历，可比较同官资角色的次序，以节省性能。
 						#add_trait_xp = {
 							#trait = lifestyle_bureaucrat
 							#track = seniority
@@ -171,7 +141,7 @@ three_year_playable_pulse = { #三年考绩+科举
 #科举考试
 BureaucracyEmpire_jinshi_pulse = {
 	trigger = {
-		has_primary_title = title:e_celestia
+		has_primary_title = title:h_china
 		is_at_war = no
 		piety_level >= 4
 		has_global_variable = examination_modifier
@@ -208,7 +178,7 @@ BureaucracyEmpire_jinshi_pulse = {
 		#BureaucracyEmpire_yearly_new_pulse
 	#}
 #}
-#three_year_pool_pulse = { 无地考绩高者获得官阶
+#three_year_pool_pulse = { 无地考绩高者获得官资
 #	on_actions = { 
 #		BureaucracyEmpire_pool_pulse
 #	}
@@ -225,7 +195,7 @@ BureaucracyEmpire_jinshi_pulse = {
 #					has_trait = lifestyle_bureaucrat
 #				}
 #			}
-#			#添加官阶特质
+#			#添加官资特质
 #			if = {
 #				limit = { NOT = { has_trait = lifestyle_bureaucrat } }
 #				add_trait = lifestyle_bureaucrat
@@ -251,18 +221,20 @@ BureaucracyEmpire_yearly_new_pulse = {
 				is_oe_landed_bureaucrat_trigger = yes
 				is_male = yes
 			}
-			#添加官阶特质
+			#添加官资特质
 			bureaucrat_add_random_trait_xp_effect = yes
 			every_councillor = {
-				#添加官阶特质
+				#添加官资特质
 				bureaucrat_add_random_trait_xp_effect = yes
 			}
 			save_scope_as = bureaucrat		
 			primary_title = { save_scope_as = primary_title }
 			every_held_title = {
 				limit = {
-					is_landless_type_title = no
-					is_oe_titular_title = no
+					OR = {
+						is_oe_noble_family_title = no
+						is_landless_type_title = no
+					}
 				}
 				add_to_list = list_old_titles
 			}
@@ -302,7 +274,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 							#has_lifestyle = learning_lifestyle
 							#has_trait = jinshi
 							#has_trait = zhuangyuan
-							#has_trait = poet
+							#has_trait = lifestyle_poet
 							#has_trait = lifestyle_mystic
 						#}
 					#}
@@ -429,7 +401,7 @@ BureaucracyEmpire_yearly_new_pulse = {
 						NOT = { government_has_flag = government_has_influence }
 						is_oe_available_ai_at_peace = yes
 						NOT = { has_character_modifier = bureaucrat_positioned_term } #任期已满
-						bureaucrat_level_value > bureaucrat_title_rank_value #官阶高于职等
+						bureaucrat_level_value > bureaucrat_title_rank_value #官资高于职等
 					}
 					#储存契约
 					save_east_contract_effect = yes					
@@ -466,10 +438,15 @@ BureaucracyEmpire_yearly_new_pulse = {
 								}
 								every_held_title = {
 									limit = {
-										is_landless_type_title = no
-										is_oe_titular_title = no
+										OR = {
+											is_oe_noble_family_title = no
+											is_landless_type_title = no
+										}
 									}
-									change_title_holder = root
+									change_title_holder = {
+										holder = root
+										change = scope:change
+									}
 								}
 							}
 						}
@@ -601,10 +578,10 @@ BureaucracyEmpire_yearly_new_pulse = {
 			}
 			remove_trait = lifestyle_bureaucrat
 		}
-		#独立清空官阶
+		#独立清空官资
 		if = {
 			limit = {
-				is_independent_ruler = yes
+				top_liege = this
 			}
 			if = {
 				limit = { has_trait = lifestyle_bureaucrat }
@@ -627,8 +604,10 @@ BureaucracyEmpire_player_pulse = {
 	trigger = {
 		scope:title.tier > tier_barony
 		scope:title = {
-			is_oe_noble_family_title = no
-			is_landless_type_title = no
+			OR = {
+				is_oe_noble_family_title = no
+				is_landless_type_title = no
+			}
 		}
 		is_oe_landed_bureaucrat_trigger = yes #暂时接班的ai
 		is_oe_available_ai_at_peace = yes
@@ -656,8 +635,10 @@ BureaucracyEmpire_player_pulse = {
 		}
 		every_held_title = {
 			limit = {
-				is_landless_type_title = no
-				is_oe_titular_title = no
+				OR = {
+					is_oe_noble_family_title = no
+					is_landless_type_title = no
+				}
 			}
 			add_to_list = list_temp_title #目的地官位
 		}
@@ -687,8 +668,10 @@ BureaucracyEmpire_player_pulse = {
 				}
 				every_held_title = {
 					limit = {
-						is_landless_type_title = no
-						is_oe_titular_title = no
+						OR = {
+							is_oe_noble_family_title = no
+							is_landless_type_title = no
+						}
 					}
 					add_to_list = list_old_title  #卸任官位
 				}
@@ -723,9 +706,9 @@ BureaucracyEmpire_player_pulse = {
 						is_oe_illegal_criminal_trigger = no #众所周知的罪行
 					}
 					OR = {
-						scope:player.bureaucrat_level_value > scope:temp_holder.bureaucrat_level_value #比较官阶
+						scope:player.bureaucrat_level_value > scope:temp_holder.bureaucrat_level_value #比较官资
 						AND = {
-							#scope:player.bureaucrat_level_value = scope:temp_holder.bureaucrat_level_value #比较官阶
+							#scope:player.bureaucrat_level_value = scope:temp_holder.bureaucrat_level_value #比较官资
 							scope:player.governor_efficiency >= scope:temp_holder.governor_efficiency #比较考绩
 						}
 					}
@@ -747,7 +730,7 @@ BureaucracyEmpire_player_pulse = {
 					}
 					OR = {
 						#scope:player.bureaucracy_exp_value < scope:temp_holder.bureaucracy_exp_value #比较考绩
-						scope:player.bureaucrat_level_value < scope:temp_holder.bureaucrat_level_value #比较官阶
+						scope:player.bureaucrat_level_value < scope:temp_holder.bureaucrat_level_value #比较官资
 						scope:player.governor_efficiency < scope:temp_holder.governor_efficiency #比较考绩
 						AND = {
 							scope:player.age < 30
@@ -801,8 +784,10 @@ BureaucracyEmpire_on_title_gain_new = {
 		scope:title.tier >= tier_county
 		scope:title.tier <= tier_kingdom
 		scope:title = {
-			is_oe_noble_family_title = no
-			is_landless_type_title = no
+			OR = {
+				is_oe_noble_family_title = no
+				is_landless_type_title = no
+			}
 		}
 	}
 	effect = {
@@ -817,7 +802,7 @@ BureaucracyEmpire_on_title_gain_new = {
 			if = {
 				limit = {
 					NOT = { government_allows = administrative }
-					government_has_flag = government_use_bureaucracy
+					government_has_flag = government_has_influence	
 				}
 				send_interface_toast = {
 					type = event_toast_effect_good
@@ -845,7 +830,8 @@ BureaucracyEmpire_on_title_gain_new = {
 		}
 
 		#如果该官员是因为升迁获得的头衔，交接掉原有头衔
-		#trigger_event = bureaucracy.0013
+		trigger_event = bureaucracy.0013
+		
 
 		#旅行赴任
 		if = {
@@ -853,8 +839,10 @@ BureaucracyEmpire_on_title_gain_new = {
 				is_ai = no
 				is_adult = yes
 				scope:title = {
-					is_oe_noble_family_title = no
-					is_landless_type_title = no
+					OR = {
+						is_oe_noble_family_title = no
+						is_landless_type_title = no
+					}
 				}
 				NOT = { scope:title.title_capital_county.title_province = root.location }
 			}
@@ -870,7 +858,7 @@ BureaucracyEmpire_on_title_gain_new = {
 				return_trip = no # One way
 			}
 		}
-		#清理高官阶的廷臣
+		#清理高官资的廷臣
 		#if = {
 			#limit = {
 				#any_courtier = {
@@ -980,8 +968,10 @@ BureaucracyEmpire_ai_succession_pulse = {
 			}
 			every_held_title = {
 				limit = {
-					is_landless_type_title = no
-					is_oe_titular_title = no
+					OR = {
+						is_oe_noble_family_title = no
+						is_landless_type_title = no
+					}
 				}
 				change_title_holder_include_vassals = {
 					holder = scope:heir

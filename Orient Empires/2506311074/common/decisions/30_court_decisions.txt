@@ -1,5 +1,12 @@
 ﻿pay_homage_decision = {
-	ai_check_interval = 45
+	ai_check_interval_by_tier = {
+		barony = 0
+		county = 45
+		duchy = 45
+		kingdom = 45
+		empire = 45
+		hegemony = 0
+	}
 	picture = {
 		trigger = {
 			NOR = {
@@ -14,8 +21,7 @@
 					OR = {
 						culture = { has_cultural_pillar = heritage_byzantine }
 						capital_barony ?= title:b_constantinople
-						primary_title ?= title:e_byzantium
-						primary_title ?= title:e_roman_empire
+						is_roman_emperor_primary_title_trigger = yes
 					}
 				}
 			}
@@ -28,13 +34,25 @@
 	decision_group_type = major
 
 	cost = {
-		prestige = standard_activity_cost
+		prestige = standard_activity_base_cost
 		gold = {
 			value = 0
 			if = {
 				limit = {
 					exists = scope:pay_homage_gold
 					scope:pay_homage_gold = yes
+					has_treasury = no
+				}
+				add = medium_gold_value
+			}
+		}
+		treasury = {
+			value = 0
+			if = {
+				limit = {
+					exists = scope:pay_homage_gold
+					scope:pay_homage_gold = yes
+					has_treasury = yes
 				}
 				add = medium_gold_value
 			}
@@ -44,14 +62,20 @@
 	is_shown = {
 		is_landed = yes
 		primary_title.tier >= tier_county
-		is_independent_ruler = no
+		top_liege != this
 		liege ?= { has_royal_court = yes }
 		has_dlc_feature = royal_court
 		OR = {
 			government_has_flag = government_is_feudal
 			government_has_flag = government_is_clan
-			government_has_flag = government_is_celestial
+			government_has_flag = government_use_bureaucracy
 			government_has_flag = government_is_ulus
+		}
+		NOT = { 
+			culture = { has_cultural_parameter = must_pledge_loyalty_to_liege }
+			liege = {
+				culture = { has_cultural_parameter = must_pledge_loyalty_to_liege }
+			}
 		}
 	}
 
@@ -67,7 +91,6 @@
 				NOT = { var:pay_homage_grace = liege }
 			}
 		}
-
 	}
 
 	is_valid_showing_failures_only = {
@@ -308,6 +331,14 @@
 			limit = { exists = liege } # To stop errors
 			liege = { save_scope_as = homage_liege }
 		}
+		if = {
+			limit = {
+				liege = {
+					has_realm_law = uncrowned
+				}
+			}
+			custom_tooltip = pay_homage_uncrowned_tt
+		}
 		start_travel_plan = {
 			destination = liege.capital_province
 			on_start_on_action = pay_homage_start
@@ -325,7 +356,7 @@
 		base = 0
 		modifier = {
 			add = 50
-			prestige > standard_activity_cost
+			prestige > standard_activity_base_cost
 		}
 		modifier = { # AI's who can give gold are more likely
 			add = 50
@@ -351,6 +382,14 @@
 		modifier = { # Barons should be less weighted
 			add = -25
 			primary_title.tier < tier_county
+		}
+		#Unwilling to do it to lieges that are uncrowned
+		#Makes it less likely vassals will be traveling during coronation
+		modifier = {
+			factor = 0
+			liege = {
+				has_realm_law = uncrowned
+			}
 		}
 	}
 }

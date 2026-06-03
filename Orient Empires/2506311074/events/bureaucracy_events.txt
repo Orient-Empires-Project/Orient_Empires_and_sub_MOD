@@ -271,18 +271,6 @@ bureaucracy.0007 = {
 				}
 			}
 		}
-		#销毁世族
-		scope:player = {
-			if = {
-				limit = {
-					scope:temp_holder.primary_title.tier = tier_county
-					any_held_title = {
-						is_oe_noble_family_title = yes
-					}
-				}
-				transfer_noble_family_title_effect = yes
-			}
-		}
 
 		create_title_and_vassal_change = {
 			type = stepped_down
@@ -445,7 +433,7 @@ bureaucracy.0002 = {
 	type = character_event
 	hidden = yes
 	trigger = {
-		#is_independent_ruler = no
+		#top_liege != this
 		is_ai = yes
 		exists = player_heir
 		OR = {
@@ -454,14 +442,14 @@ bureaucracy.0002 = {
 				NOT = { target_is_de_jure_liege_or_above = root.primary_title }
 				is_landless_type_title = no
 					#tier = tier_county
-				NOT = { this = root.primary_title }
+				this != root.primary_title
 			}
 			any_vassal = {
 				any_held_title = {
 					NOT = { target_is_de_jure_liege_or_above = root.primary_title }
 					#tier = tier_county
 					is_landless_type_title = no
-					#NOT = { this = root.primary_title }
+					#this != root.primary_title
 				}	
 			}
 		}
@@ -483,7 +471,7 @@ bureaucracy.0002 = {
 					NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
 					tier = tier_county
 					is_landless_type_title = no
-					NOT = { this = scope:recipient.primary_title }			
+					this != scope:recipient.primary_title			
 				}
 			}
 			while = {
@@ -495,7 +483,7 @@ bureaucracy.0002 = {
 						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
 						tier = tier_county
 						is_landless_type_title = no
-						NOT = { this = scope:recipient.primary_title }
+						this != scope:recipient.primary_title
 					}
 				}
 				#BureaucracyEmpire_bureaucracy_liege_effect = {
@@ -512,7 +500,7 @@ bureaucracy.0002 = {
 						tier = tier_county
 						is_landless_type_title = no
 						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
-						NOT = { this = scope:recipient.primary_title }
+						this != scope:recipient.primary_title
 					}
 					save_scope_as = change_held_title
 					change_title_holder = {
@@ -633,7 +621,7 @@ bureaucracy.0002 = {
 				any_held_title = {
 					tier = tier_kingdom
 					is_landless_type_title = no
-					NOT = { this = scope:recipient.primary_title }
+					this != scope:recipient.primary_title
 				}
 			}
 			while = {
@@ -642,7 +630,7 @@ bureaucracy.0002 = {
 						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
 						tier = tier_kingdom
 						is_landless_type_title = no
-						NOT = { this = scope:recipient.primary_title }
+						this != scope:recipient.primary_title
 					}
 				}
 				create_title_and_vassal_change = {
@@ -655,7 +643,7 @@ bureaucracy.0002 = {
 						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
 						tier = tier_kingdom
 						is_landless_type_title = no
-						NOT = { this = scope:recipient.primary_title }
+						this != scope:recipient.primary_title
 					}
 					save_scope_as = change_held_title
 				}
@@ -703,7 +691,7 @@ bureaucracy.0002 = {
 					NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
 					tier = tier_duchy
 					is_landless_type_title = no
-					NOT = { this = scope:recipient.primary_title }
+					this != scope:recipient.primary_title
 				}
 			}
 			while = {
@@ -712,7 +700,7 @@ bureaucracy.0002 = {
 						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
 						tier = tier_duchy
 						is_landless_type_title = no
-						NOT = { this = scope:recipient.primary_title }
+						this != scope:recipient.primary_title
 					}
 				}
 				create_title_and_vassal_change = {
@@ -725,7 +713,7 @@ bureaucracy.0002 = {
 						NOT = { target_is_de_jure_liege_or_above = scope:recipient.primary_title }
 						tier = tier_duchy
 						is_landless_type_title = no
-						NOT = { this = scope:recipient.primary_title }
+						this != scope:recipient.primary_title
 					}
 					save_scope_as = change_held_title
 				}
@@ -839,9 +827,9 @@ bureaucracy.0003 = {
 					is_bureau_government_trigger = yes
 					highest_held_title_tier <= tier_duchy
 					culture = { has_cultural_pillar = heritage_chinese }
-					is_independent_ruler = no
+					top_liege != this
 					is_ai = yes
-					#NOT = { vassal_contract_has_flag = imperial_bureau_3 }
+					#NOT = { vassal_contract_has_flag = oe_imperial_bureau_3 }
 				}
 				if = { 
 					limit = { NOT = { has_realm_law = official_succession_law } }
@@ -1058,8 +1046,7 @@ bureaucracy.0011 = {
 	}
 
 	after = {
-		#change_government_milita_government_effect = yes
-		change_government_legion_government_effect = yes
+		change_government_milita_government_effect = yes
 		add_realm_law_skip_effects = celestial_bureaucracy_2
 	}
 }
@@ -1123,9 +1110,11 @@ bureaucracy.0012 = {
 	}
 
 	after = {
-		#change_government_legion_government_effect = yes
-		#add_realm_law_skip_effects = celestial_bureaucracy_3
-		change_government = legion_government
+		change_government_legion_government_effect = yes
+		if = {
+			limit = { NOT = { has_realm_law = crown_authority_3 } }
+			add_realm_law_skip_effects = crown_authority_3
+		}
 		add_realm_law_skip_effects = legion_succession_law
 	}
 }
@@ -1141,8 +1130,8 @@ bureaucracy.0013 = {
 	hidden = yes
 
 	trigger = {
-		#government_has_flag = government_is_celestial
-		#is_independent_ruler = no
+		#government_has_flag = government_has_influence
+		#top_liege != this
 		is_oe_landed_bureaucrat_trigger = yes
 	}
 	
@@ -1226,8 +1215,8 @@ bureaucracy.0013 = {
 				scope:title.tier = tier_county
 				OR = {
 					scope:transfer_type = flag:stepped_down
-					#scope:transfer_type = flag:appointment
-					#scope:transfer_type = flag:appointment_succession
+					scope:transfer_type = flag:appointment
+					scope:transfer_type = flag:appointment_succession
 				}
 				highest_held_title_tier = tier_county
 				any_held_title = {
@@ -1239,11 +1228,7 @@ bureaucracy.0013 = {
 				save_scope_as = old_title
 			}
 			#governor_resignation_title_transfer_effect = yes
-			#切换领主
-			create_title_and_vassal_change = {
-				type = swear_fealty
-				save_scope_as = change
-			}
+			
 			if = {
 				limit = {
 					primary_title.de_jure_liege = {
@@ -1292,7 +1277,29 @@ bureaucracy.0013 = {
 					save_scope_as = new_liege
 				}
 			}
+			#交出非法理
 			
+			create_title_and_vassal_change = {
+				type = appointment
+				save_scope_as = change11
+			}
+			every_held_title = {
+				limit = {
+					NOT = {
+						title_capital_county = scope:title.title_capital_county
+					}
+				}
+				change_title_holder = {
+					holder = scope:new_liege
+					change = scope:change11
+				}
+			}
+			resolve_title_and_vassal_change = scope:change11
+			#切换领主
+			create_title_and_vassal_change = {
+				type = swear_fealty
+				save_scope_as = change
+			}
 			change_liege = {
 				liege = scope:new_liege
 				change = scope:change
@@ -1306,7 +1313,7 @@ bureaucracy.0013 = {
 				NOT = { scope:title.title_capital_county = root.capital_county }
 				NOR = {
 					scope:transfer_type = flag:granted
-					scope:transfer_type = flag:appointment
+					#scope:transfer_type = flag:appointment
 					#scope:transfer_type = flag:appointment_succession
 				}
 				highest_held_title_tier = tier_county
@@ -1326,12 +1333,12 @@ bureaucracy.0013 = {
 				}
 				create_title_and_vassal_change = {
 					type = stepped_down
-					save_scope_as = change1
+					save_scope_as = change
 				}
 				scope:old_title = {
 					change_title_holder = {
 						holder = scope:lucky
-						change = change1
+						change = change
 					}
 				}
 				if = {
@@ -1341,16 +1348,16 @@ bureaucracy.0013 = {
 					}
 					change_liege = {
 						liege = scope:old_title.de_jure_liege.holder
-						change = scope:change1
+						change = scope:change
 					}
 				}
 				else = {
 					change_liege = {
 						liege = root.top_liege
-						change = scope:change1
+						change = scope:change
 					}
 				}
-				resolve_title_and_vassal_change = scope:change1
+				resolve_title_and_vassal_change = scope:change
 			}
 		}
 		#升官 伯爵-公爵
@@ -1362,7 +1369,7 @@ bureaucracy.0013 = {
 				NOR = {
 					scope:transfer_type = flag:granted
 					scope:transfer_type = flag:revoked
-					scope:transfer_type = flag:appointment
+					#scope:transfer_type = flag:appointment
 				}
 				scope:title = { is_landless_type_title = no }
 				scope:title = { is_oe_noble_family_title = no } #重要
@@ -1397,7 +1404,7 @@ bureaucracy.0013 = {
 					#不会替补掉自己的办公首府
 					#trigger_if = {
 						#limit = { exists = root.capital_county }
-						#NOT = { this = root.capital_county }
+						#this != root.capital_county
 					#}
 					#不在法理的的头衔要交出
 					OR = {
@@ -1419,46 +1426,46 @@ bureaucracy.0013 = {
 			}
 			resolve_title_and_vassal_change = scope:change2
 
-			#every_vassal = {
-				#limit = {
-					#NOT = { primary_title.de_jure_liege = scope:title }
-					##NOT = { primary_title.de_jure_liege = { holder = root } }
-				#}
-				#save_scope_as = old_vassals
-			#}
-			#if = {
-				#limit = { 
-					#exists = scope:old_vassals
-				#}
-				#create_title_and_vassal_change = {
-					#type = swear_fealty
-					#save_scope_as = change4
-					#add_claim_on_loss = no
-				#}
-				#scope:old_vassals = {
-					#if = {
-						#limit = {
-							#primary_title.de_jure_liege = { exists = holder }
-						#}
-						#if = {
-							#limit = {
-								#NOT = { primary_title.de_jure_liege.holder = root }
-							#}
-							#change_liege = {
-								#liege = primary_title.de_jure_liege.holder
-								#change = scope:change4
-							#}
-						#}
-					#}
-					#else = {
-						#change_liege = {
-							#liege = root.top_liege
-							#change = scope:change4
-						#}
-					#}
-				#}
-				#resolve_title_and_vassal_change = scope:change4
-			#}
+			every_vassal = {
+				limit = {
+					NOT = { primary_title.de_jure_liege = scope:title }
+					#NOT = { primary_title.de_jure_liege = { holder = root } }
+				}
+				save_scope_as = old_vassals
+			}
+			if = {
+				limit = { 
+					exists = scope:old_vassals
+				}
+				create_title_and_vassal_change = {
+					type = swear_fealty
+					save_scope_as = change4
+					add_claim_on_loss = no
+				}
+				scope:old_vassals = {
+					if = {
+						limit = {
+							primary_title.de_jure_liege = { exists = holder }
+						}
+						if = {
+							limit = {
+								NOT = { primary_title.de_jure_liege.holder = root }
+							}
+							change_liege = {
+								liege = primary_title.de_jure_liege.holder
+								change = scope:change4
+							}
+						}
+					}
+					else = {
+						change_liege = {
+							liege = root.top_liege
+							change = scope:change4
+						}
+					}
+				}
+				resolve_title_and_vassal_change = scope:change4
+			}
 		}
 	}
 	after = {

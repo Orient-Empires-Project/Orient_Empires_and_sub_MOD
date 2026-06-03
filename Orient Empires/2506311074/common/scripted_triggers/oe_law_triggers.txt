@@ -1,19 +1,26 @@
-﻿
+﻿realm_law_use_stratocratic_bureaucracy = {
+	government_has_flag = government_is_stratocratic
+}
+
+realm_law_use_celestial_authority = {
+	OR = {
+		realm_law_use_stratocratic_bureaucracy = yes
+		realm_law_use_celestial_bureaucracy = yes
+		
+		government_has_flag = government_has_merit
+		government_has_flag = government_use_bureaucracy
+	}
+}
+
 #流官制（与帝国官僚继承法接驳）
 can_have_official_succession_law_trigger = {
-	government_allows = administrative
-	government_has_flag = government_is_celestial
-	is_independent_ruler = no
-
-	primary_title ?= {
-		tier > tier_county
-		is_oe_noble_family_title = no
-	}
+	government_has_flag = government_use_bureaucracy
+	top_liege != this
 
 	NOR = {
 		vassal_contract_has_flag = heir_succession_rights_unlock
 		primary_title = { has_variable = titular_title }
-		has_title = title:d_gosho
+		has_title = title:k_chrysanthemum_throne
 	}
 
 	trigger_if = {
@@ -43,17 +50,17 @@ can_pass_official_succession_law_trigger = {
 #宗法指认制
 can_have_tradition_succession_law_trigger = {
 	OR = {
-		government_has_flag = government_is_celestial
+		government_has_flag = government_use_bureaucracy
 		government_has_flag = government_is_ulus
-		government_has_flag = government_is_legion
+		government_has_flag = government_is_stratocratic
 	}
 	OR = {
-		is_royal_government_trigger = yes
-		is_independent_ruler = yes
-		is_oe_imperial_official_trigger = yes
+		#is_royal_government_trigger = yes
+		top_liege = this
+		#is_oe_imperial_official_trigger = yes
 		vassal_contract_has_flag = heir_succession_rights_unlock
-		has_title = title:d_gosho
-		has_title = title:d_sekke
+		has_title = title:k_chrysanthemum_throne
+		has_title = title:k_sekke
 	}	
 }
 
@@ -72,12 +79,12 @@ can_pass_tradition_succession_law_trigger = {
 #留后册命制（藩镇基础继承法）
 can_have_legion_succession_law_trigger = {
 	OR = {
-		government_has_flag = government_is_legion
+		government_has_flag = government_is_stratocratic
+		is_milita_government_trigger = yes
 		AND = {
-			government_has_flag = government_is_celestial
-			liege = { NOT = { government_has_flag = government_is_celestial } }
+			government_has_flag = government_use_bureaucracy
+			liege = { NOT = { government_has_flag = government_use_bureaucracy } }
 		}
-		vassal_contract_has_flag = heir_succession_rights_unlock
 	}
 }
 
@@ -98,36 +105,9 @@ can_have_admin_succession_law_trigger = {
 	is_landed = yes
 	primary_title ?= { is_landless_type_title = no }
 
-	trigger_if = {
-		limit = {
-			government_has_flag = government_is_celestial
-			NOT = { government_allows = administrative }
-		}
-		highest_held_title_tier <= tier_kingdom
-	}
-	trigger_if = {
-		limit = {
-			government_has_flag = government_is_celestial
-			government_allows = administrative
-		}
-		trigger_if = {
-			limit = { top_liege ?= { has_realm_law_flag = pool_bureaucracy_succession_duchy } } #科举直派路使 
-			highest_held_title_tier <= tier_duchy
-		}
-		trigger_if = {
-			limit = { top_liege ?= { NOT = { has_realm_law_flag = pool_bureaucracy_succession_duchy } } }
-			highest_held_title_tier <= tier_county
-		}
-	}
 	OR = {
-		top_liege ?= {
-			government_has_flag = government_is_celestial
-		}
+		government_has_flag = government_use_bureaucracy
 		government_has_flag = government_is_bureau
-		AND = {
-			government_has_flag = government_is_celestial
-			is_theocratic_lessee = no
-		}
 		AND = {
 			is_theocratic_lessee = yes
 			religion = religion:confucianism_religion
@@ -138,21 +118,43 @@ can_have_admin_succession_law_trigger = {
 		vassal_contract_has_flag = imperial_royal_1
 		vassal_contract_has_flag = heir_succession_rights_unlock
 	}
+	
+	trigger_if = {
+		limit = {
+			government_has_flag = government_use_bureaucracy
+		}
+		highest_held_title_tier <= tier_kingdom
+	}
+	trigger_else_if = {
+		limit = {
+			government_has_flag = government_use_bureaucracy
+		}
+		trigger_if = {
+			limit = { top_liege ?= { has_realm_law_flag = pool_bureaucracy_succession_duchy } } #科举直派路使 
+			highest_held_title_tier <= tier_duchy
+		}
+		trigger_else = {
+			highest_held_title_tier <= tier_county
+		}
+	}
+	trigger_else = {
+		always = no
+	}
 }
 
 #玩家判定
 can_have_official_succession_law_player_trigger = {
-	is_independent_ruler = no
+	top_liege != this
 	#highest_held_title_tier >= tier_county
 	liege ?= {
 		OR = {
-			government_has_flag = government_is_celestial
+			government_has_flag = government_use_bureaucracy
 			government_has_flag = government_is_bureau
 			is_legion_government_trigger = yes
 		}
 	}
 	OR = {
-		government_has_flag = government_is_celestial
+		government_has_flag = government_use_bureaucracy
 		government_has_flag = government_is_bureau
 		is_legion_government_trigger = yes
 	}

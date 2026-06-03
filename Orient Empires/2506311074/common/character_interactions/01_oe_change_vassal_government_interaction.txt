@@ -12,26 +12,16 @@ change_vassal_legion_interaction = {
 	is_shown = {
 		NOT = { scope:actor = scope:recipient }
 		scope:actor = {
-			#culture = { has_cultural_pillar = heritage_chinese }
-			NOT = { has_realm_law = official_succession_law }
-			government_has_flag = government_is_celestial
+			government_use_bureaucracy_trigger = yes
 			OR = {
 				highest_held_title_tier >= tier_kingdom
-				AND = {
-					is_legion_government_trigger = yes
-					is_ai = no
-				}
-				AND = {
-					is_independent_ruler = yes
-					highest_held_title_tier = tier_duchy
-				}
+				is_independent_ruler = yes
 			}
 		}
 		scope:recipient = {
 			holds_landed_title = yes
 			is_vassal_of = scope:actor
-			NOT = { vassal_contract_has_flag = imperial_contract_1 }
-			is_legion_government_trigger = no
+			vassal_contract_has_flag = celestial_military_appointment
 		}
 	}
 	is_valid = {
@@ -45,7 +35,7 @@ change_vassal_legion_interaction = {
 						modifier = let_me_become_legion_opinion
 						target = scope:actor
 					}
-					change_government = legion_government
+					change_government = stratocratic_government
 				}
 			}
 		}
@@ -118,7 +108,7 @@ change_vassal_legion_interaction = {
 		modifier = {
 			add = 20
 			scope:actor = {
-				government_has_flag = government_is_celestial
+				government_use_bureaucracy_trigger = yes
 			}
 			desc = LIEGE_IS_IMPERIAL_REASON
 		}
@@ -188,21 +178,21 @@ change_vassal_bureau_interaction = {
 		NOT = { scope:actor = scope:recipient }
 		scope:actor = {
 			#culture = { has_cultural_pillar = heritage_chinese }	
-			government_has_flag = government_is_celestial
+			government_use_bureaucracy_trigger = yes
 			NOT = { is_legion_government_trigger = yes }
 			OR = {
 				highest_held_title_tier >= tier_kingdom
 				AND = {
 					highest_held_title_tier = tier_duchy
-					is_independent_ruler = yes				
+					top_liege = this				
 				}
 			}
 		}
 		scope:recipient = {
 			holds_landed_title = yes
 			is_vassal_of = scope:actor
-			government_has_flag = government_is_celestial
-			NOT = { vassal_contract_has_flag = imperial_contract_0 }
+			government_use_bureaucracy_trigger = yes
+			NOT = { vassal_contract_has_flag = celestial_civil_appointment }
 			is_bureau_government_trigger = no
 		}
 	}
@@ -226,7 +216,18 @@ change_vassal_bureau_interaction = {
 			if = {
 				limit = { primary_title.tier = tier_kingdom }
 				primary_title = { save_scope_as = title }
-				set_administrative_kingdom_effect = yes
+				if = {
+					limit = {
+						game_start_date > 975.1.1
+					}
+					set_song_administrative_kingdom_effect = yes
+				}
+				else_if = {
+					limit = {
+						game_start_date < 800.1.1
+					}
+					set_tang_administrative_kingdom_effect = yes
+				}
 			}
 		}
 	}
@@ -418,7 +419,7 @@ change_vassal_bureau_interaction = {
 		modifier = {
 			add = -20
 			scope:actor = {
-				government_has_flag = government_is_celestial
+				government_use_bureaucracy_trigger = yes
 			}
 			desc = LIEGE_IS_IMPERIAL_REASON
 		}
@@ -484,14 +485,12 @@ change_vassal_official_succession = {
 		NOT = { scope:actor = scope:recipient }
 		scope:actor = {
 			#culture = { has_cultural_pillar = heritage_chinese }
-			government_has_flag = government_is_celestial
+			government_use_bureaucracy_trigger = yes
 			OR = {
 				highest_held_title_tier >= tier_kingdom
+				is_legion_government_trigger = yes
 				AND = {
-					is_legion_government_trigger = yes
-				}
-				AND = {
-					is_independent_ruler = yes
+					top_liege = this
 					highest_held_title_tier = tier_duchy
 				}
 			}
@@ -500,10 +499,10 @@ change_vassal_official_succession = {
 			holds_landed_title = yes
 			is_vassal_of = scope:actor
 			OR = {
-				NOT = { government_has_flag = government_use_bureaucracy }
+				NOT = { government_use_bureaucracy_trigger = yes }
 				AND = {
-					government_has_flag = government_is_celestial
-					NOT = { has_realm_law = official_succession_law }
+					government_use_bureaucracy_trigger = yes
+					NOT = { has_realm_law_flag = appointment_type_succession }
 					can_have_official_succession_law_trigger = yes
 				}
 			}
@@ -535,6 +534,7 @@ change_vassal_official_succession = {
 						modifier = let_me_become_official_succession_opinion
 						target = scope:actor
 					}
+					change_to_celes_government_effect = yes
 					add_realm_law_skip_effects = official_succession_law
 				}
 			}
@@ -740,7 +740,7 @@ change_vassal_official_succession = {
 		modifier = {
 			add = -20
 			scope:actor = {
-				government_has_flag = government_is_celestial
+				government_use_bureaucracy_trigger = yes
 			}
 			desc = LIEGE_IS_IMPERIAL_REASON
 		}
@@ -803,24 +803,16 @@ change_vassal_heir_succession = {
 	is_shown = {
 		NOT = { scope:actor = scope:recipient }
 		scope:actor = {
-			#culture = { has_cultural_pillar = heritage_chinese }
-			government_has_flag = government_is_celestial
+			government_use_bureaucracy_trigger = yes
 			OR = {
 				highest_held_title_tier >= tier_kingdom
-				AND = {
-					is_legion_government_trigger = yes
-				}
-				AND = {
-					is_independent_ruler = yes
-					highest_held_title_tier = tier_duchy
-				}
+				is_independent_ruler = yes
 			}
 		}
 		scope:recipient = {
 			holds_landed_title = yes
 			is_vassal_of = scope:actor
-			has_realm_law = official_succession_law
-			is_bureau_government_trigger = no
+			has_realm_law_flag = appointment_type_succession
 		}
 	}
 	is_valid = {
@@ -831,12 +823,13 @@ change_vassal_heir_succession = {
 			trigger_event = change_vassal_heir_succession.01
 			show_as_tooltip = {
 				scope:recipient = {
-					#vassal_contract_set_obligation_level = {
-						#type = heir_succession_rights
-						#level = 1
-					#}
-					#add_realm_law_skip_effects = legion_succession_law
-					change_government = feudal_government
+					change_government = stratocratic_government
+
+					vassal_contract_set_obligation_level = {
+						type = heir_succession_rights
+						level = 1
+					}
+					add_realm_law_skip_effects = legion_succession_law
 				}
 			}
 		}
@@ -897,7 +890,7 @@ change_vassal_heir_succession = {
 		modifier = {
 			add = 20
 			scope:actor = {
-				government_has_flag = government_is_celestial
+				government_use_bureaucracy_trigger = yes
 			}
 			desc = LIEGE_IS_IMPERIAL_REASON
 		}
@@ -954,4 +947,4 @@ change_vassal_heir_succession = {
 	send_options_exclusive = no
 }
 
-#官阶升降
+#官资升降

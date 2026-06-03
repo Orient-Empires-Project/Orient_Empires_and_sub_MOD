@@ -1,147 +1,144 @@
-types ModifyVassalContractsShared
+types ModifySubjectContractsShared
 {
-	type vbox_obligation_negotiation = vbox
+	type vbox_eastern_administrative_negotiation = vbox
 	{
-		vbox_default_negotiation = {
-		 	name = "default_subject_paper_contract"
-		 	visible = "[SubjectContract.HasModifyContractLayout('default')]"
-
-		 	layoutpolicy_horizontal = expanding
-		 	layoutpolicy_vertical = expanding
-		 	margin = { 20 20 }
-		 	spacing = 5
-		}
-		# HMI Plus Added
-		gangqu_negotiation = {}
-		# oe
-		vbox_oe_negotiation = {}
-		# ee added
-		vbox_ee_negotiation = {}
-
-		vbox_clan_negotiation = {
-			name = "clan_vassal_paper_contract"
-			visible = "[SubjectContract.HasModifyContractLayout('clan')]"
+		vbox = {
 			layoutpolicy_horizontal = expanding
 			layoutpolicy_vertical = expanding
-			margin = { 20 20 }
-			spacing = 5
-		}
-
-		vbox_administrative_negotiation = {
-			name = "administrative_vassal_paper_contract"
-			visible = "[SubjectContract.HasModifyContractLayout('admin')]"
-			layoutpolicy_horizontal = expanding
-			layoutpolicy_vertical = expanding
-			margin = { 20 5 }
-		}
-
-		hbox = {
-			layoutpolicy_horizontal = expanding
+			spacing = 10
 			margin_bottom = 5
 
-			divider = {
-				layoutpolicy_horizontal = expanding
+			vbox_theme_selection_list = {
+				margin = { -10 10 }
+				visible = "[DataModelHasItems( ModifySubjectContractInteractionWindow.AccessObligationLevelRadioButtons )]"
+				datamodel = "[ModifySubjectContractInteractionWindow.AccessObligationLevelRadioButtons]"
 
-				modify_texture = {
-					texture = "gfx/interface/component_masks/mask_fade_horizontal_middle_thick.dds"
-					blend_mode = alphamultiply
+				background = {
+					using = Background_Area_Dark
+
+					modify_texture = {
+						texture = "gfx/interface/component_masks/mask_fade_vertical_up.dds"
+						blend_mode = alphaMultiply
+						alpha = 0.4
+					}
+
+					modify_texture = {
+						texture = "gfx/interface/component_masks/event_effect_mask.dds"
+						blend_mode = alphaMultiply
+						alpha = 0.7
+					}
+				}
+
+				background = {
+					texture = "gfx/interface/window_theme_administration/eastern_fabric_pattern_small.dds"
+					visible = "[And( SubjectContract.HasModifyContractLayout( 'eastern_admin' ), Or( Or( SubjectContract.GetSubject.GetGovernment.IsType( 'meritocratic_government'), SubjectContract.GetSubject.GetGovernment.IsType( 'steppe_admin_government') ), SubjectContract.GetSubject.GetGovernment.IsType( 'japan_administrative_government') ) )]"
+
+					using = Mask_Rough_Edges
+					margin_bottom = 10
+					margin_top = 10
+				}
+
+				background = {
+					texture = "gfx/interface/window_theme_administration/eastern_fabric_pattern.dds"
+					visible = "[And( SubjectContract.HasModifyContractLayout( 'eastern_admin' ), SubjectContract.GetSubject.GetGovernment.IsType( 'celestial_government') )]"
+
+					using = Mask_Rough_Edges
+					margin = { 0 10 }
 				}
 			}
-		}
 
-		button_standard = {
-			name = "reset_button"
-			onclick = "[ModifySubjectContractInteractionWindow.ResetToCurrent]"
-			enabled = "[Not( ModifySubjectContractInteractionWindow.IsPreviewSameAsCurrent )]"
-			text = "RESET_CONTRACT_CHANGES"
-			using = tooltip_above
-
-			background = {
-				using = Background_Area_Light
-				alpha = 0.8
+			spacer = {
+				size = { 0 10 }
 			}
+
+			vbox = {
+				name = "major_line_tree_levels"
+				datamodel = "[ModifySubjectContractInteractionWindow.AccessObligationLevelLineTrees]"
+				layoutpolicy_horizontal = expanding
+
+				spacing = 10
+
+				item = {
+					vbox = {
+						visible = "[ObligationContainerData.ShouldShow( ModifySubjectContractInteractionWindow.GetContractPreview )]"
+
+						layoutpolicy_vertical = expanding
+						layoutpolicy_horizontal = expanding
+
+						margin_bottom = 10
+						spacing = 10
+
+						datacontext = "[ObligationLevelLineTree.GetContainerData]"
+
+						hbox = {
+							layoutpolicy_horizontal = expanding
+
+							background = {
+								using = Background_Area_Dark
+								margin = { 0 2 }
+								alpha = 0.3
+							}
+
+							text_single = {
+								text = "[ObligationContainerData.GetName] [ObligationContainerData.GetIcon]"
+								using = Font_Size_Medium
+								margin_bottom = 5
+
+								default_format = "#light_background"
+								using = Text_Light_Background_Overrides
+							}
+						}
+
+						hbox = {
+							name = "obligation_level_item_line_area" # Name used in code do not change
+							datamodel = "[ObligationLevelLineTree.AccessItems]"
+							layoutpolicy_vertical = expanding
+
+							item = {
+								# oe cfv
+								vbox_obligation_tree_level_button_radio = { }
+							}
+						}
+					}
+				}
+			}
+
+			# oe cfv
+			dynamicgridbox = {
+				name = "minor_list_levels_checkboxes"
+				datamodel = "[ModifySubjectContractInteractionWindow.AccessObligationLevelCheckboxes]"
+
+				flipdirection = yes
+				datamodel_wrap = 3
+
+				item = {
+					widget_minor_obligation_checkbox_item = {
+						size = { 178 70 }
+					}
+				}
+			}
+
+			# expand = {}
 		}
 	}
-	type vbox_oe_negotiation = vbox_administrative_negotiation {
-		name = "oe_vassal_paper_contract"
-		visible = "[SubjectContract.HasModifyContractLayout('celestial')]"
 
-		layoutpolicy_horizontal = expanding
-		layoutpolicy_vertical = expanding
-		margin = { 20 20 }
-		spacing = 5
-	}
 	# EE's one will NOT used if OE exists.
 	type vbox_ee_negotiation = container {
 		visible = no
 	}
-	type oe_admin_minor_list_levels_checkboxes = dynamicgridbox {
-		name = "minor_list_levels_checkboxes"
-		datamodel = "[ModifySubjectContractInteractionWindow.AccessObligationLevelCheckboxes]"
 
-		flipdirection = yes
-		datamodel_wrap = 4
-		
-		item = {
-			widget_oe_minor_obligation_checkbox_item = {
-				size = { 150 65 }
-			}
-		}
-	}
-	# imported from HMI, last check before 2025.3.12
-	type widget_oe_minor_obligation_checkbox_item = widget
+	
+	type vbox_obligation_tree_level_button_radio = vbox
 	{
-		datacontext = "[ObligationLevelCheckbox.GetContainerData]"
-		visible = "[ObligationContainerData.ShouldShow( ModifySubjectContractInteractionWindow.GetContractPreview )]"
-	
-		background = {
-			using = Background_Area_With_Header
-			alpha = 0.75
-		}
-	
-		vbox = {
-			margin_left = 10
-			spacing = 2
-	
-			text_single = {
-				layoutpolicy_horizontal = expanding
-				minimumsize = { 0 33 }
-				text = "[ObligationContainerData.GetName]"
-				using = Font_Size_Medium
-				default_format = "#high"
-			}
-	
-			hbox = {
-				layoutpolicy_horizontal = expanding
-				alwaystransparent = no
-				spacing = 5
-	
-				datacontext = "[ObligationLevelCheckbox.GetLevel( '(int32)1' )]" # First one is always no effect/disabled option
-	
-				button_checkbox_label = {
-					# Order dependent, first select the unselected level then set it as the new selected one
-					onclick = "[ModifySubjectContractInteractionWindow.SelectObligationLevel( ObligationLevelCheckbox.GetLevel( ObligationLevelCheckbox.GetUnselectedLevelIndex ) )]"
-					onclick = "[ObligationLevelCheckbox.ToggleSelection]"
-	
-					blockoverride "checkbox"
-					{
-						checked = "[ModifySubjectContractInteractionWindow.IsObligationLevelSelected( ModifySubjectContractInteractionWindowObligationLevelOption.Self )]"
-						enabled = "[ModifySubjectContractInteractionWindow.IsObligationLevelEnabled( ModifySubjectContractInteractionWindowObligationLevelOption.Self )]"
-					}
-	
-					blockoverride "text"
-					{
-						text = "[ModifySubjectContractInteractionWindowObligationLevelOption.GetName]"
-						default_format = "#high"
-					}
-				}
-	
-				expand = {}
-	
-				tooltip = "[ModifySubjectContractInteractionWindow.GetObligationLevelTooltipFor( ModifySubjectContractInteractionWindowObligationLevelOption.Self )]"
-			}
-	
-			expand = {}
+		datacontext = "[ObligationLevelLineItem.AccessItem]"
+		position = "[ObligationLevelLineTree.GetItemPosition( ModifySubjectContractInteractionWindowObligationLevelOption.Self )]"
+
+		layoutpolicy_horizontal = expanding
+		margin_bottom = 4
+
+		hbox_minor_obligation_radio_option = {
+			max_width = 124
+			max_height = 32
 		}
 	}
 }
