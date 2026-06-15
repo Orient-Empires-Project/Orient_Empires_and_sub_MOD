@@ -7,6 +7,7 @@ on_title_gain = {
 miaohao_on_title_gain = {
 	trigger = {
 		scope:title.tier >= tier_empire
+		NOT = { house = scope:title.previous_holder.house }
 		OR = {
 			scope:transfer_type = flag:created
 			scope:transfer_type = flag:usurped
@@ -25,6 +26,17 @@ miaohao_on_title_gain = {
 		if = {
 			limit = {
 				highest_held_title_tier >= tier_empire
+				royal_members_trigger = yes ##前皇族
+				NOR = {
+					has_trait = founding_monarch
+					has_trait = restoration_monarch
+				}
+			}
+			add_trait = restoration_monarch
+		}
+		else_if = {
+			limit = {
+				highest_held_title_tier >= tier_empire
 				royal_members_trigger = no ##非皇族
 				NOT = { has_trait = founding_monarch }
 			}
@@ -37,17 +49,6 @@ miaohao_on_title_gain = {
 				}
 			}
 			add_trait = founding_monarch
-		}
-		else_if = {
-			limit = {
-				highest_held_title_tier >= tier_empire
-				royal_members_trigger = yes ##前皇族
-				NOR = {
-					has_trait = founding_monarch
-					has_trait = restoration_monarch
-				}
-			}
-			add_trait = restoration_monarch
 		}
 	}
 }
@@ -63,25 +64,54 @@ Guohao_on_action = {
 	effect = {
 		if = {
 			limit = {
-				liege = root
-				tgp_use_chinese_naming_trigger = yes
-
+				is_independent_ruler = yes
+				OR = {
+					tgp_use_chinese_naming_trigger = yes
+					primary_title = {
+						recent_history = {
+							type = conquest_populist
+							days = 1
+						}
+						previous_holder = {
+							tgp_use_chinese_naming_trigger = yes
+						}
+					}
+					AND = {
+						exists = var:claimed_mandate_var
+						primary_title ?= title:h_china
+					}
+				}
+				tgp_chinese_naming_tier_trigger = yes
+				
 				primary_title = {
 					tier >= tier_kingdom
+				}
+				scope:title ?= {
+					tier >= tier_duchy
 				}
 			}
 			if = {
 				limit = {
-					scope:title = {
-						has_custom_title_name = yes
+					scope:title ?= {
+						tier >= tier_kingdom
+						OR = {
+							has_custom_title_name = yes
+							is_titular = yes
+						}
 					}
-					primary_title ?= {
-						has_custom_title_name = no
+					OR = {	
+						primary_title ?= {
+							has_custom_title_name = no
+						}
+						primary_title.previous_holder.dynasty != root.dynasty
 					}
 				}
 				scope:title = {
 					move_title_name_to = root.primary_title
 					reset_title_name = yes
+				}
+				primary_title = {
+					set_color_from_title = scope:title
 				}
 			}
 		}
